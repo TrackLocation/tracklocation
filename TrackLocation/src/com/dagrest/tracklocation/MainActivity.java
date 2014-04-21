@@ -11,6 +11,9 @@ public class MainActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		// my 2 cents + 2 cents
+		
+		System.out.println("Started");
+
 	}
 
 	@Override
