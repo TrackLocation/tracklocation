@@ -1,6 +1,6 @@
 package com.dagrest.tracklocation;
 
-import java.util.logging.LogManager;
+import com.dagrest.tracklocation.log.LogManager;
 
 import android.os.Bundle;
 import android.app.Activity;
@@ -15,6 +15,7 @@ public class MainActivity extends Activity {
 		// my 2 cents + 2 cents
 		
 		System.out.println("Started");
+		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", "NEW Test message from onCreate method");
 
 	}
 
