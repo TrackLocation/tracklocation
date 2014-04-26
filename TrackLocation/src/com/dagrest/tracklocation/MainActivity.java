@@ -1,22 +1,38 @@
 package com.dagrest.tracklocation;
 
 import com.dagrest.tracklocation.log.LogManager;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Context;
 import android.view.Menu;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		final int RQS_GooglePlayServices = 1;
+		
 		setContentView(R.layout.activity_main);
 		// my 2 cents + 2 cents
 		
 		System.out.println("Started");
 		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", "NEW Test message from onCreate method");
-
+		
+		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
+		  
+		  if (resultCode == ConnectionResult.SUCCESS){
+		   Toast.makeText(getApplicationContext(), 
+		     "isGooglePlayServicesAvailable SUCCESS", 
+		     Toast.LENGTH_LONG).show();
+		  }else{
+		   GooglePlayServicesUtil.getErrorDialog(resultCode, this, RQS_GooglePlayServices);
+		  }
 	}
 
 	@Override
@@ -26,5 +42,5 @@ public class MainActivity extends Activity {
 		
 		return true;
 	}
-
+	
 }
