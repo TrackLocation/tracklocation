@@ -56,7 +56,7 @@
         </activity>
         
 	    <meta-data android:name="com.google.android.gms.version"
-           android:value="3" />
+           android:value="AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30" />
     </application>
 
 </manifest>
