@@ -12,11 +12,11 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
+	final int RQS_GooglePlayServices = 1;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		final int RQS_GooglePlayServices = 1;
 		
 		setContentView(R.layout.activity_main);
 		// my 2 cents + 2 cents
@@ -24,6 +24,20 @@ public class MainActivity extends Activity {
 		System.out.println("Started");
 		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", "NEW Test message from onCreate method");
 		
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		
+		return true;
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+
 		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
 		  
 		  if (resultCode == ConnectionResult.SUCCESS){
@@ -33,14 +47,6 @@ public class MainActivity extends Activity {
 		  }else{
 		   GooglePlayServicesUtil.getErrorDialog(resultCode, this, RQS_GooglePlayServices);
 		  }
-	}
-
-	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		
-		return true;
 	}
 	
 }
