@@ -181,7 +181,7 @@ public class MainActivity extends Activity {
 
                     // You should send the registration ID to your server over HTTP, so it
                     // can use GCM/HTTP or CCS to send messages to your app.
-                    sendRegistrationIdToBackend();
+                    sendRegistrationIdToBackend(regid);
 
                     // For this demo: we don't need to send it because the device will send
                     // upstream messages to a server that echo back the message using the
@@ -270,9 +270,9 @@ public class MainActivity extends Activity {
      * messages to your app. Not needed for this demo since the device sends upstream messages
      * to a server that echoes back the message using the 'from' address in the message.
      */
-    private void sendRegistrationIdToBackend() {
+    private void sendRegistrationIdToBackend(String regid) {
     	// Your implementation here.
-    	System.out.println("Your implementation here.");
-    }
+    	System.out.println("Device registered, registration ID=" + regid);
+     }
 
 }
