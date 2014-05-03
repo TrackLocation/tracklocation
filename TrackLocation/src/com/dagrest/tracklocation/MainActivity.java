@@ -18,7 +18,6 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,9 +59,6 @@ public class MainActivity extends Activity {
 //        btnRegId = (Button) findViewById(R.id.btnGetRegId);
         etRegId = (TextView) findViewById(R.id.etRegId);
         
-        System.out.println("Started");
-		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", "NEW Test message from onCreate method");
-
         // Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
@@ -73,6 +69,8 @@ public class MainActivity extends Activity {
             }
         } else {
             Log.e(LOG_TAG, "No valid Google Play Services APK found.");
+    		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", 
+    			"No valid Google Play Services APK found.");
         }
 		
 	}
@@ -226,8 +224,11 @@ public class MainActivity extends Activity {
                         String id = Integer.toString(msgId.incrementAndGet());
                         gcm.send(SENDER_ID + "@gcm.googleapis.com", id, data);
                         msg = "Sent message";
+                		//ssendRegistrationIdToBackend(regid);
                     } catch (IOException ex) {
                         msg = "Error :" + ex.getMessage();
+                        LogManager.LogErrorMsg(this.getClass().getName(), "onClick->Send", 
+                        	"Error :" + ex.getMessage());
                     }
                     return msg;
                 }
@@ -241,6 +242,10 @@ public class MainActivity extends Activity {
             mDisplay.setText("");
         } else if (view == findViewById(R.id.btnGetRegId)) {
         	etRegId.setText(getRegistrationId(getApplicationContext()) );
+        	String regId = getRegistrationId(getApplicationContext());
+        	System.out.println("RegID: " + regId);
+    		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
+    			"RegID: " + getRegistrationId(getApplicationContext()) + " :RegID");
         }
     }
 
@@ -280,7 +285,30 @@ public class MainActivity extends Activity {
      */
     private void sendRegistrationIdToBackend(String regid) {
     	// Your implementation here.
-    	System.out.println("Device registered, registration ID=" + regid);
-     }
+    	// System.out.println("Device registered, registration ID=" + regid);
+        System.out.println( "Sending POST to GCM" );
+
+        String apiKey = getRegistrationId(getApplicationContext());
+        
+        //String apiKey = "APA91bH5k01sQWFcZZljMbEB-W1fPD6ftzNjvpmgSaGHzW3NosK6ShPMuzpnVTkAH49hHbqRjpA5-9xQh2-vQl0AhV50LtpoemCuqM-KY3BQLDpgI_d7gY09qI6P5mNwwwc5l_puH0xXRR8b9rAeJq8HVeZ-Nr3m-UeZ4P0_HLjz1w2Df435Npw";
+        Content content = createContent(apiKey);
+
+        LogManager.LogInfoMsg(this.getClass().getName(), "sendRegistrationIdToBackend", 
+            	"Before PostToGCM.post(apiKey, content)");
+        PostToGCM.post(apiKey, content);
+        LogManager.LogInfoMsg(this.getClass().getName(), "sendRegistrationIdToBackend", 
+            	"After PostToGCM.post(apiKey, content)");
+    }
+
+    public static Content createContent(String apiKey){
+
+        Content c = new Content();
+
+        //c.addRegId("APA91bH5k01sQWFcZZljMbEB-W1fPD6ftzNjvpmgSaGHzW3NosK6ShPMuzpnVTkAH49hHbqRjpA5-9xQh2-vQl0AhV50LtpoemCuqM-KY3BQLDpgI_d7gY09qI6P5mNwwwc5l_puH0xXRR8b9rAeJq8HVeZ-Nr3m-UeZ4P0_HLjz1w2Df435Npw");
+        c.addRegId(apiKey);
+        c.createData("Test Title", "Test Message");
+
+        return c;
+    }
 
 }
