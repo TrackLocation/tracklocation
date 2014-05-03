@@ -18,6 +18,7 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,7 +45,9 @@ public class MainActivity extends Activity {
     Context context;
     
     String regid;
-
+//    Button btnRegId;
+    TextView etRegId;
+    
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -54,7 +57,10 @@ public class MainActivity extends Activity {
 		
 		context = getApplicationContext();
 		
-		System.out.println("Started");
+//        btnRegId = (Button) findViewById(R.id.btnGetRegId);
+        etRegId = (TextView) findViewById(R.id.etRegId);
+        
+        System.out.println("Started");
 		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", "NEW Test message from onCreate method");
 
         // Check device for Play Services APK. If check succeeds, proceed with GCM registration.
@@ -233,6 +239,8 @@ public class MainActivity extends Activity {
             }.execute(null, null, null);
         } else if (view == findViewById(R.id.clear)) {
             mDisplay.setText("");
+        } else if (view == findViewById(R.id.btnGetRegId)) {
+        	etRegId.setText(getRegistrationId(getApplicationContext()) );
         }
     }
 

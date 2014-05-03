@@ -6,5 +6,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="send">Send</string>
     <string name="clear">Clear</string>
+    <string name="getRegId">Get RegId</string>
     
 </resources>
