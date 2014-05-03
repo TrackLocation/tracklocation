@@ -1,13 +1,24 @@
 package com.dagrest.tracklocation;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.dagrest.tracklocation.log.LogManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
+//import com.google.android.gcm.server.Sender;
+
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
@@ -15,6 +26,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -185,7 +197,7 @@ public class MainActivity extends Activity {
 
                     // You should send the registration ID to your server over HTTP, so it
                     // can use GCM/HTTP or CCS to send messages to your app.
-                    sendRegistrationIdToBackend(regid);
+                    // sendRegistrationIdToBackend(regid);
 
                     // For this demo: we don't need to send it because the device will send
                     // upstream messages to a server that echo back the message using the
@@ -220,11 +232,21 @@ public class MainActivity extends Activity {
                     try {
                         Bundle data = new Bundle();
                         data.putString("my_message", "Hello World");
-                        data.putString("my_action", "com.google.android.gcm.demo.app.ECHO_NOW");
+                        data.putString("my_action", "com.dagrest.tracklocation.ECHO_NOW");
                         String id = Integer.toString(msgId.incrementAndGet());
-                        gcm.send(SENDER_ID + "@gcm.googleapis.com", id, data);
+                        //gcm.send(SENDER_ID + "@gcm.googleapis.com", id, data);
+                        String toId = getRegistrationId(getApplicationContext());
+                        String daToId = "APA91bGkXaoVQUsJje8G0-l-uAPgWsuEfC4lrIsxPyacC52aOm4bw79pLb1MkHhl3lQ2IMCKYmc0bR5T1zna8G9H2g8KdGFvXnw4JhE3bTLjjdydPktriUQo6BLfUNKQhzqzqm4Cj2z2mtqrxNk2mt8zvNugFmJUtwkQEPQVpmhVSvyzmzk6Jo0";
+                        String laToId = "APA91bET5fuNBxEWpCN4OcKIYnPswm2P-dcKdEb4-2Kxa1rzuv8dhx36bnwECgy3Fje2tzfU2nvtFLkpj2tNryRGIwdidaQAKvKdvNupEvWBBejVE1eQYxEzpV51KXx-7Z_3CDu9SFvykNBmhZbhZ-30nd1wW-vnMjtt42uA1t0qECU6FnKBRB4";
+                        gcm.send(toId + "@gcm.googleapis.com", id, 0, data);
+                        id = Integer.toString(msgId.incrementAndGet());
+                        gcm.send(daToId + "@gcm.googleapis.com", id, 0, data);
+                        id = Integer.toString(msgId.incrementAndGet());
+                        gcm.send(laToId + "@gcm.googleapis.com", id, 0, data);
+                        
+                        //gcm.send(SENDER_ID + "@google.com", id, data);
                         msg = "Sent message";
-                		//ssendRegistrationIdToBackend(regid);
+                		// sendRegistrationIdToBackend(regid);
                     } catch (IOException ex) {
                         msg = "Error :" + ex.getMessage();
                         LogManager.LogErrorMsg(this.getClass().getName(), "onClick->Send", 
@@ -310,5 +332,26 @@ public class MainActivity extends Activity {
 
         return c;
     }
-
+    
+	// Checking for all possible internet providers
+    public boolean isConnectingToInternet(){
+         
+        ConnectivityManager connectivity = 
+                             (ConnectivityManager) getSystemService(
+                              Context.CONNECTIVITY_SERVICE);
+          if (connectivity != null)
+          {
+              NetworkInfo[] info = connectivity.getAllNetworkInfo();
+              if (info != null)
+                  for (int i = 0; i < info.length; i++)
+                      if (info[i].getState() == NetworkInfo.State.CONNECTED)
+                      {
+                          return true;
+                      }
+  
+          }
+          return false;
+    }
+    
 }
+

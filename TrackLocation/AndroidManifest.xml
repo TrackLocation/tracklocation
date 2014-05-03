@@ -25,6 +25,8 @@
     <permission android:name="com.dagrest.tracklocation.permission.C2D_MESSAGE" 
         android:protectionLevel="signature" />
     <uses-permission android:name="com.dagrest.tracklocation.permission.C2D_MESSAGE" />
+    
+	<uses-permission android:name="android.permission.READ_PHONE_STATE" />
 	
 	<application
         android:allowBackup="true"
@@ -56,8 +58,9 @@
         </activity>
         
 	    <meta-data android:name="com.google.android.gms.version"
-	       	android:value="4323000"/>
+	       	android:value="4132500"/>
  	       	<!-- android:value="4132500"/>  -->
+ 	       	<!-- android:value="4323000 -->
 	    </application>
 
 </manifest>

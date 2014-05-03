@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
 public class PostToGCM {
+    
     public static void post(String apiKey, Content content){
 
         LogManager.LogInfoMsg("PostToGCM", "post", 
