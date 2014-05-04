@@ -6,6 +6,9 @@ import android.os.IBinder;
 
 public class TrackLocationService extends Service {
 
+	private boolean started = false;
+	private int getLocationInterval = 0;
+	
 	@Override
 	public IBinder onBind(Intent arg0) {
 		// TODO Auto-generated method stub

@@ -6,7 +6,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+// Not needed class - to delete
 public class Content implements Serializable {
+/*
 	private static final long serialVersionUID = 1579077612684640817L;
 	
 	private List<String> registration_ids;
@@ -29,4 +31,5 @@ public class Content implements Serializable {
         data.put("title", title);
         data.put("message", message);
     }
+*/
 }

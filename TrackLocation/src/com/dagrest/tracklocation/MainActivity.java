@@ -1,13 +1,6 @@
 package com.dagrest.tracklocation;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -22,23 +15,10 @@ import org.apache.http.util.EntityUtils;
 
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
+import com.dagrest.tracklocation.service.ScheduledActionExecutor;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.Result;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-
-//import com.google.android.gcm.server.Sender;
-
-
-
-
-
-
-
-
-
-
-
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -49,7 +29,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -66,6 +45,7 @@ public class MainActivity extends Activity {
     private static final String PROPERTY_APP_VERSION = "0.1";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private final static int RQS_GooglePlayServices = 1;
+    private ScheduledActionExecutor scheduledActionExecutor = null;
 
     /**
      * Substitute you own sender ID here. This is the project number you got
@@ -285,12 +265,20 @@ public class MainActivity extends Activity {
             }.execute(null, null, null);
         } else if (view == findViewById(R.id.clear)) {
             mDisplay.setText("");
+            
+            if( scheduledActionExecutor != null ){
+            	scheduledActionExecutor.shutdown();
+            	scheduledActionExecutor = null;
+            }
         } else if (view == findViewById(R.id.btnGetRegId)) {
         	etRegId.setText(getRegistrationId(getApplicationContext()) );
         	String regId = getRegistrationId(getApplicationContext());
         	System.out.println("RegID: " + regId);
     		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
     			"RegID: " + getRegistrationId(getApplicationContext()) + " :RegID");
+    		if( scheduledActionExecutor == null){
+    			scheduledActionExecutor = new ScheduledActionExecutor(3);
+    		}
         }
     }
 
@@ -335,8 +323,8 @@ public class MainActivity extends Activity {
 
         String apiKey = getRegistrationId(getApplicationContext());
         
-        //String apiKey = "APA91bH5k01sQWFcZZljMbEB-W1fPD6ftzNjvpmgSaGHzW3NosK6ShPMuzpnVTkAH49hHbqRjpA5-9xQh2-vQl0AhV50LtpoemCuqM-KY3BQLDpgI_d7gY09qI6P5mNwwwc5l_puH0xXRR8b9rAeJq8HVeZ-Nr3m-UeZ4P0_HLjz1w2Df435Npw";
-        Content content = createContent(apiKey);
+        // String apiKey = "APA91bH5k01sQWFcZZljMbEB-W1fPD6ftzNjvpmgSaGHzW3NosK6ShPMuzpnVTkAH49hHbqRjpA5-9xQh2-vQl0AhV50LtpoemCuqM-KY3BQLDpgI_d7gY09qI6P5mNwwwc5l_puH0xXRR8b9rAeJq8HVeZ-Nr3m-UeZ4P0_HLjz1w2Df435Npw";
+        // Content content = createContent(apiKey);
 
         LogManager.LogInfoMsg(this.getClass().getName(), "sendRegistrationIdToBackend", 
             	"Before PostToGCM.post(apiKey, content)");
@@ -388,16 +376,16 @@ public class MainActivity extends Activity {
         return null;
     }
     
-    public static Content createContent(String apiKey){
-
-        Content c = new Content();
-
-        //c.addRegId("APA91bH5k01sQWFcZZljMbEB-W1fPD6ftzNjvpmgSaGHzW3NosK6ShPMuzpnVTkAH49hHbqRjpA5-9xQh2-vQl0AhV50LtpoemCuqM-KY3BQLDpgI_d7gY09qI6P5mNwwwc5l_puH0xXRR8b9rAeJq8HVeZ-Nr3m-UeZ4P0_HLjz1w2Df435Npw");
-        c.addRegId(apiKey);
-        c.createData("Test Title", "Test Message");
-
-        return c;
-    }
+//    public static Content createContent(String apiKey){
+//
+//        Content c = new Content();
+//
+//        //c.addRegId("APA91bH5k01sQWFcZZljMbEB-W1fPD6ftzNjvpmgSaGHzW3NosK6ShPMuzpnVTkAH49hHbqRjpA5-9xQh2-vQl0AhV50LtpoemCuqM-KY3BQLDpgI_d7gY09qI6P5mNwwwc5l_puH0xXRR8b9rAeJq8HVeZ-Nr3m-UeZ4P0_HLjz1w2Df435Npw");
+//        c.addRegId(apiKey);
+//        c.createData("Test Title", "Test Message");
+//
+//        return c;
+//    }
     
 	// Checking for all possible internet providers
     public boolean isConnectingToInternet(){
