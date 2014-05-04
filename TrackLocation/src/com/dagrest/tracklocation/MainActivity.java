@@ -4,11 +4,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.message.BasicHeader;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
+
+import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -16,6 +28,17 @@ import com.google.android.gms.common.api.Result;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 //import com.google.android.gcm.server.Sender;
+
+
+
+
+
+
+
+
+
+
+
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -246,7 +269,7 @@ public class MainActivity extends Activity {
                         
                         //gcm.send(SENDER_ID + "@google.com", id, data);
                         msg = "Sent message";
-                		// sendRegistrationIdToBackend(regid);
+                		sendRegistrationIdToBackend(regid);
                     } catch (IOException ex) {
                         msg = "Error :" + ex.getMessage();
                         LogManager.LogErrorMsg(this.getClass().getName(), "onClick->Send", 
@@ -317,11 +340,54 @@ public class MainActivity extends Activity {
 
         LogManager.LogInfoMsg(this.getClass().getName(), "sendRegistrationIdToBackend", 
             	"Before PostToGCM.post(apiKey, content)");
-        PostToGCM.post(apiKey, content);
+        //PostToGCM.post(apiKey, content);
+        
+        new Date().toString();
+        
+        String messageJSON = "{\"registration_ids\" : "
+        	+ "[\"" + regid + "\"],"+
+        	"\"data\" : {\"message\": \"From David\",\"time\": \"" + new Date().toString() + "\"},}";
+        
+        postGCM("https://android.googleapis.com/gcm/send", "AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30", messageJSON);
+        
+        
         LogManager.LogInfoMsg(this.getClass().getName(), "sendRegistrationIdToBackend", 
             	"After PostToGCM.post(apiKey, content)");
     }
 
+    
+    private String postGCM(String url, String serverKey, String messageJson){
+    	
+        int responseCode;
+        String message;
+        HttpPost req = new HttpPost(url);
+    	
+        try {
+			StringEntity se = new StringEntity(messageJson);
+			se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE,
+					"application/json"));
+			req.setEntity(se);
+			List<BasicHeader> headers = new ArrayList<BasicHeader>();
+			headers.add(new BasicHeader("Accept", "application/json"));
+			headers.add(new BasicHeader("Authorization", "key=" + serverKey));
+			HttpResponse resp = HttpUtils
+					.post(url, headers, se, null/*localContext*/);
+			message = resp.getStatusLine().getReasonPhrase();
+			responseCode = resp.getStatusLine().getStatusCode();
+			if (responseCode != 200) {
+				//throw new Exception("Cloud Exception" + message);
+				return null;
+			} else {
+				String result = EntityUtils.toString(resp.getEntity(),
+						HTTP.UTF_8);
+				return result;
+			}
+		} catch (IOException e) {
+			// TODO: handle exception
+		}
+        return null;
+    }
+    
     public static Content createContent(String apiKey){
 
         Content c = new Content();
