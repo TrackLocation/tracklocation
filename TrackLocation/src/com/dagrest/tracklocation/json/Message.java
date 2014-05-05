@@ -3,14 +3,14 @@ package com.dagrest.tracklocation.json;
 import java.util.List;
 
 public class Message {
-	private List<String> registrationIDs;
+	private List<String> registration_ids;
 	private MessageData data;
 	
 	public List<String> getRegistrationIDs() {
-		return registrationIDs;
+		return registration_ids;
 	}
-	public void setRegistrationIDs(List<String> registrationIDs) {
-		this.registrationIDs = registrationIDs;
+	public void setRegistrationIDs(List<String> registration_ids) {
+		this.registration_ids = registration_ids;
 	}
 	public MessageData getData() {
 		return data;

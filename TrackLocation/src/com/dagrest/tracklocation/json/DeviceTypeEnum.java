@@ -3,14 +3,13 @@ package com.dagrest.tracklocation.json;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum CommandEnum {
-	Start("Start"), Stop("Stop"), SetInterval("SetInterval"),
-	Location("Location");
+public enum DeviceTypeEnum {
+	phone("phone"), tablet("tablet"), computer("computer");
 	
 	private final String name;       
-	private static Map<String, CommandEnum> valueMap;
+	private static Map<String, DeviceTypeEnum> valueMap;
 	
-    private CommandEnum(String s) {
+    private DeviceTypeEnum(String s) {
         name = s;
     }
 
@@ -22,11 +21,11 @@ public enum CommandEnum {
        return name;
     }
     
-    public static CommandEnum getValue(String value){
+    public static DeviceTypeEnum getValue(String value){
     	if (valueMap == null)
         {
-            valueMap = new HashMap<String, CommandEnum>();
-            for(CommandEnum provider: values())
+            valueMap = new HashMap<String, DeviceTypeEnum>();
+            for(DeviceTypeEnum provider: values())
                 valueMap.put(provider.toString(), provider);
         }
     	

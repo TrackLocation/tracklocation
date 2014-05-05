@@ -4,6 +4,11 @@ public class MessageData {
 	private String message;
 	private String time;
 	private CommandEnum command;
+	private String registrationID;
+	private CustomerData customerData;
+	private DeviceTypeEnum deviceTypeEnum;
+	private DeviceData deviceData;
+	private Location location;
 	
 	public String getMessage() {
 		return message;
@@ -23,5 +28,34 @@ public class MessageData {
 	public void setCommand(CommandEnum command) {
 		this.command = command;
 	}
-	
+	public String getRegistrationID() {
+		return registrationID;
+	}
+	public void setRegistrationID(String registrationID) {
+		this.registrationID = registrationID;
+	}
+	public CustomerData getCustomerData() {
+		return customerData;
+	}
+	public void setCustomerData(CustomerData customerData) {
+		this.customerData = customerData;
+	}
+	public DeviceTypeEnum getDeviceTypeEnum() {
+		return deviceTypeEnum;
+	}
+	public void setDeviceTypeEnum(DeviceTypeEnum deviceTypeEnum) {
+		this.deviceTypeEnum = deviceTypeEnum;
+	}
+	public DeviceData getDeviceData() {
+		return deviceData;
+	}
+	public void setDeviceData(DeviceData deviceData) {
+		this.deviceData = deviceData;
+	}
+	public Location getLocation() {
+		return location;
+	}
+	public void setLocation(Location location) {
+		this.location = location;
+	}
 }
