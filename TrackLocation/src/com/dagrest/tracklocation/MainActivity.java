@@ -14,11 +14,15 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
 import com.dagrest.tracklocation.http.HttpUtils;
+import com.dagrest.tracklocation.json.CommandEnum;
+import com.dagrest.tracklocation.json.Message;
+import com.dagrest.tracklocation.json.MessageData;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.service.ScheduledActionExecutor;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.gson.Gson;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -62,9 +66,36 @@ public class MainActivity extends Activity {
 //    Button btnRegId;
     TextView etRegId;
     
+    private void jsonTest(){
+        Gson gson = new Gson();
+    	
+        //gson.fromJson(messageJson, QuickPayParkingLocations.class);
+        
+        MessageData messageData = new MessageData();
+        messageData.setMessage("This is a message");
+        messageData.setTime(new Date().toString());
+        messageData.setCommand(CommandEnum.Stop);
+        
+        Message message = new Message();
+        message.setData(messageData); 
+        
+        List<String> listRegIDs = new ArrayList<String>(); 
+        listRegIDs.add("registrationIDs");
+        message.setRegistrationIDs(listRegIDs);
+        
+        Message messageTest = null;
+        String gsonString = gson.toJson(message);
+        if (gsonString != null) {
+        	messageTest = gson.fromJson(gsonString, Message.class);
+        	int i = 0;
+        }
+    }
+    
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+		jsonTest();
 		
 		setContentView(R.layout.activity_main);
 		mDisplay = (TextView) findViewById(R.id.display);
@@ -349,7 +380,7 @@ public class MainActivity extends Activity {
         int responseCode;
         String message;
         HttpPost req = new HttpPost(url);
-    	
+        
         try {
 			StringEntity se = new StringEntity(messageJson);
 			se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE,
