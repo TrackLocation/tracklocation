@@ -13,12 +13,13 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
+import com.dagrest.tracklocation.datatype.CommandEnum;
+import com.dagrest.tracklocation.datatype.Message;
+import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.http.HttpUtils;
-import com.dagrest.tracklocation.json.CommandEnum;
-import com.dagrest.tracklocation.json.Message;
-import com.dagrest.tracklocation.json.MessageData;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.service.ScheduledActionExecutor;
+import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -70,6 +71,7 @@ public class MainActivity extends Activity {
         Gson gson = new Gson();
     	
         //gson.fromJson(messageJson, QuickPayParkingLocations.class);
+        //Utils.CustomerDataFromFileJsonTest();
         
         MessageData messageData = new MessageData();
         messageData.setMessage("This is a message");
@@ -263,29 +265,29 @@ public class MainActivity extends Activity {
                 @Override
                 protected String doInBackground(Void... params) {
                     String msg = "";
-                    try {
-                        Bundle data = new Bundle();
-                        data.putString("my_message", "Hello World");
-                        data.putString("my_action", "com.dagrest.tracklocation.ECHO_NOW");
-                        String id = Integer.toString(msgId.incrementAndGet());
-                        //gcm.send(SENDER_ID + "@gcm.googleapis.com", id, data);
-                        String toId = getRegistrationId(getApplicationContext());
-                        String daToId = "APA91bGkXaoVQUsJje8G0-l-uAPgWsuEfC4lrIsxPyacC52aOm4bw79pLb1MkHhl3lQ2IMCKYmc0bR5T1zna8G9H2g8KdGFvXnw4JhE3bTLjjdydPktriUQo6BLfUNKQhzqzqm4Cj2z2mtqrxNk2mt8zvNugFmJUtwkQEPQVpmhVSvyzmzk6Jo0";
-                        String laToId = "APA91bET5fuNBxEWpCN4OcKIYnPswm2P-dcKdEb4-2Kxa1rzuv8dhx36bnwECgy3Fje2tzfU2nvtFLkpj2tNryRGIwdidaQAKvKdvNupEvWBBejVE1eQYxEzpV51KXx-7Z_3CDu9SFvykNBmhZbhZ-30nd1wW-vnMjtt42uA1t0qECU6FnKBRB4";
-                        gcm.send(toId + "@gcm.googleapis.com", id, 0, data);
-                        id = Integer.toString(msgId.incrementAndGet());
-                        gcm.send(daToId + "@gcm.googleapis.com", id, 0, data);
-                        id = Integer.toString(msgId.incrementAndGet());
-                        gcm.send(laToId + "@gcm.googleapis.com", id, 0, data);
-                        
-                        //gcm.send(SENDER_ID + "@google.com", id, data);
+//                    try {
+//                        Bundle data = new Bundle();
+//                        data.putString("my_message", "Hello World");
+//                        data.putString("my_action", "com.dagrest.tracklocation.ECHO_NOW");
+//                        String id = Integer.toString(msgId.incrementAndGet());
+//                        //gcm.send(SENDER_ID + "@gcm.googleapis.com", id, data);
+//                        String toId = getRegistrationId(getApplicationContext());
+//                        String daToId = "APA91bGkXaoVQUsJje8G0-l-uAPgWsuEfC4lrIsxPyacC52aOm4bw79pLb1MkHhl3lQ2IMCKYmc0bR5T1zna8G9H2g8KdGFvXnw4JhE3bTLjjdydPktriUQo6BLfUNKQhzqzqm4Cj2z2mtqrxNk2mt8zvNugFmJUtwkQEPQVpmhVSvyzmzk6Jo0";
+//                        String laToId = "APA91bET5fuNBxEWpCN4OcKIYnPswm2P-dcKdEb4-2Kxa1rzuv8dhx36bnwECgy3Fje2tzfU2nvtFLkpj2tNryRGIwdidaQAKvKdvNupEvWBBejVE1eQYxEzpV51KXx-7Z_3CDu9SFvykNBmhZbhZ-30nd1wW-vnMjtt42uA1t0qECU6FnKBRB4";
+//                        gcm.send(toId + "@gcm.googleapis.com", id, 0, data);
+//                        id = Integer.toString(msgId.incrementAndGet());
+//                        gcm.send(daToId + "@gcm.googleapis.com", id, 0, data);
+//                        id = Integer.toString(msgId.incrementAndGet());
+//                        gcm.send(laToId + "@gcm.googleapis.com", id, 0, data);
+//                        
+//                        //gcm.send(SENDER_ID + "@google.com", id, data);
                         msg = "Sent message";
                 		sendRegistrationIdToBackend(regid);
-                    } catch (IOException ex) {
-                        msg = "Error :" + ex.getMessage();
-                        LogManager.LogErrorMsg(this.getClass().getName(), "onClick->Send", 
-                        	"Error :" + ex.getMessage());
-                    }
+//                    } catch (IOException ex) {
+//                        msg = "Error :" + ex.getMessage();
+//                        LogManager.LogErrorMsg(this.getClass().getName(), "onClick->Send", 
+//                        	"Error :" + ex.getMessage());
+//                    }
                     return msg;
                 }
 

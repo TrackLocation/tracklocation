@@ -1,9 +1,10 @@
-package com.dagrest.tracklocation.json;
+package com.dagrest.tracklocation.datatype;
 
 public class DeviceData {
 	private String deviceName; // free text
 	private DeviceTypeEnum deviceTypeEnum; // phone/computer/tablet
-	
+	private String imei;
+
 	public String getDeviceName() {
 		return deviceName;
 	}
@@ -15,5 +16,11 @@ public class DeviceData {
 	}
 	public void setDeviceTypeEnum(DeviceTypeEnum deviceTypeEnum) {
 		this.deviceTypeEnum = deviceTypeEnum;
+	}
+	public String getImei() {
+		return imei;
+	}
+	public void setImei(String imei) {
+		this.imei = imei;
 	}
 }

@@ -6,33 +6,33 @@ import java.io.IOException;
 import java.io.PrintWriter;  
 import java.util.Calendar;  
 
+import com.dagrest.tracklocation.utils.CommonConstants;
+import com.dagrest.tracklocation.utils.Utils;
+
 import android.os.Environment;
 import android.util.Log; 
 
 public class LogHelper {
 
-    	private static final String DELIMITER = "\t";
-    	
-    	private static final String logDirectoryPath = "TrackLocation";         
-    	private static final String logFileName = "TrackLocation.log";          
-    	private static final String enableLogDirectory = "enable_log";          
     	private static LogHelper instance;          
     	private static boolean isLogEnabled;         
-    	private Object lockMe = null;    
+    	private Object lockMe = null;  
+    	private String storagePath;
     	
     	private LogHelper(){                  
     		lockMe = new Object();
     		
+    		storagePath = Utils.getStoragePath();
     		checkIsLogEnabled();                  
-    		if(isLogEnabled() == true){                          
+    		if(isLogEnabled() == true){  
     			// create a File object for the log directory                          
-    			File logDirectory = new File(getStoragePath() + File.separator + logDirectoryPath);                          
+    			File logDirectory = new File(storagePath + File.separator + CommonConstants.LOG_DIRECTORY_PATH);                          
     			if(logDirectory.exists() == false){                                  
     				// create log directory if needed                                  
     				logDirectory.mkdirs();                          
    				}
     			
-    			File logFile = new File(getStoragePath() + File.separator + logDirectoryPath + File.separator + logFileName);                          
+    			File logFile = new File(storagePath + File.separator + CommonConstants.LOG_DIRECTORY_PATH + File.separator + CommonConstants.LOG_FILE_NAME);                          
     			if(logFile.exists()){                                  
     				//logFile.delete();                          
     			}                                            
@@ -52,11 +52,11 @@ public class LogHelper {
     		//buildMsg = getTimestamp() + DELIMITER;
     		
     		// Message Type                  
-    		buildMsg += Wrap(msgType.toString()) + DELIMITER;                                    
+    		buildMsg += Wrap(msgType.toString()) + CommonConstants.DELIMITER;                                    
     		
     		// Thread ID                  
     		final long threadId = Thread.currentThread().getId();                  
-    		buildMsg += Wrap(String.valueOf(threadId))+DELIMITER;                                    
+    		buildMsg += Wrap(String.valueOf(threadId)) + CommonConstants.DELIMITER;                                    
     		
     		// Message                  
     		buildMsg += logMessage;                                    
@@ -87,10 +87,10 @@ public class LogHelper {
 						{                                          
 							try {                                                  
 								PrintWriter pw = new PrintWriter(                                                  
-								new FileWriter(getStoragePath() + File.separator + logDirectoryPath + File.separator +logFileName, true));                                          
+								new FileWriter(storagePath + File.separator + CommonConstants.LOG_DIRECTORY_PATH + File.separator +CommonConstants.LOG_FILE_NAME, true));                                          
 								//ex.printStackTrace(pw);  
 								
-								pw.println(timeStamp+DELIMITER+logMessage);                                          
+								pw.println(timeStamp+CommonConstants.DELIMITER+logMessage);                                          
 								pw.flush();                                          
 								pw.close();                                      
 							} catch (IOException e) {                                          
@@ -105,7 +105,7 @@ public class LogHelper {
 		
 		private void checkIsLogEnabled()          
 		{                  
-			File enableDirectory = new File(getStoragePath() + File.separator + logDirectoryPath + File.separator + enableLogDirectory);                  
+			File enableDirectory = new File(storagePath + File.separator + CommonConstants.LOG_DIRECTORY_PATH + File.separator + CommonConstants.ENABLE_LOG_DIRECTORY);                  
 			if(enableDirectory.exists())                  
 			{                          
 				isLogEnabled = true;                  
@@ -120,11 +120,6 @@ public class LogHelper {
 			return isLogEnabled;          
 		}       
     	
-		private String getStoragePath(){
-			File extStore = Environment.getExternalStorageDirectory();
-			return extStore.getAbsolutePath();
-		}
-		
 		private String getTimestamp()          
 		{                  
 			Calendar now = Calendar.getInstance();                  

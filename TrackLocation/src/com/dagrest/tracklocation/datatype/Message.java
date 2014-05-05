@@ -1,4 +1,4 @@
-package com.dagrest.tracklocation.json;
+package com.dagrest.tracklocation.datatype;
 
 import java.util.List;
 
