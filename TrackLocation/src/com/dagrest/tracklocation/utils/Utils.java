@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -120,7 +121,7 @@ public class Utils {
         MessageData messageData = new MessageData();
         messageData.setMessage("This is a message");
         messageData.setTime(new Date().toString());
-        messageData.setCommand(CommandEnum.Stop);
+        messageData.setCommand(CommandEnum.stop);
         
         Message message = new Message();
         message.setData(messageData); 
@@ -204,4 +205,11 @@ public class Utils {
 		return extStore.getAbsolutePath();
 	}
 
+    public static String getCurrentTime(){
+        Calendar c = Calendar.getInstance();  
+        int hours = c.get(Calendar.HOUR_OF_DAY);
+        int minutes = c.get(Calendar.MINUTE);
+        int seconds = c.get(Calendar.SECOND);
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
 }

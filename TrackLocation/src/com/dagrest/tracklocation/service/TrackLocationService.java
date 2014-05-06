@@ -1,6 +1,11 @@
 package com.dagrest.tracklocation.service;
 
+import java.util.List;
+
 import com.dagrest.tracklocation.log.LogManager;
+import com.dagrest.tracklocation.utils.CommonConstants;
+import com.dagrest.tracklocation.utils.Preferences;
+import com.dagrest.tracklocation.utils.Utils;
 
 import android.app.Service;
 import android.content.Context;
@@ -11,16 +16,18 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.util.Log;
 
 public class TrackLocationService extends Service {
 
-	private boolean started = false;
-	private int getLocationInterval = 0;
-	
 	private static String className;
 	private static Context context;
 	private LocationManager locationManager;
 	private PowerManager.WakeLock wl;
+	private PowerManager pm;
+	private Boolean toReleaseWakeLock;
+	private List<String> locationProviders;
+	private Boolean isLocationProviderAvailable;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -28,33 +35,50 @@ public class TrackLocationService extends Service {
         LogManager.LogFunctionExit(className, "onBind");
 		return null;
 	}
+	
+	public void broadcastLocationUpdatedGps()
+	{
+		LogManager.LogFunctionCall(className, "broadcastLocationUpdatedGps");
+		Intent intent = new Intent();
+		intent.setAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_GPS");
+		sendBroadcast(intent);
+		LogManager.LogFunctionExit(className, "broadcastLocationUpdatedGps");
+	}
 
-    @Override          
+	public void broadcastLocationUpdatedNetwork()
+	{
+		LogManager.LogFunctionCall(className, "broadcastLocationUpdatedNetwork");
+		Intent intent = new Intent();
+		intent.setAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK");
+		sendBroadcast(intent);
+		LogManager.LogFunctionExit(className, "broadcastLocationUpdatedNetwork");
+	}
+
+	@Override          
     public void onCreate()          
-    {                  
+    {             
         super.onCreate();
         className = this.getClass().getName();
-        
+    	LogManager.LogFunctionCall(className, "onCreate");
+    	Log.i(LOCATION_SERVICE, "onCreate - Start");
+    	Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+       
         try{
             LogManager.LogFunctionCall(className, "onCreate");
             if(context == null){
             	context = getApplicationContext();
             }
-//          if(sharedPreferences == null){
-//          	sharedPreferences = context.getSharedPreferences(PREFS_NAME, 0);
-//          }
-//          if(preferences == null){
-//              preferences = new Preferences(sharedPreferences);
-//          }
             if(locationManager == null){
-                    locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            	locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             }
-//          toReleaseWakeLock = false;
+            toReleaseWakeLock = false;
             LogManager.LogFunctionExit(className, "onCreate");
+            Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+            Log.i(LOCATION_SERVICE, "onCreate - End");
         } catch (Exception e) {
         	LogManager.LogException(e, className, "onCreate");
         }
-   }   
+	}   
     
     @Override          
     public void onDestroy()           
@@ -62,6 +86,8 @@ public class TrackLocationService extends Service {
         super.onDestroy();
         try{
         	LogManager.LogFunctionCall(className, "onDestroy");
+        	Log.i(LOCATION_SERVICE, "onDestroy - Start");
+        	Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
         	//LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             if(locationManager != null){
                 locationManager.removeUpdates(locationListenerGPS);
@@ -70,64 +96,77 @@ public class TrackLocationService extends Service {
                 LogManager.LogInfoMsg(className, "onDestroy", "locationListenerNetwork - Updates removed");
             }
             if(wl != null){
+            	boolean isHeld = wl.isHeld();
+            	Log.i(LOCATION_SERVICE, "WAKE_LOCK - IS HELD: " + isHeld + ";");
                 wl.release();
+                Log.i(LOCATION_SERVICE, "WAKE_LOCK - IS HELD: " + isHeld + ";");
                 LogManager.LogInfoMsg(className, "onDestroy", "WAKE LOCK - HAS BEEN REMOVED.");
+                Log.i(LOCATION_SERVICE, "RELEASE: WAKE_LOCK = " + wl + ";");
             }
             LogManager.LogFunctionExit(className, "onDestroy");
+            Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+            Log.i(LOCATION_SERVICE, "onDestroy - End");
         } catch (Exception e) {
             LogManager.LogException(e, className, "onDestroy");
+            Log.e(LOCATION_SERVICE, "onDestroy", e);
         }
     }  
     
     // Define a listener that responds to location updates
     LocationListener locationListenerGPS = new LocationListener() {
         public void onLocationChanged(Location location) {
-        	/*
 	        try{
-        	 
-                LogManager.LogFunctionCall("LocationListener", "onLocationChanged()");
-
-                preferences.setStringSettingsValue("locationProviderName", "GPS");
+                LogManager.LogFunctionCall("LocationListener", "locationListenerGPS->onLocationChanged");
+                Log.i(LOCATION_SERVICE, "locationListenerGPS - Start");
+                Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+                
+                Preferences.setPreferencesString(context, CommonConstants.LOCATION_PROVIDER_NAME, CommonConstants.GPS);
 
                 double latitude = 0, longitude = 0;
                 latitude = location.getLatitude();
                 longitude = location.getLongitude();
                 if(latitude == 0 || longitude == 0){
-                        return;
+                	return;
                 }
+                float accuracy = location.getAccuracy();
+                String locationProvider = location.getProvider();
+                float speed = location.getSpeed();
 
-                Float distanceToTarget = location.distanceTo(Utils.getTargetLocation(preferences))/1000;
-                accuracy = location.getAccuracy();
-                locationProvider = location.getProvider();
-                speed = location.getSpeed();
-
-                preferences.setStringSettingsValue("locationProviderName", locationProvider);
+                Preferences.setPreferencesString(context, CommonConstants.LOCATION_PROVIDER_NAME, locationProvider);
                 
                 //sets latitude/longitude when a location is provided
-                latlong = location.getLatitude() + "," + location.getLongitude() + DELIMITER + 
-                	Utils.getCurrentTime() + DELIMITER + distanceToTarget;
+                String locationInfo = latitude + CommonConstants.DELIMITER_COMMA + 
+                	longitude + CommonConstants.DELIMITER_COMMA + 
+                	accuracy + CommonConstants.DELIMITER_COMMA + 
+                	speed + CommonConstants.DELIMITER_COMMA + 
+                	Utils.getCurrentTime();
                         
-                LogManager.LogInfoMsg("locationListenerGPS", "onLocationChanged()", "@@@NEW_LOCATION_GPS: " + latlong);
-                preferences.setStringSettingsValue("locationStringGPS", latlong);
+                LogManager.LogInfoMsg(className, "locationListenerGPS->onLocationChanged", CommonConstants.LOCATION_INFO_GPS + locationInfo);
+                Preferences.setPreferencesString(context, CommonConstants.LOCATION_INFO_GPS, locationInfo);
         
+                broadcastLocationUpdatedGps();
                 //sendLocationByMail(latlong);
 
-                String laDeviceId = preferences.getStringSettingsValue("laDeviceId", "004999010640000");
-                String deviceUid = null;
+//                String laDeviceId = preferences.getStringSettingsValue("laDeviceId", "004999010640000");
+//                String deviceUid = null;
                 if(wl != null && wl.isHeld()){
-                    LogManager.LogInfoMsg("locationListenerGPS", "onLocationChanged()", "WAKE LOCK - READY TO BE RELEASED.");
-                    if(!laDeviceId.equals(preferences.getStringSettingsValue("deviceUid", deviceUid))){
-                            toReleaseWakeLock = true;
-                    }
-                    LogManager.LogInfoMsg("locationListenerGPS", "onLocationChanged()", "WAKE LOCK isHeld: " + wl.isHeld());
-//                  wl.release();
-//                  LogManager.LogInfoMsg("locationListenerGPS", "onLocationChanged()", "WAKE LOCK - HAS BEEN RELEASED.");
+                	LogManager.LogInfoMsg("locationListenerGPS", "onLocationChanged()", "WAKE LOCK - READY TO BE RELEASED.");
+                	Log.i(LOCATION_SERVICE, "WAKE LOCK - READY TO BE RELEASED.");
+//                    if(!laDeviceId.equals(preferences.getStringSettingsValue("deviceUid", deviceUid))){
+                		toReleaseWakeLock = true;
+//                    }
+                	LogManager.LogInfoMsg("locationListenerGPS", "onLocationChanged()", "WAKE LOCK isHeld: " + wl.isHeld());
+					wl.release();
+					Log.i(LOCATION_SERVICE, "WAKE LOCK - RELEASE.");
+					Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+					LogManager.LogInfoMsg("locationListenerGPS", "onLocationChanged()", "WAKE LOCK - HAS BEEN RELEASED.");
                 }
-                LogManager.LogFunctionExit("locationListenerGPS", "onLocationChanged()");
+                Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+                LogManager.LogFunctionExit("locationListenerGPS", "locationListenerGPS->onLocationChanged");
+                Log.i(LOCATION_SERVICE, "locationListenerGPS - End");
 	        } catch (Exception e) {
-	                LogManager.LogException(e, "locationListenerGPS", "onLocationChanged()");
+	                LogManager.LogException(e, "locationListenerGPS", "locationListenerGPS->onLocationChanged");
 	        }      
-	        */   
         }
 
 	    public void onStatusChanged(String provider, int status, Bundle extras) {}
@@ -138,10 +177,11 @@ public class TrackLocationService extends Service {
     // Define a listener that responds to location updates
 	LocationListener locationListenerNetwork = new LocationListener() {
         public void onLocationChanged(Location location) {
-/*
 			try{
-                LogManager.LogFunctionCall("locationListenerNetwork", "onLocationChanged()");
-                preferences.setStringSettingsValue("locationProviderName", "NETWORK");
+                LogManager.LogFunctionCall(className, "locationListenerNetwork->onLocationChanged");
+                Log.i(LOCATION_SERVICE, "locationListenerNetwork - Start");
+                Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+                Preferences.setPreferencesString(context, CommonConstants.LOCATION_PROVIDER_NAME, CommonConstants.NETWORK);
                 
                 double latitude = 0, longitude = 0;
                 latitude = location.getLatitude();
@@ -149,32 +189,156 @@ public class TrackLocationService extends Service {
                 if(latitude == 0 || longitude == 0){
                         return;
                 }
-
-                Float distanceToTarget = location.distanceTo(Utils.getTargetLocation(preferences))/1000;
-                accuracy = location.getAccuracy();
-                locationProvider = location.getProvider();
-                speed = location.getSpeed();
+                float accuracy = location.getAccuracy();
+                String locationProvider = location.getProvider();
+                float speed = location.getSpeed();
                 
-                preferences.setStringSettingsValue("locationProviderName", locationProvider);
+                Preferences.setPreferencesString(context, CommonConstants.LOCATION_PROVIDER_NAME, locationProvider);
 
                 //sets latitude/longitude when a location is provided
-                latlong = location.getLatitude() + "," + location.getLongitude() + DELIMITER + 
-                	Utils.getCurrentTime() + DELIMITER + distanceToTarget;
+                String locationInfo = latitude + CommonConstants.DELIMITER_COMMA + 
+                	longitude + CommonConstants.DELIMITER_COMMA + 
+                	accuracy + CommonConstants.DELIMITER_COMMA + 
+                	speed + CommonConstants.DELIMITER_COMMA + 
+                	Utils.getCurrentTime();
                         
-                LogManager.LogInfoMsg("locationListenerNetwork", "onLocationChanged()", "@@@NEW_LOCATION_NETWORK: " + latlong);
-                preferences.setStringSettingsValue("locationStringNETWORK", latlong);
-       
-                if(wl != null){
+                LogManager.LogInfoMsg(className, "locationListenerNetwork->onLocationChanged", CommonConstants.LOCATION_INFO_NETWORK + locationInfo);
+                Preferences.setPreferencesString(context, CommonConstants.LOCATION_INFO_NETWORK, locationInfo);
+                broadcastLocationUpdatedNetwork();
+                
+                if(wl != null && wl.isHeld()){
+                	LogManager.LogInfoMsg("locationListenerNetwork", "onLocationChanged()", "WAKE LOCK - READY TO BE RELEASED.");
+                	Log.i(LOCATION_SERVICE, "WAKE LOCK - READY TO BE RELEASED.");
+//                    if(!laDeviceId.equals(preferences.getStringSettingsValue("deviceUid", deviceUid))){
+                		toReleaseWakeLock = true;
+//                    }
                 	LogManager.LogInfoMsg("locationListenerNetwork", "onLocationChanged()", "WAKE LOCK isHeld: " + wl.isHeld());
+					wl.release();
+					Log.i(LOCATION_SERVICE, "WAKE LOCK - RELEASE.");
+					Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+					LogManager.LogInfoMsg("locationListenerNetwork", "onLocationChanged()", "WAKE LOCK - HAS BEEN RELEASED.");
                 }
-                LogManager.LogFunctionExit("locationListenerNetwork", "onLocationChanged()");
+
+                LogManager.LogFunctionExit(className, "locationListenerNetwork->onLocationChanged");
+                Log.i(LOCATION_SERVICE, "locationListenerNetwork - End");
             } catch (Exception e) {
-                    LogManager.LogException(e, "locationListenerNetwork", "onLocationChanged()");
+                    LogManager.LogException(e, className, "locationListenerNetwork->onLocationChanged");
             }
-*/
         }
         public void onStatusChanged(String provider, int status, Bundle extras) {}
         public void onProviderEnabled(String provider) {}
         public void onProviderDisabled(String provider) {}
       };
+      
+	@Override          
+	public void onStart(Intent intent, int startId)           
+	{                  
+		try{
+              LogManager.LogFunctionCall(className, "onStart");
+              Log.i(LOCATION_SERVICE, "onStart - Start");
+              Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+              
+              pm = (PowerManager) getSystemService(Context.POWER_SERVICE); 
+              wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, CommonConstants.TRACK_LOCATION_WAKE_LOCK);
+              Log.i(LOCATION_SERVICE, "PARTIAL_WAKE_LOCK: WAKE_LOCK = " + wl + ";");
+              Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+              
+              LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "Before if - WAKE LOCK isHeld: " + wl.isHeld());
+              String locProvName = null; 
+              locProvName = Preferences.getPreferencesString(context, CommonConstants.LOCATION_PROVIDER_NAME);
+              LogManager.LogInfoMsg(className, "onStart", "Location provider name: " + locProvName);
+              //if(wl.isHeld() == false && locProvName != null && locProvName.equalsIgnoreCase("gps")){
+              if(wl != null && wl.isHeld() == false) {
+            	  wl.acquire(); 
+            	  LogManager.LogInfoMsg(className, "onStart", "WAKE LOCK - HAS BEEN ACUIRED.");
+            	  Log.i(LOCATION_SERVICE, "WAKE LOCK - HAS BEEN ACUIRED = " + wl + ";");
+              }
+              
+              Log.i(LOCATION_SERVICE, "WAKE LOCK - TO RELEASE WAKE LOCK = " + toReleaseWakeLock + ";");
+              if(toReleaseWakeLock){
+            	  if(wl != null && wl.isHeld()){
+            		  wl.release();
+            		  Log.i(LOCATION_SERVICE, "RELEASE; WAKE_LOCK = " + wl + ";");
+            		  LogManager.LogInfoMsg(className, "onStart", "WAKE LOCK - HAS BEEN RELEASED.");
+            		  Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
+                      toReleaseWakeLock = false;
+            	  }
+              }
+              Log.i(LOCATION_SERVICE, "WAKE LOCK - HAS BEEN ACUIRED = " + wl + ";");
+              
+              requestLocation(true);
+              isLocationProviderAvailable = Preferences.getPreferencesBoolean(context, CommonConstants.IS_LOCATION_PROVIDER_AVAILABLE);
+              if(isLocationProviderAvailable){
+            	  String locationStringGPS = Preferences.getPreferencesString(context, CommonConstants.LOCATION_INFO_GPS);
+            	  String locationStringNETWORK = Preferences.getPreferencesString(context, CommonConstants.LOCATION_INFO_NETWORK);
+      
+                  if(!locationStringGPS.equals("initial")){
+                      LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "locationGPS: " + locationStringGPS);
+                      //sendLocationByMail(locationStringGPS, locationProvider);
+                      // TODO: send notification
+                  } else if(!locationStringNETWORK.equals("initial")){
+                      LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "locationNETWORK: " + locationStringNETWORK);
+                      //sendLocationByMail(locationStringNETWORK, locationProvider);
+                      // TODO: send notification
+                  }
+              }
+              
+              LogManager.LogFunctionExit(className, "onStart");
+              Log.i(LOCATION_SERVICE, "onStart - End");
+		} catch (Exception e) {
+			LogManager.LogException(e, className, "onStart");
+			LogManager.LogInfoMsg(className, "onStart", e.toString());
+		}
+	}
+	
+	private void requestLocation(boolean forceGps) {
+        try{
+        	LogManager.LogFunctionCall(className, "requestLocation");
+			locationManager.removeUpdates(locationListenerGPS);
+			locationManager = null;
+			locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+			locationProviders = locationManager.getProviders(true);
+			LogManager.LogInfoMsg(className, "requestLocation", "Providers list: " + locationProviders.toString());
+
+	        if (providerAvailable(locationProviders)) {
+	        	boolean containsGPS = locationProviders.contains(LocationManager.GPS_PROVIDER);
+                LogManager.LogInfoMsg(className, "requestLocation", "containsGPS: " + containsGPS);
+
+                boolean containsNetwork = locationProviders.contains(LocationManager.NETWORK_PROVIDER);
+                LogManager.LogInfoMsg(className, "requestLocation", "containsNetwork: " + containsNetwork);
+
+                String intervalString = Preferences.getPreferencesString(context, CommonConstants.LOCATION_SERVICE_INTERVAL);
+                if(intervalString == null || intervalString.isEmpty()){
+                	intervalString = "100"; // time in milliseconds
+                }
+                
+                if (containsGPS && forceGps) {
+                LogManager.LogInfoMsg(className, "requestLocation", "GPS_PROVIDER selected.");
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Integer.getInteger(intervalString), 0, locationListenerGPS);
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.getInteger(intervalString), 0, locationListenerNetwork);
+                    Preferences.setPreferencesBooolean(context, CommonConstants.IS_LOCATION_PROVIDER_AVAILABLE, true);
+                    //preferences.setStringSettingsValue("locationProviderName", "GPS");
+                } else if (containsNetwork) {
+                LogManager.LogInfoMsg(className, "requestLocation", "NETWORK_PROVIDER selected.");
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.getInteger(intervalString), 0, locationListenerNetwork);
+                    Preferences.setPreferencesBooolean(context, CommonConstants.IS_LOCATION_PROVIDER_AVAILABLE, true);
+                    //preferences.setStringSettingsValue("locationProviderName", "NETWORK");
+                }
+	        } else {
+		        LogManager.LogInfoMsg(className, "requestLocation", "No location providers available.");
+		        Preferences.setPreferencesBooolean(context, CommonConstants.IS_LOCATION_PROVIDER_AVAILABLE, false);
+	        }
+        LogManager.LogFunctionExit(className, "requestLocation");
+        } catch (Exception e) {
+        	LogManager.LogException(e, className, "requestLocation");
+        }
+    }
+    
+    private boolean providerAvailable(List<String> providers) {
+        if (providers.isEmpty()) {
+        	return false;
+        }
+        return true;
+    }
 }
+

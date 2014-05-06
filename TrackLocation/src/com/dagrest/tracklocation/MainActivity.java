@@ -16,17 +16,22 @@ import org.apache.http.util.EntityUtils;
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.service.ScheduledActionExecutor;
+import com.dagrest.tracklocation.service.TrackLocationService;
 import com.dagrest.tracklocation.utils.CommonConstants;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -46,13 +51,17 @@ public class MainActivity extends Activity {
     private final static int RQS_GooglePlayServices = 1;
     private ScheduledActionExecutor scheduledActionExecutor = null;
     private SharedPreferences preferences;
+    private BroadcastReceiver locationChangeWatcher;
+    private String className;
     
     /**
      * Substitute you own sender ID here. This is the project number you got
      * from the API Console, as described in "Getting Started."
      */
     String SENDER_ID = "943276333483";
-
+    
+    Intent trackLocationService;
+    
     TextView mDisplay;
     GoogleCloudMessaging gcm;
     AtomicInteger msgId = new AtomicInteger();
@@ -62,15 +71,57 @@ public class MainActivity extends Activity {
 //    Button btnRegId;
     TextView etRegId;
     
+    private void initLocationChangeWatcherGps()
+    {
+    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
+	    IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_GPS");
+	    //com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK
+	    locationChangeWatcher = new BroadcastReceiver() 
+	    {
+	    	@Override
+    		public void onReceive(Context context, Intent intent) {
+    			// TODO Auto-generated method stub
+	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherGps->onReceive", "WORK");
+	    		mDisplay.setText("LOCATION_UPDATED_GPS: " +
+	    			Preferences.getPreferencesString(context, CommonConstants.LOCATION_INFO_NETWORK));
+    		}
+	    };
+	    registerReceiver(locationChangeWatcher, intentFilter);
+	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
+    }
+    
+    private void initLocationChangeWatcherNetwork()
+    {
+    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
+	    IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK");
+	    locationChangeWatcher = new BroadcastReceiver() 
+	    {
+	    	@Override
+    		public void onReceive(Context context, Intent intent) {
+    			// TODO Auto-generated method stub
+	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherNetwork->onReceive", "WORK");
+	    		mDisplay.setText("LOCATION_UPDATED_NETWORK: " +
+	    			Preferences.getPreferencesString(context, CommonConstants.LOCATION_INFO_NETWORK));
+    		}
+	    };
+	    registerReceiver(locationChangeWatcher, intentFilter);
+	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
+    }
+
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		className = this.getClass().getName();
 		
 		setContentView(R.layout.activity_main);
 		mDisplay = (TextView) findViewById(R.id.display);
 		
 		context = getApplicationContext();
 		preferences = Preferences.getGCMPreferences(context);
+		initLocationChangeWatcherGps();
+		initLocationChangeWatcherNetwork();
 		
 //        btnRegId = (Button) findViewById(R.id.btnGetRegId);
         etRegId = (TextView) findViewById(R.id.etRegId);
@@ -265,11 +316,16 @@ public class MainActivity extends Activity {
                 }
             }.execute(null, null, null);
         } else if (view == findViewById(R.id.clear)) {
-            mDisplay.setText("App Version: " + getAppVersion(context));
+            mDisplay.setText("");
             
 //            if( scheduledActionExecutor != null ){
 //            	scheduledActionExecutor.shutdown();
 //            	scheduledActionExecutor = null;
+//            }
+//            if(trackLocationService != null) {
+//            	if(!context.stopService(trackLocationService)){
+//            		LogManager.LogErrorMsg(className, "onClick", "Stop trackLocationService failed.");
+//            	}
 //            }
         } else if (view == findViewById(R.id.btnGetRegId)) {
         	String regId = Preferences.getPreferencesString(context, CommonConstants.PREFERENCES_REG_ID);
@@ -279,6 +335,8 @@ public class MainActivity extends Activity {
 //    		if( scheduledActionExecutor == null){
 //    			scheduledActionExecutor = new ScheduledActionExecutor(3);
 //    		}
+//    		trackLocationService = new Intent(context, TrackLocationService.class);
+//    		context.startService(trackLocationService); 
         }
     }
 
@@ -301,14 +359,6 @@ public class MainActivity extends Activity {
         }
     }
 
-//	/**
-//	 * @return Application's {@code SharedPreferences}.
-//	 */
-//	private SharedPreferences getGCMPreferences(Context context) {
-//	    return getSharedPreferences(MainActivity.class.getSimpleName(),
-//	            Context.MODE_PRIVATE);
-//	}
-	
     private void sendRegistrationIdToBackend(String regid) {
         LogManager.LogInfoMsg(this.getClass().getName(), "sendRegistrationIdToBackend", 
             	"Before PostToGCM.post(apiKey, content)");
@@ -326,7 +376,7 @@ public class MainActivity extends Activity {
     }
 
     
-    private String postGCM(String url, String serverKey, String messageJson){
+    private static String postGCM(String url, String serverKey, String messageJson){
     	
         int responseCode;
         String message;
@@ -357,17 +407,6 @@ public class MainActivity extends Activity {
 		}
         return null;
     }
-    
-//    public static Content createContent(String apiKey){
-//
-//        Content c = new Content();
-//
-//        //c.addRegId("APA91bH5k01sQWFcZZljMbEB-W1fPD6ftzNjvpmgSaGHzW3NosK6ShPMuzpnVTkAH49hHbqRjpA5-9xQh2-vQl0AhV50LtpoemCuqM-KY3BQLDpgI_d7gY09qI6P5mNwwwc5l_puH0xXRR8b9rAeJq8HVeZ-Nr3m-UeZ4P0_HLjz1w2Df435Npw");
-//        c.addRegId(apiKey);
-//        c.createData("Test Title", "Test Message");
-//
-//        return c;
-//    }
     
 	// Checking for all possible internet providers
     public boolean isConnectingToInternet(){

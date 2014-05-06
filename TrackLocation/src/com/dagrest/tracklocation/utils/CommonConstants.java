@@ -3,9 +3,19 @@ package com.dagrest.tracklocation.utils;
 public class CommonConstants {
 	
 	public static final String SHARED_PREFERENCES_NAME = "TRACK_LOCATION";
+	public static final String LOCATION_PROVIDER_NAME = "LOCATION_PROVIDER_NAME";
+	public static final String LOCATION_SERVICE_INTERVAL = "LOCATION_SERVICE_INTERVAL";
+	public static final String GPS = "GPS";
+	public static final String NETWORK = "NETWORK";
+	public static final String LOCATION_INFO_GPS = "LOCATION_INFO_GPS";
+	public static final String LOCATION_INFO_NETWORK = "LOCATION_INFO_NETWORK";
+	public static final String IS_LOCATION_PROVIDER_AVAILABLE = "IS_LOCATION_PROVIDER_AVAILABLE";
+	public static final String TRACK_LOCATION_WAKE_LOCK = "TRACK_LOCATION_WAKE_LOCK";
+	
 	public static final String PREFERENCES_REG_ID = "registration_id";
 
  	public static final String DELIMITER = "\t";
+ 	public static final String DELIMITER_COMMA = ",";
 	
 	public static final String LOG_DIRECTORY_PATH = "TrackLocation";         
 	public static final String LOG_FILE_NAME = "TrackLocation.log";          

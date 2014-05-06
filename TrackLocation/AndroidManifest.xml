@@ -45,7 +45,7 @@
         </receiver>
  
         <service android:name="com.dagrest.tracklocation.service.GcmIntentService"></service>
-        <service android:name=".TrackLocationService"></service>
+        <service android:name=".service.TrackLocationService"></service>
         
    	    <activity
             android:name="com.dagrest.tracklocation.MainActivity"

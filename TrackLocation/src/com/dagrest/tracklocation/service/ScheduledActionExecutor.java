@@ -7,6 +7,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import android.content.Intent;
+
 import com.dagrest.tracklocation.log.LogManager;
 
 public class ScheduledActionExecutor {
