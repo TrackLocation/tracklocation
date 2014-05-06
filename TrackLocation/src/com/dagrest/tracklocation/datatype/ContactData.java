@@ -1,6 +1,6 @@
 package com.dagrest.tracklocation.datatype;
 
-public class CustomerData {
+public class ContactData {
 	private String username; // free text
 	private String email;
 	private String registration_id;

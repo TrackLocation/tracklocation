@@ -1,4 +1,4 @@
-package com.dagrest.tracklocation;
+package com.dagrest.tracklocation.service;
 
 import android.app.Activity;
 import android.content.ComponentName;

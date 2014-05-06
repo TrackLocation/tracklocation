@@ -1,14 +1,14 @@
 package com.dagrest.tracklocation.datatype;
 
-public class CustomerDataFromFile {
-	private CustomerData customerData;
+public class ContactDeviceData {
+	private ContactData contactData;
 	private DeviceData deviceData;
 	
-	public CustomerData getCustomerData() {
-		return customerData;
+	public ContactData getContactData() {
+		return contactData;
 	}
-	public void setCustomerData(CustomerData customerData) {
-		this.customerData = customerData;
+	public void setContactData(ContactData contactData) {
+		this.contactData = contactData;
 	}
 	public DeviceData getDeviceData() {
 		return deviceData;

@@ -1,4 +1,4 @@
-package com.dagrest.tracklocation;
+package com.dagrest.tracklocation.service;
 
 import com.dagrest.tracklocation.log.LogManager;
 import com.google.android.gms.gcm.GoogleCloudMessaging;

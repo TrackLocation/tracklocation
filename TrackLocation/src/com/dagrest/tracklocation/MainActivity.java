@@ -13,18 +13,14 @@ import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 
-import com.dagrest.tracklocation.datatype.CommandEnum;
-import com.dagrest.tracklocation.datatype.Message;
-import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.service.ScheduledActionExecutor;
-import com.dagrest.tracklocation.utils.Utils;
+import com.dagrest.tracklocation.utils.CommonConstants;
+import com.dagrest.tracklocation.utils.Preferences;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.gson.Gson;
-
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -46,12 +42,11 @@ public class MainActivity extends Activity {
      * Tag used on log messages.
      */
 	private final static String LOG_TAG = "TrackLocation";
-    public static final String PROPERTY_REG_ID = "registration_id";
-    private static final String PROPERTY_APP_VERSION = "0.1";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private final static int RQS_GooglePlayServices = 1;
     private ScheduledActionExecutor scheduledActionExecutor = null;
-
+    private SharedPreferences preferences;
+    
     /**
      * Substitute you own sender ID here. This is the project number you got
      * from the API Console, as described in "Getting Started."
@@ -67,42 +62,15 @@ public class MainActivity extends Activity {
 //    Button btnRegId;
     TextView etRegId;
     
-    private void jsonTest(){
-        Gson gson = new Gson();
-    	
-        //gson.fromJson(messageJson, QuickPayParkingLocations.class);
-        //Utils.CustomerDataFromFileJsonTest();
-        
-        MessageData messageData = new MessageData();
-        messageData.setMessage("This is a message");
-        messageData.setTime(new Date().toString());
-        messageData.setCommand(CommandEnum.Stop);
-        
-        Message message = new Message();
-        message.setData(messageData); 
-        
-        List<String> listRegIDs = new ArrayList<String>(); 
-        listRegIDs.add("registrationIDs");
-        message.setRegistrationIDs(listRegIDs);
-        
-        Message messageTest = null;
-        String gsonString = gson.toJson(message);
-        if (gsonString != null) {
-        	messageTest = gson.fromJson(gsonString, Message.class);
-        	int i = 0;
-        }
-    }
-    
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-		jsonTest();
 		
 		setContentView(R.layout.activity_main);
 		mDisplay = (TextView) findViewById(R.id.display);
 		
 		context = getApplicationContext();
+		preferences = Preferences.getGCMPreferences(context);
 		
 //        btnRegId = (Button) findViewById(R.id.btnGetRegId);
         etRegId = (TextView) findViewById(R.id.etRegId);
@@ -110,7 +78,7 @@ public class MainActivity extends Activity {
         // Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
-            regid = getRegistrationId(context);
+            regid = Preferences.getPreferencesString(context, CommonConstants.PREFERENCES_REG_ID);
 
             if (regid.isEmpty()) {
                 registerInBackground();
@@ -127,7 +95,6 @@ public class MainActivity extends Activity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
-		
 		return true;
 	}
 	
@@ -137,14 +104,14 @@ public class MainActivity extends Activity {
 
 		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
 		  
-		  if (checkPlayServices()){
-		   Toast.makeText(getApplicationContext(), 
-		     "isGooglePlayServicesAvailable SUCCESS", 
-		     Toast.LENGTH_LONG).show();
-		  }
-		  else{
-			  GooglePlayServicesUtil.getErrorDialog(resultCode, this, RQS_GooglePlayServices);
-		  }
+		if (checkPlayServices()){
+			Toast.makeText(getApplicationContext(), 
+				"isGooglePlayServicesAvailable SUCCESS", 
+			Toast.LENGTH_LONG).show();
+		}
+		else{
+			GooglePlayServicesUtil.getErrorDialog(resultCode, this, RQS_GooglePlayServices);
+		}
 	}
 	
 	/**
@@ -157,7 +124,7 @@ public class MainActivity extends Activity {
 	    if (resultCode != ConnectionResult.SUCCESS) {
 	        if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
 	            GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-	                    PLAY_SERVICES_RESOLUTION_REQUEST).show();
+	            	PLAY_SERVICES_RESOLUTION_REQUEST).show();
 	        } else {
 	            Log.e(LOG_TAG, "This device is not supported by Google Play Services.");
 	            LogManager.LogErrorMsg(this.getClass().getName(), "checkPlayServices", 
@@ -169,49 +136,49 @@ public class MainActivity extends Activity {
 	    return true;
 	}
 	
-    /**
-     * Stores the registration ID and the app versionCode in the application's
-     * {@code SharedPreferences}.
-     *
-     * @param context application's context.
-     * @param regId registration ID
-     */
-    private void storeRegistrationId(Context context, String regId) {
-        final SharedPreferences prefs = getGCMPreferences(context);
-        int appVersion = getAppVersion(context);
-        Log.i(LOG_TAG, "Saving regId on app version " + appVersion);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PROPERTY_REG_ID, regId);
-        editor.putInt(PROPERTY_APP_VERSION, appVersion);
-        editor.commit();
-    }
+//    /**
+//     * Stores the registration ID and the app versionCode in the application's
+//     * {@code SharedPreferences}.
+//     *
+//     * @param context application's context.
+//     * @param regId registration ID
+//     */
+//    private void storeRegistrationId(Context context, String regId) {
+//        final SharedPreferences prefs = Preferences.getGCMPreferences(context);
+//        int appVersion = getAppVersion(context);
+//        Log.i(LOG_TAG, "Saving regId on app version " + appVersion);
+//        SharedPreferences.Editor editor = prefs.edit();
+//        editor.putString(PROPERTY_REG_ID, regId);
+//        editor.putInt(PROPERTY_APP_VERSION, appVersion);
+//        editor.commit();
+//    }
 
-    /**
-	 * Gets the current registration ID for application on GCM service.
-	 * <p>
-	 * If result is empty, the app needs to register.
-	 *
-	 * @return registration ID, or empty string if there is no existing
-	 *         registration ID.
-	 */
-	private String getRegistrationId(Context context) {
-	    final SharedPreferences prefs = getGCMPreferences(context);
-	    String registrationId = prefs.getString(PROPERTY_REG_ID, "");
-	    if (registrationId.isEmpty()) {
-	        Log.i(LOG_TAG, "Registration not found.");
-	        return "";
-	    }
-	    // Check if app was updated; if so, it must clear the registration ID
-	    // since the existing regID is not guaranteed to work with the new
-	    // app version.
-	    int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
-	    int currentVersion = getAppVersion(context);
-	    if (registeredVersion != currentVersion) {
-	        Log.i(LOG_TAG, "App version changed.");
-	        return "";
-	    }
-	    return registrationId;
-	}
+//    /**
+//	 * Gets the current registration ID for application on GCM service.
+//	 * <p>
+//	 * If result is empty, the app needs to register.
+//	 *
+//	 * @return registration ID, or empty string if there is no existing
+//	 *         registration ID.
+//	 */
+//	private String getRegistrationId(Context context) {
+//	    final SharedPreferences prefs = Preferences.getGCMPreferences(context);
+//	    String registrationId = prefs.getString(PROPERTY_REG_ID, "");
+//	    if (registrationId.isEmpty()) {
+//	        Log.i(LOG_TAG, "Registration not found.");
+//	        return "";
+//	    }
+//	    // Check if app was updated; if so, it must clear the registration ID
+//	    // since the existing regID is not guaranteed to work with the new
+//	    // app version.
+//	    int registeredVersion = prefs.getInt(PROPERTY_APP_VERSION, Integer.MIN_VALUE);
+//	    int currentVersion = getAppVersion(context);
+//	    if (registeredVersion != currentVersion) {
+//	        Log.i(LOG_TAG, "App version changed.");
+//	        return "";
+//	    }
+//	    return registrationId;
+//	}
 
     /**
      * Registers the application with GCM servers asynchronously.
@@ -240,7 +207,8 @@ public class MainActivity extends Activity {
                     // 'from' address in the message.
 
                     // Persist the regID - no need to register again.
-                    storeRegistrationId(context, regid);
+                    //storeRegistrationId(context, regid);
+                    Preferences.setPreferencesString(context, CommonConstants.PREFERENCES_REG_ID, regid);
                 } catch (IOException ex) {
                     msg = "Error :" + ex.getMessage();
                     // If there is an error, don't just keep trying to register.
@@ -297,21 +265,20 @@ public class MainActivity extends Activity {
                 }
             }.execute(null, null, null);
         } else if (view == findViewById(R.id.clear)) {
-            mDisplay.setText("");
+            mDisplay.setText("App Version: " + getAppVersion(context));
             
-            if( scheduledActionExecutor != null ){
-            	scheduledActionExecutor.shutdown();
-            	scheduledActionExecutor = null;
-            }
+//            if( scheduledActionExecutor != null ){
+//            	scheduledActionExecutor.shutdown();
+//            	scheduledActionExecutor = null;
+//            }
         } else if (view == findViewById(R.id.btnGetRegId)) {
-        	etRegId.setText(getRegistrationId(getApplicationContext()) );
-        	String regId = getRegistrationId(getApplicationContext());
-        	System.out.println("RegID: " + regId);
+        	String regId = Preferences.getPreferencesString(context, CommonConstants.PREFERENCES_REG_ID);
+        	etRegId.setText(regId);
     		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
-    			"RegID: " + getRegistrationId(getApplicationContext()) + " :RegID");
-    		if( scheduledActionExecutor == null){
-    			scheduledActionExecutor = new ScheduledActionExecutor(3);
-    		}
+    			"RegID: " + regId + " :RegID");
+//    		if( scheduledActionExecutor == null){
+//    			scheduledActionExecutor = new ScheduledActionExecutor(3);
+//    		}
         }
     }
 
@@ -334,31 +301,15 @@ public class MainActivity extends Activity {
         }
     }
 
-	/**
-	 * @return Application's {@code SharedPreferences}.
-	 */
-	private SharedPreferences getGCMPreferences(Context context) {
-	    // This sample app persists the registration ID in shared preferences, but
-	    // how you store the regID in your app is up to you.
-	    return getSharedPreferences(MainActivity.class.getSimpleName(),
-	            Context.MODE_PRIVATE);
-	}
+//	/**
+//	 * @return Application's {@code SharedPreferences}.
+//	 */
+//	private SharedPreferences getGCMPreferences(Context context) {
+//	    return getSharedPreferences(MainActivity.class.getSimpleName(),
+//	            Context.MODE_PRIVATE);
+//	}
 	
-    /**
-     * Sends the registration ID to your server over HTTP, so it can use GCM/HTTP or CCS to send
-     * messages to your app. Not needed for this demo since the device sends upstream messages
-     * to a server that echoes back the message using the 'from' address in the message.
-     */
     private void sendRegistrationIdToBackend(String regid) {
-    	// Your implementation here.
-    	// System.out.println("Device registered, registration ID=" + regid);
-        System.out.println( "Sending POST to GCM" );
-
-        String apiKey = getRegistrationId(getApplicationContext());
-        
-        // String apiKey = "APA91bH5k01sQWFcZZljMbEB-W1fPD6ftzNjvpmgSaGHzW3NosK6ShPMuzpnVTkAH49hHbqRjpA5-9xQh2-vQl0AhV50LtpoemCuqM-KY3BQLDpgI_d7gY09qI6P5mNwwwc5l_puH0xXRR8b9rAeJq8HVeZ-Nr3m-UeZ4P0_HLjz1w2Df435Npw";
-        // Content content = createContent(apiKey);
-
         LogManager.LogInfoMsg(this.getClass().getName(), "sendRegistrationIdToBackend", 
             	"Before PostToGCM.post(apiKey, content)");
         //PostToGCM.post(apiKey, content);
@@ -371,9 +322,7 @@ public class MainActivity extends Activity {
         
         postGCM("https://android.googleapis.com/gcm/send", "AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30", messageJSON);
         
-        
-        LogManager.LogInfoMsg(this.getClass().getName(), "sendRegistrationIdToBackend", 
-            	"After PostToGCM.post(apiKey, content)");
+        LogManager.LogFunctionExit(this.getClass().getName(), "sendRegistrationIdToBackend");
     }
 
     

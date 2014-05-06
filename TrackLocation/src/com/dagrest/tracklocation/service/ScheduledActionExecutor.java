@@ -29,7 +29,7 @@ public class ScheduledActionExecutor {
 
 	     beeper = new Runnable() {
 		       public void run() { 
-		    		LogManager.LogInfoMsg(this.getClass().getName(), "ScheduledExecutor", 
+		    		LogManager.LogInfoMsg(this.getClass().getName(), "ScheduledActionExecutor", 
 		        		new Date().toString());
 		       };
 		     };

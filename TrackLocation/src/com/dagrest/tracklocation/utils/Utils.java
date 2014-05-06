@@ -13,9 +13,9 @@ import java.util.Scanner;
 import android.os.Environment;
 
 import com.dagrest.tracklocation.datatype.CommandEnum;
-import com.dagrest.tracklocation.datatype.CustomerData;
-import com.dagrest.tracklocation.datatype.CustomerDataFromFile;
-import com.dagrest.tracklocation.datatype.CustomerDataFromFileList;
+import com.dagrest.tracklocation.datatype.ContactData;
+import com.dagrest.tracklocation.datatype.ContactDeviceData;
+import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.Message;
@@ -111,66 +111,92 @@ public class Utils {
 //	    }		
 	}
 	
+    public static void jsonTest(){
+        Gson gson = new Gson();
+    	
+        //gson.fromJson(messageJson, QuickPayParkingLocations.class);
+        Utils.CustomerDataFromFileJsonTest();
+        
+        MessageData messageData = new MessageData();
+        messageData.setMessage("This is a message");
+        messageData.setTime(new Date().toString());
+        messageData.setCommand(CommandEnum.Stop);
+        
+        Message message = new Message();
+        message.setData(messageData); 
+        
+        List<String> listRegIDs = new ArrayList<String>(); 
+        listRegIDs.add("registrationIDs");
+        message.setRegistrationIDs(listRegIDs);
+        
+        Message messageTest = null;
+        String gsonString = gson.toJson(message);
+        if (gsonString != null) {
+        	messageTest = gson.fromJson(gsonString, Message.class);
+        	int i = 0;
+        }
+    }
+    
 	public static void CustomerDataFromFileJsonTest(){
         Gson gson = new Gson();
     	
-        CustomerData customerDataDavid = new CustomerData();
-        customerDataDavid.setEmail("dagrest@gmail.com");
-        customerDataDavid.setUsername("dagrest");
-        customerDataDavid.setRegistration_id("registration_id");
+        ContactData contactDataDavid = new ContactData();
+        contactDataDavid.setEmail("dagrest@gmail.com");
+        contactDataDavid.setUsername("dagrest");
+        contactDataDavid.setRegistration_id("registration_id");
         
         DeviceData deviceDataDavid = new DeviceData();
         deviceDataDavid.setDeviceName("Samsung Galaxy S3");
         deviceDataDavid.setDeviceTypeEnum(DeviceTypeEnum.phone);
         deviceDataDavid.setImei("imei");
                         
-        CustomerDataFromFile customerDataFromFileDavid = new CustomerDataFromFile();
-        customerDataFromFileDavid.setCustomerData(customerDataDavid);
-        customerDataFromFileDavid.setDeviceData(deviceDataDavid);
+        ContactDeviceData contactDeviceDataDavid = new ContactDeviceData();
+        contactDeviceDataDavid.setContactData(contactDataDavid);
+        contactDeviceDataDavid.setDeviceData(deviceDataDavid);
         
-        CustomerData customerDataLarisa = new CustomerData();
-        customerDataLarisa.setEmail("agrest2000@gmail.com");
-        customerDataLarisa.setUsername("larisa");
-        customerDataLarisa.setRegistration_id("registration_id");
+        ContactData contactDataLarisa = new ContactData();
+        contactDataLarisa.setEmail("agrest2000@gmail.com");
+        contactDataLarisa.setUsername("larisa");
+        contactDataLarisa.setRegistration_id("registration_id");
         
         DeviceData deviceDataLarisa = new DeviceData();
         deviceDataLarisa.setDeviceName("LG NEXUS 4");
         deviceDataLarisa.setDeviceTypeEnum(DeviceTypeEnum.phone);
         deviceDataLarisa.setImei("imei");
                         
-        CustomerDataFromFile customerDataFromFileLarisa = new CustomerDataFromFile();
-        customerDataFromFileLarisa.setCustomerData(customerDataLarisa);
-        customerDataFromFileLarisa.setDeviceData(deviceDataLarisa);
+        ContactDeviceData contactDeviceDataLarisa = new ContactDeviceData();
+        contactDeviceDataLarisa.setContactData(contactDataLarisa);
+        contactDeviceDataLarisa.setDeviceData(deviceDataLarisa);
 
-        CustomerDataFromFileList customerDataFromFileList = 
-        	new CustomerDataFromFileList();
+        ContactDeviceDataList contactDeviceDataList = 
+        	new ContactDeviceDataList();
         
-        customerDataFromFileList.getCustomerDataFromFileList()
-        	.add(customerDataFromFileDavid);
-        customerDataFromFileList.getCustomerDataFromFileList()
-    		.add(customerDataFromFileLarisa);
+        contactDeviceDataList.getCustomerDataFromFileList()
+        	.add(contactDeviceDataDavid);
+        contactDeviceDataList.getCustomerDataFromFileList()
+    		.add(contactDeviceDataLarisa);
         
 //        List<CustomerDataFromFile> customerDataList = customerDataFromFileList.getCustomerDataFromFileList();
 //        customerDataList.add(customerDataFromFileDavid);
 //        customerDataList.add(customerDataFromFileLarisa);
         
-        String gsonString = gson.toJson(customerDataFromFileList);
-        CustomerDataFromFileList customerDataListNew = null;
+        String gsonString = gson.toJson(contactDeviceDataList);
+        ContactDeviceDataList customerDataListNew = null;
         if (gsonString != null) {
         	customerDataListNew = 
-        		gson.fromJson(gsonString, CustomerDataFromFileList.class);
+        		gson.fromJson(gsonString, ContactDeviceDataList.class);
         	customerDataListNew.getCustomerDataFromFileList();
         	int i = 0;
         }
 
-		File customerDataInputFileName = 
+		File contactDeviceDataListInputFileName = 
 			new File(getStoragePath() + File.separator + CommonConstants.LOG_DIRECTORY_PATH + 
-				File.separator + "CustomerData.dat");                          
-        CustomerDataFromFileList customerDataListFromFile = null;
-        String absPath = customerDataInputFileName.getAbsolutePath();
-        String gsonStringNew = readInputFile(customerDataInputFileName.getAbsolutePath());
-        customerDataListFromFile = 
-        		gson.fromJson(gsonStringNew, CustomerDataFromFileList.class);
+				File.separator + CommonConstants.CONTACT_DTAT_INPUT_FILE);                          
+        ContactDeviceDataList contactDeviceDataListFromFile = null;
+        String absPath = contactDeviceDataListInputFileName.getAbsolutePath();
+        String gsonStringNew = readInputFile(contactDeviceDataListInputFileName.getAbsolutePath());
+        contactDeviceDataListFromFile = 
+        		gson.fromJson(gsonStringNew, ContactDeviceDataList.class);
 	}
 	
 	public static String getStoragePath(){

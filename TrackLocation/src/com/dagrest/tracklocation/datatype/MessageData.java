@@ -5,7 +5,7 @@ public class MessageData {
 	private String time;
 	private CommandEnum command;
 	private String registrationID;
-	private CustomerData customerData;
+	private ContactData customerData;
 	private DeviceTypeEnum deviceTypeEnum;
 	private DeviceData deviceData;
 	private Location location;
@@ -34,10 +34,10 @@ public class MessageData {
 	public void setRegistrationID(String registrationID) {
 		this.registrationID = registrationID;
 	}
-	public CustomerData getCustomerData() {
+	public ContactData getCustomerData() {
 		return customerData;
 	}
-	public void setCustomerData(CustomerData customerData) {
+	public void setCustomerData(ContactData customerData) {
 		this.customerData = customerData;
 	}
 	public DeviceTypeEnum getDeviceTypeEnum() {
