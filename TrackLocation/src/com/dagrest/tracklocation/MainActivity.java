@@ -337,6 +337,11 @@ public class MainActivity extends Activity {
 //    		}
 //    		trackLocationService = new Intent(context, TrackLocationService.class);
 //    		context.startService(trackLocationService); 
+        } else if (view == findViewById(R.id.btnContactList)) {
+    		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
+    			"ContactList activity started.");
+    		Intent intentContactList = new Intent(this, ContactList.class);
+    		startActivity(intentContactList);
         }
     }
 

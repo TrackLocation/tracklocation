@@ -31,6 +31,13 @@
 		        android:layout_height="wrap_content"
 		        android:onClick="onClick"
 		        android:text="@string/getRegId"/>
+            
+           	<Button 
+		        android:id="@+id/btnContactList"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:onClick="onClick"
+		        android:text="@string/contact_list"/>
 		    
         </LinearLayout>
 
