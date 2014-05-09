@@ -4,7 +4,7 @@ import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.log.LogManager;
-import com.dagrest.tracklocation.utils.CommonConstants;
+import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
@@ -64,7 +64,7 @@ public class GcmIntentService extends IntentService {
             			String intervalString = extras.getString(CommandTagEnum.interval.toString());
             			Context ctx = getApplicationContext();
                         Preferences.setPreferencesString(getApplicationContext(), 
-                        	CommonConstants.LOCATION_SERVICE_INTERVAL, intervalString);
+                        	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
             		}
             		Context context = getApplicationContext();
             		Intent trackLocationService = new Intent(context, TrackLocationService.class);

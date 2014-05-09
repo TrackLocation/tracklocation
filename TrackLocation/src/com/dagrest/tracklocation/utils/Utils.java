@@ -191,8 +191,8 @@ public class Utils {
         }
 
 		File contactDeviceDataListInputFileName = 
-			new File(getStoragePath() + File.separator + CommonConstants.LOG_DIRECTORY_PATH + 
-				File.separator + CommonConstants.CONTACT_DTAT_INPUT_FILE);                          
+			new File(getStoragePath() + File.separator + CommonConst.LOG_DIRECTORY_PATH + 
+				File.separator + CommonConst.CONTACT_DTAT_INPUT_FILE);                          
         ContactDeviceDataList contactDeviceDataListFromFile = null;
         String absPath = contactDeviceDataListInputFileName.getAbsolutePath();
         String gsonStringNew = readInputFile(contactDeviceDataListInputFileName.getAbsolutePath());

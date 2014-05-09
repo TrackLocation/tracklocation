@@ -1,6 +1,6 @@
 package com.dagrest.tracklocation.utils;
 
-public class CommonConstants {
+public class CommonConst {
 	
 	public static final String SHARED_PREFERENCES_NAME = "TRACK_LOCATION";
 	public static final String LOCATION_PROVIDER_NAME = "LOCATION_PROVIDER_NAME";

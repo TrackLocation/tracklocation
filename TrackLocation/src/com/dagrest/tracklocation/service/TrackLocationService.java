@@ -3,7 +3,7 @@ package com.dagrest.tracklocation.service;
 import java.util.List;
 
 import com.dagrest.tracklocation.log.LogManager;
-import com.dagrest.tracklocation.utils.CommonConstants;
+import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
 
@@ -120,7 +120,7 @@ public class TrackLocationService extends Service {
                 Log.i(LOCATION_SERVICE, "locationListenerGPS - Start");
                 Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
                 
-                Preferences.setPreferencesString(context, CommonConstants.LOCATION_PROVIDER_NAME, CommonConstants.GPS);
+                Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, CommonConst.GPS);
 
                 double latitude = 0, longitude = 0;
                 latitude = location.getLatitude();
@@ -132,17 +132,17 @@ public class TrackLocationService extends Service {
                 String locationProvider = location.getProvider();
                 float speed = location.getSpeed();
 
-                Preferences.setPreferencesString(context, CommonConstants.LOCATION_PROVIDER_NAME, locationProvider);
+                Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, locationProvider);
                 
                 //sets latitude/longitude when a location is provided
-                String locationInfo = latitude + CommonConstants.DELIMITER_COMMA + 
-                	longitude + CommonConstants.DELIMITER_COMMA + 
-                	accuracy + CommonConstants.DELIMITER_COMMA + 
-                	speed + CommonConstants.DELIMITER_COMMA + 
+                String locationInfo = latitude + CommonConst.DELIMITER_COMMA + 
+                	longitude + CommonConst.DELIMITER_COMMA + 
+                	accuracy + CommonConst.DELIMITER_COMMA + 
+                	speed + CommonConst.DELIMITER_COMMA + 
                 	Utils.getCurrentTime();
                         
-                LogManager.LogInfoMsg(className, "locationListenerGPS->onLocationChanged", CommonConstants.LOCATION_INFO_GPS + locationInfo);
-                Preferences.setPreferencesString(context, CommonConstants.LOCATION_INFO_GPS, locationInfo);
+                LogManager.LogInfoMsg(className, "locationListenerGPS->onLocationChanged", CommonConst.LOCATION_INFO_GPS + locationInfo);
+                Preferences.setPreferencesString(context, CommonConst.LOCATION_INFO_GPS, locationInfo);
         
                 broadcastLocationUpdatedGps();
                 //sendLocationByMail(latlong);
@@ -181,7 +181,7 @@ public class TrackLocationService extends Service {
                 LogManager.LogFunctionCall(className, "locationListenerNetwork->onLocationChanged");
                 Log.i(LOCATION_SERVICE, "locationListenerNetwork - Start");
                 Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
-                Preferences.setPreferencesString(context, CommonConstants.LOCATION_PROVIDER_NAME, CommonConstants.NETWORK);
+                Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, CommonConst.NETWORK);
                 
                 double latitude = 0, longitude = 0;
                 latitude = location.getLatitude();
@@ -193,17 +193,17 @@ public class TrackLocationService extends Service {
                 String locationProvider = location.getProvider();
                 float speed = location.getSpeed();
                 
-                Preferences.setPreferencesString(context, CommonConstants.LOCATION_PROVIDER_NAME, locationProvider);
+                Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, locationProvider);
 
                 //sets latitude/longitude when a location is provided
-                String locationInfo = latitude + CommonConstants.DELIMITER_COMMA + 
-                	longitude + CommonConstants.DELIMITER_COMMA + 
-                	accuracy + CommonConstants.DELIMITER_COMMA + 
-                	speed + CommonConstants.DELIMITER_COMMA + 
+                String locationInfo = latitude + CommonConst.DELIMITER_COMMA + 
+                	longitude + CommonConst.DELIMITER_COMMA + 
+                	accuracy + CommonConst.DELIMITER_COMMA + 
+                	speed + CommonConst.DELIMITER_COMMA + 
                 	Utils.getCurrentTime();
                         
-                LogManager.LogInfoMsg(className, "locationListenerNetwork->onLocationChanged", CommonConstants.LOCATION_INFO_NETWORK + locationInfo);
-                Preferences.setPreferencesString(context, CommonConstants.LOCATION_INFO_NETWORK, locationInfo);
+                LogManager.LogInfoMsg(className, "locationListenerNetwork->onLocationChanged", CommonConst.LOCATION_INFO_NETWORK + locationInfo);
+                Preferences.setPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK, locationInfo);
                 broadcastLocationUpdatedNetwork();
                 
                 if(wl != null && wl.isHeld()){
@@ -239,13 +239,13 @@ public class TrackLocationService extends Service {
               Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
               
               pm = (PowerManager) getSystemService(Context.POWER_SERVICE); 
-              wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, CommonConstants.TRACK_LOCATION_WAKE_LOCK);
+              wl = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, CommonConst.TRACK_LOCATION_WAKE_LOCK);
               Log.i(LOCATION_SERVICE, "PARTIAL_WAKE_LOCK: WAKE_LOCK = " + wl + ";");
               Log.i(LOCATION_SERVICE, "WAKE_LOCK = " + wl + ";");
               
               LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "Before if - WAKE LOCK isHeld: " + wl.isHeld());
               String locProvName = null; 
-              locProvName = Preferences.getPreferencesString(context, CommonConstants.LOCATION_PROVIDER_NAME);
+              locProvName = Preferences.getPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME);
               LogManager.LogInfoMsg(className, "onStart", "Location provider name: " + locProvName);
               //if(wl.isHeld() == false && locProvName != null && locProvName.equalsIgnoreCase("gps")){
               if(wl != null && wl.isHeld() == false) {
@@ -267,10 +267,10 @@ public class TrackLocationService extends Service {
               Log.i(LOCATION_SERVICE, "WAKE LOCK - HAS BEEN ACUIRED = " + wl + ";");
               
               requestLocation(true);
-              isLocationProviderAvailable = Preferences.getPreferencesBoolean(context, CommonConstants.IS_LOCATION_PROVIDER_AVAILABLE);
+              isLocationProviderAvailable = Preferences.getPreferencesBoolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE);
               if(isLocationProviderAvailable){
-            	  String locationStringGPS = Preferences.getPreferencesString(context, CommonConstants.LOCATION_INFO_GPS);
-            	  String locationStringNETWORK = Preferences.getPreferencesString(context, CommonConstants.LOCATION_INFO_NETWORK);
+            	  String locationStringGPS = Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_GPS);
+            	  String locationStringNETWORK = Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK);
       
                   if(!locationStringGPS.equals("initial")){
                       LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "locationGPS: " + locationStringGPS);
@@ -307,7 +307,7 @@ public class TrackLocationService extends Service {
                 boolean containsNetwork = locationProviders.contains(LocationManager.NETWORK_PROVIDER);
                 LogManager.LogInfoMsg(className, "requestLocation", "containsNetwork: " + containsNetwork);
 
-                String intervalString = Preferences.getPreferencesString(context, CommonConstants.LOCATION_SERVICE_INTERVAL);
+                String intervalString = Preferences.getPreferencesString(context, CommonConst.LOCATION_SERVICE_INTERVAL);
                 if(intervalString == null || intervalString.isEmpty()){
                 	intervalString = "100"; // time in milliseconds
                 }
@@ -316,17 +316,17 @@ public class TrackLocationService extends Service {
                 LogManager.LogInfoMsg(className, "requestLocation", "GPS_PROVIDER selected.");
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Integer.getInteger(intervalString), 0, locationListenerGPS);
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.getInteger(intervalString), 0, locationListenerNetwork);
-                    Preferences.setPreferencesBooolean(context, CommonConstants.IS_LOCATION_PROVIDER_AVAILABLE, true);
+                    Preferences.setPreferencesBooolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE, true);
                     //preferences.setStringSettingsValue("locationProviderName", "GPS");
                 } else if (containsNetwork) {
                 LogManager.LogInfoMsg(className, "requestLocation", "NETWORK_PROVIDER selected.");
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.getInteger(intervalString), 0, locationListenerNetwork);
-                    Preferences.setPreferencesBooolean(context, CommonConstants.IS_LOCATION_PROVIDER_AVAILABLE, true);
+                    Preferences.setPreferencesBooolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE, true);
                     //preferences.setStringSettingsValue("locationProviderName", "NETWORK");
                 }
 	        } else {
 		        LogManager.LogInfoMsg(className, "requestLocation", "No location providers available.");
-		        Preferences.setPreferencesBooolean(context, CommonConstants.IS_LOCATION_PROVIDER_AVAILABLE, false);
+		        Preferences.setPreferencesBooolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE, false);
 	        }
         LogManager.LogFunctionExit(className, "requestLocation");
         } catch (Exception e) {

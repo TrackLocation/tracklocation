@@ -17,7 +17,7 @@ import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.service.ScheduledActionExecutor;
 import com.dagrest.tracklocation.service.TrackLocationService;
-import com.dagrest.tracklocation.utils.CommonConstants;
+import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -84,7 +84,7 @@ public class MainActivity extends Activity {
     			// TODO Auto-generated method stub
 	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherGps->onReceive", "WORK");
 	    		mDisplay.setText("LOCATION_UPDATED_GPS: " +
-	    			Preferences.getPreferencesString(context, CommonConstants.LOCATION_INFO_NETWORK));
+	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
     		}
 	    };
 	    registerReceiver(locationChangeWatcher, intentFilter);
@@ -103,7 +103,7 @@ public class MainActivity extends Activity {
     			// TODO Auto-generated method stub
 	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherNetwork->onReceive", "WORK");
 	    		mDisplay.setText("LOCATION_UPDATED_NETWORK: " +
-	    			Preferences.getPreferencesString(context, CommonConstants.LOCATION_INFO_NETWORK));
+	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
     		}
 	    };
 	    registerReceiver(locationChangeWatcher, intentFilter);
@@ -129,7 +129,7 @@ public class MainActivity extends Activity {
         // Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
-            regid = Preferences.getPreferencesString(context, CommonConstants.PREFERENCES_REG_ID);
+            regid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 
             if (regid.isEmpty()) {
                 registerInBackground();
@@ -259,7 +259,7 @@ public class MainActivity extends Activity {
 
                     // Persist the regID - no need to register again.
                     //storeRegistrationId(context, regid);
-                    Preferences.setPreferencesString(context, CommonConstants.PREFERENCES_REG_ID, regid);
+                    Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, regid);
                 } catch (IOException ex) {
                     msg = "Error :" + ex.getMessage();
                     // If there is an error, don't just keep trying to register.
@@ -328,7 +328,7 @@ public class MainActivity extends Activity {
 //            	}
 //            }
         } else if (view == findViewById(R.id.btnGetRegId)) {
-        	String regId = Preferences.getPreferencesString(context, CommonConstants.PREFERENCES_REG_ID);
+        	String regId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
         	etRegId.setText(regId);
     		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
     			"RegID: " + regId + " :RegID");

@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.PrintWriter;  
 import java.util.Calendar;  
 
-import com.dagrest.tracklocation.utils.CommonConstants;
+import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Utils;
 
 import android.os.Environment;
@@ -26,13 +26,13 @@ public class LogHelper {
     		checkIsLogEnabled();                  
     		if(isLogEnabled() == true){  
     			// create a File object for the log directory                          
-    			File logDirectory = new File(storagePath + File.separator + CommonConstants.LOG_DIRECTORY_PATH);                          
+    			File logDirectory = new File(storagePath + File.separator + CommonConst.LOG_DIRECTORY_PATH);                          
     			if(logDirectory.exists() == false){                                  
     				// create log directory if needed                                  
     				logDirectory.mkdirs();                          
    				}
     			
-    			File logFile = new File(storagePath + File.separator + CommonConstants.LOG_DIRECTORY_PATH + File.separator + CommonConstants.LOG_FILE_NAME);                          
+    			File logFile = new File(storagePath + File.separator + CommonConst.LOG_DIRECTORY_PATH + File.separator + CommonConst.LOG_FILE_NAME);                          
     			if(logFile.exists()){                                  
     				//logFile.delete();                          
     			}                                            
@@ -52,11 +52,11 @@ public class LogHelper {
     		//buildMsg = getTimestamp() + DELIMITER;
     		
     		// Message Type                  
-    		buildMsg += Wrap(msgType.toString()) + CommonConstants.DELIMITER;                                    
+    		buildMsg += Wrap(msgType.toString()) + CommonConst.DELIMITER;                                    
     		
     		// Thread ID                  
     		final long threadId = Thread.currentThread().getId();                  
-    		buildMsg += Wrap(String.valueOf(threadId)) + CommonConstants.DELIMITER;                                    
+    		buildMsg += Wrap(String.valueOf(threadId)) + CommonConst.DELIMITER;                                    
     		
     		// Message                  
     		buildMsg += logMessage;                                    
@@ -87,10 +87,10 @@ public class LogHelper {
 						{                                          
 							try {                                                  
 								PrintWriter pw = new PrintWriter(                                                  
-								new FileWriter(storagePath + File.separator + CommonConstants.LOG_DIRECTORY_PATH + File.separator +CommonConstants.LOG_FILE_NAME, true));                                          
+								new FileWriter(storagePath + File.separator + CommonConst.LOG_DIRECTORY_PATH + File.separator +CommonConst.LOG_FILE_NAME, true));                                          
 								//ex.printStackTrace(pw);  
 								
-								pw.println(timeStamp+CommonConstants.DELIMITER+logMessage);                                          
+								pw.println(timeStamp+CommonConst.DELIMITER+logMessage);                                          
 								pw.flush();                                          
 								pw.close();                                      
 							} catch (IOException e) {                                          
@@ -105,7 +105,7 @@ public class LogHelper {
 		
 		private void checkIsLogEnabled()          
 		{                  
-			File enableDirectory = new File(storagePath + File.separator + CommonConstants.LOG_DIRECTORY_PATH + File.separator + CommonConstants.ENABLE_LOG_DIRECTORY);                  
+			File enableDirectory = new File(storagePath + File.separator + CommonConst.LOG_DIRECTORY_PATH + File.separator + CommonConst.ENABLE_LOG_DIRECTORY);                  
 			if(enableDirectory.exists())                  
 			{                          
 				isLogEnabled = true;                  

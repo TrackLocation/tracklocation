@@ -12,7 +12,7 @@ public class Preferences {
 	 * @return Application's {@code SharedPreferences}.
 	 */
 	public static SharedPreferences getGCMPreferences(Context context) {
-	    return context.getSharedPreferences(CommonConstants.SHARED_PREFERENCES_NAME,
+	    return context.getSharedPreferences(CommonConst.SHARED_PREFERENCES_NAME,
 	            Context.MODE_PRIVATE);
 	}
   		
