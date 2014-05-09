@@ -21,8 +21,11 @@ import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
+import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
+import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.dagrest.tracklocation.log.LogManager;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 public class Utils {
 	
@@ -112,6 +115,7 @@ public class Utils {
 //	    }		
 	}
 	
+	// TODO: Should be deleted - only as example
     public static void jsonTest(){
         Gson gson = new Gson();
     	
@@ -138,7 +142,7 @@ public class Utils {
         }
     }
     
-	public static void CustomerDataFromFileJsonTest(){
+	public static ContactDeviceDataList CustomerDataFromFileJsonTest(){
         Gson gson = new Gson();
     	
         ContactData contactDataDavid = new ContactData();
@@ -172,9 +176,9 @@ public class Utils {
         ContactDeviceDataList contactDeviceDataList = 
         	new ContactDeviceDataList();
         
-        contactDeviceDataList.getCustomerDataFromFileList()
+        contactDeviceDataList.getContactDeviceDataList()
         	.add(contactDeviceDataDavid);
-        contactDeviceDataList.getCustomerDataFromFileList()
+        contactDeviceDataList.getContactDeviceDataList()
     		.add(contactDeviceDataLarisa);
         
 //        List<CustomerDataFromFile> customerDataList = customerDataFromFileList.getCustomerDataFromFileList();
@@ -186,7 +190,7 @@ public class Utils {
         if (gsonString != null) {
         	customerDataListNew = 
         		gson.fromJson(gsonString, ContactDeviceDataList.class);
-        	customerDataListNew.getCustomerDataFromFileList();
+        	customerDataListNew.getContactDeviceDataList();
         	int i = 0;
         }
 
@@ -198,8 +202,48 @@ public class Utils {
         String gsonStringNew = readInputFile(contactDeviceDataListInputFileName.getAbsolutePath());
         contactDeviceDataListFromFile = 
         		gson.fromJson(gsonStringNew, ContactDeviceDataList.class);
+        return contactDeviceDataListFromFile;
 	}
 	
+	public static String getContactDeviceDataFromJsonFile(){
+		File contactDeviceDataListInputFileName = 
+				new File(getStoragePath() + File.separator + CommonConst.LOG_DIRECTORY_PATH + 
+					File.separator + CommonConst.CONTACT_DTAT_INPUT_FILE);                          
+        return readInputFile(contactDeviceDataListInputFileName.getAbsolutePath());
+	}
+	
+	public static ContactDeviceDataList fillContactDeviceDataFromJSON(String jsonDataString){
+		Gson gson = new Gson();
+		try {
+			ContactDeviceDataList contactDeviceDataList = gson.fromJson(jsonDataString, ContactDeviceDataList.class);
+			return contactDeviceDataList;
+		} catch (JsonSyntaxException e) {
+    		LogManager.LogException(e, "Utils", "fillContactDeviceDataFromJSON");
+			return null;
+		}
+	}
+	
+	public static ContactDeviceData getContactDeviceDataByUsername(ContactDeviceDataList contactDeviceDataCollection, String userName){
+
+		List<ContactDeviceData> contactDeviceDataList = contactDeviceDataCollection.getContactDeviceDataList();
+	    if(contactDeviceDataList == null){
+	    	return null;
+	    }
+	    
+	    for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
+	    	ContactData contactData = contactDeviceData.getContactData();
+	    	if(contactData != null) {
+	    		if(contactData.getUsername() != null){
+	    			if(contactData.getUsername().equals(userName)){
+	    				return contactDeviceData;
+	    			}
+	    		} 
+	    	}
+ 		}
+	    
+	    return null;
+	}
+
 	public static String getStoragePath(){
 		File extStore = Environment.getExternalStorageDirectory();
 		return extStore.getAbsolutePath();

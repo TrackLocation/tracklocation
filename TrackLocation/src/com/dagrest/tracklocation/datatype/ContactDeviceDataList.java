@@ -6,7 +6,7 @@ import java.util.List;
 public class ContactDeviceDataList {
 	private List<ContactDeviceData> contactDeviceDataList;
 
-	public List<ContactDeviceData> getCustomerDataFromFileList() {
+	public List<ContactDeviceData> getContactDeviceDataList() {
 		if( contactDeviceDataList == null){
 			contactDeviceDataList = new ArrayList<ContactDeviceData>();
 		} 

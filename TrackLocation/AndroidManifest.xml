@@ -8,21 +8,15 @@
         android:maxSdkVersion="18"
         android:minSdkVersion="16"
         android:targetSdkVersion="16" />
-    <!--
-         permission so the Android application can send the registration ID to 
-    	the 3rd party server
-    -->
+    <!-- permission so the Android application can send the registration ID to 
+    	the 3rd party server -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!--
-         permission as GCM requires a Google account (necessary only if if the 
-    	device is running a version lower than Android 4.0.4)
-    -->
+    <!--  permission as GCM requires a Google account (necessary only if if the 
+    	device is running a version lower than Android 4.0.4) -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-    <!--
-         permission so the application can keep the processor from sleeping 
+    <!-- permission so the application can keep the processor from sleeping 
     	when a message is received. Optional—use only if the app wants to keep 
-    	the device from sleeping.
-    -->
+    	the device from sleeping. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- permission so the Android application can register and receive messages -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
@@ -76,6 +70,13 @@
             android:name="com.dagrest.tracklocation.ContactList"
             android:label="@string/title_activity_contact_list" >
         </activity>
-    </application>
+        
+        <activity
+            android:name="com.dagrest.tracklocation.ContactConfiguration"
+            android:label="@string/title_activity_contact_config" >
+        </activity>
+        
+	</application>
 
 </manifest>
+

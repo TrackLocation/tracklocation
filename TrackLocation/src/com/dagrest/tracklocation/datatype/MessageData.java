@@ -5,10 +5,15 @@ public class MessageData {
 	private String time;
 	private CommandEnum command;
 	private String registrationID;
-	private ContactData customerData;
+	private ContactData contactData;
 	private DeviceTypeEnum deviceTypeEnum;
 	private DeviceData deviceData;
 	private Location location;
+	// registration ID - to return answer to this regID 
+	// in case of "status" command
+	private String regIDToReturnMessageTo;
+	private TrackLocationServiceStatusEnum trackLocationServiceStatusEnum;
+	private PushNotificationServiceStatusEnum pushNotificationServiceStatusEnum;
 	
 	public String getMessage() {
 		return message;
@@ -34,11 +39,11 @@ public class MessageData {
 	public void setRegistrationID(String registrationID) {
 		this.registrationID = registrationID;
 	}
-	public ContactData getCustomerData() {
-		return customerData;
+	public ContactData getContactData() {
+		return contactData;
 	}
-	public void setCustomerData(ContactData customerData) {
-		this.customerData = customerData;
+	public void setContactData(ContactData contactData) {
+		this.contactData = contactData;
 	}
 	public DeviceTypeEnum getDeviceTypeEnum() {
 		return deviceTypeEnum;
@@ -58,4 +63,25 @@ public class MessageData {
 	public void setLocation(Location location) {
 		this.location = location;
 	}
+	public String getRegIDToReturnMessageTo() {
+		return regIDToReturnMessageTo;
+	}
+	public void setRegIDToReturnMessageTo(String regIDToReturnMessageTo) {
+		this.regIDToReturnMessageTo = regIDToReturnMessageTo;
+	}
+	public TrackLocationServiceStatusEnum getTrackLocationServiceStatusEnum() {
+		return trackLocationServiceStatusEnum;
+	}
+	public void setTrackLocationServiceStatusEnum(
+			TrackLocationServiceStatusEnum trackLocationServiceStatusEnum) {
+		this.trackLocationServiceStatusEnum = trackLocationServiceStatusEnum;
+	}
+	public PushNotificationServiceStatusEnum getPushNotificationServiceStatusEnum() {
+		return pushNotificationServiceStatusEnum;
+	}
+	public void setPushNotificationServiceStatusEnum(
+			PushNotificationServiceStatusEnum pushNotificationServiceStatusEnum) {
+		this.pushNotificationServiceStatusEnum = pushNotificationServiceStatusEnum;
+	}
+	
 }

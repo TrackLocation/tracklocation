@@ -9,5 +9,7 @@
     <string name="getRegId">Get RegId</string>
     <string name="contact_list">ContactList</string>
     <string name="title_activity_contact_list">ContactList</string>
+	<string name="title_activity_contact_config">ContactConfiguration</string>
 
 </resources>
+

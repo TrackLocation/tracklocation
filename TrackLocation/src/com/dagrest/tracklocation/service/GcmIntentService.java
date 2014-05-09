@@ -1,11 +1,19 @@
 package com.dagrest.tracklocation.service;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.MessageData;
+import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
+import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
+import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.app.IntentService;
@@ -59,8 +67,8 @@ public class GcmIntentService extends IntentService {
             		"Received: " + extras.toString());
             	if(extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
-            			equals(CommandEnum.start.toString())){
-            		if(extras.containsKey(CommandTagEnum.interval.toString())){
+            			equals(CommandEnum.start.toString())){ // COMMAND START
+            		if(extras.containsKey(CommandTagEnum.interval.toString())){ // COMMAND INTERVAL
             			String intervalString = extras.getString(CommandTagEnum.interval.toString());
             			Context ctx = getApplicationContext();
                         Preferences.setPreferencesString(getApplicationContext(), 
@@ -71,11 +79,27 @@ public class GcmIntentService extends IntentService {
             		context.startService(trackLocationService); 
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
-            			equals(CommandEnum.stop.toString())){
+            			equals(CommandEnum.stop.toString())){ // COMMAND STOP 
             		Context context = getApplicationContext();
             		Intent trackLocationService = new Intent(context, TrackLocationService.class);
             		boolean result = context.stopService(trackLocationService); 
             		Log.i(LOCATION_SERVICE, "Servise stopped: " + result);
+            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
+            			extras.getString(CommandTagEnum.command.toString()).
+            			equals(CommandEnum.status.toString())){ // COMMAND STATUS 
+            		
+            		ArrayList<String> listRegIDs = new ArrayList<String>();
+            		listRegIDs.add(""); // regIDs of client that are requested for location
+            		String regIDToReturnMessageTo = ""; // get regID of the current client as a requester
+            		String time = new Date().toString(); 
+            		Controller c = new Controller();
+            		c.createJsonMessage(listRegIDs, 
+        	    		regIDToReturnMessageTo, 
+        	    		CommandEnum.status, 
+        	    		null, 
+        	    		time,
+        	    		null,
+        	    		null);
             	}
             }
         }

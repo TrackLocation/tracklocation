@@ -10,104 +10,220 @@
 	        <LinearLayout android:layout_width="fill_parent"
 	                  android:layout_height="wrap_content"
 	                  android:orientation="horizontal"
-	                  android:layout_marginTop="10sp">
+	                  android:layout_marginTop="10sp"
+	                  android:layout_marginBottom="10sp">
 	            <ImageView
 			        android:id="@+id/usericon"
 			        android:contentDescription="ImageDescription"
-			        android:layout_width="50sp"
-			        android:layout_height="50sp"
-			        android:layout_marginLeft="5sp"
-			        android:layout_marginRight="20sp"
-			        android:layout_marginTop="5sp"
+			        android:layout_width="100sp"
+			        android:layout_height="30sp"
 			        android:src="@drawable/ic_launcher">
+			   <!-- android:layout_marginTop="10sp"
+			        android:layout_marginLeft="5sp"  -->
 			    </ImageView>
 	            
 	            <TextView android:id="@+id/username"
 	                android:layout_width="fill_parent"
-	                android:layout_height="fill_parent">
+	                android:layout_height="fill_parent"
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="dagrest">
 	            </TextView>
             
 	        </LinearLayout>
             
 	        <LinearLayout android:layout_width="fill_parent"
-				android:layout_height="50sp"
+				android:layout_height="30sp"
 				android:orientation="horizontal"
 				android:layout_marginTop="10sp"
 				android:layout_marginBottom="10sp">
 		        <TextView android:id="@+id/filed_email"
 	                android:layout_width="100sp"
 	                android:layout_height="fill_parent"
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
 	                android:text="Email:">
 	            </TextView>
 	            <TextView android:id="@+id/email"
 	                android:layout_width="fill_parent"
 	                android:layout_height="fill_parent"
 	                android:layout_marginLeft="20sp"
-	                android:text="dagrest">
+	                android:textSize="15sp"
+	                android:text="dagrest@gmail.com">
 	            </TextView>
 	        </LinearLayout>
 	        
 	        <LinearLayout android:layout_width="fill_parent"
-				android:layout_height="50sp"
+				android:layout_height="30sp"
 				android:orientation="horizontal"
 				android:layout_marginTop="10sp"
 				android:layout_marginBottom="10sp">
 		        <TextView android:id="@+id/filed_devicename"
 	                android:layout_width="100sp"
 	                android:layout_height="fill_parent"
-	                android:text="Device name:">
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="Name:">
 	            </TextView>
 	            <TextView android:id="@+id/devicename"
 	                android:layout_width="fill_parent"
 	                android:layout_height="fill_parent"
 	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
 	                android:text="Galaxy S3">
 	            </TextView>
 	        </LinearLayout>
 	        
 	        <LinearLayout android:layout_width="fill_parent"
-				android:layout_height="50sp"
+				android:layout_height="30sp"
 				android:orientation="horizontal"
 				android:layout_marginTop="10sp"
 				android:layout_marginBottom="10sp">
 		        <TextView android:id="@+id/filed_devicetype"
 	                android:layout_width="100sp"
 	                android:layout_height="fill_parent"
-	                android:text="Device type:">
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="Type:">
 	            </TextView>
 	            <TextView android:id="@+id/devicetype"
 	                android:layout_width="fill_parent"
 	                android:layout_height="fill_parent"
 	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
 	                android:text="phone">
 	            </TextView>
 	        </LinearLayout>
 
 	        <LinearLayout android:layout_width="fill_parent"
-				android:layout_height="50sp"
+				android:layout_height="30sp"
 				android:orientation="horizontal"
 				android:layout_marginTop="10sp"
 				android:layout_marginBottom="10sp">
+		        <TextView android:id="@+id/field_status"
+	                android:layout_width="100sp"
+	                android:layout_height="fill_parent"
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="Status:">
+	            </TextView>
+	            <TextView android:id="@+id/status"
+	                android:layout_width="fill_parent"
+	                android:layout_height="fill_parent"
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="Available">
+	            </TextView>
+	        </LinearLayout>
+
+	        <LinearLayout android:layout_width="fill_parent"
+				android:layout_height="30sp"
+				android:orientation="horizontal"
+				android:layout_marginTop="10sp"
+				android:layout_marginBottom="10sp">
+		        <TextView android:id="@+id/field_notification"
+	                android:layout_width="100sp"
+	                android:layout_height="fill_parent"
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="Notification:">
+	            </TextView>
+	            <TextView android:id="@+id/notification"
+	                android:layout_width="fill_parent"
+	                android:layout_height="fill_parent"
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="OFF">
+	            </TextView>
+	        </LinearLayout>
+	        	        
+	        <LinearLayout android:layout_width="fill_parent"
+				android:layout_height="30sp"
+				android:orientation="horizontal"
+				android:layout_marginTop="10sp"
+				android:layout_marginBottom="10sp">
+		        <TextView android:id="@+id/field_lat"
+	                android:layout_width="100sp"
+	                android:layout_height="fill_parent"
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="Latutude:">
+	            </TextView>
+	            <TextView android:id="@+id/lat"
+	                android:layout_width="fill_parent"
+	                android:layout_height="fill_parent"
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="34.2734634">
+	            </TextView>
+	        </LinearLayout>
+
+	        <LinearLayout android:layout_width="fill_parent"
+				android:layout_height="30sp"
+				android:orientation="horizontal"
+				android:layout_marginTop="10sp"
+				android:layout_marginBottom="10sp">
+		        <TextView android:id="@+id/field_lng"
+	                android:layout_width="100sp"
+	                android:layout_height="fill_parent"
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="Longitude:">
+	            </TextView>
+	            <TextView android:id="@+id/lng"
+	                android:layout_width="fill_parent"
+	                android:layout_height="fill_parent"
+	                android:layout_marginLeft="20sp"
+	                android:textSize="15sp"
+	                android:text="35.34343434">
+	            </TextView>
+	        </LinearLayout>
+	        
+	        <RelativeLayout
+	            android:layout_width="fill_parent"
+	            android:layout_height="50sp"
+	            android:layout_marginBottom="10sp"
+	            android:layout_marginTop="10sp"
+	            android:orientation="horizontal" >
 
 	            <Button
 	                android:id="@+id/check_status"
 	                android:layout_width="wrap_content"
 	                android:layout_height="wrap_content"
+	                android:layout_marginLeft="20sp"
+	                android:layout_alignParentLeft="true"
 	                android:text="Check Status" />
-
-	            <Button
-	                android:id="@+id/start"
-	                android:layout_width="wrap_content"
-	                android:layout_height="wrap_content"
-	                android:text="Start" />
 
 	            <Button
 	                android:id="@+id/stop"
 	                android:layout_width="wrap_content"
 	                android:layout_height="wrap_content"
+	                android:layout_marginRight="20sp"
+	                android:layout_alignParentRight="true"
 	                android:text="Stop" />
 
-	        </LinearLayout>
+	            <Button
+	                android:id="@+id/start"
+	                android:layout_width="wrap_content"
+	                android:layout_height="wrap_content"
+	                android:layout_alignParentTop="true"
+	                android:layout_marginLeft="45dp"
+	                android:layout_toRightOf="@+id/check_status"
+	                android:text="Start" />
+	        </RelativeLayout>
+
 		</LinearLayout>
+
+        <Button
+            android:id="@+id/show_map"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="20sp"
+            android:layout_marginRight="20sp"
+            android:layout_marginBottom="20sp"
+            android:text="Show on map..." />
 
 </RelativeLayout>
