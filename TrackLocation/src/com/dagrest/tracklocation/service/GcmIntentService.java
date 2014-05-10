@@ -107,6 +107,7 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.status_response.toString())){ // COMMAND STATUS_RESPONSE
                 		String pushNotificationServiceStatus = extras.getString("pushNotificationServiceStatusEnum");
+                		broadcastLocationUpdatedGps(pushNotificationServiceStatus);
                 		int i = 0;
 //                		ArrayList<String> listRegIDs = new ArrayList<String>();
 //                		listRegIDs.add(""); // regIDs of client that are requested for location
