@@ -2,11 +2,21 @@ package com.dagrest.tracklocation;
 
 import java.util.List;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.AsyncTask;
+import android.util.Log;
+
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
+import com.dagrest.tracklocation.http.HttpUtils;
+import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.Preferences;
 import com.google.gson.Gson;
 
 public class Controller {
@@ -40,5 +50,71 @@ public class Controller {
     	return jsonMessage;
     }
     
+  /**
+	 * Gets the current registration ID for application on GCM service.
+	 * 
+	 * If result is empty, the app needs to register.
+	 *
+	 * @return registration ID, or empty string if there is no existing
+	 *         registration ID.
+	 */
+	public static String getRegistrationId(Context context) {
+	    final SharedPreferences prefs = Preferences.getGCMPreferences(context);
+	    String registrationId = prefs.getString(CommonConst.PREFERENCES_REG_ID/*PROPERTY_REG_ID*/, "");
+	    if (registrationId.isEmpty()) {
+	        Log.i(CommonConst.LOG_TAG, "Registration not found.");
+	        return "";
+	    }
+	    // Check if app was updated; if so, it must clear the registration ID
+	    // since the existing regID is not guaranteed to work with the new
+	    // app version.
+	    int registeredVersion = prefs.getInt(CommonConst.PROPERTY_APP_VERSION, Integer.MIN_VALUE);
+	    int currentVersion = getAppVersion(context);
+	    if (registeredVersion != currentVersion) {
+	        Log.i(CommonConst.LOG_TAG, "App version changed.");
+	        return "";
+	    }
+	    return registrationId;
+	}
+
+    /**
+     * @return Application's version code from the {@code PackageManager}.
+     */
+    private static int getAppVersion(Context context) {
+        try {
+            PackageInfo packageInfo = context.getPackageManager()
+                    .getPackageInfo(context.getPackageName(), 0);
+            return packageInfo.versionCode;
+        } catch (NameNotFoundException e) {
+            // should never happen
+            throw new RuntimeException("Could not get package name: " + e);
+        }
+    }
+
+    public void sendCommand(final String jsonMessage){ 
+    	// AsyncTask <TypeOfVarArgParams , ProgressValue , ResultValue>
+	    new AsyncTask<Void, Void, String>() {
+	        @Override
+	        protected String doInBackground(Void... params) {
+//	            try {
+	        		//sendRegistrationIdToBackend(regid);
+	            	String result = HttpUtils.sendRegistrationIdToBackend(jsonMessage);
+	            	// TODO: fix return value
+	            	return result;
+//	            } catch (Exception e) {
+//	//                LogManager.LogErrorMsg(this.getClass().getName(), "onClick->Send", 
+//	//                	"Error :" + ex.getMessage());
+//	            	// TODO: fix return value
+//	            	return "Exception" + e.getMessage();
+//	            }
+	        }
+	
+	        @Override
+	        protected void onPostExecute(String msg) {
+	        	// TODO: fix return value
+	        	int i = 0;
+	        }
+	    }.execute(null, null, null);
+    }
 
 }

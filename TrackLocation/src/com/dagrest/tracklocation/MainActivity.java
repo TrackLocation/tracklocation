@@ -46,10 +46,9 @@ public class MainActivity extends Activity {
 	/**
      * Tag used on log messages.
      */
-	private final static String LOG_TAG = "TrackLocation";
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private final static int RQS_GooglePlayServices = 1;
-    private ScheduledActionExecutor scheduledActionExecutor = null;
+//    private ScheduledActionExecutor scheduledActionExecutor = null;
     private SharedPreferences preferences;
     private BroadcastReceiver locationChangeWatcher;
     private String className;
@@ -71,45 +70,6 @@ public class MainActivity extends Activity {
 //    Button btnRegId;
     TextView etRegId;
     
-    private void initLocationChangeWatcherGps()
-    {
-    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
-	    IntentFilter intentFilter = new IntentFilter();
-	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_GPS");
-	    //com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK
-	    locationChangeWatcher = new BroadcastReceiver() 
-	    {
-	    	@Override
-    		public void onReceive(Context context, Intent intent) {
-    			// TODO Auto-generated method stub
-	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherGps->onReceive", "WORK");
-	    		mDisplay.setText("LOCATION_UPDATED_GPS: " +
-	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
-    		}
-	    };
-	    registerReceiver(locationChangeWatcher, intentFilter);
-	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
-    }
-    
-    private void initLocationChangeWatcherNetwork()
-    {
-    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
-	    IntentFilter intentFilter = new IntentFilter();
-	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK");
-	    locationChangeWatcher = new BroadcastReceiver() 
-	    {
-	    	@Override
-    		public void onReceive(Context context, Intent intent) {
-    			// TODO Auto-generated method stub
-	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherNetwork->onReceive", "WORK");
-	    		mDisplay.setText("LOCATION_UPDATED_NETWORK: " +
-	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
-    		}
-	    };
-	    registerReceiver(locationChangeWatcher, intentFilter);
-	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
-    }
-
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -135,7 +95,7 @@ public class MainActivity extends Activity {
                 registerInBackground();
             }
         } else {
-            Log.e(LOG_TAG, "No valid Google Play Services APK found.");
+            Log.e(CommonConst.LOG_TAG, "No valid Google Play Services APK found.");
     		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", 
     			"No valid Google Play Services APK found.");
         }
@@ -177,7 +137,7 @@ public class MainActivity extends Activity {
 	            GooglePlayServicesUtil.getErrorDialog(resultCode, this,
 	            	PLAY_SERVICES_RESOLUTION_REQUEST).show();
 	        } else {
-	            Log.e(LOG_TAG, "This device is not supported by Google Play Services.");
+	            Log.e(CommonConst.LOG_TAG, "This device is not supported by Google Play Services.");
 	            LogManager.LogErrorMsg(this.getClass().getName(), "checkPlayServices", 
 	            	"This device is not supported by Google Play Services.");
 	            finish();
@@ -249,16 +209,10 @@ public class MainActivity extends Activity {
                     regid = gcm.register(SENDER_ID);
                     msg = "Device registered, registration ID=" + regid;
 
-                    // You should send the registration ID to your server over HTTP, so it
-                    // can use GCM/HTTP or CCS to send messages to your app.
-                    // sendRegistrationIdToBackend(regid);
-
-                    // For this demo: we don't need to send it because the device will send
-                    // upstream messages to a server that echo back the message using the
-                    // 'from' address in the message.
-
-                    // Persist the regID - no need to register again.
-                    //storeRegistrationId(context, regid);
+                    // Persist the version ID 
+                    Preferences.setPreferencesInt(context, CommonConst.PROPERTY_APP_VERSION, 
+                    	CommonConst.PROPERTY_APP_VERSION_VALUE);
+                    // Persist the registration ID - no need to register again.
                     Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, regid);
                 } catch (IOException ex) {
                     msg = "Error :" + ex.getMessage();
@@ -350,20 +304,6 @@ public class MainActivity extends Activity {
         super.onDestroy();
     }
 
-    /**
-     * @return Application's version code from the {@code PackageManager}.
-     */
-    private static int getAppVersion(Context context) {
-        try {
-            PackageInfo packageInfo = context.getPackageManager()
-                    .getPackageInfo(context.getPackageName(), 0);
-            return packageInfo.versionCode;
-        } catch (NameNotFoundException e) {
-            // should never happen
-            throw new RuntimeException("Could not get package name: " + e);
-        }
-    }
-
     private void sendRegistrationIdToBackend(String regid) {
         LogManager.LogInfoMsg(this.getClass().getName(), "sendRegistrationIdToBackend", 
             	"Before PostToGCM.post(apiKey, content)");
@@ -375,45 +315,12 @@ public class MainActivity extends Activity {
         	+ "[\"" + regid + "\"],"+
         	"\"data\" : {\"message\": \"From David\",\"time\": \"" + new Date().toString() + "\"},}";
         
-        postGCM("https://android.googleapis.com/gcm/send", "AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30", messageJSON);
+        HttpUtils.postGCM("https://android.googleapis.com/gcm/send", "AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30", messageJSON);
         
         LogManager.LogFunctionExit(this.getClass().getName(), "sendRegistrationIdToBackend");
     }
 
-    
-    private static String postGCM(String url, String serverKey, String messageJson){
-    	
-        int responseCode;
-        String message;
-        HttpPost req = new HttpPost(url);
-        
-        try {
-			StringEntity se = new StringEntity(messageJson);
-			se.setContentType(new BasicHeader(HTTP.CONTENT_TYPE,
-					"application/json"));
-			req.setEntity(se);
-			List<BasicHeader> headers = new ArrayList<BasicHeader>();
-			headers.add(new BasicHeader("Accept", "application/json"));
-			headers.add(new BasicHeader("Authorization", "key=" + serverKey));
-			HttpResponse resp = HttpUtils
-					.post(url, headers, se, null/*localContext*/);
-			message = resp.getStatusLine().getReasonPhrase();
-			responseCode = resp.getStatusLine().getStatusCode();
-			if (responseCode != 200) {
-				//throw new Exception("Cloud Exception" + message);
-				return null;
-			} else {
-				String result = EntityUtils.toString(resp.getEntity(),
-						HTTP.UTF_8);
-				return result;
-			}
-		} catch (IOException e) {
-			// TODO: handle exception
-		}
-        return null;
-    }
-    
-	// Checking for all possible internet providers
+   	// Checking for all possible internet providers
     public boolean isConnectingToInternet(){
          
         ConnectivityManager connectivity = 
@@ -432,6 +339,46 @@ public class MainActivity extends Activity {
           }
           return false;
     }
+
+    private void initLocationChangeWatcherGps()
+    {
+    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
+	    IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_GPS");
+	    //com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK
+	    locationChangeWatcher = new BroadcastReceiver() 
+	    {
+	    	@Override
+    		public void onReceive(Context context, Intent intent) {
+    			// TODO Auto-generated method stub
+	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherGps->onReceive", "WORK");
+	    		mDisplay.setText("LOCATION_UPDATED_GPS: " +
+	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
+    		}
+	    };
+	    registerReceiver(locationChangeWatcher, intentFilter);
+	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
+    }
     
+    private void initLocationChangeWatcherNetwork()
+    {
+    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
+	    IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK");
+	    locationChangeWatcher = new BroadcastReceiver() 
+	    {
+	    	@Override
+    		public void onReceive(Context context, Intent intent) {
+    			// TODO Auto-generated method stub
+	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherNetwork->onReceive", "WORK");
+	    		mDisplay.setText("LOCATION_UPDATED_NETWORK: " +
+	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
+    		}
+	    };
+	    registerReceiver(locationChangeWatcher, intentFilter);
+	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
+    }
+
+
 }
 

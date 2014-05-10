@@ -2,18 +2,15 @@ package com.dagrest.tracklocation.service;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
-import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
-import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
+import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
-import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.app.IntentService;
@@ -86,24 +83,64 @@ public class GcmIntentService extends IntentService {
             		Log.i(LOCATION_SERVICE, "Servise stopped: " + result);
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
-            			equals(CommandEnum.status.toString())){ // COMMAND STATUS 
+            			equals(CommandEnum.status_request.toString())){ // COMMAND STATUS_REQUEST
+            		
             		
             		ArrayList<String> listRegIDs = new ArrayList<String>();
-            		listRegIDs.add(""); // regIDs of client that are requested for location
-            		String regIDToReturnMessageTo = ""; // get regID of the current client as a requester
-            		String time = new Date().toString(); 
-            		Controller c = new Controller();
-            		c.createJsonMessage(listRegIDs, 
-        	    		regIDToReturnMessageTo, 
-        	    		CommandEnum.status, 
-        	    		null, 
-        	    		time,
-        	    		null,
-        	    		null);
+            		// get regID of the current client as a requester
+            		String regIDToReturnMessageTo = extras.getString("regIDToReturnMessageTo");
+            		listRegIDs.add(regIDToReturnMessageTo); // regIDs of client that are requested for location
+            		if(regIDToReturnMessageTo != null){
+	            		String time = new Date().toString(); 
+	            		Controller controller = new Controller();
+	            		String jsonMessage = controller.createJsonMessage(listRegIDs, 
+	        	    		regIDToReturnMessageTo, 
+	        	    		CommandEnum.status_response, 
+	        	    		null, 
+	        	    		time,
+	        	    		null,
+	        	    		PushNotificationServiceStatusEnum.available);
+	            		// send message back with PushNotificationServiceStatusEnum.available
+	            		//HttpUtils.sendRegistrationIdToBackend(jsonMessage);
+	            		controller.sendCommand(jsonMessage);
+                	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
+                			extras.getString(CommandTagEnum.command.toString()).
+                			equals(CommandEnum.status_response.toString())){ // COMMAND STATUS_RESPONSE
+                		String pushNotificationServiceStatus = extras.getString("pushNotificationServiceStatusEnum");
+                		int i = 0;
+//                		ArrayList<String> listRegIDs = new ArrayList<String>();
+//                		listRegIDs.add(""); // regIDs of client that are requested for location
+//                		// get regID of the current client as a requester
+//                		String regIDToReturnMessageTo = extras.getString("regIDToReturnMessageTo");
+//                		if(regIDToReturnMessageTo != null){
+//    	            		String time = new Date().toString(); 
+//    	            		Controller controller = new Controller();
+//    	            		String jsonMessage = controller.createJsonMessage(listRegIDs, 
+//    	        	    		regIDToReturnMessageTo, 
+//    	        	    		CommandEnum.status_response, 
+//    	        	    		null, 
+//    	        	    		time,
+//    	        	    		null,
+//    	        	    		PushNotificationServiceStatusEnum.available);
+//    	            		// send message back with PushNotificationServiceStatusEnum.available
+//    	            		//HttpUtils.sendRegistrationIdToBackend(jsonMessage);
+//    	            		controller.sendCommand(jsonMessage);
+                	}
             	}
             }
         }
         // Release the wake lock provided by the WakefulBroadcastReceiver.
         GcmBroadcastReceiver.completeWakefulIntent(intent);
 	}
+	
+	public void broadcastLocationUpdatedGps(String value)
+	{
+		LogManager.LogFunctionCall("GcmIntentService", "broadcastLocationUpdatedGps");
+		Intent intent = new Intent();
+		intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
+		intent.putExtra("updated", value);
+		sendBroadcast(intent);
+		LogManager.LogFunctionExit("GcmIntentService", "broadcastLocationUpdatedGps");
+	}
+
 }

@@ -5,7 +5,7 @@ import java.util.Map;
 
 public enum CommandEnum {
 	start("start"), stop("stop"), setinterval("setinterval"),
-	location("location"), status("status");
+	location("location"), status_request("status_request"), status_response("status_response");
 	
 	private final String name;       
 	private static Map<String, CommandEnum> valueMap;

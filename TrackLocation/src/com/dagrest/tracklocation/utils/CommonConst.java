@@ -2,6 +2,10 @@ package com.dagrest.tracklocation.utils;
 
 public class CommonConst {
 	
+	public static final String LOG_TAG = "TrackLocation";
+	public static final String PROPERTY_APP_VERSION = "AppVersion";
+	public static final int PROPERTY_APP_VERSION_VALUE = 1;
+
 	public static final String SHARED_PREFERENCES_NAME = "TRACK_LOCATION";
 	public static final String LOCATION_PROVIDER_NAME = "LOCATION_PROVIDER_NAME";
 	public static final String LOCATION_SERVICE_INTERVAL = "LOCATION_SERVICE_INTERVAL";
@@ -24,5 +28,6 @@ public class CommonConst {
 
  	public static final String JSON_STRING_CONTACT_DEVICE_DATA = "jsonStringContactDeviceData";
  	public static final String CONTACT_LIST_SELECTED_VALUE = "selectedValue";
+ 	public static final String CONTACT_REGISTRATION_ID = "registration_id";
 
 }

@@ -112,7 +112,7 @@
 	                android:layout_height="fill_parent"
 	                android:layout_marginLeft="20sp"
 	                android:textSize="15sp"
-	                android:text="Available">
+	                android:text="">
 	            </TextView>
 	        </LinearLayout>
 
@@ -133,7 +133,7 @@
 	                android:layout_height="fill_parent"
 	                android:layout_marginLeft="20sp"
 	                android:textSize="15sp"
-	                android:text="OFF">
+	                android:text="">
 	            </TextView>
 	        </LinearLayout>
 	        	        
@@ -154,7 +154,7 @@
 	                android:layout_height="fill_parent"
 	                android:layout_marginLeft="20sp"
 	                android:textSize="15sp"
-	                android:text="34.2734634">
+	                android:text="">
 	            </TextView>
 	        </LinearLayout>
 
@@ -175,7 +175,7 @@
 	                android:layout_height="fill_parent"
 	                android:layout_marginLeft="20sp"
 	                android:textSize="15sp"
-	                android:text="35.34343434">
+	                android:text="">
 	            </TextView>
 	        </LinearLayout>
 	        
@@ -192,7 +192,8 @@
 	                android:layout_height="wrap_content"
 	                android:layout_marginLeft="20sp"
 	                android:layout_alignParentLeft="true"
-	                android:text="Check Status" />
+	                android:text="Check Status" 
+	                android:onClick="onClick"/>
 
 	            <Button
 	                android:id="@+id/stop"
