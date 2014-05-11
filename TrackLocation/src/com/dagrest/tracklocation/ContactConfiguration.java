@@ -8,6 +8,7 @@ import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
+import com.dagrest.tracklocation.datatype.NotificationCommandEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.dagrest.tracklocation.http.HttpUtils;
@@ -143,15 +144,18 @@ public class ContactConfiguration extends Activity {
         		listRegIDs.add(contactData.getRegistration_id());
         		String time = "";
         		String messageString = "";
-        		TrackLocationServiceStatusEnum trackLocationServiceStatus = null;
-        		PushNotificationServiceStatusEnum pushNotificationServiceStatus = null;
+//        		TrackLocationServiceStatusEnum trackLocationServiceStatus = null;
+//        		PushNotificationServiceStatusEnum pushNotificationServiceStatus = null;
         		jsonMessage = controller.createJsonMessage(listRegIDs, 
         	    		regIDToReturnMessageTo, 
         	    		CommandEnum.status_request, 
-        	    		messageString, 
-        	    		time,
-        	    		trackLocationServiceStatus,
-        	    		pushNotificationServiceStatus);
+        	    		"", // messageString, 
+        	    		Controller.getCurrentDate(), // time,
+//        	    		trackLocationServiceStatus,
+//        	    		pushNotificationServiceStatus,
+        	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+        	    		null //PushNotificationServiceStatusEnum.available.toString()
+        				);
         		//HttpUtils.sendRegistrationIdToBackend(jsonMessage);
         		controller.sendCommand(jsonMessage);
         	break;

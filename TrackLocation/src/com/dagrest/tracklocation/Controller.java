@@ -1,5 +1,8 @@
 package com.dagrest.tracklocation;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.List;
 
 import android.content.Context;
@@ -26,8 +29,10 @@ public class Controller {
     		CommandEnum command, 
     		String messageString, 
     		String time,
-    		TrackLocationServiceStatusEnum trackLocationServiceStatus,
-    		PushNotificationServiceStatusEnum pushNotificationServiceStatus){
+//    		TrackLocationServiceStatusEnum trackLocationServiceStatus,
+//    		PushNotificationServiceStatusEnum pushNotificationServiceStatus,
+    		String key, 
+    		String value){
     	
     	String jsonMessage = null;
     	
@@ -38,8 +43,10 @@ public class Controller {
         messageData.setTime(time);
         messageData.setCommand(command);
         messageData.setRegIDToReturnMessageTo(regIDToReturnMessageTo);
-        messageData.setTrackLocationServiceStatusEnum(trackLocationServiceStatus);
-        messageData.setPushNotificationServiceStatusEnum(pushNotificationServiceStatus);
+//        messageData.setTrackLocationServiceStatusEnum(trackLocationServiceStatus);
+//        messageData.setPushNotificationServiceStatusEnum(pushNotificationServiceStatus);
+        messageData.setKey(key);
+        messageData.setValue(value);
         
         Message message = new Message();
         message.setData(messageData); 
@@ -117,4 +124,9 @@ public class Controller {
 	    }.execute(null, null, null);
     }
 
+	public static String getCurrentDate(){
+		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy");
+		Calendar cal = Calendar.getInstance();
+		return dateFormat.format(cal.getTime());
+	}
 }

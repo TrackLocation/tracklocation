@@ -12,8 +12,10 @@ public class MessageData {
 	// registration ID - to return answer to this regID 
 	// in case of "status" command
 	private String regIDToReturnMessageTo;
-	private TrackLocationServiceStatusEnum trackLocationServiceStatusEnum;
-	private PushNotificationServiceStatusEnum pushNotificationServiceStatusEnum;
+//	private TrackLocationServiceStatusEnum trackLocationServiceStatusEnum;
+//	private PushNotificationServiceStatusEnum pushNotificationServiceStatusEnum;
+	private String key;
+	private String value;
 	
 	public String getMessage() {
 		return message;
@@ -69,19 +71,31 @@ public class MessageData {
 	public void setRegIDToReturnMessageTo(String regIDToReturnMessageTo) {
 		this.regIDToReturnMessageTo = regIDToReturnMessageTo;
 	}
-	public TrackLocationServiceStatusEnum getTrackLocationServiceStatusEnum() {
-		return trackLocationServiceStatusEnum;
+//	public TrackLocationServiceStatusEnum getTrackLocationServiceStatusEnum() {
+//		return trackLocationServiceStatusEnum;
+//	}
+//	public void setTrackLocationServiceStatusEnum(
+//			TrackLocationServiceStatusEnum trackLocationServiceStatusEnum) {
+//		this.trackLocationServiceStatusEnum = trackLocationServiceStatusEnum;
+//	}
+//	public PushNotificationServiceStatusEnum getPushNotificationServiceStatusEnum() {
+//		return pushNotificationServiceStatusEnum;
+//	}
+//	public void setPushNotificationServiceStatusEnum(
+//			PushNotificationServiceStatusEnum pushNotificationServiceStatusEnum) {
+//		this.pushNotificationServiceStatusEnum = pushNotificationServiceStatusEnum;
+//	}
+	public String getKey() {
+		return key;
 	}
-	public void setTrackLocationServiceStatusEnum(
-			TrackLocationServiceStatusEnum trackLocationServiceStatusEnum) {
-		this.trackLocationServiceStatusEnum = trackLocationServiceStatusEnum;
+	public void setKey(String key) {
+		this.key = key;
 	}
-	public PushNotificationServiceStatusEnum getPushNotificationServiceStatusEnum() {
-		return pushNotificationServiceStatusEnum;
+	public String getValue() {
+		return value;
 	}
-	public void setPushNotificationServiceStatusEnum(
-			PushNotificationServiceStatusEnum pushNotificationServiceStatusEnum) {
-		this.pushNotificationServiceStatusEnum = pushNotificationServiceStatusEnum;
+	public void setValue(String value) {
+		this.value = value;
 	}
 	
 }

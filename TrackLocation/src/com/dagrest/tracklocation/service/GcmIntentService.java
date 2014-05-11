@@ -2,10 +2,12 @@ package com.dagrest.tracklocation.service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
+import com.dagrest.tracklocation.datatype.NotificationCommandEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
@@ -62,6 +64,7 @@ public class GcmIntentService extends IntentService {
                 	"If it's a regular GCM message, do some work.");
             	LogManager.LogInfoMsg(this.getClass().getName(), "onHandleIntent", 
             		"Received: " + extras.toString());
+            	
             	if(extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.start.toString())){ // COMMAND START
@@ -93,41 +96,39 @@ public class GcmIntentService extends IntentService {
             		if(regIDToReturnMessageTo != null){
 	            		String time = new Date().toString(); 
 	            		Controller controller = new Controller();
+
+//	            	    public String createJsonMessage(List<String> listRegIDs, 
+//	            	    		String regIDToReturnMessageTo, 
+//	            	    		CommandEnum command, 
+//	            	    		String messageString, 
+//	            	    		String time,
+////	            	    		TrackLocationServiceStatusEnum trackLocationServiceStatus,
+////	            	    		PushNotificationServiceStatusEnum pushNotificationServiceStatus,
+//	            	    		String key, 
+//	            	    		String value){
+
+	            		
 	            		String jsonMessage = controller.createJsonMessage(listRegIDs, 
 	        	    		regIDToReturnMessageTo, 
 	        	    		CommandEnum.status_response, 
 	        	    		null, 
 	        	    		time,
-	        	    		null,
-	        	    		PushNotificationServiceStatusEnum.available);
+	        	    		NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+	        	    		PushNotificationServiceStatusEnum.available.toString());
 	            		// send message back with PushNotificationServiceStatusEnum.available
 	            		//HttpUtils.sendRegistrationIdToBackend(jsonMessage);
 	            		controller.sendCommand(jsonMessage);
-                	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
+                	} 
+            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.status_response.toString())){ // COMMAND STATUS_RESPONSE
-                		String pushNotificationServiceStatus = extras.getString("pushNotificationServiceStatusEnum");
-                		broadcastLocationUpdatedGps(pushNotificationServiceStatus);
-                		int i = 0;
-//                		ArrayList<String> listRegIDs = new ArrayList<String>();
-//                		listRegIDs.add(""); // regIDs of client that are requested for location
-//                		// get regID of the current client as a requester
-//                		String regIDToReturnMessageTo = extras.getString("regIDToReturnMessageTo");
-//                		if(regIDToReturnMessageTo != null){
-//    	            		String time = new Date().toString(); 
-//    	            		Controller controller = new Controller();
-//    	            		String jsonMessage = controller.createJsonMessage(listRegIDs, 
-//    	        	    		regIDToReturnMessageTo, 
-//    	        	    		CommandEnum.status_response, 
-//    	        	    		null, 
-//    	        	    		time,
-//    	        	    		null,
-//    	        	    		PushNotificationServiceStatusEnum.available);
-//    	            		// send message back with PushNotificationServiceStatusEnum.available
-//    	            		//HttpUtils.sendRegistrationIdToBackend(jsonMessage);
-//    	            		controller.sendCommand(jsonMessage);
-                	}
+                		String key = extras.getString("key");
+                		String value = extras.getString("value");
+                		String currentDateTime = Controller.getCurrentDate();
+						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
+							value + CommonConst.DELIMITER_STRING + currentDateTime);
             	}
+            	
             }
         }
         // Release the wake lock provided by the WakefulBroadcastReceiver.
