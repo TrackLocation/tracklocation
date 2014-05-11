@@ -31,12 +31,12 @@ public class Utils {
 	
 	private final static String COMMA = ",";
 
-	public static List<String> splitLine(String line){
+	public static List<String> splitLine(String line, String delimiter){
 		String[] inputArray;
 		List<String> paramsList;
 		
-		if (line.contains(COMMA)) {
-			inputArray = line.split(COMMA);
+		if (line.contains(delimiter)) {
+			inputArray = line.split(delimiter);
 			paramsList = new ArrayList<String>();
 			for (int i = 0; i < inputArray.length; i++) {
 				paramsList.add((inputArray[i] == null || inputArray[i].isEmpty()) 
@@ -59,7 +59,7 @@ public class Utils {
  
 			inputParamsList = new ArrayList<List<String>>();
 			while ((sCurrentLine = br.readLine()) != null) {
-				inputParamsList.add(splitLine(sCurrentLine));
+				inputParamsList.add(splitLine(sCurrentLine, COMMA));
 			}
 		} catch (IOException e) {
 			LogManager.LogErrorMsg("Utils", "readCustomerDataFromFile", "Unable to read file: " + 

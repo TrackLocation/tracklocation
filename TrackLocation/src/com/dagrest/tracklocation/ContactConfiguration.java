@@ -13,6 +13,7 @@ import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
+import com.dagrest.tracklocation.service.TrackLocationService;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
@@ -52,15 +53,20 @@ public class ContactConfiguration extends Activity {
 	private ContactDeviceData contactDeviceData;
 	private ContactData contactData;
 	private DeviceData deviceData;
+	private String className;
 	
-	private BroadcastReceiver GcmIntentServiceChangeWatcher;
+	private BroadcastReceiver gcmIntentServiceChangeWatcher;
+//	private BroadcastReceiver locationChangeWatcher;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
+		className = this.getClass().getName();
 		setContentView(R.layout.contact_config);
-		initGcmIntentServiceWatcher();
+		initGcmIntentServiceBroadcastReceiver();
+//		initLocationChangeWatcherGps();
+//		initLocationChangeWatcherNetwork();
 		
 		Intent intent = getIntent();
 		String jsonStringContactDeviceData = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA);
@@ -164,6 +170,19 @@ public class ContactConfiguration extends Activity {
         	break;
         	case R.id.stop:
         		//String toId = getRegistrationId(getApplicationContext());
+        		String regIDToReturnMessageToStop = Controller.getRegistrationId(getApplicationContext());
+        		List<String> listRegIDsStop = new ArrayList<String>();
+        		listRegIDsStop.add(contactData.getRegistration_id());
+        		jsonMessage = controller.createJsonMessage(listRegIDsStop, 
+        	    		regIDToReturnMessageToStop, 
+        	    		CommandEnum.stop, 
+        	    		"", // messageString, 
+        	    		Controller.getCurrentDate(), // time,
+        	    		null, // key
+        	    		null // value
+        				);
+        		//HttpUtils.sendRegistrationIdToBackend(jsonMessage);
+        		controller.sendCommand(jsonMessage);
         	break;
         	case R.id.show_map:
         		//String toId = getRegistrationId(getApplicationContext());
@@ -172,12 +191,12 @@ public class ContactConfiguration extends Activity {
     	
     }
     
-    private void initGcmIntentServiceWatcher()
+    private void initGcmIntentServiceBroadcastReceiver()
     {
     	LogManager.LogFunctionCall("ContactConfiguration", "initGcmIntentServiceWatcher");
 	    IntentFilter intentFilter = new IntentFilter();
 	    intentFilter.addAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
-	    GcmIntentServiceChangeWatcher = new BroadcastReceiver() 
+	    gcmIntentServiceChangeWatcher = new BroadcastReceiver() 
 	    {
 	    	@Override
     		public void onReceive(Context context, Intent intent) {
@@ -187,10 +206,59 @@ public class ContactConfiguration extends Activity {
 	    		mNotification.setText(result);
     		}
 	    };
-	    registerReceiver(GcmIntentServiceChangeWatcher, intentFilter);
+	    registerReceiver(gcmIntentServiceChangeWatcher, intentFilter);
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }
     
+//    private void initLocationChangeWatcherGps()
+//    {
+//    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
+//	    IntentFilter intentFilter = new IntentFilter();
+//	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_GPS");
+//	    //com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK
+//	    locationChangeWatcher = new BroadcastReceiver() 
+//	    {
+//	    	@Override
+//    		public void onReceive(Context context, Intent intent) {
+//    			// TODO Auto-generated method stub
+//	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherGps->onReceive", "WORK");
+//	    		mLat.setText("LOCATION_UPDATED_GPS: " +
+//	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
+//    		}
+//	    };
+//	    registerReceiver(locationChangeWatcher, intentFilter);
+//	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
+//    }
+//    
+//    private void initLocationChangeWatcherNetwork()
+//    {
+//    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
+//	    IntentFilter intentFilter = new IntentFilter();
+//	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK");
+//	    locationChangeWatcher = new BroadcastReceiver() 
+//	    {
+//	    	@Override
+//    		public void onReceive(Context context, Intent intent) {
+//    			// TODO Auto-generated method stub
+//	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherNetwork->onReceive", "WORK");
+//	    		mLng.setText("LOCATION_UPDATED_NETWORK: " +
+//	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
+//    		}
+//	    };
+//	    registerReceiver(locationChangeWatcher, intentFilter);
+//	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
+//    }
+
+    @Override
+    protected void onDestroy() {
+    	super.onDestroy();
+    	
+		Context context = getApplicationContext();
+		Intent trackLocationService = new Intent(context, TrackLocationService.class);
+		context.stopService(trackLocationService); 
+
+    }
 }
+
 
 

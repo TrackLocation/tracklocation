@@ -276,11 +276,12 @@ public class MainActivity extends Activity {
 //            	scheduledActionExecutor.shutdown();
 //            	scheduledActionExecutor = null;
 //            }
-//            if(trackLocationService != null) {
-//            	if(!context.stopService(trackLocationService)){
-//            		LogManager.LogErrorMsg(className, "onClick", "Stop trackLocationService failed.");
-//            	}
-//            }
+            if(trackLocationService != null) {
+            	if(!context.stopService(trackLocationService)){
+            		LogManager.LogErrorMsg(className, "onClick", "Stop trackLocationService failed.");
+            		Log.i(CommonConst.LOG_TAG, "Stop trackLocationService failed.");
+            	}
+            }
         } else if (view == findViewById(R.id.btnGetRegId)) {
         	String regId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
         	etRegId.setText(regId);

@@ -4,6 +4,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -98,6 +99,9 @@ public class Controller {
         }
     }
 
+    /*
+     * Send command to request contact by GCM (Google Cloud Message - push notifictation)
+     */
     public void sendCommand(final String jsonMessage){ 
     	// AsyncTask <TypeOfVarArgParams , ProgressValue , ResultValue>
 	    new AsyncTask<Void, Void, String>() {
@@ -125,8 +129,9 @@ public class Controller {
     }
 
 	public static String getCurrentDate(){
-		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy");
+		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy", Locale.US);
 		Calendar cal = Calendar.getInstance();
 		return dateFormat.format(cal.getTime());
 	}
+	
 }

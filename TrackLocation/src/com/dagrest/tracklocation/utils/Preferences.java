@@ -1,5 +1,7 @@
 package com.dagrest.tracklocation.utils;
 
+import java.util.List;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 
@@ -71,5 +73,28 @@ public class Preferences {
 	      // Commit the edits!
 	      editor.commit();
 	  }
+	  
+	  //CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST // regIDToReturnMessageTo
+		public static List<String> getPreferencesReturnToRegIDList(Context context, String valueName){
+			String returnToRegIdList = Preferences.getPreferencesString(context, valueName);
+			if (returnToRegIdList != null && !returnToRegIdList.isEmpty()) {
+				return Utils.splitLine(returnToRegIdList, CommonConst.DELIMITER_STRING);
+			} else {
+				return null;
+			}
+		}
+
+		
+		public static List<String> setPreferencesReturnToRegIDList(Context context, String valueName, String value){
+			String returnToRegIdList = Preferences.getPreferencesString(context, valueName);
+			if (returnToRegIdList != null && !returnToRegIdList.isEmpty()) {
+				returnToRegIdList = returnToRegIdList + CommonConst.DELIMITER_STRING + value;
+			} else {
+				returnToRegIdList = value;
+			}
+			Preferences.setPreferencesString(context, valueName, returnToRegIdList);
+			return Utils.splitLine(returnToRegIdList, CommonConst.DELIMITER_STRING);
+		}
+
 }
 	

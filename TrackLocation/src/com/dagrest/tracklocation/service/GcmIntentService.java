@@ -1,6 +1,5 @@
 package com.dagrest.tracklocation.service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -9,10 +8,10 @@ import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.NotificationCommandEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
-import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
+import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.app.IntentService;
@@ -39,7 +38,7 @@ public class GcmIntentService extends IntentService {
         LogManager.LogInfoMsg(this.getClass().getName(), "onHandleIntent", 
             	"messageType :" + messageType);
                 
-        if (!extras.isEmpty()) {  // has effect of unparcelling Bundle
+        if (!extras.isEmpty()) {  
             /*
              * Filter messages based on message type. Since it is likely that GCM
              * will be extended in the future with new message types, just ignore
@@ -57,7 +56,9 @@ public class GcmIntentService extends IntentService {
                 //        extras.toString());
         		LogManager.LogErrorMsg(this.getClass().getName(), "onHandleIntent", 
         			"Deleted messages on server: " + extras.toString());
+        	// ============================================
             // If it's a regular GCM message, do some work.
+        	// ============================================
             } else if (GoogleCloudMessaging.
                     MESSAGE_TYPE_MESSAGE.equals(messageType)) {
             	LogManager.LogInfoMsg(this.getClass().getName(), "onHandleIntent", 
@@ -65,18 +66,30 @@ public class GcmIntentService extends IntentService {
             	LogManager.LogInfoMsg(this.getClass().getName(), "onHandleIntent", 
             		"Received: " + extras.toString());
             	
+            	// ============================================
+                // COMMAND: 	start
+            	// ============================================
             	if(extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.start.toString())){ // COMMAND START
+                	// ============================================
+                    // COMMAND: 	start
+                	// PARAMETER: 	interval
+                	// ============================================
             		if(extras.containsKey(CommandTagEnum.interval.toString())){ // COMMAND INTERVAL
             			String intervalString = extras.getString(CommandTagEnum.interval.toString());
-            			Context ctx = getApplicationContext();
+            			//Context ctx = getApplicationContext();
                         Preferences.setPreferencesString(getApplicationContext(), 
                         	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
             		}
-            		Context context = getApplicationContext();
-            		Intent trackLocationService = new Intent(context, TrackLocationService.class);
-            		context.startService(trackLocationService); 
+//            		Context context = getApplicationContext();
+//            		Intent trackLocationService = new Intent(context, TrackLocationService.class);
+//            		context.startService(trackLocationService);
+            	
+        		// ============================================
+                // COMMAND: 	stop
+            	// PARAMETER: 	interval
+            	// ============================================
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.stop.toString())){ // COMMAND STOP 
@@ -84,30 +97,30 @@ public class GcmIntentService extends IntentService {
             		Intent trackLocationService = new Intent(context, TrackLocationService.class);
             		boolean result = context.stopService(trackLocationService); 
             		Log.i(LOCATION_SERVICE, "Servise stopped: " + result);
+            		
+        		// ============================================
+                // COMMAND: 	status_request
+            	// ============================================
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.status_request.toString())){ // COMMAND STATUS_REQUEST
             		
             		
-            		ArrayList<String> listRegIDs = new ArrayList<String>();
+            		List<String> listRegIDs = null; //new ArrayList<String>();
             		// get regID of the current client as a requester
             		String regIDToReturnMessageTo = extras.getString("regIDToReturnMessageTo");
-            		listRegIDs.add(regIDToReturnMessageTo); // regIDs of client that are requested for location
             		if(regIDToReturnMessageTo != null){
+             			
+            			// update (insert/add) regIds to list of contacts that will be notified
+            			listRegIDs = Preferences.setPreferencesReturnToRegIDList(getApplicationContext(), 
+            				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST, regIDToReturnMessageTo); 
+             			//  listRegIDs = Utils.splitLine(
+            			//	   Preferences.getPreferencesString(getApplicationContext(), CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST), 
+            			//	   CommonConst.DELIMITER_STRING);
+           			
 	            		String time = new Date().toString(); 
 	            		Controller controller = new Controller();
 
-//	            	    public String createJsonMessage(List<String> listRegIDs, 
-//	            	    		String regIDToReturnMessageTo, 
-//	            	    		CommandEnum command, 
-//	            	    		String messageString, 
-//	            	    		String time,
-////	            	    		TrackLocationServiceStatusEnum trackLocationServiceStatus,
-////	            	    		PushNotificationServiceStatusEnum pushNotificationServiceStatus,
-//	            	    		String key, 
-//	            	    		String value){
-
-	            		
 	            		String jsonMessage = controller.createJsonMessage(listRegIDs, 
 	        	    		regIDToReturnMessageTo, 
 	        	    		CommandEnum.status_response, 
@@ -116,24 +129,49 @@ public class GcmIntentService extends IntentService {
 	        	    		NotificationCommandEnum.pushNotificationServiceStatus.toString(),
 	        	    		PushNotificationServiceStatusEnum.available.toString());
 	            		// send message back with PushNotificationServiceStatusEnum.available
-	            		//HttpUtils.sendRegistrationIdToBackend(jsonMessage);
 	            		controller.sendCommand(jsonMessage);
+	            		
+                		// Start location service to get current location
+                		Context context = getApplicationContext();
+                		Intent trackLocationService = new Intent(context, TrackLocationService.class);
+                		context.startService(trackLocationService); 
+
                 	} 
+ 
+        		// ============================================
+                // COMMAND: 	status_response
+            	// ============================================
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.status_response.toString())){ // COMMAND STATUS_RESPONSE
                 		String key = extras.getString("key");
                 		String value = extras.getString("value");
                 		String currentDateTime = Controller.getCurrentDate();
+                		
+						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
+							value + CommonConst.DELIMITER_STRING + currentDateTime);
+            	
+        		// ============================================
+                // COMMAND: 	location
+            	// ============================================
+            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
+                			extras.getString(CommandTagEnum.command.toString()).
+                			equals(CommandEnum.location.toString())){ // COMMAND LOCATION
+                		String key = extras.getString("key");
+                		String value = extras.getString("value");
+                		String currentDateTime = Controller.getCurrentDate();
+                		
 						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
 							value + CommonConst.DELIMITER_STRING + currentDateTime);
             	}
             	
-            }
-        }
+            } // if (GoogleCloudMessaging
+            
+        } // if (extras.isEmpty())...
+        
         // Release the wake lock provided by the WakefulBroadcastReceiver.
         GcmBroadcastReceiver.completeWakefulIntent(intent);
-	}
+	} // onHandleIntent(...
 	
 	public void broadcastLocationUpdatedGps(String value)
 	{
