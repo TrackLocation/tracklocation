@@ -185,7 +185,11 @@ public class ContactConfiguration extends Activity {
         		controller.sendCommand(jsonMessage);
         	break;
         	case R.id.show_map:
-        		//String toId = getRegistrationId(getApplicationContext());
+        		Intent intent = new Intent(getApplicationContext(), GoogleMap.class);
+//        		intent.putExtra("originalTextToSearch", originalTextToSearch);
+//        		intent.putExtra("searchedLocation", textSearchResult);
+//        		intent.putExtra("isFavorite", isFavorite);
+       			startActivity(intent);
         	break;
     	}
     	

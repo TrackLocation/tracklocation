@@ -10,6 +10,6 @@
     <string name="contact_list">ContactList</string>
     <string name="title_activity_contact_list">ContactList</string>
 	<string name="title_activity_contact_config">ContactConfiguration</string>
-
+	<string name="title_activity_googlemap">Map</string>
 </resources>
 

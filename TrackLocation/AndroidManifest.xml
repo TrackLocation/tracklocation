@@ -75,6 +75,11 @@
             android:label="@string/title_activity_contact_config" >
         </activity>
         
+        <activity
+            android:name="com.dagrest.tracklocation.GoogleMap"
+            android:label="@string/title_activity_googlemap" >
+        </activity>
+        
 	</application>
 
 </manifest>
