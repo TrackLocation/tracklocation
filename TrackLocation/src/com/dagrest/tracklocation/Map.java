@@ -158,10 +158,10 @@ public class Map extends Activity implements LocationListener{
 		    		if( lanLngUpdated != null && !lanLngUpdated.isEmpty() ){
 			    		String[] latLng = lanLngUpdated.split(CommonConst.DELIMITER_COMMA);
 
-			    		Random r = new Random();
-			    		Double d = r.nextDouble() / 100;
-			    		double lat = Double.parseDouble(latLng[0]) + d;
-			    		double lng = Double.parseDouble(latLng[1]) + d;
+//			    		Random r = new Random();
+//			    		Double d = r.nextDouble() / 100;
+			    		double lat = Double.parseDouble(latLng[0]);// + d;
+			    		double lng = Double.parseDouble(latLng[1]);// + d;
 			    		
 			    		if(lat != 0 && lng != 0){
 				    		latLngChanging = new LatLng(lat, lng);
@@ -171,7 +171,10 @@ public class Map extends Activity implements LocationListener{
 				    		marker = map.addMarker(new MarkerOptions()
 				            //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
 				            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-				            .position(lastKnownLocation));
+				            .position(latLngChanging));
+				    		
+				            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+				            		latLngChanging, 12));
 			    		}
 		    		}
 	    		}
