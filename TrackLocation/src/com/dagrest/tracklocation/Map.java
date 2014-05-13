@@ -42,6 +42,7 @@ public class Map extends Activity implements LocationListener{
 	private BroadcastReceiver gcmIntentServiceChangeWatcher;
 	private GoogleMap map;
 	private Marker marker;
+	private float zoom;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -68,9 +69,11 @@ public class Map extends Activity implements LocationListener{
 //                .position(sydney));
         setupLocation();
         
-        int zoom = 12;
+        zoom = 12;
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(
         		lastKnownLocation, zoom));
+        //float zoomNew = map.getCameraPosition().zoom;
+        
         
         marker = map.addMarker(new MarkerOptions()
 //        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
@@ -139,7 +142,7 @@ public class Map extends Activity implements LocationListener{
 			
 		}
 
-	    private void initGcmIntentServiceBroadcastReceiver()
+		private void initGcmIntentServiceBroadcastReceiver()
 	    {
 	    	LogManager.LogFunctionCall("ContactConfiguration", "initGcmIntentServiceWatcher");
 		    IntentFilter intentFilter = new IntentFilter();
@@ -148,6 +151,9 @@ public class Map extends Activity implements LocationListener{
 		    {
 		    	@Override
 	    		public void onReceive(Context context, Intent intent) {
+		    		
+		    		zoom = map.getCameraPosition().zoom;
+		    		
 	    			// TODO Auto-generated method stub
 		    		LogManager.LogInfoMsg("ContactConfiguration", "initGcmIntentServiceWatcher->onReceive", "WORK");
 		    		String result = intent.getExtras().getString("updated");
@@ -174,7 +180,7 @@ public class Map extends Activity implements LocationListener{
 				            .position(latLngChanging));
 				    		
 				            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-				            		latLngChanging, 12));
+				            		latLngChanging, zoom));
 			    		}
 		    		}
 	    		}
