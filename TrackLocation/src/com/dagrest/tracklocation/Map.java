@@ -69,7 +69,7 @@ public class Map extends Activity implements LocationListener{
 //                .position(sydney));
         setupLocation();
         
-        zoom = 12;
+        zoom = 15;
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(
         		lastKnownLocation, zoom));
         //float zoomNew = map.getCameraPosition().zoom;

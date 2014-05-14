@@ -44,7 +44,13 @@ public class Utils {
 			}
 			return paramsList;
 		} else {
-		    return null;
+			if(line != null && !line.isEmpty()) {
+				paramsList = new ArrayList<String>();
+				paramsList.add(line);
+				return paramsList;
+			} else {
+				return null;
+			}
 		}
 	}
 	

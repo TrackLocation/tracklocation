@@ -88,7 +88,12 @@ public class Preferences {
 		public static List<String> setPreferencesReturnToRegIDList(Context context, String valueName, String value){
 			String returnToRegIdList = Preferences.getPreferencesString(context, valueName);
 			if (returnToRegIdList != null && !returnToRegIdList.isEmpty()) {
-				returnToRegIdList = returnToRegIdList + CommonConst.DELIMITER_STRING + value;
+				
+				CharSequence cs = value;
+				if(returnToRegIdList.contains(cs) == false){
+					returnToRegIdList = returnToRegIdList + CommonConst.DELIMITER_STRING + value;
+				}
+				
 			} else {
 				returnToRegIdList = value;
 			}
