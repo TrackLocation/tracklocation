@@ -24,17 +24,17 @@ public class LocationListenerBasic implements LocationListener{
 	private String locationProviderType; // CommonConst.GPS = GPS, CommonConst.NETWORK = NETWORK...
 	private PowerManager.WakeLock wl;
 	private PowerManager pm;
-	private static Context context;
+	private Context context;
 	private boolean toReleaseWakeLock;
 	
-	public LocationListenerBasic(String className, String locationProviderType,
+	public LocationListenerBasic(Context context, String className, String locationProviderType,
 			WakeLock wl, PowerManager pm, boolean toReleaseWakeLock) {
-		super();
 		this.className = className;
 		this.locationProviderType = locationProviderType;
 		this.wl = wl;
 		this.pm = pm;
 		this.toReleaseWakeLock = toReleaseWakeLock;
+		this.context = context;
 	}
 
 	@Override

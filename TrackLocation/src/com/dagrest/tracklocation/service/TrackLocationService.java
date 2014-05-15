@@ -1,22 +1,15 @@
 package com.dagrest.tracklocation.service;
 
-import java.util.Date;
 import java.util.List;
 
-import com.dagrest.tracklocation.Controller;
-import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
-import com.dagrest.tracklocation.utils.Utils;
-
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.util.Log;
@@ -31,6 +24,8 @@ public class TrackLocationService extends Service {
 	private Boolean toReleaseWakeLock;
 	private List<String> locationProviders;
 	private Boolean isLocationProviderAvailable;
+	private LocationListener locationListenerGPS = null;
+	private LocationListener locationListenerNetwork = null;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -126,160 +121,158 @@ public class TrackLocationService extends Service {
         }
     }  
 
-//    LocationListener locationListenerGPS = new LocationListenerBasic("LocationListenerGPS", CommonConst.GPS, wl, pm, toReleaseWakeLock);
-//	LocationListener locationListenerNetwork = new LocationListenerBasic("LocationListenerNetwork", CommonConst.NETWORK, wl, pm, toReleaseWakeLock);
     
-	LocationListener locationListenerGPS = new LocationListener() {
-
-		@Override
-		public void onLocationChanged(Location location) {
-			onLocationChangedBasic(location, "LocationListenerGPS", CommonConst.GPS, wl, pm, toReleaseWakeLock);
-		}
-
-		@Override
-		public void onStatusChanged(String provider, int status, Bundle extras) {
-		}
-
-		@Override
-		public void onProviderEnabled(String provider) {
-		}
-
-		@Override
-		public void onProviderDisabled(String provider) {
-		}
+//	LocationListener locationListenerGPS = new LocationListener() {
+//
+//		@Override
+//		public void onLocationChanged(Location location) {
+//			onLocationChangedBasic(location, "LocationListenerGPS", CommonConst.GPS, wl, pm, toReleaseWakeLock);
+//		}
+//
+//		@Override
+//		public void onStatusChanged(String provider, int status, Bundle extras) {
+//		}
+//
+//		@Override
+//		public void onProviderEnabled(String provider) {
+//		}
+//
+//		@Override
+//		public void onProviderDisabled(String provider) {
+//		}
+//	
+//	};
 	
-	};
-	
-	LocationListener locationListenerNetwork = new LocationListener() {
+//	LocationListener locationListenerNetwork = new LocationListener() {
+//
+//		@Override
+//		public void onLocationChanged(Location location) {
+//			onLocationChangedBasic(location, "locationListenerNetwork", CommonConst.NETWORK, wl, pm, toReleaseWakeLock);
+//		}
+//
+//		@Override
+//		public void onStatusChanged(String provider, int status, Bundle extras) {
+//		}
+//
+//		@Override
+//		public void onProviderEnabled(String provider) {
+//		}
+//
+//		@Override
+//		public void onProviderDisabled(String provider) {
+//		}
+//	
+//	};
 
-		@Override
-		public void onLocationChanged(Location location) {
-			onLocationChangedBasic(location, "locationListenerNetwork", CommonConst.NETWORK, wl, pm, toReleaseWakeLock);
-		}
-
-		@Override
-		public void onStatusChanged(String provider, int status, Bundle extras) {
-		}
-
-		@Override
-		public void onProviderEnabled(String provider) {
-		}
-
-		@Override
-		public void onProviderDisabled(String provider) {
-		}
-	
-	};
-
-	private void onLocationChangedBasic(Location location, String className, String locationProviderType, PowerManager.WakeLock wl, PowerManager pm, boolean toReleaseWakeLock){
-        try{
-        	
-            LogManager.LogFunctionCall(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-            	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-            Log.i(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-            	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-            Log.i(CommonConst.LOG_TAG, "WAKE_LOCK = " + wl + ";");
-            
-            // TODO: check if the next key,value is needed...
-            // Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, locationProviderType);
-
-            double latitude = 0, longitude = 0;
-            latitude = location.getLatitude();
-            longitude = location.getLongitude();
-            if(latitude == 0 || longitude == 0){
-            	return;
-            }
-            float accuracy = location.getAccuracy();
-            String locationProviderName = location.getProvider();
-            float speed = location.getSpeed();
-
-            // TODO: check if the next key,value is needed...
-            // Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, locationProviderName);
-            
-            // Create string = "latitude,longitude,accuracy,speed,time" if a location is provided
-            String locationInfo = latitude + CommonConst.DELIMITER_COMMA + 
-            	longitude + CommonConst.DELIMITER_COMMA + 
-            	accuracy + CommonConst.DELIMITER_COMMA + 
-            	speed + CommonConst.DELIMITER_COMMA + 
-            	Utils.getCurrentTime();
-                    
-            LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-            	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", 
-            	CommonConst.LOCATION_INFO_ + locationProviderType + CommonConst.DELIMITER_COLON + locationInfo);
-            Preferences.setPreferencesString(context, CommonConst.LOCATION_INFO_ + locationProviderType, locationInfo);
-    
-            // NOT NEEDED - used the following function controller.sendCommand(jsonMessage); 
-            // broadcastLocationUpdatedGps();
-            
-            // ==========================================
-            // send GCM (push notification) to requester
-            // ==========================================
-			List<String> listRegIDs = Preferences.getPreferencesReturnToRegIDList(context, 
-    				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST); 
-
-			String time = new Date().toString(); 
-    		Controller controller = new Controller();
-
-    		// Get current registration ID
-    		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-    		String jsonMessage = controller.createJsonMessage(listRegIDs, 
-	    		senderRegId, 
-	    		CommandEnum.location, 
-	    		null, // TODO: send device UUID in the message 
-	    		time,
-	    		locationProviderType, // key
-	    		locationInfo// value	
-    		);
-    		// send message back with PushNotificationServiceStatusEnum.available
-    		controller.sendCommand(jsonMessage);
-            // ==============================
-            // send GCM to requester
-            // ==============================
-    		
-    		// For very OLD version
-            //sendLocationByMail(latlong);
-
-            if(wl != null && wl.isHeld()){
-            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "WAKE LOCK - READY TO BE RELEASED.");
-            	Log.i(CommonConst.LOG_TAG, "WAKE LOCK - READY TO BE RELEASED.");
-//                if(!laDeviceId.equals(preferences.getStringSettingsValue("deviceUid", deviceUid))){
-            		toReleaseWakeLock = true;
-//                }
-    				
-            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "BEFORE RELEASE WAKE_LOCK = " + wl + ";");
-            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "BEFORE RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
-	            Log.i(CommonConst.LOG_TAG, "BEFORE RELEASE WAKE_LOCK = " + wl + ";");
-				Log.i(CommonConst.LOG_TAG, "BEFORE RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
-            	
-				wl.release();
-				
-				LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "WAKE LOCK - HAS BEEN RELEASED.");
-				Log.i(CommonConst.LOG_TAG, "WAKE LOCK - HAS BEEN RELEASED.");
-
-				LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "AFTER RELEASE WAKE_LOCK = " + wl + ";");
-            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "AFTER RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
-	            Log.i(CommonConst.LOG_TAG, "AFTER RELEASE WAKE_LOCK = " + wl + ";");
-				Log.i(CommonConst.LOG_TAG, "AFTER RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
-           }
-            
-            LogManager.LogFunctionCall(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-            Log.i(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-
-        } catch (Exception e) {
-                LogManager.LogException(e, className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-                Log.e(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", e);
-        }      
-	}
+//	private void onLocationChangedBasic(Location location, String className, String locationProviderType, PowerManager.WakeLock wl, PowerManager pm, boolean toReleaseWakeLock){
+//        try{
+//        	
+//            LogManager.LogFunctionCall(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//            	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
+//            Log.i(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//            	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
+//            Log.i(CommonConst.LOG_TAG, "WAKE_LOCK = " + wl + ";");
+//            
+//            // TODO: check if the next key,value is needed...
+//            // Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, locationProviderType);
+//
+//            double latitude = 0, longitude = 0;
+//            latitude = location.getLatitude();
+//            longitude = location.getLongitude();
+//            if(latitude == 0 || longitude == 0){
+//            	return;
+//            }
+//            float accuracy = location.getAccuracy();
+//            String locationProviderName = location.getProvider();
+//            float speed = location.getSpeed();
+//
+//            // TODO: check if the next key,value is needed...
+//            // Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, locationProviderName);
+//            
+//            // Create string = "latitude,longitude,accuracy,speed,time" if a location is provided
+//            String locationInfo = latitude + CommonConst.DELIMITER_COMMA + 
+//            	longitude + CommonConst.DELIMITER_COMMA + 
+//            	accuracy + CommonConst.DELIMITER_COMMA + 
+//            	speed + CommonConst.DELIMITER_COMMA + 
+//            	Utils.getCurrentTime();
+//                    
+//            LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//            	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", 
+//            	CommonConst.LOCATION_INFO_ + locationProviderType + CommonConst.DELIMITER_COLON + locationInfo);
+//            Preferences.setPreferencesString(context, CommonConst.LOCATION_INFO_ + locationProviderType, locationInfo);
+//    
+//            // NOT NEEDED - used the following function controller.sendCommand(jsonMessage); 
+//            // broadcastLocationUpdatedGps();
+//            
+//            // ==========================================
+//            // send GCM (push notification) to requester
+//            // ==========================================
+//			List<String> listRegIDs = Preferences.getPreferencesReturnToRegIDList(context, 
+//    				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST); 
+//
+//			String time = new Date().toString(); 
+//    		Controller controller = new Controller();
+//
+//    		// Get current registration ID
+//    		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+//    		String jsonMessage = controller.createJsonMessage(listRegIDs, 
+//	    		senderRegId, 
+//	    		CommandEnum.location, 
+//	    		null, // TODO: send device UUID in the message 
+//	    		time,
+//	    		locationProviderType, // key
+//	    		locationInfo// value	
+//    		);
+//    		// send message back with PushNotificationServiceStatusEnum.available
+//    		controller.sendCommand(jsonMessage);
+//            // ==============================
+//            // send GCM to requester
+//            // ==============================
+//    		
+//    		// For very OLD version
+//            //sendLocationByMail(latlong);
+//
+//            if(wl != null && wl.isHeld()){
+//            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "WAKE LOCK - READY TO BE RELEASED.");
+//            	Log.i(CommonConst.LOG_TAG, "WAKE LOCK - READY TO BE RELEASED.");
+////                if(!laDeviceId.equals(preferences.getStringSettingsValue("deviceUid", deviceUid))){
+//            		toReleaseWakeLock = true;
+////                }
+//    				
+//            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "BEFORE RELEASE WAKE_LOCK = " + wl + ";");
+//            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "BEFORE RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
+//	            Log.i(CommonConst.LOG_TAG, "BEFORE RELEASE WAKE_LOCK = " + wl + ";");
+//				Log.i(CommonConst.LOG_TAG, "BEFORE RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
+//            	
+//				wl.release();
+//				
+//				LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "WAKE LOCK - HAS BEEN RELEASED.");
+//				Log.i(CommonConst.LOG_TAG, "WAKE LOCK - HAS BEEN RELEASED.");
+//
+//				LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "AFTER RELEASE WAKE_LOCK = " + wl + ";");
+//            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "AFTER RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
+//	            Log.i(CommonConst.LOG_TAG, "AFTER RELEASE WAKE_LOCK = " + wl + ";");
+//				Log.i(CommonConst.LOG_TAG, "AFTER RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
+//           }
+//            
+//            LogManager.LogFunctionCall(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//                locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
+//            Log.i(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//                locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
+//
+//        } catch (Exception e) {
+//                LogManager.LogException(e, className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
+//                Log.e(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", e);
+//        }      
+//	}
 	
 	@Override          
 	public void onStart(Intent intent, int startId)           
@@ -366,6 +359,10 @@ public class TrackLocationService extends Service {
                 
                 if (containsGPS && forceGps) {
                 LogManager.LogInfoMsg(className, "requestLocation", "GPS_PROVIDER selected.");
+                
+                	locationListenerGPS = new LocationListenerBasic(context, "LocationListenerGPS", CommonConst.GPS, wl, pm, toReleaseWakeLock);
+                	locationListenerNetwork = new LocationListenerBasic(context, "LocationListenerNetwork", CommonConst.NETWORK, wl, pm, toReleaseWakeLock);
+
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerGPS);
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
                     Preferences.setPreferencesBooolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE, true);

@@ -17,6 +17,7 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
+import android.location.LocationListener;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -131,6 +132,8 @@ public class GcmIntentService extends IntentService {
 	            		// send message back with PushNotificationServiceStatusEnum.available
 	            		controller.sendCommand(jsonMessage);
 	            		
+	            	    //LocationListener locationListenerGPS = new LocationListenerBasic("LocationListenerGPS", CommonConst.GPS, wl, pm, toReleaseWakeLock);
+
                 		// Start location service to get current location
                 		Context context = getApplicationContext();
                 		Intent trackLocationService = new Intent(context, TrackLocationService.class);
