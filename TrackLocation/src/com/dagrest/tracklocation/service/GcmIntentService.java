@@ -11,13 +11,11 @@ import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
-import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
-import android.location.LocationListener;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -40,30 +38,32 @@ public class GcmIntentService extends IntentService {
             	"messageType :" + messageType);
                 
         if (!extras.isEmpty()) {  
-            /*
-             * Filter messages based on message type. Since it is likely that GCM
-             * will be extended in the future with new message types, just ignore
-             * any message types you're not interested in, or that you don't
-             * recognize.
-             */
+            // ============================================
+            // Filter messages based on message type. Since it is likely that GCM
+            // will be extended in the future with new message types, just ignore
+            // any message types you're not interested in, or that you don't
+            // recognize.
+            // ============================================
             if (GoogleCloudMessaging.
                     MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
                 //sendNotification("Send error: " + extras.toString());
         		LogManager.LogErrorMsg(this.getClass().getName(), "onHandleIntent", 
         			"Send error: " + extras.toString());
+        		
             } else if (GoogleCloudMessaging.
                     MESSAGE_TYPE_DELETED.equals(messageType)) {
                 //sendNotification("Deleted messages on server: " +
                 //        extras.toString());
         		LogManager.LogErrorMsg(this.getClass().getName(), "onHandleIntent", 
         			"Deleted messages on server: " + extras.toString());
+        		
         	// ============================================
             // If it's a regular GCM message, do some work.
         	// ============================================
             } else if (GoogleCloudMessaging.
                     MESSAGE_TYPE_MESSAGE.equals(messageType)) {
             	LogManager.LogInfoMsg(this.getClass().getName(), "onHandleIntent", 
-                	"If it's a regular GCM message, do some work.");
+                	"It is a regular GCM message");
             	LogManager.LogInfoMsg(this.getClass().getName(), "onHandleIntent", 
             		"Received: " + extras.toString());
             	
@@ -111,8 +111,9 @@ public class GcmIntentService extends IntentService {
             		String regIDToReturnMessageTo = extras.getString("regIDToReturnMessageTo");
             		if(regIDToReturnMessageTo != null){
              			
+            			Context context = getApplicationContext();
             			// update (insert/add) regIds to list of contacts that will be notified
-            			listRegIDs = Preferences.setPreferencesReturnToRegIDList(getApplicationContext(), 
+            			listRegIDs = Preferences.setPreferencesReturnToRegIDList(context, 
             				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST, regIDToReturnMessageTo); 
              			//  listRegIDs = Utils.splitLine(
             			//	   Preferences.getPreferencesString(getApplicationContext(), CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST), 
@@ -134,7 +135,6 @@ public class GcmIntentService extends IntentService {
 	            	    //LocationListener locationListenerGPS = new LocationListenerBasic("LocationListenerGPS", CommonConst.GPS, wl, pm, toReleaseWakeLock);
 
                 		// Start location service to get current location
-                		Context context = getApplicationContext();
                 		Intent trackLocationService = new Intent(context, TrackLocationService.class);
                 		context.startService(trackLocationService); 
 
@@ -146,12 +146,15 @@ public class GcmIntentService extends IntentService {
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.status_response.toString())){ // COMMAND STATUS_RESPONSE
+            		
                 		String key = extras.getString("key");
                 		String value = extras.getString("value");
                 		String currentDateTime = Controller.getCurrentDate();
                 		
-						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
-							value + CommonConst.DELIMITER_STRING + currentDateTime);
+//						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
+//							value + CommonConst.DELIMITER_STRING + currentDateTime);
+						broadcastMessage("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED", "GcmIntentService", 
+							"updated", key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
             	
         		// ============================================
                 // COMMAND: 	location
@@ -159,12 +162,15 @@ public class GcmIntentService extends IntentService {
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.location.toString())){ // COMMAND LOCATION
+            		
                 		String key = extras.getString("key");
                 		String value = extras.getString("value");
                 		String currentDateTime = Controller.getCurrentDate();
                 		
-						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
-							value + CommonConst.DELIMITER_STRING + currentDateTime);
+//						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
+//							value + CommonConst.DELIMITER_STRING + currentDateTime);
+						broadcastMessage("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED", "GcmIntentService", 
+								"updated", key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
             	}
             	
             } // if (GoogleCloudMessaging
@@ -175,14 +181,27 @@ public class GcmIntentService extends IntentService {
         GcmBroadcastReceiver.completeWakefulIntent(intent);
 	} // onHandleIntent(...
 	
-	public void broadcastLocationUpdatedGps(String value)
-	{
-		LogManager.LogFunctionCall("GcmIntentService", "broadcastLocationUpdatedGps");
-		Intent intent = new Intent();
-		intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
-		intent.putExtra("updated", value);
-		sendBroadcast(intent);
-		LogManager.LogFunctionExit("GcmIntentService", "broadcastLocationUpdatedGps");
-	}
+//	// TODO: to replace the following broadcast by generic one: broadcastMessage
+//	public void broadcastLocationUpdatedGps(String value)
+//	{
+//		LogManager.LogFunctionCall("GcmIntentService", "broadcastLocationUpdatedGps");
+//		Intent intent = new Intent();
+//		intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
+//		intent.putExtra("updated", value);
+//		sendBroadcast(intent);
+//		LogManager.LogFunctionExit("GcmIntentService", "broadcastLocationUpdatedGps");
+//	}
 
+	// actionDescription - only for logging
+	public void broadcastMessage(String action, String actionDescription, String key, String value)
+	{
+		LogManager.LogFunctionCall(actionDescription, "broadcastMessage");
+		Intent intent = new Intent();
+		//intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
+		intent.setAction(action);
+		intent.putExtra(key, value);
+		sendBroadcast(intent);
+		LogManager.LogFunctionExit(actionDescription, "broadcastMessage");
+	}
+	
 }

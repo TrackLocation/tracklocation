@@ -85,113 +85,114 @@ public class Map extends Activity implements LocationListener{
 		super.onPause();
 	}
 	 
-		private void setupLocation() {
-			Criteria c = new Criteria();
-			c.setAccuracy(Criteria.ACCURACY_FINE);
-			locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-			
-			// try to get our last known location
-			Location location = getLastKnownLocation();
-			if (location != null) {
-				lastKnownLocation = new LatLng(location.getLatitude(),
-						location.getLongitude());
-			} else {
-				Toast.makeText(Map.this, "getString(R.string.gps_connection_lost)",
-						Toast.LENGTH_LONG).show();
-			}
-				
-			
-			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-					0,0, Map.this); 
-		}
+	private void setupLocation() {
+		Criteria c = new Criteria();
+		c.setAccuracy(Criteria.ACCURACY_FINE);
+		locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 		
-		private Location getLastKnownLocation() {
-			Location location = null;
-			final Iterator<String> locationProviders = locationManager
-					.getProviders(new Criteria(), true).iterator();
+		// try to get our last known location
+		Location location = getLastKnownLocation();
+		if (location != null) {
+			lastKnownLocation = new LatLng(location.getLatitude(),
+					location.getLongitude());
+		} else {
+			Toast.makeText(Map.this, "getString(R.string.gps_connection_lost)",
+					Toast.LENGTH_LONG).show();
+		}
+			
+		
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+				0,0, Map.this); 
+	}
+	
+	private Location getLastKnownLocation() {
+		Location location = null;
+		final Iterator<String> locationProviders = locationManager
+				.getProviders(new Criteria(), true).iterator();
 
-			while (locationProviders.hasNext()) {
-				final Location lastKnownLocation = locationManager
-						.getLastKnownLocation(locationProviders.next());
+		while (locationProviders.hasNext()) {
+			final Location lastKnownLocation = locationManager
+					.getLastKnownLocation(locationProviders.next());
 
-				if (location == null || (lastKnownLocation != null)) {
-					location = lastKnownLocation;
-				}
+			if (location == null || (lastKnownLocation != null)) {
+				location = lastKnownLocation;
 			}
-			return location;
 		}
-		@Override
-		public void onLocationChanged(Location location) {
-			if (location != null) {
-				lastKnownLocation = new LatLng(location.getLatitude(), location.getLongitude());
-			}
+		return location;
+	}
+	
+	@Override
+	public void onLocationChanged(Location location) {
+		if (location != null) {
+			lastKnownLocation = new LatLng(location.getLatitude(), location.getLongitude());
 		}
-		@Override
-		public void onStatusChanged(String provider, int status, Bundle extras) {
-			// TODO Auto-generated method stub
-			
-		}
-		@Override
-		public void onProviderEnabled(String provider) {
-			// TODO Auto-generated method stub
-			
-		}
-		@Override
-		public void onProviderDisabled(String provider) {
-			// TODO Auto-generated method stub
-			
-		}
+	}
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onProviderEnabled(String provider) {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	public void onProviderDisabled(String provider) {
+		// TODO Auto-generated method stub
+		
+	}
 
-		private void initGcmIntentServiceBroadcastReceiver()
+	private void initGcmIntentServiceBroadcastReceiver()
+    {
+    	LogManager.LogFunctionCall("ContactConfiguration", "initGcmIntentServiceWatcher");
+	    IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
+	    gcmIntentServiceChangeWatcher = new BroadcastReceiver() 
 	    {
-	    	LogManager.LogFunctionCall("ContactConfiguration", "initGcmIntentServiceWatcher");
-		    IntentFilter intentFilter = new IntentFilter();
-		    intentFilter.addAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
-		    gcmIntentServiceChangeWatcher = new BroadcastReceiver() 
-		    {
-		    	@Override
-	    		public void onReceive(Context context, Intent intent) {
-		    		
-		    		zoom = map.getCameraPosition().zoom;
-		    		
-	    			// TODO Auto-generated method stub
-		    		LogManager.LogInfoMsg("ContactConfiguration", "initGcmIntentServiceWatcher->onReceive", "WORK");
-		    		String result = intent.getExtras().getString("updated");
+	    	@Override
+    		public void onReceive(Context context, Intent intent) {
+	    		
+	    		zoom = map.getCameraPosition().zoom;
+	    		
+    			// TODO Auto-generated method stub
+	    		LogManager.LogInfoMsg("ContactConfiguration", "initGcmIntentServiceWatcher->onReceive", "WORK");
+	    		String result = intent.getExtras().getString("updated");
 //		    		mNotification.setText(result);
-		    		List<String> resultList = Utils.splitLine(result, CommonConst.DELIMITER_STRING);
-		    		
-		    		String lanLngUpdated = resultList.get(1);
-		    		if( lanLngUpdated != null && !lanLngUpdated.isEmpty() ){
-			    		String[] latLng = lanLngUpdated.split(CommonConst.DELIMITER_COMMA);
+	    		List<String> resultList = Utils.splitLine(result, CommonConst.DELIMITER_STRING);
+	    		
+	    		String lanLngUpdated = resultList.get(1);
+	    		if( lanLngUpdated != null && !lanLngUpdated.isEmpty() ){
+		    		String[] latLng = lanLngUpdated.split(CommonConst.DELIMITER_COMMA);
 
 //			    		Random r = new Random();
 //			    		Double d = r.nextDouble() / 100;
-			    		double lat = Double.parseDouble(latLng[0]);// + d;
-			    		double lng = Double.parseDouble(latLng[1]);// + d;
+		    		double lat = Double.parseDouble(latLng[0]);// + d;
+		    		double lng = Double.parseDouble(latLng[1]);// + d;
+		    		
+		    		if(lat != 0 && lng != 0){
+			    		latLngChanging = new LatLng(lat, lng);
 			    		
-			    		if(lat != 0 && lng != 0){
-				    		latLngChanging = new LatLng(lat, lng);
-				    		
-				    		marker.remove();
-				    		//marker.
-				    		marker = map.addMarker(new MarkerOptions()
-				            //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-				            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-				            .position(latLngChanging));
-				    		
-				            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-				            		latLngChanging, zoom));
-			    		}
+			    		marker.remove();
+			    		//marker.
+			    		marker = map.addMarker(new MarkerOptions()
+			            //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
+			            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+			            .position(latLngChanging));
+			    		
+			            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+			            		latLngChanging, zoom));
 		    		}
 	    		}
-		    };
-		    registerReceiver(gcmIntentServiceChangeWatcher, intentFilter);
-		    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
-	    }
+    		}
+	    };
+	    registerReceiver(gcmIntentServiceChangeWatcher, intentFilter);
+	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
+    }
 
-	    @Override
-	    protected void onDestroy() {
-	    	super.onDestroy();
-	    	unregisterReceiver(gcmIntentServiceChangeWatcher);
-	    }
+    @Override
+    protected void onDestroy() {
+    	super.onDestroy();
+    	unregisterReceiver(gcmIntentServiceChangeWatcher);
+    }
 }
