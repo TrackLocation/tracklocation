@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -16,8 +17,6 @@ import android.util.Log;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
-import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
-import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -25,7 +24,11 @@ import com.google.gson.Gson;
 
 public class Controller {
 
-    public String createJsonMessage(List<String> listRegIDs, 
+	public static String generateUUID(){
+		return UUID.randomUUID().toString().replaceAll("-", "");
+	}
+
+	public String createJsonMessage(List<String> listRegIDs, 
     		String regIDToReturnMessageTo, 
     		CommandEnum command, 
     		String messageString, 

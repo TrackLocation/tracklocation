@@ -28,6 +28,7 @@ public class CommonConst {
  	public static final String 	DELIMITER_UNDERLINE = "_";
  	public static final String 	DELIMITER_ARROW = "->";
  	public static final String 	DELIMITER_COLON = ":";
+ 	public static final String 	DELIMITER_STRING = "####";
  	
 	public static final String 	LOG_DIRECTORY_PATH = "TrackLocation";         
 	public static final String 	LOG_FILE_NAME = "TrackLocation.log";          
@@ -38,6 +39,4 @@ public class CommonConst {
  	public static final String 	CONTACT_LIST_SELECTED_VALUE = "selectedValue";
  	public static final String 	CONTACT_REGISTRATION_ID = "registration_id";
  	
- 	public static final String 	DELIMITER_STRING = "####";
-
 }

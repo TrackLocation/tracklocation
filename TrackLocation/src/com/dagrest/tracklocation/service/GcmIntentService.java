@@ -89,7 +89,6 @@ public class GcmIntentService extends IntentService {
             	
         		// ============================================
                 // COMMAND: 	stop
-            	// PARAMETER: 	interval
             	// ============================================
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).

@@ -4,6 +4,8 @@ public class DeviceData {
 	private String deviceName; // free text
 	private DeviceTypeEnum deviceTypeEnum; // phone/computer/tablet
 	private String imei;
+	private String deviceNumber;
+	private String guid;
 
 	public String getDeviceName() {
 		return deviceName;
@@ -22,5 +24,17 @@ public class DeviceData {
 	}
 	public void setImei(String imei) {
 		this.imei = imei;
+	}
+	public String getDeviceNumber() {
+		return deviceNumber;
+	}
+	public void setDeviceNumber(String deviceNumber) {
+		this.deviceNumber = deviceNumber;
+	}
+	public String getGuid() {
+		return guid;
+	}
+	public void setGuid(String guid) {
+		this.guid = guid;
 	}
 }

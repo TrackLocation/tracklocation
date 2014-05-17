@@ -1,58 +1,130 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-            android:layout_width="fill_parent"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_centerHorizontal="true"
+    android:paddingBottom="30sp"
+    android:paddingLeft="30sp"
+    android:paddingRight="30sp"
+    android:paddingTop="30sp" >
+
+    <LinearLayout
+		android:id="@+id/row01"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" 
+		android:paddingTop="15sp"
+        android:paddingBottom="15sp"
+		android:minHeight="140dip">
+		
+		<Button
+		    android:id="@+id/btnContactList"
+		    android:layout_width="0.0dip"
+		    android:layout_height="fill_parent"
+		    android:layout_gravity="center_vertical"
+		    android:layout_weight="1"
+		    android:gravity="center"
+			android:onClick="onClick"
+		    android:text="Locate" />
+		    <!-- android:background="@android:drawable/bottom_bar" -->
+		
+		<TextView
+		    android:id="@+id/textView1"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_weight="0.2"
+		    android:gravity="center"
+		    android:visibility="invisible" />
+
+		<Button
+            android:id="@+id/btnGetRegId"
+            android:layout_width="0.0dip" 
             android:layout_height="fill_parent"
-            android:background="@drawable/gradient">
-    
-    <LinearLayout android:layout_width="fill_parent"
-                  android:layout_height="wrap_content"
-                  android:orientation="vertical">
-        <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                >
+            android:layout_weight="1"
+            android:gravity="center"
+			android:onClick="onClick"
+            android:text="Invite" />
+		    <!-- android:background="@android:drawable/bottom_bar" -->
+				
+	</LinearLayout>
 
-            <Button
-                android:id="@+id/send"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onClick"
-                android:text="@string/send" />
+    <LinearLayout
+		android:id="@+id/row02"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" 
+		android:minHeight="140dip"
+		android:paddingTop="15sp"
+        android:paddingBottom="15sp"
+        android:layout_below="@+id/row01">
+        		
+		<Button
+            android:id="@+id/button1"
+            android:layout_width="0.0dip" 
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+			android:onClick="onClick"
+            android:text="Current\nLocation" />
+		    <!-- android:background="@android:drawable/bottom_bar" -->
+		
+		<TextView
+		    android:id="@+id/textView2"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_weight="0.2"
+		    android:gravity="center"
+		    android:visibility="invisible" />
 
-            <Button
-                android:id="@+id/clear"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onClick"
-                android:text="@string/clear" />
+		<Button
+            android:id="@+id/button4"
+            android:layout_width="0.0dip" 
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+			android:onClick="onClick"
+            android:text="Location\nHistory" />
+		    <!-- android:background="@android:drawable/bottom_bar" -->
+				
+	</LinearLayout>
 
-            <Button 
-		        android:id="@+id/btnGetRegId"
-		        android:layout_width="wrap_content"
-		        android:layout_height="wrap_content"
-		        android:onClick="onClick"
-		        android:background="@drawable/gradient"
-		        android:text="@string/getRegId"/>
-            
-           	<Button 
-		        android:id="@+id/btnContactList"
-		        android:layout_width="wrap_content"
-		        android:layout_height="wrap_content"
-		        android:onClick="onClick"
-		        android:text="@string/contact_list"/>
-		    
-        </LinearLayout>
+    <LinearLayout
+		android:id="@+id/row03"
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" 
+		android:minHeight="140dip"
+		android:paddingTop="15sp"
+        android:paddingBottom="15sp"
+        android:layout_below="@+id/row02">
+        		
+		<Button
+            android:id="@+id/clear"
+            android:layout_width="0.0dip" 
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+			android:onClick="onClick"
+            android:text="Settings" />
+		    <!-- android:background="@android:drawable/bottom_bar" -->
+		
+		<TextView
+		    android:id="@+id/textView3"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:layout_weight="0.2"
+		    android:gravity="center"
+		    android:visibility="invisible" />
 
-        <TextView
-                android:id="@+id/display"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"/>
+		<Button
+            android:id="@+id/send"
+            android:layout_width="0.0dip" 
+            android:layout_height="fill_parent"
+            android:layout_weight="1"
+            android:gravity="center"
+			android:onClick="onClick"
+            android:text="About" />
+		    <!-- android:background="@android:drawable/bottom_bar" -->
+				
+	</LinearLayout>
 
-        <TextView
-		        android:id="@+id/etRegId"
-		        android:layout_width="fill_parent"
-		        android:layout_height="wrap_content"/>
-        
-    </LinearLayout>
-
-</ScrollView>
+</RelativeLayout>

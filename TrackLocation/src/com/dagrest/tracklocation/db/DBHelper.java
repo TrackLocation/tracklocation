@@ -15,22 +15,22 @@ public class DBHelper extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
         if (DBConst.IS_DEBUG_LOG_ENABLED)
-            Log.i(DBConst.DB_LOG_TAG, "new create");
+            Log.i(DBConst.LOG_TAG_DB, "new create");
         try {
             //db.execSQL(USER_MAIN_CREATE);
-            db.execSQL(DBConst.USER_CREATE);
-            db.execSQL(DBConst.DEVICE_CREATE);
+            db.execSQL(DBConst.TABLE_CONTACTS_CREATE);
+            db.execSQL(DBConst.TABLE_DEVICE_CREATE);
 
         } catch (Exception exception) {
             if (DBConst.IS_DEBUG_LOG_ENABLED)
-                Log.i(DBConst.DB_LOG_TAG, "Exception onCreate() exception");
+                Log.i(DBConst.LOG_TAG_DB, "Exception onCreate() exception");
         }
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (DBConst.IS_DEBUG_LOG_ENABLED)
-            Log.w(DBConst.DB_LOG_TAG, "Upgrading database from version" + oldVersion
+            Log.w(DBConst.LOG_TAG_DB, "Upgrading database from version" + oldVersion
                     + "to" + newVersion + "...");
 
         for (String table : DBConst.TABLES_LIST) {
