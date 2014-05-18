@@ -1,8 +1,6 @@
 package com.dagrest.tracklocation;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -19,25 +17,19 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private final static int RQS_GooglePlayServices = 1;
     private BroadcastReceiver locationChangeWatcher;
     private String className;
     private String regid;
     private GoogleCloudMessaging gcm;
     private Context context;
 
-//  TextView mDisplay;
-//  TextView etRegId;
-    
     @SuppressLint("ResourceAsColor")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -45,17 +37,10 @@ public class MainActivity extends Activity {
 		className = this.getClass().getName();
 		
 		setContentView(R.layout.activity_main);
-//		mDisplay = (TextView) findViewById(R.id.display);
 		
 		context = getApplicationContext();
-//		preferences = Preferences.getGCMPreferences(context);
-//		initLocationChangeWatcherGps();
-//		initLocationChangeWatcherNetwork();
-		
-////        btnRegId = (Button) findViewById(R.id.btnGetRegId);
-//        etRegId = (TextView) findViewById(R.id.etRegId);
-        
-        // Check device for Play Services APK. If check succeeds, proceed with GCM registration.
+
+		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
             regid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
@@ -108,49 +93,19 @@ public class MainActivity extends Activity {
     	// SEND button
     	// ========================================
         } else if (view == findViewById(R.id.send)) {
-//            new AsyncTask<Void, Void, String>() {
-//                @Override
-//                protected String doInBackground(Void... params) {
-//                    String msg = "";
-//                    msg = "Sent message";
-//            		sendRegistrationIdToBackend(regid);
-//                    return msg;
-//                }
-//
-//                @Override
-//                protected void onPostExecute(String msg) {
-//                    mDisplay.append(msg + "\n");
-//                }
-//            }.execute(null, null, null);
+
     	// ========================================
     	// CLEAR button
     	// ========================================
         } else if (view == findViewById(R.id.clear)) {
-//            mDisplay.setText("");
-//            
-////            if( scheduledActionExecutor != null ){
-////            	scheduledActionExecutor.shutdown();
-////            	scheduledActionExecutor = null;
-////            }
-//            if(trackLocationService != null) {
-//            	if(!context.stopService(trackLocationService)){
-//            		LogManager.LogErrorMsg(className, "onClick", "Stop trackLocationService failed.");
-//            		Log.i(CommonConst.LOG_TAG, "Stop trackLocationService failed.");
-//            	}
-//            }
-    	// ========================================
+
+        // ========================================
     	// GET REG ID button
     	// ========================================
         } else if (view == findViewById(R.id.btnGetRegId)) {
         	String regId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-//        	etRegId.setText(regId);
     		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
     			"RegID: " + regId + " :RegID");
-//    		if( scheduledActionExecutor == null){
-//    			scheduledActionExecutor = new ScheduledActionExecutor(3);
-//    		}
-//    		trackLocationService = new Intent(context, TrackLocationService.class);
-//    		context.startService(trackLocationService); 
         } else if (view == findViewById(R.id.btnContactList)) {
     		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
     			"ContactList activity started.");
@@ -224,7 +179,7 @@ public class MainActivity extends Activity {
 
             @Override
             protected void onPostExecute(String msg) {
-//                mDisplay.append(msg + "\n");
+            	// TODO: do some work here...
             }
         }.execute(null, null, null);
     }
@@ -248,46 +203,6 @@ public class MainActivity extends Activity {
           }
           return false;
     }
-
-//    private void initLocationChangeWatcherGps()
-//    {
-//    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
-//	    IntentFilter intentFilter = new IntentFilter();
-//	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_GPS");
-//	    //com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK
-//	    locationChangeWatcher = new BroadcastReceiver() 
-//	    {
-//	    	@Override
-//    		public void onReceive(Context context, Intent intent) {
-//    			// TODO Auto-generated method stub
-//	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherGps->onReceive", "WORK");
-////	    		mDisplay.setText("LOCATION_UPDATED_GPS: " +
-////	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
-//    		}
-//	    };
-//	    registerReceiver(locationChangeWatcher, intentFilter);
-//	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
-//    }
-//    
-//    private void initLocationChangeWatcherNetwork()
-//    {
-//    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
-//	    IntentFilter intentFilter = new IntentFilter();
-//	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK");
-//	    locationChangeWatcher = new BroadcastReceiver() 
-//	    {
-//	    	@Override
-//    		public void onReceive(Context context, Intent intent) {
-//    			// TODO Auto-generated method stub
-//	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherNetwork->onReceive", "WORK");
-////	    		mDisplay.setText("LOCATION_UPDATED_NETWORK: " +
-////	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
-//    		}
-//	    };
-//	    registerReceiver(locationChangeWatcher, intentFilter);
-//	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
-//    }
-
 
 }
 
