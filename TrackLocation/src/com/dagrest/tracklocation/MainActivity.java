@@ -49,8 +49,8 @@ public class MainActivity extends Activity {
 		
 		context = getApplicationContext();
 //		preferences = Preferences.getGCMPreferences(context);
-		initLocationChangeWatcherGps();
-		initLocationChangeWatcherNetwork();
+//		initLocationChangeWatcherGps();
+//		initLocationChangeWatcherNetwork();
 		
 ////        btnRegId = (Button) findViewById(R.id.btnGetRegId);
 //        etRegId = (TextView) findViewById(R.id.etRegId);
@@ -162,6 +162,10 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        
+        if(locationChangeWatcher != null){
+        	unregisterReceiver(locationChangeWatcher);
+        }
     }
 
 	/**
@@ -245,44 +249,44 @@ public class MainActivity extends Activity {
           return false;
     }
 
-    private void initLocationChangeWatcherGps()
-    {
-    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
-	    IntentFilter intentFilter = new IntentFilter();
-	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_GPS");
-	    //com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK
-	    locationChangeWatcher = new BroadcastReceiver() 
-	    {
-	    	@Override
-    		public void onReceive(Context context, Intent intent) {
-    			// TODO Auto-generated method stub
-	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherGps->onReceive", "WORK");
-//	    		mDisplay.setText("LOCATION_UPDATED_GPS: " +
-//	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
-    		}
-	    };
-	    registerReceiver(locationChangeWatcher, intentFilter);
-	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
-    }
-    
-    private void initLocationChangeWatcherNetwork()
-    {
-    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
-	    IntentFilter intentFilter = new IntentFilter();
-	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK");
-	    locationChangeWatcher = new BroadcastReceiver() 
-	    {
-	    	@Override
-    		public void onReceive(Context context, Intent intent) {
-    			// TODO Auto-generated method stub
-	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherNetwork->onReceive", "WORK");
-//	    		mDisplay.setText("LOCATION_UPDATED_NETWORK: " +
-//	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
-    		}
-	    };
-	    registerReceiver(locationChangeWatcher, intentFilter);
-	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
-    }
+//    private void initLocationChangeWatcherGps()
+//    {
+//    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
+//	    IntentFilter intentFilter = new IntentFilter();
+//	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_GPS");
+//	    //com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK
+//	    locationChangeWatcher = new BroadcastReceiver() 
+//	    {
+//	    	@Override
+//    		public void onReceive(Context context, Intent intent) {
+//    			// TODO Auto-generated method stub
+//	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherGps->onReceive", "WORK");
+////	    		mDisplay.setText("LOCATION_UPDATED_GPS: " +
+////	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
+//    		}
+//	    };
+//	    registerReceiver(locationChangeWatcher, intentFilter);
+//	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
+//    }
+//    
+//    private void initLocationChangeWatcherNetwork()
+//    {
+//    	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
+//	    IntentFilter intentFilter = new IntentFilter();
+//	    intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK");
+//	    locationChangeWatcher = new BroadcastReceiver() 
+//	    {
+//	    	@Override
+//    		public void onReceive(Context context, Intent intent) {
+//    			// TODO Auto-generated method stub
+//	    		LogManager.LogInfoMsg(className, "initLocationChangeWatcherNetwork->onReceive", "WORK");
+////	    		mDisplay.setText("LOCATION_UPDATED_NETWORK: " +
+////	    			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
+//    		}
+//	    };
+//	    registerReceiver(locationChangeWatcher, intentFilter);
+//	    LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
+//    }
 
 
 }
