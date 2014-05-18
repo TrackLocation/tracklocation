@@ -22,18 +22,12 @@ public class LocationListenerBasic implements LocationListener{
 
 	private String className; // LocationListenerBasic
 	private String locationProviderType; // CommonConst.GPS = GPS, CommonConst.NETWORK = NETWORK...
-//	private PowerManager.WakeLock wl;
-//	private PowerManager pm;
 	private Context context;
-//	private boolean toReleaseWakeLock;
 	
 	public LocationListenerBasic(Context context, String className, String locationProviderType,
 			WakeLock wl, PowerManager pm, boolean toReleaseWakeLock) {
 		this.className = className;
 		this.locationProviderType = locationProviderType;
-//		this.wl = wl;
-//		this.pm = pm;
-//		this.toReleaseWakeLock = toReleaseWakeLock;
 		this.context = context;
 	}
 
@@ -45,7 +39,6 @@ public class LocationListenerBasic implements LocationListener{
             	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
             Log.i(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
             	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-//            Log.i(CommonConst.LOG_TAG, "WAKE_LOCK = " + wl + ";");
             
             // TODO: check if the next key,value is needed...
             // Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, locationProviderType);
@@ -75,9 +68,6 @@ public class LocationListenerBasic implements LocationListener{
             	CommonConst.LOCATION_INFO_ + locationProviderType + CommonConst.DELIMITER_COLON + locationInfo);
             Preferences.setPreferencesString(context, CommonConst.LOCATION_INFO_ + locationProviderType, locationInfo);
     
-            // NOT NEEDED - used the following function controller.sendCommand(jsonMessage); 
-            // broadcastLocationUpdatedGps();
-            
             // ==========================================
             // send GCM (push notification) to requester
             // ==========================================
@@ -106,35 +96,6 @@ public class LocationListenerBasic implements LocationListener{
     		// For very OLD version
             //sendLocationByMail(latlong);
 
-//            if(wl != null && wl.isHeld()){
-//            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "WAKE LOCK - READY TO BE RELEASED.");
-//            	Log.i(CommonConst.LOG_TAG, "WAKE LOCK - READY TO BE RELEASED.");
-////                if(!laDeviceId.equals(preferences.getStringSettingsValue("deviceUid", deviceUid))){
-//            		toReleaseWakeLock = true;
-////                }
-//    				
-//            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "BEFORE RELEASE WAKE_LOCK = " + wl + ";");
-//            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "BEFORE RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
-//	            Log.i(CommonConst.LOG_TAG, "BEFORE RELEASE WAKE_LOCK = " + wl + ";");
-//				Log.i(CommonConst.LOG_TAG, "BEFORE RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
-//            	
-//				wl.release();
-//				
-//				LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "WAKE LOCK - HAS BEEN RELEASED.");
-//				Log.i(CommonConst.LOG_TAG, "WAKE LOCK - HAS BEEN RELEASED.");
-//
-//				LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "AFTER RELEASE WAKE_LOCK = " + wl + ";");
-//            	LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-//                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", "AFTER RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
-//	            Log.i(CommonConst.LOG_TAG, "AFTER RELEASE WAKE_LOCK = " + wl + ";");
-//				Log.i(CommonConst.LOG_TAG, "AFTER RELEASE WAKE LOCK isHeld: " + wl.isHeld() + ";");
-//           }
-            
             LogManager.LogFunctionCall(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
                 locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
             Log.i(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
@@ -147,15 +108,6 @@ public class LocationListenerBasic implements LocationListener{
                     locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", e);
         }      
 	}
-
-//	private void broadcastLocationUpdatedGps()
-//	{
-//		LogManager.LogFunctionCall(className, "broadcastLocationUpdatedGps");
-//		Intent intent = new Intent();
-//		intent.setAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_GPS");
-//		sendBroadcast(intent);
-//		LogManager.LogFunctionExit(className, "broadcastLocationUpdatedGps");
-//	}
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {

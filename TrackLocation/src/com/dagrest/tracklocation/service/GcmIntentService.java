@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.dagrest.tracklocation.Controller;
+import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.NotificationCommandEnum;
@@ -83,10 +84,11 @@ public class GcmIntentService extends IntentService {
                         Preferences.setPreferencesString(getApplicationContext(), 
                         	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
             		}
-//            		Context context = getApplicationContext();
-//            		Intent trackLocationService = new Intent(context, TrackLocationService.class);
-//            		context.startService(trackLocationService);
-            	
+            		Context context = getApplicationContext();
+            		// Start location service to get current location
+            		Intent trackLocationService = new Intent(context, TrackLocationService.class);
+            		context.startService(trackLocationService); 
+           	
         		// ============================================
                 // COMMAND: 	stop
             	// ============================================
@@ -132,12 +134,6 @@ public class GcmIntentService extends IntentService {
 	            		// send message back with PushNotificationServiceStatusEnum.available
 	            		controller.sendCommand(jsonMessage);
 	            		
-	            	    //LocationListener locationListenerGPS = new LocationListenerBasic("LocationListenerGPS", CommonConst.GPS, wl, pm, toReleaseWakeLock);
-
-                		// Start location service to get current location
-                		Intent trackLocationService = new Intent(context, TrackLocationService.class);
-                		context.startService(trackLocationService); 
-
                 	} 
  
         		// ============================================
@@ -153,9 +149,15 @@ public class GcmIntentService extends IntentService {
                 		
 //						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
 //							value + CommonConst.DELIMITER_STRING + currentDateTime);
-						broadcastMessage("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED", "GcmIntentService", 
-							"updated", key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
-            	
+                		if(value != null && !value.isEmpty()) {
+							broadcastMessage(CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
+								BroadcastCommandEnum.gcm_status.toString(),  
+								key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
+                		} else {
+    						broadcastMessage(CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
+								BroadcastCommandEnum.gcm_status.toString(),  
+								"");
+                		}
         		// ============================================
                 // COMMAND: 	location
             	// ============================================
@@ -167,10 +169,9 @@ public class GcmIntentService extends IntentService {
                 		String value = extras.getString("value");
                 		String currentDateTime = Controller.getCurrentDate();
                 		
-//						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
-//							value + CommonConst.DELIMITER_STRING + currentDateTime);
-						broadcastMessage("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED", "GcmIntentService", 
-								"updated", key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
+						broadcastMessage(CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
+							BroadcastCommandEnum.location_updated.toString(), 
+							key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
             	}
             	
             } // if (GoogleCloudMessaging
@@ -181,24 +182,12 @@ public class GcmIntentService extends IntentService {
         GcmBroadcastReceiver.completeWakefulIntent(intent);
 	} // onHandleIntent(...
 	
-//	// TODO: to replace the following broadcast by generic one: broadcastMessage
-//	public void broadcastLocationUpdatedGps(String value)
-//	{
-//		LogManager.LogFunctionCall("GcmIntentService", "broadcastLocationUpdatedGps");
-//		Intent intent = new Intent();
-//		intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
-//		intent.putExtra("updated", value);
-//		sendBroadcast(intent);
-//		LogManager.LogFunctionExit("GcmIntentService", "broadcastLocationUpdatedGps");
-//	}
-
 	// actionDescription - only for logging
 	public void broadcastMessage(String action, String actionDescription, String key, String value)
 	{
 		LogManager.LogFunctionCall(actionDescription, "broadcastMessage");
 		Intent intent = new Intent();
-		//intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
-		intent.setAction(action);
+		intent.setAction(action); //intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
 		intent.putExtra(key, value);
 		sendBroadcast(intent);
 		LogManager.LogFunctionExit(actionDescription, "broadcastMessage");

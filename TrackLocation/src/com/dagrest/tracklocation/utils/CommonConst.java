@@ -39,4 +39,9 @@ public class CommonConst {
  	public static final String 	CONTACT_LIST_SELECTED_VALUE = "selectedValue";
  	public static final String 	CONTACT_REGISTRATION_ID = "registration_id";
  	
+ 	// BROADCAST ACTIONS
+ 	// deprecated: "com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED" use:
+ 	public static final String 	BROADCAST_LOCATION_UPDATED = "com.dagrest.tracklocation.service.GcmIntentService.LOCATION_UPDATED";
+ 	
+ 	
 }

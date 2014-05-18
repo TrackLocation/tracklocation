@@ -3,6 +3,7 @@ package com.dagrest.tracklocation;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
@@ -17,6 +18,9 @@ import com.dagrest.tracklocation.service.TrackLocationService;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -58,7 +62,6 @@ public class ContactConfiguration extends Activity {
 	private String jsonMessage;
 
 	private BroadcastReceiver gcmIntentServiceChangeWatcher;
-//	private BroadcastReceiver locationChangeWatcher;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -66,11 +69,8 @@ public class ContactConfiguration extends Activity {
 		
 		className = this.getClass().getName();
 		setContentView(R.layout.contact_config);
-//		initGcmIntentServiceBroadcastReceiver();
-		initBroadcastReceiver("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED", "ContactConfiguration");
-//		initLocationChangeWatcherGps();
-//		initLocationChangeWatcherNetwork();
-		
+		initBroadcastReceiver(CommonConst.BROADCAST_LOCATION_UPDATED, "ContactConfiguration");
+
 		Intent intent = getIntent();
 		String jsonStringContactDeviceData = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA);
 		String userName = intent.getExtras().getString(CommonConst.CONTACT_LIST_SELECTED_VALUE);
@@ -149,13 +149,12 @@ public class ContactConfiguration extends Activity {
 
     	switch(view.getId()) {
         	case R.id.check_status:
-        		startTrackLocationService();
+        		checkGcmStatus();
         		break;
         	case R.id.start:
-        		//String toId = getRegistrationId(getApplicationContext());
+        		startTrackLocationService();
         		break;
         	case R.id.stop:
-        		//String toId = getRegistrationId(getApplicationContext());
         		stopTrackLocationService();
         		break;
         	case R.id.show_map:
@@ -178,18 +177,37 @@ public class ContactConfiguration extends Activity {
 	    {
 	    	@Override
     		public void onReceive(Context context, Intent intent) {
-    			// TODO Auto-generated method stub
 	    		LogManager.LogInfoMsg(actionDescription, "initBroadcastReceiver->onReceive", "WORK");
-	    		String result = intent.getExtras().getString("updated");
-	    		if(result != null && !result.isEmpty()){
-		    		mNotification.setText(result);
-		    		
-	    			if(result.contains(PushNotificationServiceStatusEnum.available.toString())){
-	    				mStatus.setText(PushNotificationServiceStatusEnum.available.toString());
+
+	    		// TODO: refactor with JSON to JAVA and back instead of string with delimiters
+	    		
+	    		Bundle bundle = intent.getExtras();
+	    		String broadcastKeyLocationUpdated = BroadcastCommandEnum.location_updated.toString();
+	    		String broadcastKeyGcmStatus = BroadcastCommandEnum.gcm_status.toString();
+	    		// ===========================================
+	    		// broadcast key = location_updated
+	    		// ===========================================
+	    		if(bundle != null){
+	    			String result = null;
+	    			if(bundle.containsKey(broadcastKeyLocationUpdated)){
+	    				result = bundle.getString(broadcastKeyLocationUpdated);
 	    			}
+	    			if(bundle.containsKey(broadcastKeyGcmStatus)){
+	    				result = bundle.getString(broadcastKeyGcmStatus);
+	    			}
+		    		if(result != null && !result.isEmpty()){
+			    		mNotification.setText(result);
+			    		
+		    			if(result.contains(PushNotificationServiceStatusEnum.available.toString())){
+		    				mStatus.setText(PushNotificationServiceStatusEnum.available.toString());
+		    			}
+		    		} else {
+		    			mNotification.setText(result);
+		    		}
 	    		}
-    		}
+	    	}
 	    };
+	    
 	    registerReceiver(gcmIntentServiceChangeWatcher, intentFilter);
 	    LogManager.LogFunctionExit(actionDescription, "initBroadcastReceiver");
     }
@@ -210,28 +228,40 @@ public class ContactConfiguration extends Activity {
 		}
     }
 
+    private void checkGcmStatus(){
+		String regIDToReturnMessageTo = Controller.getRegistrationId(getApplicationContext());
+		List<String> listRegIDs = new ArrayList<String>();
+		listRegIDs.add(contactData.getRegistration_id());
+		String time = "";
+		String messageString = "";
+		jsonMessage = controller.createJsonMessage(listRegIDs, 
+	    		regIDToReturnMessageTo, 
+	    		CommandEnum.status_request, 
+	    		"", // messageString, 
+	    		Controller.getCurrentDate(), // time,
+	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+	    		null //PushNotificationServiceStatusEnum.available.toString()
+				);
+		controller.sendCommand(jsonMessage);
+    }
+    
     private void startTrackLocationService(){
 		String regIDToReturnMessageTo = Controller.getRegistrationId(getApplicationContext());
 		List<String> listRegIDs = new ArrayList<String>();
 		listRegIDs.add(contactData.getRegistration_id());
 		String time = "";
 		String messageString = "";
-//		TrackLocationServiceStatusEnum trackLocationServiceStatus = null;
-//		PushNotificationServiceStatusEnum pushNotificationServiceStatus = null;
 		jsonMessage = controller.createJsonMessage(listRegIDs, 
 	    		regIDToReturnMessageTo, 
-	    		CommandEnum.status_request, 
+	    		CommandEnum.start, 
 	    		"", // messageString, 
 	    		Controller.getCurrentDate(), // time,
-//	    		trackLocationServiceStatus,
-//	    		pushNotificationServiceStatus,
 	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
 	    		null //PushNotificationServiceStatusEnum.available.toString()
 				);
-		//HttpUtils.sendRegistrationIdToBackend(jsonMessage);
 		controller.sendCommand(jsonMessage);
     }
-    
+
     private void stopTrackLocationService(){
 		String regIDToReturnMessageToStop = Controller.getRegistrationId(getApplicationContext());
 		List<String> listRegIDsStop = new ArrayList<String>();
@@ -244,74 +274,8 @@ public class ContactConfiguration extends Activity {
 	    		null, // key
 	    		null // value
 				);
-		//HttpUtils.sendRegistrationIdToBackend(jsonMessage);
 		controller.sendCommand(jsonMessage);
     }
 }
-
-//private void initGcmIntentServiceBroadcastReceiver()
-//{
-//	LogManager.LogFunctionCall("ContactConfiguration", "initGcmIntentServiceWatcher");
-//  IntentFilter intentFilter = new IntentFilter();
-//  intentFilter.addAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
-//  gcmIntentServiceChangeWatcher = new BroadcastReceiver() 
-//  {
-//  	@Override
-//		public void onReceive(Context context, Intent intent) {
-//			// TODO Auto-generated method stub
-//  		LogManager.LogInfoMsg("ContactConfiguration", "initGcmIntentServiceWatcher->onReceive", "WORK");
-//  		String result = intent.getExtras().getString("updated");
-//  		if(result != null && !result.isEmpty()){
-//	    		mNotification.setText(result);
-//	    		
-//  			if(result.contains(PushNotificationServiceStatusEnum.available.toString())){
-//  				mStatus.setText(PushNotificationServiceStatusEnum.available.toString());
-//  			}
-//  		}
-//		}
-//  };
-//  registerReceiver(gcmIntentServiceChangeWatcher, intentFilter);
-//  LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
-//}
-
-//private void initLocationChangeWatcherGps()
-//{
-//	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
-//  IntentFilter intentFilter = new IntentFilter();
-//  intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_GPS");
-//  //com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK
-//  locationChangeWatcher = new BroadcastReceiver() 
-//  {
-//  	@Override
-//		public void onReceive(Context context, Intent intent) {
-//			// TODO Auto-generated method stub
-//  		LogManager.LogInfoMsg(className, "initLocationChangeWatcherGps->onReceive", "WORK");
-//  		mLat.setText("LOCATION_UPDATED_GPS: " +
-//  			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
-//		}
-//  };
-//  registerReceiver(locationChangeWatcher, intentFilter);
-//  LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
-//}
-
-//private void initLocationChangeWatcherNetwork()
-//{
-//	LogManager.LogFunctionCall(className, "initLocationChangeWatcher");
-//  IntentFilter intentFilter = new IntentFilter();
-//  intentFilter.addAction("com.dagrest.tracklocation.service.TrackLocationService.LOCATION_UPDATED_NETWORK");
-//  locationChangeWatcher = new BroadcastReceiver() 
-//  {
-//  	@Override
-//		public void onReceive(Context context, Intent intent) {
-//			// TODO Auto-generated method stub
-//  		LogManager.LogInfoMsg(className, "initLocationChangeWatcherNetwork->onReceive", "WORK");
-//  		mLng.setText("LOCATION_UPDATED_NETWORK: " +
-//  			Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK));
-//		}
-//  };
-//  registerReceiver(locationChangeWatcher, intentFilter);
-//  LogManager.LogFunctionExit(className, "initLocationChangeWatcher");
-//}
-
 
 
