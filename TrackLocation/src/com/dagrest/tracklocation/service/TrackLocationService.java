@@ -7,6 +7,7 @@ import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.NotificationCommandEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
+import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -24,7 +25,6 @@ public class TrackLocationService extends Service {
 	private static String className;
 	private static Context context;
 	private LocationManager locationManager;
-	private Boolean toReleaseWakeLock;
 	private List<String> locationProviders;
 	private Boolean isLocationProviderAvailable;
 	private LocationListener locationListenerGPS = null;
@@ -43,6 +43,7 @@ public class TrackLocationService extends Service {
         super.onCreate();
         className = this.getClass().getName();
         
+        isLocationProviderAvailable = false;
     	LogManager.LogFunctionCall(className, "onCreate");
     	Log.i(LOCATION_SERVICE, "onCreate - Start");
        
@@ -54,7 +55,6 @@ public class TrackLocationService extends Service {
             if(locationManager == null){
             	locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             }
-            toReleaseWakeLock = false;
             
             LogManager.LogFunctionExit(className, "onCreate");
             Log.i(LOCATION_SERVICE, "onCreate - End");
@@ -84,30 +84,8 @@ public class TrackLocationService extends Service {
             	}
             }
             
-            // ==========================================
-            // send GCM (push notification) to requester
-            // ==========================================
-			List<String> listRegIDs = Preferences.getPreferencesReturnToRegIDList(context, 
-    				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST); 
-
-			String time = new Date().toString(); 
-    		Controller controller = new Controller();
-
-    		// Get current registration ID
-    		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-    		String jsonMessage = controller.createJsonMessage(listRegIDs, 
-	    		senderRegId, 
-	    		CommandEnum.status_response, 
-	    		null, // TODO: send device UUID in the message 
-	    		time,
-	    		NotificationCommandEnum.pushNotificationServiceStatus.toString(),
-	    		"");
-    		// send message back with PushNotificationServiceStatusEnum.available
-    		controller.sendCommand(jsonMessage);
-            // ==============================
-            // send GCM to requester
-            // ==============================
-            
+			sendTrackLocationServiceStopped();
+			
             LogManager.LogFunctionExit(className, "onDestroy");
             Log.i(LOCATION_SERVICE, "onDestroy - End");
             
@@ -117,7 +95,7 @@ public class TrackLocationService extends Service {
         }
     }  
 
-	@Override          
+    @Override          
 	public void onStart(Intent intent, int startId)           
 	{                  
 		try{
@@ -129,22 +107,26 @@ public class TrackLocationService extends Service {
 //              LogManager.LogInfoMsg(className, "onStart", "Location provider name: " + locProvName);
 
             requestLocation(true);
-            isLocationProviderAvailable = Preferences.getPreferencesBoolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE);
-            if(isLocationProviderAvailable){
-            	String locationStringGPS = Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_GPS);
-            	String locationStringNETWORK = Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK);
-      
-                if(!locationStringGPS.equals("initial")){
-                	LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "locationGPS: " + locationStringGPS);
-                    //sendLocationByMail(locationStringGPS, locationProvider);
-                    // TODO: send notification
-                } else if(!locationStringNETWORK.equals("initial")){
-                    LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "locationNETWORK: " + locationStringNETWORK);
-                    //sendLocationByMail(locationStringNETWORK, locationProvider);
-                    // TODO: send notification
-                }
-            }
+            // isLocationProviderAvailable = Preferences.getPreferencesBoolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE);
+            
+            // TODO: The following bock is OPTIONAL :
+//            if(isLocationProviderAvailable){
+//            	String locationStringGPS = Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_GPS);
+//            	String locationStringNETWORK = Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK);
+//      
+//                if(!locationStringGPS.equals("initial")){
+//                	LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "locationGPS: " + locationStringGPS);
+//                    //sendLocationByMail(locationStringGPS, locationProvider);
+//                    // TODO: send notification
+//                } else if(!locationStringNETWORK.equals("initial")){
+//                    LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "locationNETWORK: " + locationStringNETWORK);
+//                    //sendLocationByMail(locationStringNETWORK, locationProvider);
+//                    // TODO: send notification
+//                }
+//            }
               
+            sendTrackLocationServiceStarted();
+            
             LogManager.LogFunctionExit(className, "onStart");
             Log.i(LOCATION_SERVICE, "onStart - End");
 		} catch (Exception e) {
@@ -153,7 +135,7 @@ public class TrackLocationService extends Service {
 		}
 	}
 	
-	private void requestLocation(boolean forceGps) {
+	public void requestLocation(boolean forceGps) {
         try{
         	LogManager.LogFunctionCall(className, "requestLocation");
         	if(locationListenerGPS != null){
@@ -182,25 +164,25 @@ public class TrackLocationService extends Service {
                 if (containsGPS && forceGps) {
                 	LogManager.LogInfoMsg(className, "requestLocation", "GPS_PROVIDER selected.");
                 
-	            	locationListenerGPS = new LocationListenerBasic(context, "LocationListenerGPS", CommonConst.GPS, null, null, toReleaseWakeLock);
-	            	locationListenerNetwork = new LocationListenerBasic(context, "LocationListenerNetwork", CommonConst.NETWORK, null, null, toReleaseWakeLock);
+	            	locationListenerGPS = new LocationListenerBasic(context, this, "LocationListenerGPS", CommonConst.GPS);
+	            	locationListenerNetwork = new LocationListenerBasic(context, this, "LocationListenerNetwork", CommonConst.NETWORK);
 
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerGPS);
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
-                    Preferences.setPreferencesBooolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE, true);
+                    isLocationProviderAvailable = true; // Preferences.setPreferencesBooolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE, true);
                     //preferences.setStringSettingsValue("locationProviderName", "GPS");
                 } else if (containsNetwork) {
                 	LogManager.LogInfoMsg(className, "requestLocation", "NETWORK_PROVIDER selected.");
                 	
-            		locationListenerNetwork = new LocationListenerBasic(context, "LocationListenerNetwork", CommonConst.NETWORK, null, null, toReleaseWakeLock);
+            		locationListenerNetwork = new LocationListenerBasic(context, this, "LocationListenerNetwork", CommonConst.NETWORK);
 
             		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
-                    Preferences.setPreferencesBooolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE, true);
+            		isLocationProviderAvailable = true; // Preferences.setPreferencesBooolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE, true);
                     //preferences.setStringSettingsValue("locationProviderName", "NETWORK");
                 }
 	        } else {
 		        LogManager.LogInfoMsg(className, "requestLocation", "No location providers available.");
-		        Preferences.setPreferencesBooolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE, false);
+		        isLocationProviderAvailable = false; // Preferences.setPreferencesBooolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE, false);
 	        }
         LogManager.LogFunctionExit(className, "requestLocation");
         } catch (Exception e) {
@@ -209,11 +191,65 @@ public class TrackLocationService extends Service {
     }
     
     private boolean providerAvailable(List<String> providers) {
-        if (providers.isEmpty()) {
+        if (providers.size() < 1) {
         	return false;
         }
         return true;
     }
+
+    private void sendTrackLocationServiceStopped(){
+        // ==========================================
+        // send GCM (push notification) to requester (Master)
+        // that TrackLocationService is stopped
+        // ==========================================
+		List<String> listRegIDs = Preferences.getPreferencesReturnToRegIDList(context, 
+				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST); 
+
+		String time = new Date().toString(); 
+		Controller controller = new Controller();
+
+		// Get current registration ID
+		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+		String jsonMessage = controller.createJsonMessage(listRegIDs, 
+    		senderRegId, 
+    		CommandEnum.status_response, 
+    		null, // TODO: send device UUID in the message 
+    		time,
+    		NotificationCommandEnum.trackLocationServiceStatus.toString(),
+    		TrackLocationServiceStatusEnum.stopped.toString());
+		// send message back with PushNotificationServiceStatusEnum.available
+		controller.sendCommand(jsonMessage);
+        // ==============================
+        // send GCM to requester
+        // ==============================
+    }
     
+    private void sendTrackLocationServiceStarted(){
+        // ==========================================
+        // send GCM (push notification) to requester (Master)
+        // that TrackLocationService is started
+        // ==========================================
+		List<String> listRegIDs = Preferences.getPreferencesReturnToRegIDList(context, 
+				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST); 
+
+		String time = new Date().toString(); 
+		Controller controller = new Controller();
+
+		// Get current registration ID
+		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+		String jsonMessage = controller.createJsonMessage(listRegIDs, 
+    		senderRegId, 
+    		CommandEnum.status_response, 
+    		null, // TODO: send device UUID in the message 
+    		time,
+    		NotificationCommandEnum.trackLocationServiceStatus.toString(),
+    		TrackLocationServiceStatusEnum.started.toString());
+		// send message back with PushNotificationServiceStatusEnum.available
+		controller.sendCommand(jsonMessage);
+        // ==============================
+        // send GCM to requester
+        // ==============================
+    }
+
 }
 

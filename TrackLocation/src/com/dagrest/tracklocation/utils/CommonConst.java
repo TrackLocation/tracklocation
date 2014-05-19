@@ -16,7 +16,7 @@ public class CommonConst {
 	public static final String 	LOCATION_INFO_ = "LOCATION_INFO_";
 	public static final String 	LOCATION_INFO_GPS = "LOCATION_INFO_GPS";
 	public static final String 	LOCATION_INFO_NETWORK = "LOCATION_INFO_NETWORK";
-	public static final String 	IS_LOCATION_PROVIDER_AVAILABLE = "IS_LOCATION_PROVIDER_AVAILABLE";
+	// public static final String 	IS_LOCATION_PROVIDER_AVAILABLE = "IS_LOCATION_PROVIDER_AVAILABLE";
 	public static final String 	TRACK_LOCATION_WAKE_LOCK = "TRACK_LOCATION_WAKE_LOCK";
 	
 	public static final String 	PREFERENCES_REG_ID = "registration_id";

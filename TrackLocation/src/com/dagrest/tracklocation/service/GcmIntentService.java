@@ -70,6 +70,9 @@ public class GcmIntentService extends IntentService {
             	
             	// ============================================
                 // COMMAND: 	start
+            	// command received via GCM from Master
+            	// to Slave - in order to start location
+            	// service on Slave
             	// ============================================
             	if(extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
@@ -91,6 +94,9 @@ public class GcmIntentService extends IntentService {
            	
         		// ============================================
                 // COMMAND: 	stop
+            	// command received via GCM from Master
+            	// to Slave - in order to stop location
+            	// service on Slave
             	// ============================================
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
@@ -102,6 +108,10 @@ public class GcmIntentService extends IntentService {
             		
         		// ============================================
                 // COMMAND: 	status_request
+            	// command received via GCM from Master
+            	// to Slave - in order to check that GCM Service
+            	// is registered on Slave.
+            	// Send via GCM command status_response to Master
             	// ============================================
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
@@ -138,6 +148,8 @@ public class GcmIntentService extends IntentService {
  
         		// ============================================
                 // COMMAND: 	status_response
+            	// notification from Slave to Master via GCM
+            	// and broadcast to related UI consumers on Master	
             	// ============================================
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
                 			extras.getString(CommandTagEnum.command.toString()).
@@ -160,6 +172,8 @@ public class GcmIntentService extends IntentService {
                 		}
         		// ============================================
                 // COMMAND: 	location
+                // notification from Slave to Master and
+                // broadcast to related UI consumers on Master 		
             	// ============================================
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
                 			extras.getString(CommandTagEnum.command.toString()).

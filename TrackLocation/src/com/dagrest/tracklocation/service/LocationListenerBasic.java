@@ -9,13 +9,10 @@ import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
-
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.os.PowerManager.WakeLock;
 import android.util.Log;
 
 public class LocationListenerBasic implements LocationListener{
@@ -23,12 +20,13 @@ public class LocationListenerBasic implements LocationListener{
 	private String className; // LocationListenerBasic
 	private String locationProviderType; // CommonConst.GPS = GPS, CommonConst.NETWORK = NETWORK...
 	private Context context;
+	private TrackLocationService trackLocationService;
 	
-	public LocationListenerBasic(Context context, String className, String locationProviderType,
-			WakeLock wl, PowerManager pm, boolean toReleaseWakeLock) {
+	public LocationListenerBasic(Context context, TrackLocationService trackLocationService, String className, String locationProviderType) {
 		this.className = className;
 		this.locationProviderType = locationProviderType;
 		this.context = context;
+		this.trackLocationService = trackLocationService;
 	}
 
 	@Override
@@ -66,7 +64,7 @@ public class LocationListenerBasic implements LocationListener{
             LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
             	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", 
             	CommonConst.LOCATION_INFO_ + locationProviderType + CommonConst.DELIMITER_COLON + locationInfo);
-            Preferences.setPreferencesString(context, CommonConst.LOCATION_INFO_ + locationProviderType, locationInfo);
+//            Preferences.setPreferencesString(context, CommonConst.LOCATION_INFO_ + locationProviderType, locationInfo);
     
             // ==========================================
             // send GCM (push notification) to requester
@@ -96,7 +94,7 @@ public class LocationListenerBasic implements LocationListener{
     		// For very OLD version
             //sendLocationByMail(latlong);
 
-            LogManager.LogFunctionCall(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+            LogManager.LogFunctionExit(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
                 locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
             Log.i(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
                 locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
@@ -112,19 +110,25 @@ public class LocationListenerBasic implements LocationListener{
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
 		// TODO Auto-generated method stub
-		
+		trackLocationService.requestLocation(true);
+		Log.i(CommonConst.LOG_TAG, "onStatusChanged");
+		LogManager.LogInfoMsg(provider, "LocationListenerBasic", "onStatusChanged");
 	}
 
 	@Override
 	public void onProviderEnabled(String provider) {
 		// TODO Auto-generated method stub
-		
+		trackLocationService.requestLocation(true);
+		Log.i(CommonConst.LOG_TAG, "onProviderEnabled");
+		LogManager.LogInfoMsg(provider, "LocationListenerBasic", "onProviderEnabled");
 	}
 
 	@Override
 	public void onProviderDisabled(String provider) {
 		// TODO Auto-generated method stub
-		
+		trackLocationService.requestLocation(true);
+		Log.i(CommonConst.LOG_TAG, "onProviderDisabled");
+		LogManager.LogInfoMsg(provider, "LocationListenerBasic", "onProviderDisabled");
 	}
 
 }

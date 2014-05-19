@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum NotificationCommandEnum {
-	pushNotificationServiceStatus("pushNotificationServiceStatus");
+	pushNotificationServiceStatus("pushNotificationServiceStatus"), trackLocationServiceStatus("trackLocationServiceStatus");
 	
 	private final String name;       
 	private static Map<String, NotificationCommandEnum> valueMap;
