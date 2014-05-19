@@ -16,13 +16,14 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
 public class ContactList extends ListActivity {
 
 	private String jsonStringContactDeviceData = null;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -34,7 +35,22 @@ public class ContactList extends ListActivity {
 	    } else {
 	    	LogManager.LogErrorMsg("ContactList", "onCreate", "Contact Data provided incorrectly - check JSON input file.");
 	    }
-	 }
+
+	    ListView list = getListView();
+	    list.setOnItemLongClickListener(new OnItemLongClickListener() {
+			@Override
+			public boolean onItemLongClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				String selectedValue = (String) getListAdapter().getItem(position);
+				Toast.makeText(ContactList.this,
+				selectedValue + " is LONG_CLICKED",
+				Toast.LENGTH_LONG).show();
+				// Return true to consume the click event. In this case the
+				// onListItemClick listener is not called anymore.
+				return true;
+			}
+		});
+	}
 
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
