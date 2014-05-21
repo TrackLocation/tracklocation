@@ -1,9 +1,13 @@
 package com.dagrest.tracklocation;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
+import com.dagrest.tracklocation.datatype.SMSMessage;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -62,22 +66,17 @@ public class MainActivity extends Activity {
 //    		regid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 //    		smsManager.sendTextMessage("+972544504619", null, "\"" + regid + "\"", null, null);
 
+//			// Send SMS message (multipart text message)            	
+//            regid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+//            
 //            SmsManager smsManager = SmsManager.getDefault();
-//            ArrayList<String> parts = smsManager.divideMessage(regid);
+//            ArrayList<String> parts = smsManager.divideMessage("GUID" + "," + "dagrest@gmail.com" + "," + regid);
 //            smsManager.sendMultipartTextMessage("+972544504619", null, parts, null, null);     		
     		
-//    		Cursor cursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
-//    		cursor.moveToFirst();
-//
-//    		do{
-//    		   String msgData = "";
-//    		   for(int idx=0;idx<cursor.getColumnCount();idx++)
-//    		   {
-//    		       msgData += " " + cursor.getColumnName(idx) + ":" + cursor.getString(idx);
-//    		   }
-//    		}while(cursor.moveToNext());
-    		
-    		int i = 0;
+//            // Read SMS messages from inbox
+//            List<SMSMessage> smsList= controller.fetchInboxSms(MainActivity.this, 1);
+//            String s = smsList.get(0).messageContent;
+//            System.out.println(smsList.get(0).messageContent);
     		
         } else {
             Log.e(CommonConst.LOG_TAG, "No valid Google Play Services APK found.");
@@ -93,7 +92,7 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-	
+
 //	@Override
 //	protected void onResume() {
 //		super.onResume();

@@ -31,14 +31,14 @@ public final class DBConst {
 
     public static final String TABLE_CONTACTS_CREATE = 
     	      "create table " + TABLE_CONTACTS + "(" +
-    	    		  "_id integer primary key autoincrement," + 
-    	    		  CONTACT_GUID + " text not null unique," + // PRIMARY KEY
-    	    		  CONTACT_NAME + " text not null," +
-    	    		  CONTACT_REG_ID + " text not null," +
-    	    		  CONTACT_EMAIL + " text not null," + 
-    	    		  CONTACT_DEVICE_GUID + " text not null unique," + // PRIMARY & FOREIGN KEY
-    	    		  "PRIMARY KEY (" + CONTACT_GUID + ", " + CONTACT_EMAIL + ")" +
-    	    		  ");";
+	    		  "_id integer primary key autoincrement," + 
+	    		  CONTACT_GUID + " text not null unique," + // PRIMARY KEY
+	    		  CONTACT_NAME + " text not null," +
+	    		  CONTACT_REG_ID + " text not null," +
+	    		  CONTACT_EMAIL + " text not null," + 
+	    		  CONTACT_DEVICE_GUID + " text not null unique," + // PRIMARY & FOREIGN KEY
+	    		  "PRIMARY KEY (" + CONTACT_GUID + ", " + CONTACT_EMAIL + ")" +
+	    		  ");";
 
     public static final String TABLE_DEVICE_CREATE = 
   	      "create table " + TABLE_DEVICES + "(" +

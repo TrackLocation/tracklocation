@@ -11,10 +11,13 @@ import java.util.regex.Pattern;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.util.Patterns;
@@ -22,6 +25,7 @@ import android.util.Patterns;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
+import com.dagrest.tracklocation.datatype.SMSMessage;
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -160,4 +164,52 @@ public class Controller {
 	    }else
 	        return null;
 	}
+	
+	//	0	:    _id
+	//	1	:    thread_id
+	//	2	:    address
+	//	3	:    person
+	//	4	:    date
+	//	5	:    protocol
+	//	6	:    read
+	//	7	:    status
+	//	8	:    type
+	//	9 	:    reply_path_present
+	//	10	:    subject
+	//	11	:    body
+	//	12	:    service_center
+	//	13	:    locked
+	
+	public ArrayList<SMSMessage> fetchInboxSms(Activity activity, int type) {
+        ArrayList<SMSMessage> smsInbox = new ArrayList<SMSMessage>();
+
+        Uri uriSms = Uri.parse("content://sms");
+
+        Cursor cursor = activity.getContentResolver()
+                .query(uriSms,
+                        new String[] { "_id", "address", "date", "body",
+                                "type", "read" }, "type=" + type, null,
+                        "date" + " COLLATE LOCALIZED ASC");
+        if (cursor != null) {
+            cursor.moveToLast();
+            if (cursor.getCount() > 0) {
+
+                do {
+                    String date =  cursor.getString(cursor.getColumnIndex("date"));
+                    Long timestamp = Long.parseLong(date);    
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.setTimeInMillis(timestamp);
+                    DateFormat formatter = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss.SSS");
+                    SMSMessage message = new SMSMessage();
+                    message.messageNumber = cursor.getString(cursor.getColumnIndex("address"));
+                    message.messageContent = cursor.getString(cursor.getColumnIndex("body"));
+                    message.messageDate = formatter.format(calendar.getTime());
+                    smsInbox.add(message);
+                } while (cursor.moveToPrevious());
+                
+            }
+        }
+        return smsInbox;
+    }
+
 }
