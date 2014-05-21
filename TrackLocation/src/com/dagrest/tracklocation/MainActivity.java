@@ -1,6 +1,8 @@
 package com.dagrest.tracklocation;
 
 import java.io.IOException;
+import java.util.List;
+
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -10,6 +12,7 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
@@ -17,6 +20,8 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -40,6 +45,9 @@ public class MainActivity extends Activity {
 		
 		context = getApplicationContext();
 
+		Controller controller = new Controller();
+		List<String> usernameList = controller.getUsernameList(context);
+		
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
@@ -49,6 +57,24 @@ public class MainActivity extends Activity {
                 registerInBackground();
             }
             
+//    		SmsManager smsManager = SmsManager.getDefault();
+//    		regid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+//    		smsManager.sendTextMessage("+972544504619", null, "\"" + regid + "\"", null, null);
+     		
+    		
+//    		Cursor cursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
+//    		cursor.moveToFirst();
+//
+//    		do{
+//    		   String msgData = "";
+//    		   for(int idx=0;idx<cursor.getColumnCount();idx++)
+//    		   {
+//    		       msgData += " " + cursor.getColumnName(idx) + ":" + cursor.getString(idx);
+//    		   }
+//    		}while(cursor.moveToNext());
+    		
+    		int i = 0;
+    		
         } else {
             Log.e(CommonConst.LOG_TAG, "No valid Google Play Services APK found.");
     		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", 

@@ -2,17 +2,22 @@ package com.dagrest.tracklocation;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.util.Patterns;
 
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.Message;
@@ -136,5 +141,23 @@ public class Controller {
 		Calendar cal = Calendar.getInstance();
 		return dateFormat.format(cal.getTime());
 	}
-	
+
+	public List<String> getUsernameList(Context context){
+	    Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
+	    AccountManager accountManager = AccountManager.get(context); 
+	    //Account[] accounts = manager.getAccountsByType("com.google"); 
+	    Account[] accounts = accountManager.getAccounts();
+	    List<String> possibleEmails = new ArrayList<String>();
+
+	    for (Account account : accounts) {
+	        if (emailPattern.matcher(account.name).matches() && !possibleEmails.contains(account.name)) {
+        		possibleEmails.add(account.name);
+	        }
+	    }
+
+	    if(!possibleEmails.isEmpty()){
+	    	return possibleEmails;
+	    }else
+	        return null;
+	}
 }
