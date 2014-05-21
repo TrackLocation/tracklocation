@@ -1,6 +1,7 @@
 package com.dagrest.tracklocation;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.dagrest.tracklocation.log.LogManager;
@@ -60,7 +61,10 @@ public class MainActivity extends Activity {
 //    		SmsManager smsManager = SmsManager.getDefault();
 //    		regid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 //    		smsManager.sendTextMessage("+972544504619", null, "\"" + regid + "\"", null, null);
-     		
+
+//            SmsManager smsManager = SmsManager.getDefault();
+//            ArrayList<String> parts = smsManager.divideMessage(regid);
+//            smsManager.sendMultipartTextMessage("+972544504619", null, parts, null, null);     		
     		
 //    		Cursor cursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
 //    		cursor.moveToFirst();
