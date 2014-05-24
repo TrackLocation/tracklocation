@@ -96,7 +96,7 @@ public class DBLayer {
      
     // Insert installing contact/device data
     public static DeviceData addContactDeviceData(String phoneNumber, ContactData  contactData, 
-    		DeviceData deviceData, String imei)
+    		DeviceData deviceData, String imei, String registartionId)
      {
     	ContactDeviceData contactDeviceData = new ContactDeviceData();
 		SQLiteDatabase db = null;
@@ -107,12 +107,13 @@ public class DBLayer {
             contactDeviceData.setContactData(contactData);
             contactDeviceData.setDeviceData(deviceData);
             contactDeviceData.setImei(sqlEscapeString(imei));
+            contactDeviceData.setRegistration_id(sqlEscapeString(registartionId));
              
             ContentValues cVal = new ContentValues();
             cVal.put(DBConst.CONTACT_DEVICE_PHONE_NUMBER, contactDeviceData.getPhoneNumber());
-            cVal.put(DBConst.CONTACT_DEVICE_MAC, contactDeviceData.getContactData().getEmail());
-            cVal.put(DBConst.CONTACT_DEVICE_EMAIL, contactDeviceData.getDeviceData().getDeviceMac());
-            cVal.put(DBConst.CONTACT_DEVICE_REG_ID, contactDeviceData.getContactData().getRegistration_id());
+            cVal.put(DBConst.CONTACT_DEVICE_EMAIL, contactDeviceData.getContactData().getEmail());
+            cVal.put(DBConst.CONTACT_DEVICE_MAC, contactDeviceData.getDeviceData().getDeviceMac());
+            cVal.put(DBConst.CONTACT_DEVICE_REG_ID, contactDeviceData.getRegistration_id());
             cVal.put(DBConst.CONTACT_DEVICE_IMEI, contactDeviceData.getImei());
             
             db.insert(DBConst.TABLE_CONTACT_DEVICE, null, cVal);
@@ -215,18 +216,24 @@ public class DBLayer {
 	            do {
 	            	contactDeviceData = new ContactDeviceData();
 	            	
-	            	String contact_first_name = cursor.getString(0);
-	            	String contact_last_name = cursor.getString(1);
-	            	String contact_nick = cursor.getString(2);
-	            	String contact_email = cursor.getString(3);
-	            	String device_mac = cursor.getString(4);
-//	            	String device_name = cursor.getString(5);
-//	            	String device_type = cursor.getString(6);
-//	            	String device_imei = cursor.getString(7);
-//	            	String contact_device_phone_number = cursor.getString(8);
-//	            	String registration_id = cursor.getString(9);
-//	                data.setID(Integer.parseInt(cursor.getString(0)));
-	            	int i = 0;
+	            	String email = cursor.getString(0);
+	            	String phone = cursor.getString(1);
+	            	String mac = cursor.getString(2);
+	            	String imei = cursor.getString(3);
+	            	String regId = cursor.getString(4);
+	            	
+	            	ContactData contactData = new ContactData();
+	            	contactData.setEmail(email);
+	            	
+	            	DeviceData deviceData = new DeviceData();
+	            	deviceData.setDeviceMac(mac);
+	            	
+	            	contactDeviceData.setPhoneNumber(phone);
+	            	contactDeviceData.setImei(imei);
+	            	contactDeviceData.setRegistration_id(regId);
+	            	contactDeviceData.setContactData(contactData);
+	            	contactDeviceData.setDeviceData(deviceData);
+	            	
 	            } while (cursor.moveToNext());
 	        }
 	        cursor.close();
@@ -247,10 +254,10 @@ public class DBLayer {
 			db = open();
             
 	        // Select All Query
-//			String selectQuery = "select * from " + DBConst.TABLE_CONTACT;
 	        String selectQuery = 
-	        "select contact_first_name, contact_last_name, contact_nick, contact_email," +
-	        "device_mac, device_name, device_type, device_imei, contact_device_phone_number, registration_id " +
+	        "select " +		
+	        "contact_first_name, contact_last_name, contact_nick, contact_email, " +
+	        "device_mac, device_name, device_type, contact_device_imei, contact_device_phone_number, registration_id " +
 	        "from TABLE_CONTACT_DEVICE as CD " +
 	        "join TABLE_CONTACT as C " +
 	        "on CD.contact_device_email = C.contact_email " +
@@ -270,11 +277,27 @@ public class DBLayer {
 	            	String device_mac = cursor.getString(4);
 	            	String device_name = cursor.getString(5);
 	            	String device_type = cursor.getString(6);
-	            	String device_imei = cursor.getString(7);
+	            	String contact_device_imei = cursor.getString(7);
 	            	String contact_device_phone_number = cursor.getString(8);
 	            	String registration_id = cursor.getString(9);
-//	                data.setID(Integer.parseInt(cursor.getString(0)));
-	            	int i = 0;
+	            	
+	            	ContactData contactData = new ContactData();
+	            	contactData.setEmail(contact_email);
+	            	contactData.setFirstName(contact_first_name);
+	            	contactData.setLastName(contact_last_name);
+	            	contactData.setNick(contact_nick);
+	            	
+	            	DeviceData deviceData = new DeviceData();
+	            	deviceData.setDeviceMac(device_mac);
+	            	deviceData.setDeviceName(device_name);
+	            	deviceData.setDeviceTypeEnum(DeviceTypeEnum.getValue(device_type));
+	            	
+	            	contactDeviceData.setPhoneNumber(contact_device_phone_number);
+	            	contactDeviceData.setImei(contact_device_imei);
+	            	contactDeviceData.setRegistration_id(registration_id);
+	            	contactDeviceData.setContactData(contactData);
+	            	contactDeviceData.setDeviceData(deviceData);
+
 	            } while (cursor.moveToNext());
 	        }
 	        cursor.close();

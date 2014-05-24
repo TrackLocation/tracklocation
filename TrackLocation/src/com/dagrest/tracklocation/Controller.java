@@ -149,7 +149,10 @@ public class Controller {
 		return dateFormat.format(cal.getTime());
 	}
 
-	public List<String> getUsernameList(Context context){
+	/*
+	 * Get account list used on this device - email list
+	 */
+	public List<String> getAccountList(Context context){
 	    Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
 	    AccountManager accountManager = AccountManager.get(context); 
 	    //Account[] accounts = manager.getAccountsByType("com.google"); 

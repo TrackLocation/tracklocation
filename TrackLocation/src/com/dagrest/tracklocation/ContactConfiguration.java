@@ -232,7 +232,7 @@ public class ContactConfiguration extends Activity {
 		String regIDToReturnMessageTo = Controller.getRegistrationId(getApplicationContext());
 		List<String> listRegIDs = new ArrayList<String>();
 		if(contactData != null){
-			listRegIDs.add(contactData.getRegistration_id());
+			listRegIDs.add(contactDeviceData.getRegistration_id());
 		} else {
 			LogManager.LogErrorMsg(className, "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
 		}
@@ -252,7 +252,7 @@ public class ContactConfiguration extends Activity {
     private void startTrackLocationService(){
 		String regIDToReturnMessageTo = Controller.getRegistrationId(getApplicationContext());
 		List<String> listRegIDs = new ArrayList<String>();
-		listRegIDs.add(contactData.getRegistration_id());
+		listRegIDs.add(contactDeviceData.getRegistration_id());
 		String time = "";
 		String messageString = "";
 		jsonMessage = controller.createJsonMessage(listRegIDs, 
@@ -269,7 +269,7 @@ public class ContactConfiguration extends Activity {
     private void stopTrackLocationService(){
 		String regIDToReturnMessageToStop = Controller.getRegistrationId(getApplicationContext());
 		List<String> listRegIDsStop = new ArrayList<String>();
-		listRegIDsStop.add(contactData.getRegistration_id());
+		listRegIDsStop.add(contactDeviceData.getRegistration_id());
 		jsonMessage = controller.createJsonMessage(listRegIDsStop, 
 	    		regIDToReturnMessageToStop, 
 	    		CommandEnum.stop, 

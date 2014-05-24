@@ -9,6 +9,7 @@ import java.util.List;
 
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
+import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.SMSMessage;
@@ -19,6 +20,8 @@ import com.dagrest.tracklocation.utils.Preferences;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -55,22 +58,8 @@ public class MainActivity extends Activity {
 		
 		context = getApplicationContext();
 
-		Controller controller = new Controller();
-		List<String> usernameList = controller.getUsernameList(context);
-		
-		DBLayer.init(context);
-        String macAddress = Controller.getMacAddress(MainActivity.this);
-        String imei = Controller.getIMEI(MainActivity.this);
-		ContactData contactData = DBLayer.addContactData("dagrest", "David", "Agrest", "dagrest@gmail.com");
-		contactData.setRegistration_id("REG_ID");
-		DeviceData deviceData = DBLayer.addDeviceData(macAddress, "Galaxy S3", DeviceTypeEnum.phone);
-		DBLayer.addContactDeviceData("+972544504619", contactData, deviceData, imei);
-		
-		ContactData contactDataNEW = DBLayer.getContactData();
-		DeviceData deviceDataNEW =  DBLayer.getDeviceData();
-		DBLayer.getContactDeviceDataONLY();
-		
-		ContactDeviceData cdd = DBLayer.getContactDeviceData();
+//		Controller controller = new Controller();
+//		List<String> accountList = controller.getAccountList(context);
 		
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {
@@ -116,16 +105,45 @@ public class MainActivity extends Activity {
 //	protected void onResume() {
 //		super.onResume();
 //
-//		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
-//		  
-//		if (checkPlayServices()){
-//			Toast.makeText(getApplicationContext(), 
-//				"isGooglePlayServicesAvailable SUCCESS", 
-//			Toast.LENGTH_LONG).show();
+//		DBLayer.init(context);
+//	    String macAddress = Controller.getMacAddress(MainActivity.this);
+//	    String imei = Controller.getIMEI(MainActivity.this);
+//		ContactData contactData = DBLayer.addContactData("dagrest", "David", "Agrest", "dagrest@gmail.com");
+//		//contactData.setRegistration_id("REG_ID");
+//		DeviceData deviceData = DBLayer.addDeviceData(macAddress, "Galaxy S3", DeviceTypeEnum.phone);
+//		DBLayer.addContactDeviceData("+972544504619", contactData, deviceData, imei, "REG_ID");
+//		
+//		ContactData contactDataNEW = DBLayer.getContactData();
+//		DeviceData deviceDataNEW =  DBLayer.getDeviceData();
+//		ContactDeviceData cddOnly = DBLayer.getContactDeviceDataONLY();
+//		
+//		ContactDeviceData cdd = DBLayer.getContactDeviceData();
+//		Gson gson = new Gson();
+//		ContactDeviceDataList contactDeviceDataList = new ContactDeviceDataList();
+//		contactDeviceDataList.getContactDeviceDataList().add(cdd);
+//		String gsonString = gson.toJson(contactDeviceDataList);
+//
+//		ContactDeviceDataList contactDeviceDataListNEW = null;
+//		try {
+//			contactDeviceDataListNEW = gson.fromJson(gsonString, ContactDeviceDataList.class);
+//			int a = 0;
+//		} catch (JsonSyntaxException e) {
+//    		LogManager.LogException(e, "Utils", "fillContactDeviceDataFromJSON");
+//			int s = 0;
+//		} catch (Exception e) {
+//			String s = e.getMessage();
 //		}
-//		else{
-//			GooglePlayServicesUtil.getErrorDialog(resultCode, this, RQS_GooglePlayServices);
-//		}
+//		
+////		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
+////		  
+////		if (checkPlayServices()){
+////			Toast.makeText(getApplicationContext(), 
+////				"isGooglePlayServicesAvailable SUCCESS", 
+////			Toast.LENGTH_LONG).show();
+////		}
+////		else{
+////			GooglePlayServicesUtil.getErrorDialog(resultCode, this, RQS_GooglePlayServices);
+////		}
 //	}
 	
     public void onClick(final View view) {
@@ -133,29 +151,32 @@ public class MainActivity extends Activity {
     	// ========================================
     	// ABOUT button
     	// ========================================
-        if (view == findViewById(R.id.send)) {
+        if (view == findViewById(R.id.btnAbout)) {
         	About dialogAbout = new About();
         	dialogAbout.show(this.getFragmentManager(), "About");
         	
     	// ========================================
     	// SEND button
     	// ========================================
-        } else if (view == findViewById(R.id.send)) {
+        // } else if (view == findViewById(R.id.send)) {
 
     	// ========================================
     	// CLEAR button
     	// ========================================
         } else if (view == findViewById(R.id.clear)) {
 
-        // ========================================
-    	// GET REG ID button
+//        // ========================================
+//    	// GET REG ID button
+//    	// ========================================
+//        } else if (view == findViewById(R.id.btnGetRegId)) {
+//        	String regId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+//    		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
+//    			"RegID: " + regId + " :RegID");
     	// ========================================
-        } else if (view == findViewById(R.id.btnGetRegId)) {
-        	String regId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-    		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
-    			"RegID: " + regId + " :RegID");
-        } else if (view == findViewById(R.id.btnContactList)) {
-    		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
+    	// LOCATE button
+    	// ========================================
+        } else if (view == findViewById(R.id.btnLocate)) {
+    		LogManager.LogInfoMsg(this.getClass().getName(), "onClick -> Locate button", 
     			"ContactList activity started.");
     		Intent intentContactList = new Intent(this, ContactList.class);
     		startActivity(intentContactList);

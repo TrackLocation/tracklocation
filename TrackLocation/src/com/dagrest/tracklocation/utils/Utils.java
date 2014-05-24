@@ -154,7 +154,6 @@ public class Utils {
         ContactData contactDataDavid = new ContactData();
         contactDataDavid.setEmail("dagrest@gmail.com");
         contactDataDavid.setNick("dagrest");
-        contactDataDavid.setRegistration_id("registration_id");
         
         DeviceData deviceDataDavid = new DeviceData();
         deviceDataDavid.setDeviceName("Samsung Galaxy S3");
@@ -163,11 +162,11 @@ public class Utils {
         ContactDeviceData contactDeviceDataDavid = new ContactDeviceData();
         contactDeviceDataDavid.setContactData(contactDataDavid);
         contactDeviceDataDavid.setDeviceData(deviceDataDavid);
+        contactDeviceDataDavid.setRegistration_id("registration_id");
         
         ContactData contactDataLarisa = new ContactData();
         contactDataLarisa.setEmail("agrest2000@gmail.com");
         contactDataLarisa.setNick("larisa");
-        contactDataLarisa.setRegistration_id("registration_id");
         
         DeviceData deviceDataLarisa = new DeviceData();
         deviceDataLarisa.setDeviceName("LG NEXUS 4");
@@ -176,6 +175,7 @@ public class Utils {
         ContactDeviceData contactDeviceDataLarisa = new ContactDeviceData();
         contactDeviceDataLarisa.setContactData(contactDataLarisa);
         contactDeviceDataLarisa.setDeviceData(deviceDataLarisa);
+        contactDeviceDataLarisa.setRegistration_id("registration_id");
 
         ContactDeviceDataList contactDeviceDataList = 
         	new ContactDeviceDataList();

@@ -5,6 +5,7 @@ public class ContactDeviceData {
 	private DeviceData deviceData;
 	private String phoneNumber;
 	private String imei;
+	private String registration_id;
 	
 	public String getPhoneNumber() {
 		return phoneNumber;
@@ -29,5 +30,11 @@ public class ContactDeviceData {
 	}
 	public void setImei(String imei) {
 		this.imei = imei;
+	}
+	public String getRegistration_id() {
+		return registration_id;
+	}
+	public void setRegistration_id(String registration_id) {
+		this.registration_id = registration_id;
 	}
 }
