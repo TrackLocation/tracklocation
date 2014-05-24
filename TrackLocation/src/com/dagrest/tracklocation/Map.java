@@ -9,12 +9,17 @@ import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+
+
+
 
 
 
@@ -26,6 +31,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -44,6 +50,7 @@ public class Map extends Activity implements LocationListener{
 	private BroadcastReceiver gcmIntentServiceChangeWatcher;
 	private GoogleMap map;
 	private Marker marker;
+	private Circle locationCircle;
 	private float zoom;
 	
 	@Override
@@ -171,12 +178,24 @@ public class Map extends Activity implements LocationListener{
 						    		if(lat != 0 && lng != 0){
 							    		latLngChanging = new LatLng(lat, lng);
 							    		
-							    		marker.remove();
+							    		if(marker != null){
+							    			marker.remove();
+							    		}
+							    		if(locationCircle != null){
+							    			locationCircle.remove();
+							    		}
 							    		//marker.
 							    		marker = map.addMarker(new MarkerOptions()
 							            //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
 							            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
 							            .position(latLngChanging));
+							    		
+							    		double accuracy = Double.parseDouble(latLng[2]);
+
+							    		locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
+							    		            .radius(accuracy)
+							    		            .strokeColor(Color.argb(255, 0, 153, 255))
+							    		            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
 							    		
 							            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
 							            		latLngChanging, zoom));

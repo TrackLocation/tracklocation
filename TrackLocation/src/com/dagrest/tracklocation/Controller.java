@@ -18,7 +18,10 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.net.Uri;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Patterns;
 
@@ -212,4 +215,16 @@ public class Controller {
         return smsInbox;
     }
 
+	public static String getMacAddress(Activity activity){
+		WifiManager wifiManager = (WifiManager) activity.getSystemService(Context.WIFI_SERVICE);
+		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+		String macAddress = wifiInfo.getMacAddress();
+		return macAddress;
+	}
+	
+	public static String getIMEI(Activity activity){
+		TelephonyManager tm = (TelephonyManager) activity.getSystemService(Context.TELEPHONY_SERVICE);
+	    String imei = tm.getDeviceId();
+	    return imei;
+	}
 }

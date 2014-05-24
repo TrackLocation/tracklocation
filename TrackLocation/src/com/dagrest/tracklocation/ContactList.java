@@ -100,8 +100,8 @@ public class ContactList extends ListActivity {
 	    for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 	    	ContactData contactData = contactDeviceData.getContactData();
 	    	if(contactData != null) {
-	    		if(contactData.getUsername() != null){
-	    			values.add(contactData.getUsername());
+	    		if(contactData.getNick() != null){
+	    			values.add(contactData.getNick());
 	    		} else {
 	    			values.add("unknown");
 	    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided username is null - check JSON input file, element :" + (i+1));

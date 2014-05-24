@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Scanner;
 
 import android.os.Environment;
@@ -144,7 +145,6 @@ public class Utils {
         String gsonString = gson.toJson(message);
         if (gsonString != null) {
         	messageTest = gson.fromJson(gsonString, Message.class);
-        	int i = 0;
         }
     }
     
@@ -153,13 +153,12 @@ public class Utils {
     	
         ContactData contactDataDavid = new ContactData();
         contactDataDavid.setEmail("dagrest@gmail.com");
-        contactDataDavid.setUsername("dagrest");
+        contactDataDavid.setNick("dagrest");
         contactDataDavid.setRegistration_id("registration_id");
         
         DeviceData deviceDataDavid = new DeviceData();
         deviceDataDavid.setDeviceName("Samsung Galaxy S3");
         deviceDataDavid.setDeviceTypeEnum(DeviceTypeEnum.phone);
-        deviceDataDavid.setImei("imei");
                         
         ContactDeviceData contactDeviceDataDavid = new ContactDeviceData();
         contactDeviceDataDavid.setContactData(contactDataDavid);
@@ -167,13 +166,12 @@ public class Utils {
         
         ContactData contactDataLarisa = new ContactData();
         contactDataLarisa.setEmail("agrest2000@gmail.com");
-        contactDataLarisa.setUsername("larisa");
+        contactDataLarisa.setNick("larisa");
         contactDataLarisa.setRegistration_id("registration_id");
         
         DeviceData deviceDataLarisa = new DeviceData();
         deviceDataLarisa.setDeviceName("LG NEXUS 4");
         deviceDataLarisa.setDeviceTypeEnum(DeviceTypeEnum.phone);
-        deviceDataLarisa.setImei("imei");
                         
         ContactDeviceData contactDeviceDataLarisa = new ContactDeviceData();
         contactDeviceDataLarisa.setContactData(contactDataLarisa);
@@ -197,14 +195,13 @@ public class Utils {
         	customerDataListNew = 
         		gson.fromJson(gsonString, ContactDeviceDataList.class);
         	customerDataListNew.getContactDeviceDataList();
-        	int i = 0;
         }
 
 		File contactDeviceDataListInputFileName = 
 			new File(getStoragePath() + File.separator + CommonConst.LOG_DIRECTORY_PATH + 
 				File.separator + CommonConst.CONTACT_DTAT_INPUT_FILE);                          
         ContactDeviceDataList contactDeviceDataListFromFile = null;
-        String absPath = contactDeviceDataListInputFileName.getAbsolutePath();
+        //String absPath = contactDeviceDataListInputFileName.getAbsolutePath();
         String gsonStringNew = readInputFile(contactDeviceDataListInputFileName.getAbsolutePath());
         contactDeviceDataListFromFile = 
         		gson.fromJson(gsonStringNew, ContactDeviceDataList.class);
@@ -239,8 +236,8 @@ public class Utils {
 	    for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 	    	ContactData contactData = contactDeviceData.getContactData();
 	    	if(contactData != null) {
-	    		if(contactData.getUsername() != null){
-	    			if(contactData.getUsername().equals(userName)){
+	    		if(contactData.getNick() != null){
+	    			if(contactData.getNick().equals(userName)){
 	    				return contactDeviceData;
 	    			}
 	    		} 

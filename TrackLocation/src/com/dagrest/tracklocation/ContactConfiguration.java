@@ -138,7 +138,7 @@ public class ContactConfiguration extends Activity {
 //			mLng.setText(lng);
 //		}
 		
-		mUserName.setText(contactData.getUsername());
+		mUserName.setText(contactData.getNick());
 		mEmail.setText(contactData.getEmail());
 		mDeviceName.setText(deviceData.getDeviceName());
 		mDeviceType.setText(deviceData.getDeviceTypeEnum().toString());
@@ -231,7 +231,11 @@ public class ContactConfiguration extends Activity {
     private void checkGcmStatus(){
 		String regIDToReturnMessageTo = Controller.getRegistrationId(getApplicationContext());
 		List<String> listRegIDs = new ArrayList<String>();
-		listRegIDs.add(contactData.getRegistration_id());
+		if(contactData != null){
+			listRegIDs.add(contactData.getRegistration_id());
+		} else {
+			LogManager.LogErrorMsg(className, "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
+		}
 		String time = "";
 		String messageString = "";
 		jsonMessage = controller.createJsonMessage(listRegIDs, 

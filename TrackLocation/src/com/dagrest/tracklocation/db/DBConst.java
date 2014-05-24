@@ -10,59 +10,98 @@ public final class DBConst {
     public static final int 	DATABASE_VERSION = 1;
  	public static final String 	LOG_TAG_DB = "TrackLocationDB";
  	
-    public static final String TABLE_CONTACTS = "TABLE_CONTACTS"; 
-    public static final String CONTACT_NAME = "user_name"; 
-    public static final String CONTACT_REG_ID = CommonConst.PREFERENCES_REG_ID; 
-    public static final String CONTACT_EMAIL = "user_email"; 
-    public static final String CONTACT_GUID = "user_guid"; 
-    public static final String CONTACT_DEVICE_GUID = "user_device_guid"; 
+    public static final String TABLE_CONTACT = "TABLE_CONTACT"; 
+    public static final String CONTACT_FIRST_NAME = "contact_first_name"; 	// OPTIONAL 
+    public static final String CONTACT_LAST_NAME = "contact_last_name"; 	// OPTIONAL 
+    public static final String CONTACT_NICK = "contact_nick"; 				// OPTIONAL 
+    public static final String CONTACT_EMAIL = "contact_email"; 			// KEY + NOT EMPTY
 
-    public static final String DEVICE_GUID = "device_guid"; 
-    public static final String DEVICE_NAME = "device_name"; 
-    public static final String DEVICE_TYPE = "device_type"; 
-    public static final String DEVICE_IMEI = "device_imei"; 
-    public static final String DEVICE_NUMBER = "device_number"; 
-//    public static final String  = ""; 
+    public static final String TABLE_DEVICE = "TABLE_DEVICE"; 
+    public static final String DEVICE_NAME = "device_name"; 	// OPTIONAL 
+    public static final String DEVICE_TYPE = "device_type"; 	// NOT EMPTY
+    public static final String DEVICE_MAC = "device_mac"; 		// KEY + NOT EMPTY
+    public static final String DEVICE_IMEI = "device_imei";		// OPTIONAL 
+    
+    public static final String TABLE_CONTACT_DEVICE = "TABLE_CONTACT_DEVICE"; 
+    public static final String CONTACT_DEVICE_PHONE_NUMBER = "contact_device_phone_number";	// phone number + KEY + NOT EMPTY
+    public static final String CONTACT_DEVICE_MAC = "contact_device_mac"; 					// MAC Address + KEY + NOT EMPTY
+    public static final String CONTACT_DEVICE_EMAIL = "contact_device_email";				// KEY + NOT EMPTY
+    public static final String CONTACT_DEVICE_IMEI = "contact_device_imei"; 				// OPTIONAL
+    public static final String CONTACT_DEVICE_REG_ID = CommonConst.PREFERENCES_REG_ID;  
 
-    public static final String TABLE_DEVICES = "TABLE_DEVICES"; 
+    public static final String TABLE_JOIN_REQUEST = "TABLE_JOIN_REQUEST";
+    public static final String PHONE_NUMBER = "phone_number";
+    public static final String MUTUAL_ID = "mutual_id";
+    
+    public static final String TABLE_PERMISSIONS = "TABLE_PERMISSIONS";
+    public static final String EMAIL = "email";
+    public static final String LOCATION = "location"; 
+    public static final String COMMAND = "command";
+    public static final String ADMIN_COMMAND = "admin_command"; 
+    
+    public static final String[] TABLES_LIST = { TABLE_CONTACT, TABLE_DEVICE, TABLE_CONTACT_DEVICE, TABLE_JOIN_REQUEST, TABLE_PERMISSIONS };
 
-    //public static final String ..._TABLE = ""; 
-    public static final String[] TABLES_LIST = { TABLE_CONTACTS };
+	//    create table if not exists TABLE_CONTACT (
+    //        contact_first_name text,contact_last_name text, contact_nick text, 
+    //        contact_email text not null unique,PRIMARY KEY (contact_email));
+    public static final String TABLE_CONTACT_CREATE = 
+      "create table " + TABLE_CONTACT + "(" +
+		  //"_id integer primary key autoincrement," + 
+		  CONTACT_FIRST_NAME + " text," +
+		  CONTACT_LAST_NAME + " text," +
+		  CONTACT_NICK + " text," +
+		  CONTACT_EMAIL + " text not null unique," + // PRIMARY KEY
+		  "PRIMARY KEY (" + CONTACT_EMAIL + ")" +
+		  ");";
 
-    public static final String TABLE_CONTACTS_CREATE = 
-    	      "create table " + TABLE_CONTACTS + "(" +
-	    		  "_id integer primary key autoincrement," + 
-	    		  CONTACT_GUID + " text not null unique," + // PRIMARY KEY
-	    		  CONTACT_NAME + " text not null," +
-	    		  CONTACT_REG_ID + " text not null," +
-	    		  CONTACT_EMAIL + " text not null," + 
-	    		  CONTACT_DEVICE_GUID + " text not null unique," + // PRIMARY & FOREIGN KEY
-	    		  "PRIMARY KEY (" + CONTACT_GUID + ", " + CONTACT_EMAIL + ")" +
-	    		  ");";
-
+	//    create table if not exists TABLE_DEVICE (device_mac text not null unique, 
+    //        device_name  text, device_type  text not null, device_imei text, 
+    //        PRIMARY KEY ( device_mac ));
     public static final String TABLE_DEVICE_CREATE = 
-  	      "create table " + TABLE_DEVICES + "(" +
-  	    		  "_id integer primary key autoincrement," + 
-  	    		  DEVICE_GUID + " text not null unique," + // PRIMARY KEY
-  	    		  CONTACT_GUID + " text not null unique," + // FOREIGN KEY
-  	    		  DEVICE_NAME + " text not null," + 
-  	    		  DEVICE_TYPE + " text not null," + 
-  	    		  DEVICE_IMEI + " text," + 
-  	    		  DEVICE_NUMBER + " text," + 
-   	    		  "PRIMARY KEY (" + DEVICE_GUID + ", " + DEVICE_TYPE + ")" +
-  	    		  ");";
+	  "create table " + TABLE_DEVICE + "(" +
+		  //"_id integer primary key autoincrement," + 
+		  DEVICE_MAC + " text not null unique," + // PRIMARY KEY
+		  DEVICE_NAME + " text," + 
+		  DEVICE_TYPE + " text not null," + 
+		  DEVICE_IMEI + " text," + 
+		  "PRIMARY KEY (" + DEVICE_MAC + ")" +
+		  ");";
 	
-//    public static final String USER_CREATE = 
-//      "create table tbl_user(_id integer primary key autoincrement," + 
-//                             "user_name text not null," +
-//                             "user_imei text not null," +
-//                             "user_message text not null);";
-//                              
-//    public static final String DEVICE_CREATE = 
-//      "create table tbl_device(_id integer primary key autoincrement," + 
-//                               "device_name text not null," + 
-//                               "device_email text not null," + 
-//                               "device_regid text not null," + 
-//                               "device_imei text not null);";
-//
+	//    create table if not exists TABLE_CONTACT_DEVICE (contact_device_mac text not null, 
+    //        contact_device_phone_number text not null, contact_device_email text not null, 
+    //        contact_device_imei text, registration_id text, PRIMARY KEY ( contact_device_phone_number, 
+    //        contact_device_mac, contact_device_email ));
+    
+    // create table TABLE_CONTACT_DEVICE  ( CONTACT_DEVICE_MAC text not null, CONTACT_DEVICE_PHONE_NUMBER text not null, CONTACT_DEVICE_EMAIL text not null,
+    // CONTACT_DEVICE_IMEI text, CONTACT_DEVICE_REG_ID text, PRIMARY KEY (  CONTACT_DEVICE_MAC, CONTACT_DEVICE_PHONE_NUMBER, CONTACT_DEVICE_EMAIL ));
+    public static final String TABLE_CONTACT_DEVICE_CREATE = 
+      "create table " + TABLE_CONTACT_DEVICE + "(" +
+		  //"_id integer primary key autoincrement," + 
+		  CONTACT_DEVICE_MAC + " text not null," + // PRIMARY KEY
+		  CONTACT_DEVICE_PHONE_NUMBER + " text not null," + 
+		  CONTACT_DEVICE_EMAIL + " text not null," + 
+		  CONTACT_DEVICE_IMEI + " text," + 
+		  CONTACT_DEVICE_REG_ID + " text," +
+		  "PRIMARY KEY (" + CONTACT_DEVICE_MAC + ", " + 
+		  CONTACT_DEVICE_PHONE_NUMBER + ", " + 
+		  CONTACT_DEVICE_EMAIL + ")" +
+		  ");";
+
+	//    create table if not exists TABLE_JOIN_REQUEST (phone_number text not null unique, mutual_id text not null);
+    public static final String TABLE_JOIN_REQUEST_CREATE = 
+      "create table " + TABLE_JOIN_REQUEST + "(" +
+    	  PHONE_NUMBER + " text not null unique, " +
+    	  MUTUAL_ID + " text not null " +	  
+    	  ");";
+
+    //    create table if not exists TABLE_PERMISSIONS (email text not null unique, location integer, command integer, 
+    //        admin_command integer);
+    public static final String TABLE_PERMISSIONS_CREATE = 
+      "create table " + TABLE_PERMISSIONS + "(" +
+    	  EMAIL + " text not null unique, " +	  
+    	  LOCATION + " integer, " +	  
+    	  COMMAND + " integer, " +	  
+    	  ADMIN_COMMAND + " integer " +	  
+    	  ");";
+    
 }

@@ -13,6 +13,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <!--  permission as GCM requires a Google account (necessary only if if the 
     	device is running a version lower than Android 4.0.4) -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
@@ -31,7 +33,6 @@
         android:protectionLevel="signature" />
 
     <uses-permission android:name="com.dagrest.tracklocation.permission.C2D_MESSAGE" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <!-- permission so the Android application can write to SDCARD -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -43,7 +44,9 @@
  	 -->
 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
  	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
- 	
+ 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+	<uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
+	
 	<uses-feature
     	android:glEsVersion="0x00020000"
         android:required="true" />

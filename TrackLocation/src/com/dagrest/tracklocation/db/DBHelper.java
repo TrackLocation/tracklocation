@@ -7,7 +7,6 @@ import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper{
 
-                                
     public DBHelper(Context context) {
         super(context, DBConst.DATABASE_NAME, null, DBConst.DATABASE_VERSION);
     }
@@ -17,9 +16,11 @@ public class DBHelper extends SQLiteOpenHelper{
         if (DBConst.IS_DEBUG_LOG_ENABLED)
             Log.i(DBConst.LOG_TAG_DB, "new create");
         try {
-            //db.execSQL(USER_MAIN_CREATE);
-            db.execSQL(DBConst.TABLE_CONTACTS_CREATE);
+            db.execSQL(DBConst.TABLE_CONTACT_CREATE);
             db.execSQL(DBConst.TABLE_DEVICE_CREATE);
+            db.execSQL(DBConst.TABLE_CONTACT_DEVICE_CREATE);
+            db.execSQL(DBConst.TABLE_JOIN_REQUEST_CREATE);
+            db.execSQL(DBConst.TABLE_PERMISSIONS_CREATE);
 
         } catch (Exception exception) {
             if (DBConst.IS_DEBUG_LOG_ENABLED)

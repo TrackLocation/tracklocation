@@ -7,7 +7,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import com.dagrest.tracklocation.datatype.ContactData;
+import com.dagrest.tracklocation.datatype.ContactDeviceData;
+import com.dagrest.tracklocation.datatype.DeviceData;
+import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.SMSMessage;
+import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -52,6 +57,20 @@ public class MainActivity extends Activity {
 
 		Controller controller = new Controller();
 		List<String> usernameList = controller.getUsernameList(context);
+		
+		DBLayer.init(context);
+        String macAddress = Controller.getMacAddress(MainActivity.this);
+        String imei = Controller.getIMEI(MainActivity.this);
+		ContactData contactData = DBLayer.addContactData("dagrest", "David", "Agrest", "dagrest@gmail.com");
+		contactData.setRegistration_id("REG_ID");
+		DeviceData deviceData = DBLayer.addDeviceData(macAddress, "Galaxy S3", DeviceTypeEnum.phone);
+		DBLayer.addContactDeviceData("+972544504619", contactData, deviceData, imei);
+		
+		ContactData contactDataNEW = DBLayer.getContactData();
+		DeviceData deviceDataNEW =  DBLayer.getDeviceData();
+		DBLayer.getContactDeviceDataONLY();
+		
+		ContactDeviceData cdd = DBLayer.getContactDeviceData();
 		
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {

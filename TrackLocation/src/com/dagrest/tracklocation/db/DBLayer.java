@@ -1,12 +1,13 @@
 package com.dagrest.tracklocation.db;
 
-import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.ContactData;
+import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -22,8 +23,9 @@ public class DBLayer {
 	// Initialize database
     public static void init(Context context) {
         if (dbHelper == null) {
-            if (DBConst.IS_DEBUG_LOG_ENABLED)
+            if (DBConst.IS_DEBUG_LOG_ENABLED){
                 Log.i(DBConst.LOG_TAG_DB, context.toString());
+            }
             dbHelper = new DBHelper(context);
         }
     }
@@ -34,84 +36,258 @@ public class DBLayer {
     }	
 
 	// Insert installing contact data
-	public static ContactData addContactData(String contactName, String contactRegID, String contactEmail,
-	                              String contactIMEI,String deviceGuid) 
+	public static ContactData addContactData(String nick, String firstName, String lastName, 
+		String contactEmail) 
 	{
 		ContactData contactData = new ContactData();
+		SQLiteDatabase db = null;
 		try{
-			final SQLiteDatabase db = open();
+			db = open();
 			
-			contactData.setGuid(sqlEscapeString(Controller.generateUUID()));
-			contactData.setUsername(sqlEscapeString(contactName));
-			contactData.setRegistration_id(sqlEscapeString(contactRegID));
+			contactData.setFirstName(sqlEscapeString(firstName));
+			contactData.setLastName(sqlEscapeString(lastName));
+			contactData.setNick(sqlEscapeString(nick));
 			contactData.setEmail(sqlEscapeString(contactEmail));
 			           
 			ContentValues cVal = new ContentValues();
-			cVal.put(DBConst.CONTACT_GUID, contactData.getGuid());
-			cVal.put(DBConst.CONTACT_NAME, contactData.getUsername());
-			cVal.put(DBConst.CONTACT_REG_ID, contactData.getRegistration_id());
+			cVal.put(DBConst.CONTACT_FIRST_NAME, contactData.getFirstName());
+			cVal.put(DBConst.CONTACT_LAST_NAME, contactData.getLastName());
+			cVal.put(DBConst.CONTACT_NICK, contactData.getNick());
 			cVal.put(DBConst.CONTACT_EMAIL, contactData.getEmail());
-			cVal.put(DBConst.CONTACT_DEVICE_GUID, deviceGuid);
 			           
-			db.insert(DBConst.TABLE_CONTACTS_CREATE, null, cVal);
-			db.close(); // Closing database connection
+			db.insert(DBConst.TABLE_CONTACT, null, cVal);
 		} catch (Throwable t) {
 			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
-		} 
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
 		return contactData;
 	}
     
     // Insert installing device data
-    public static DeviceData addDeviceData(String  contactGuid, String deviceName, DeviceTypeEnum deviceTypeEnum,
-    							 String deviceImei, String deviceNumber) 
+    public static DeviceData addDeviceData(String  contactMac, String deviceName, DeviceTypeEnum deviceTypeEnum) 
      {
     	DeviceData deviceData = new DeviceData();
-        try{
-            final SQLiteDatabase db = open();
+		SQLiteDatabase db = null;
+		try{
+			db = open();
             
-            deviceData.setGuid(sqlEscapeString(Controller.generateUUID()));
             deviceData.setDeviceName(sqlEscapeString(deviceName));
             deviceData.setDeviceTypeEnum(deviceTypeEnum);
-            deviceData.setImei(sqlEscapeString(deviceImei));
-            deviceData.setDeviceNumber(sqlEscapeString(deviceNumber));
+            deviceData.setDeviceMac(sqlEscapeString(contactMac));
              
             ContentValues cVal = new ContentValues();
-            cVal.put(DBConst.DEVICE_GUID, deviceData.getGuid());
-            cVal.put(DBConst.CONTACT_GUID, contactGuid);
             cVal.put(DBConst.DEVICE_NAME, deviceData.getDeviceName());
-            cVal.put(DBConst.DEVICE_TYPE, sqlEscapeString(deviceTypeEnum.toString()));
-            cVal.put(DBConst.DEVICE_IMEI, deviceData.getImei());
-            cVal.put(DBConst.DEVICE_NUMBER, deviceData.getDeviceNumber());
+            cVal.put(DBConst.DEVICE_TYPE, deviceTypeEnum.toString());
+            cVal.put(DBConst.DEVICE_MAC, deviceData.getDeviceMac());
             
-            db.insert(DBConst.TABLE_DEVICE_CREATE, null, cVal);
-            db.close(); // Closing database connection
+            db.insert(DBConst.TABLE_DEVICE, null, cVal);
         } catch (Throwable t) {
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
-        }
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
         return deviceData;
     }
      
+    // Insert installing contact/device data
+    public static DeviceData addContactDeviceData(String phoneNumber, ContactData  contactData, 
+    		DeviceData deviceData, String imei)
+     {
+    	ContactDeviceData contactDeviceData = new ContactDeviceData();
+		SQLiteDatabase db = null;
+		try{
+			db = open();
+            
+            contactDeviceData.setPhoneNumber(sqlEscapeString(phoneNumber));
+            contactDeviceData.setContactData(contactData);
+            contactDeviceData.setDeviceData(deviceData);
+            contactDeviceData.setImei(sqlEscapeString(imei));
+             
+            ContentValues cVal = new ContentValues();
+            cVal.put(DBConst.CONTACT_DEVICE_PHONE_NUMBER, contactDeviceData.getPhoneNumber());
+            cVal.put(DBConst.CONTACT_DEVICE_MAC, contactDeviceData.getContactData().getEmail());
+            cVal.put(DBConst.CONTACT_DEVICE_EMAIL, contactDeviceData.getDeviceData().getDeviceMac());
+            cVal.put(DBConst.CONTACT_DEVICE_REG_ID, contactDeviceData.getContactData().getRegistration_id());
+            cVal.put(DBConst.CONTACT_DEVICE_IMEI, contactDeviceData.getImei());
+            
+            db.insert(DBConst.TABLE_CONTACT_DEVICE, null, cVal);
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
+        return deviceData;
+    }
+
+    public static ContactData getContactData(){
+    	ContactData contactData = null;
+		SQLiteDatabase db = null;
+		try{
+			db = open();
+            
+	        // Select All Query
+			String selectQuery = "select * from " + DBConst.TABLE_CONTACT;
+	        Cursor cursor = db.rawQuery(selectQuery, null);
+	  
+	        // looping through all rows and adding to list
+	        if (cursor.moveToFirst()) {
+	            do {
+	            	contactData = new ContactData();
+	            	
+	            	String contact_first_name = cursor.getString(0);
+	            	String contact_last_name = cursor.getString(1);
+	            	String contact_nick = cursor.getString(2);
+	            	String contact_email = cursor.getString(3);
+	            	
+	            	contactData.setEmail(contact_email);
+	            	contactData.setFirstName(contact_first_name);
+	            	contactData.setLastName(contact_last_name);
+	            	contactData.setNick(contact_nick);
+	            	
+	            } while (cursor.moveToNext());
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
+    	return contactData;
+    }
+
+    public static DeviceData getDeviceData(){
+    	DeviceData deviceData = null;
+		SQLiteDatabase db = null;
+		try{
+			db = open();
+            
+	        // Select All Query
+			String selectQuery = "select * from " + DBConst.TABLE_DEVICE;
+	        Cursor cursor = db.rawQuery(selectQuery, null);
+	  
+	        // looping through all rows and adding to list
+	        if (cursor.moveToFirst()) {
+	            do {
+	            	deviceData = new DeviceData();
+	            	
+	            	String device_mac = cursor.getString(0);
+	            	String device_name = cursor.getString(1);
+	            	String device_type = cursor.getString(2);
+
+	            	deviceData.setDeviceMac(device_mac);
+	            	deviceData.setDeviceName(device_name);
+	            	deviceData.setDeviceTypeEnum(DeviceTypeEnum.getValue(device_type));
+	            	
+	            } while (cursor.moveToNext());
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
+    	return deviceData;
+    }
+
+    public static ContactDeviceData getContactDeviceDataONLY(){
+    	ContactDeviceData contactDeviceData = null;
+		SQLiteDatabase db = null;
+		try{
+			db = open();
+            
+	        // Select All Query
+			String selectQuery = "select * from " + DBConst.TABLE_CONTACT_DEVICE;
+	        Cursor cursor = db.rawQuery(selectQuery, null);
+	  
+	        // looping through all rows and adding to list
+	        if (cursor.moveToFirst()) {
+	            do {
+	            	contactDeviceData = new ContactDeviceData();
+	            	
+	            	String contact_first_name = cursor.getString(0);
+	            	String contact_last_name = cursor.getString(1);
+	            	String contact_nick = cursor.getString(2);
+	            	String contact_email = cursor.getString(3);
+	            	String device_mac = cursor.getString(4);
+//	            	String device_name = cursor.getString(5);
+//	            	String device_type = cursor.getString(6);
+//	            	String device_imei = cursor.getString(7);
+//	            	String contact_device_phone_number = cursor.getString(8);
+//	            	String registration_id = cursor.getString(9);
+//	                data.setID(Integer.parseInt(cursor.getString(0)));
+	            	int i = 0;
+	            } while (cursor.moveToNext());
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
+    	return contactDeviceData;
+    }
+
+    public static ContactDeviceData getContactDeviceData(){
+    	ContactDeviceData contactDeviceData = null;
+		SQLiteDatabase db = null;
+		try{
+			db = open();
+            
+	        // Select All Query
+//			String selectQuery = "select * from " + DBConst.TABLE_CONTACT;
+	        String selectQuery = 
+	        "select contact_first_name, contact_last_name, contact_nick, contact_email," +
+	        "device_mac, device_name, device_type, device_imei, contact_device_phone_number, registration_id " +
+	        "from TABLE_CONTACT_DEVICE as CD " +
+	        "join TABLE_CONTACT as C " +
+	        "on CD.contact_device_email = C.contact_email " +
+	        "join TABLE_DEVICE as D " +
+	        "on CD.contact_device_mac = D.device_mac";	  
+	        Cursor cursor = db.rawQuery(selectQuery, null);
+	  
+	        // looping through all rows and adding to list
+	        if (cursor.moveToFirst()) {
+	            do {
+	            	contactDeviceData = new ContactDeviceData();
+	            	
+	            	String contact_first_name = cursor.getString(0);
+	            	String contact_last_name = cursor.getString(1);
+	            	String contact_nick = cursor.getString(2);
+	            	String contact_email = cursor.getString(3);
+	            	String device_mac = cursor.getString(4);
+	            	String device_name = cursor.getString(5);
+	            	String device_type = cursor.getString(6);
+	            	String device_imei = cursor.getString(7);
+	            	String contact_device_phone_number = cursor.getString(8);
+	            	String registration_id = cursor.getString(9);
+//	                data.setID(Integer.parseInt(cursor.getString(0)));
+	            	int i = 0;
+	            } while (cursor.moveToNext());
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
+    	return contactDeviceData;
+    }
      
-//    // Adding new user
-//    public static void addUserData(UserData uData) {
-//        try{
-//                final SQLiteDatabase db = open();
-//                 
-//                String imei  = sqlEscapeString(uData.getIMEI());
-//                String name  = sqlEscapeString(uData.getName());
-//                String message  = sqlEscapeString(uData.getMessage());
-//                 
-//                ContentValues cVal = new ContentValues();
-//                cVal.put(KEY_USER_IMEI, imei);
-//                cVal.put(KEY_USER_NAME, name);
-//                cVal.put(KEY_USER_MESSAGE, message);
-//                db.insert(USER_TABLE, null, cVal);
-//                db.close(); // Closing database connection
-//        } catch (Throwable t) {
-//            Log.i("Database", "Exception caught: " + t.getMessage(), t);
-//        }
-//    }
-  
 //    // Getting single user data
 //    public static UserData getUserData(int id) {
 //        final SQLiteDatabase db = open();
