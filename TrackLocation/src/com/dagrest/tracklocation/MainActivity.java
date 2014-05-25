@@ -38,6 +38,7 @@ import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -58,9 +59,6 @@ public class MainActivity extends Activity {
 		
 		context = getApplicationContext();
 
-//		Controller controller = new Controller();
-//		List<String> accountList = controller.getAccountList(context);
-		
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
@@ -101,6 +99,30 @@ public class MainActivity extends Activity {
 		return true;
 	}
 
+	@Override
+	protected void onStart() {
+		super.onResume();
+		// CURRENT ACCOUNT
+		List<String> accountList = Controller.getAccountList(context);
+		if(accountList != null && accountList.size() == 1){
+			Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, accountList.get(0));
+		} else {
+			// TODO: ask phone number from customer
+			Toast.makeText(MainActivity.this,
+					"Detected more that one ACCOUNT!",
+					Toast.LENGTH_LONG).show();
+			finish();
+		}
+
+		// PHONE NUMBER
+		String phoneNumber = Controller.getPhoneNumber(context);
+		Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
+		
+		// MAC ADDRESS
+		String macAddress = Controller.getMacAddress(MainActivity.this);
+		Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, phoneNumber);
+	}
+		
 //	@Override
 //	protected void onResume() {
 //		super.onResume();

@@ -152,7 +152,7 @@ public class Controller {
 	/*
 	 * Get account list used on this device - email list
 	 */
-	public List<String> getAccountList(Context context){
+	public static List<String> getAccountList(Context context){
 	    Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
 	    AccountManager accountManager = AccountManager.get(context); 
 	    //Account[] accounts = manager.getAccountsByType("com.google"); 
@@ -230,4 +230,46 @@ public class Controller {
 	    String imei = tm.getDeviceId();
 	    return imei;
 	}
+	
+	public static String getPhoneNumber(Context context) {
+		TelephonyManager tMgr = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+		String phoneNumber = tMgr.getLine1Number();
+		return phoneNumber;
+	}
+
+	public static void saveValueToPreferencesIfNotExist(Context context, String valueName, String value){
+		String tmpValue = Preferences.getPreferencesString(context, valueName);
+		if(tmpValue == null || tmpValue.isEmpty()){
+			Preferences.setPreferencesString(context, valueName, value);
+		}
+	}
+	
+	public static String getNickName(Context context){
+		String nickName = null;
+		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		if(account != null && !account.isEmpty() && account.contains(CommonConst.DELIMITER_AT)){
+			String[] accountParts = account.split(CommonConst.DELIMITER_AT);
+			if(accountParts != null){
+				nickName = accountParts[0];
+			}
+		}
+		return nickName;
+	}
+
+//  TODO: TO DELETE:	
+//	public static String getAccountListFromPreferences(Context context){
+//		final SharedPreferences prefs = Preferences.getGCMPreferences(context);
+//		String account = prefs.getString(CommonConst.PREFERENCES_PHONE_ACCOUNT, null);
+//		return account;
+//	}
+//
+//	public static String getPhoneNumberFromPreferences(){
+//		String phoneNumber = null;
+//		return phoneNumber;
+//	}
+//	
+//	public static String getMacAddressFromPreferences(){
+//		String macAddress = null;
+//		return macAddress;
+//	}
 }

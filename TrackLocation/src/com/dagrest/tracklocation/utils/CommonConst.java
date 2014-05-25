@@ -6,6 +6,10 @@ public class CommonConst {
 	public static final String 	PROPERTY_APP_VERSION = "AppVersion";
 	public static final int 	PROPERTY_APP_VERSION_VALUE = 1;
 
+	public static final String 	PREFERENCES_PHONE_NUMBER 		= "PhoneNumber";
+	public static final String 	PREFERENCES_PHONE_MAC_ADDRESS 	= "PhoneMacAddress";
+	public static final String 	PREFERENCES_PHONE_ACCOUNT 		= "PhoneAccount";
+	
 	public static final String 	SHARED_PREFERENCES_NAME = "TRACK_LOCATION";
 	// public static final String 	LOCATION_PROVIDER_NAME = "LOCATION_PROVIDER_NAME";
 	public static final String 	LOCATION_SERVICE_INTERVAL = "LOCATION_SERVICE_INTERVAL";
@@ -29,6 +33,7 @@ public class CommonConst {
  	public static final String 	DELIMITER_ARROW = "->";
  	public static final String 	DELIMITER_COLON = ":";
  	public static final String 	DELIMITER_STRING = "####";
+ 	public static final String 	DELIMITER_AT = "@";
  	
 	public static final String 	LOG_DIRECTORY_PATH = "TrackLocation";         
 	public static final String 	LOG_FILE_NAME = "TrackLocation.log";          
