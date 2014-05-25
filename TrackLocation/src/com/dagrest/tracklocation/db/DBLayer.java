@@ -2,6 +2,7 @@ package com.dagrest.tracklocation.db;
 
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
+import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 
@@ -126,6 +127,19 @@ public class DBLayer {
 		}
         return deviceData;
     }
+    
+    public static void addContactDeviceDataQuick(ContactDeviceDataList contactDeviceDataList){
+		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+			if(contactDeviceData != null){
+				ContactData contactData = contactDeviceData.getContactData();
+				DeviceData deviceData = contactDeviceData.getDeviceData();
+				String phoneNumber = contactDeviceData.getPhoneNumber();
+				String registrationId = contactDeviceData.getRegistration_id();
+				String imei =contactDeviceData.getImei();
+				addContactDeviceData(phoneNumber, contactData, deviceData, imei, registrationId);
+			}
+		}
+    }
 
     public static ContactData getContactData(){
     	ContactData contactData = null;
@@ -245,6 +259,135 @@ public class DBLayer {
 			}
 		}
     	return contactDeviceData;
+    }
+
+    public static ContactDeviceDataList getContactDeviceDataList(){
+ 
+    	ContactDeviceDataList contactDeviceDataList = null;
+    	ContactDeviceData contactDeviceData = null;
+		
+    	SQLiteDatabase db = null;
+		try{
+			db = open();
+            
+	        // Select All Query
+	        String selectQuery = 
+	        "select " +		
+	        "contact_first_name, contact_last_name, contact_nick, contact_email, device_mac, " +
+	        "device_name, device_type, contact_device_imei, contact_device_phone_number, registration_id " +
+	        "from TABLE_CONTACT_DEVICE as CD " +
+	        "join TABLE_CONTACT as C " +
+	        "on CD.contact_device_email = C.contact_email " +
+	        "join TABLE_DEVICE as D " +
+	        "on CD.contact_device_mac = D.device_mac";	  
+	        Cursor cursor = db.rawQuery(selectQuery, null);
+	  
+	        // looping through all rows and adding to list
+	        if (cursor.moveToFirst()) {
+	        	contactDeviceDataList = new ContactDeviceDataList();
+	            do {
+	            	contactDeviceData = new ContactDeviceData();
+	            	
+	            	String contact_first_name = cursor.getString(0);
+	            	String contact_last_name = cursor.getString(1);
+	            	String contact_nick = cursor.getString(2);
+	            	String contact_email = cursor.getString(3);
+	            	String device_mac = cursor.getString(4);
+	            	String device_name = cursor.getString(5);
+	            	String device_type = cursor.getString(6);
+	            	String contact_device_imei = cursor.getString(7);
+	            	String contact_device_phone_number = cursor.getString(8);
+	            	String registration_id = cursor.getString(9);
+	            	
+	            	ContactData contactData = new ContactData();
+	            	contactData.setEmail(contact_email);
+	            	contactData.setFirstName(contact_first_name);
+	            	contactData.setLastName(contact_last_name);
+	            	contactData.setNick(contact_nick);
+	            	
+	            	DeviceData deviceData = new DeviceData();
+	            	deviceData.setDeviceMac(device_mac);
+	            	deviceData.setDeviceName(device_name);
+	            	deviceData.setDeviceTypeEnum(DeviceTypeEnum.getValue(device_type));
+	            	
+	            	contactDeviceData.setPhoneNumber(contact_device_phone_number);
+	            	contactDeviceData.setImei(contact_device_imei);
+	            	contactDeviceData.setRegistration_id(registration_id);
+	            	contactDeviceData.setContactData(contactData);
+	            	contactDeviceData.setDeviceData(deviceData);
+
+	            	contactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
+	            	
+	            } while (cursor.moveToNext());
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
+    	return contactDeviceDataList;
+    }
+    
+    public static boolean isContactWithEmailExist(String email){
+		String selectQuery = "select contact_email from " + DBConst.TABLE_CONTACT +
+				" where contact_email = ?";
+		// TODO: check that email is valid value to avoid SQL injection
+		return isFieldExist(selectQuery, new String[] { email });
+    }
+    
+    public static boolean isContactWithNickExist(String nick){
+		String selectQuery = "select contact_nick from " + DBConst.TABLE_CONTACT +
+				" where contact_nick = ?";
+		// TODO: check that nick is valid value to avoid SQL injection
+		return isFieldExist(selectQuery, new String[] { nick });
+    }
+
+    public static boolean isDeviceWithMacAddressExist(String macAddress){
+		String selectQuery = "select device_mac from " + DBConst.TABLE_DEVICE +
+				" where device_mac = ?";
+		// TODO: check that macAddress is valid value to avoid SQL injection
+		return isFieldExist(selectQuery, new String[] { macAddress});
+    }
+
+    public static boolean isContactDeviceExist(String phoneNumber, String email, String macAddress){
+		String selectQuery = "select contact_device_email from " + DBConst.TABLE_CONTACT_DEVICE +
+				" where contact_device_phone_number = ? and contact_device_email = ? " +
+				"and contact_device_mac = ?";
+		// TODO: check that phoneNumber, email and macAddress are valid values to avoid SQL injection
+		return isFieldExist(selectQuery, new String[] {phoneNumber, email, macAddress});
+    }
+
+    private static boolean isFieldExist(String selectQuery, String[] val){
+    	boolean result = false;
+		SQLiteDatabase db = null;
+		try{
+			db = open();
+            
+	        Cursor cursor = db.rawQuery(selectQuery, val);
+	        int count = cursor.getCount();
+	        cursor.close();
+	        if(count > 0){
+	        	result = true;
+	        }        
+	    } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
+		return result;
+    }
+    
+    public static boolean isDeviceExist(){
+    	return false;
+    }
+
+    public static boolean isContactDeviceExist(){
+    	return false;
     }
 
     public static ContactDeviceData getContactDeviceData(){

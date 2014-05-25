@@ -85,7 +85,7 @@ public class ContactList extends ListActivity {
 	public static List<String> fillListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
 		List<String> values = null;
 	    
-		ContactDeviceDataList contactDeviceDataCollection = Utils.fillContactDeviceDataFromJSON(jsonStringContactDeviceData);
+		ContactDeviceDataList contactDeviceDataCollection = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
 	    if(contactDeviceDataCollection == null){
 	    	return null;
 	    }

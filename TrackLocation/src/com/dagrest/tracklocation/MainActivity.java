@@ -17,6 +17,7 @@ import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
+import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
@@ -121,13 +122,34 @@ public class MainActivity extends Activity {
 		// MAC ADDRESS
 		String macAddress = Controller.getMacAddress(MainActivity.this);
 		Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, phoneNumber);
+		
+//		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
+//		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
+//			ContactDeviceDataList contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
+//			if(contactDeviceDataList != null){
+//				for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+//					if(contactDeviceData != null){
+//						
+//					}
+//				}
+//			}
+//		}
+
 	}
 		
+	
 //	@Override
 //	protected void onResume() {
 //		super.onResume();
 //
 //		DBLayer.init(context);
+//
+//		ContactDeviceDataList contactDeviceDataList = DBLayer.getContactDeviceDataList();
+//		boolean isEmail = DBLayer.isContactWithEmailExist("dagrest@gmail.com");
+//		boolean isNick = DBLayer.isContactWithNickExist("dagrest");
+//		boolean isMac = DBLayer.isDeviceWithMacAddressExist("88:32:9B:01:26:DD");
+//		boolean isContactDevice = DBLayer.isContactDeviceExist("+972544504619", "dagrest@gmail.com", "88:32:9B:01:26:DD");
+//	
 //	    String macAddress = Controller.getMacAddress(MainActivity.this);
 //	    String imei = Controller.getIMEI(MainActivity.this);
 //		ContactData contactData = DBLayer.addContactData("dagrest", "David", "Agrest", "dagrest@gmail.com");

@@ -26,6 +26,9 @@ import android.util.Log;
 import android.util.Patterns;
 
 import com.dagrest.tracklocation.datatype.CommandEnum;
+import com.dagrest.tracklocation.datatype.ContactData;
+import com.dagrest.tracklocation.datatype.ContactDeviceData;
+import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
@@ -256,6 +259,44 @@ public class Controller {
 		return nickName;
 	}
 
+	public static List<String> getNickListFromContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
+		List<String> nickList = null;
+		if(contactDeviceDataList != null){
+			nickList = new ArrayList<String>();
+			for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+				if(contactDeviceData != null){
+					ContactData contactData = contactDeviceData.getContactData();
+					if(contactData != null){
+						String nick = contactData.getNick();
+						if(nick != null && !nick.isEmpty()){
+							nickList.add(nick);
+						}
+					}
+				}
+			}
+		}
+		return nickList;
+	}
+	
+	public static List<String> getAccountListFromContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
+		List<String> accountList = null;
+		if(contactDeviceDataList != null){
+			accountList = new ArrayList<String>();
+			for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+				if(contactDeviceData != null){
+					ContactData contactData = contactDeviceData.getContactData();
+					if(contactData != null){
+						String account = contactData.getEmail();
+						if(account != null && !account.isEmpty()){
+							accountList.add(account);
+						}
+					}
+				}
+			}
+		}
+		return accountList;
+	}
+	
 //  TODO: TO DELETE:	
 //	public static String getAccountListFromPreferences(Context context){
 //		final SharedPreferences prefs = Preferences.getGCMPreferences(context);

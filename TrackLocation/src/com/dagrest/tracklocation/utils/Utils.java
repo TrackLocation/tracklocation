@@ -215,7 +215,7 @@ public class Utils {
         return readInputFile(contactDeviceDataListInputFileName.getAbsolutePath());
 	}
 	
-	public static ContactDeviceDataList fillContactDeviceDataFromJSON(String jsonDataString){
+	public static ContactDeviceDataList fillContactDeviceDataListFromJSON(String jsonDataString){
 		Gson gson = new Gson();
 		try {
 			ContactDeviceDataList contactDeviceDataList = gson.fromJson(jsonDataString, ContactDeviceDataList.class);

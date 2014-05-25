@@ -78,7 +78,7 @@ public class ContactConfiguration extends Activity {
     	controller = new Controller();
     	jsonMessage = "";
 
-    	contactDeviceDataList = Utils.fillContactDeviceDataFromJSON(jsonStringContactDeviceData);
+    	contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
 		if(contactDeviceDataList == null){
 			return;
 		}
