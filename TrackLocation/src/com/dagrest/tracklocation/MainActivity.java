@@ -90,7 +90,8 @@ public class MainActivity extends Activity {
     		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", 
     			"No valid Google Play Services APK found.");
         }
-		
+
+        init();
 	}
 
 	@Override
@@ -103,6 +104,10 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onStart() {
 		super.onResume();
+	}
+		
+	
+	private void init(){
 		// CURRENT ACCOUNT
 		List<String> accountList = Controller.getAccountList(context);
 		if(accountList != null && accountList.size() == 1){
@@ -123,20 +128,17 @@ public class MainActivity extends Activity {
 		String macAddress = Controller.getMacAddress(MainActivity.this);
 		Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, phoneNumber);
 		
-//		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
-//		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
-//			ContactDeviceDataList contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
-//			if(contactDeviceDataList != null){
-//				for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
-//					if(contactDeviceData != null){
-//						
-//					}
-//				}
-//			}
-//		}
-
-	}
+		DBLayer.init(context);
 		
+		// Read contact and device data from json file and insert it to DB
+		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
+		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
+			ContactDeviceDataList contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
+			if(contactDeviceDataList != null){
+				DBLayer.addContactDeviceDataList(contactDeviceDataList);
+			}
+		}
+	}
 	
 //	@Override
 //	protected void onResume() {
@@ -144,6 +146,15 @@ public class MainActivity extends Activity {
 //
 //		DBLayer.init(context);
 //
+//		ContactData c = DBLayer.getContactData();
+//		DeviceData d = DBLayer.getDeviceData();
+//		ContactDeviceData cd = DBLayer.getContactDeviceData();
+//		ContactDeviceDataList contactDeviceDataList = DBLayer.getContactDeviceDataList();
+//		boolean isEmail = DBLayer.isContactWithEmailExist("dagrest@gmail.com");
+//		boolean isNick = DBLayer.isContactWithNickExist("dagrest");
+//		boolean isMac = DBLayer.isDeviceWithMacAddressExist("88:32:9B:01:26:DD");
+//		boolean isContactDevice = DBLayer.isContactDeviceExist("+972544504619", "dagrest@gmail.com", "88:32:9B:01:26:DD");
+//		
 //		ContactDeviceDataList contactDeviceDataList = DBLayer.getContactDeviceDataList();
 //		boolean isEmail = DBLayer.isContactWithEmailExist("dagrest@gmail.com");
 //		boolean isNick = DBLayer.isContactWithNickExist("dagrest");

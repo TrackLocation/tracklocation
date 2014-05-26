@@ -40,10 +40,12 @@ public class DBLayer {
 	public static ContactData addContactData(String nick, String firstName, String lastName, 
 		String contactEmail) 
 	{
-		ContactData contactData = new ContactData();
+		ContactData contactData = null;
 		SQLiteDatabase db = null;
 		try{
 			db = open();
+			
+			contactData = new ContactData();
 			
 			contactData.setFirstName(sqlEscapeString(firstName));
 			contactData.setLastName(sqlEscapeString(lastName));
@@ -58,6 +60,7 @@ public class DBLayer {
 			           
 			db.insert(DBConst.TABLE_CONTACT, null, cVal);
 		} catch (Throwable t) {
+			contactData = null;
 			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
@@ -68,16 +71,18 @@ public class DBLayer {
 	}
     
     // Insert installing device data
-    public static DeviceData addDeviceData(String  contactMac, String deviceName, DeviceTypeEnum deviceTypeEnum) 
+    public static DeviceData addDeviceData(String  macAddress, String deviceName, DeviceTypeEnum deviceTypeEnum) 
      {
-    	DeviceData deviceData = new DeviceData();
+    	DeviceData deviceData = null;
 		SQLiteDatabase db = null;
 		try{
 			db = open();
             
+			deviceData = new DeviceData();
+			
             deviceData.setDeviceName(sqlEscapeString(deviceName));
             deviceData.setDeviceTypeEnum(deviceTypeEnum);
-            deviceData.setDeviceMac(sqlEscapeString(contactMac));
+            deviceData.setDeviceMac(sqlEscapeString(macAddress));
              
             ContentValues cVal = new ContentValues();
             cVal.put(DBConst.DEVICE_NAME, deviceData.getDeviceName());
@@ -86,6 +91,7 @@ public class DBLayer {
             
             db.insert(DBConst.TABLE_DEVICE, null, cVal);
         } catch (Throwable t) {
+        	deviceData = null;
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
@@ -96,14 +102,16 @@ public class DBLayer {
     }
      
     // Insert installing contact/device data
-    public static DeviceData addContactDeviceData(String phoneNumber, ContactData  contactData, 
+    private static ContactDeviceData addContactDeviceData(String phoneNumber, ContactData  contactData, 
     		DeviceData deviceData, String imei, String registartionId)
      {
-    	ContactDeviceData contactDeviceData = new ContactDeviceData();
+    	ContactDeviceData contactDeviceData = null;
 		SQLiteDatabase db = null;
 		try{
 			db = open();
             
+			contactDeviceData = new ContactDeviceData();
+			
             contactDeviceData.setPhoneNumber(sqlEscapeString(phoneNumber));
             contactDeviceData.setContactData(contactData);
             contactDeviceData.setDeviceData(deviceData);
@@ -119,26 +127,63 @@ public class DBLayer {
             
             db.insert(DBConst.TABLE_CONTACT_DEVICE, null, cVal);
         } catch (Throwable t) {
+        	contactDeviceData = null;
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
 				db.close(); // Closing database connection
 			}
 		}
-        return deviceData;
+        return contactDeviceData;
     }
     
-    public static void addContactDeviceDataQuick(ContactDeviceDataList contactDeviceDataList){
-		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
-			if(contactDeviceData != null){
-				ContactData contactData = contactDeviceData.getContactData();
-				DeviceData deviceData = contactDeviceData.getDeviceData();
-				String phoneNumber = contactDeviceData.getPhoneNumber();
-				String registrationId = contactDeviceData.getRegistration_id();
-				String imei =contactDeviceData.getImei();
-				addContactDeviceData(phoneNumber, contactData, deviceData, imei, registrationId);
+    public static void addContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
+    	if(contactDeviceDataList != null){
+			for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+				if(contactDeviceData != null){
+					
+					ContactData contactData = contactDeviceData.getContactData();
+					DeviceData deviceData = contactDeviceData.getDeviceData();
+					String phoneNumber = contactDeviceData.getPhoneNumber();
+					String registrationId = contactDeviceData.getRegistration_id();
+					String imei =contactDeviceData.getImei();
+					
+					String email = null;
+					if(contactData != null){
+						email = contactData.getEmail();
+					} else {
+						// TODO: Notify - impossible to add contactDeviceData - NO EMAIL
+						continue;
+					}
+					
+					String macAddress = null;
+					if(deviceData != null){
+						macAddress = deviceData.getDeviceMac();
+					} else {
+						// TODO: Notify - impossible to add contactDeviceData - NO MAC ADDRESS 
+						continue;
+					}
+					
+					if(registrationId == null || registrationId.isEmpty()){
+						// TODO: Notify - impossible to add contactDeviceData - NO registartionID
+						continue;
+					}
+					
+					if(!isContactWithEmailExist(email) && !isDeviceWithMacAddressExist(macAddress) &&
+						!isContactDeviceExist(phoneNumber, email, macAddress)){
+						ContactData resultContactData = 
+							addContactData(contactData.getNick(), contactData.getFirstName(), contactData.getLastName(), email);
+						DeviceData resultDeviceData = 
+							addDeviceData(macAddress, deviceData.getDeviceName(), deviceData.getDeviceTypeEnum());
+						ContactDeviceData resultContactDeviceData = addContactDeviceData(phoneNumber, contactData, 
+							deviceData, imei, registrationId);
+						if(resultContactDeviceData == null){
+							// TODO: Notify - impossible to add contactDeviceData
+						}
+			    	}
+		    	}
 			}
-		}
+    	}
     }
 
     public static ContactData getContactData(){
@@ -453,122 +498,6 @@ public class DBLayer {
 		}
     	return contactDeviceData;
     }
-     
-//    // Getting single user data
-//    public static UserData getUserData(int id) {
-//        final SQLiteDatabase db = open();
-//  
-//        Cursor cursor = db.query(USER_TABLE, new String[] { KEY_ID,
-//                KEY_USER_NAME, KEY_USER_IMEI,KEY_USER_MESSAGE}, KEY_ID + "=?",
-//                new String[] { String.valueOf(id) }, null, null, null, null);
-//        if (cursor != null)
-//            cursor.moveToFirst();
-//  
-//        UserData data = new UserData(Integer.parseInt(cursor.getString(0)),
-//                cursor.getString(1), cursor.getString(2), cursor.getString(3));
-//        // return contact
-//        return data;
-//    }
-  
-//    // Getting All user data
-//    public static List<UserData> getAllUserData() {
-//        List<UserData> contactList = new ArrayList<UserData>();
-//        // Select All Query
-//        String selectQuery = "SELECT  * FROM " + USER_TABLE+" ORDER BY "+KEY_ID+" desc";
-//  
-//        final SQLiteDatabase db = open();
-//        Cursor cursor = db.rawQuery(selectQuery, null);
-//  
-//        // looping through all rows and adding to list
-//        if (cursor.moveToFirst()) {
-//            do {
-//                UserData data = new UserData();
-//                data.setID(Integer.parseInt(cursor.getString(0)));
-//                data.setName(cursor.getString(1));
-//                data.setIMEI(cursor.getString(2));
-//                data.setMessage(cursor.getString(3));
-//                // Adding contact to list
-//                contactList.add(data);
-//            } while (cursor.moveToNext());
-//        }
-//        cursor.close();
-//        // return contact list
-//        return contactList;
-//    }
-     
-//    // Getting users Count
-//    public static int getUserDataCount() {
-//        String countQuery = "SELECT  * FROM " + USER_TABLE;
-//        final SQLiteDatabase db = open();
-//        Cursor cursor = db.rawQuery(countQuery, null);
-//         
-//        int count = cursor.getCount();
-//        cursor.close();
-//         
-//        // return count
-//        return count;
-//    }
-     
-//    // Getting installed device have self data or not
-//    public static int validateDevice() {
-//        String countQuery = "SELECT  * FROM " + DEVICE_TABLE;
-//        final SQLiteDatabase db = open();
-//        Cursor cursor = db.rawQuery(countQuery, null);
-//         
-//        int count = cursor.getCount();
-//        cursor.close();
-//         
-//        // return count
-//        return count;
-//    }
-     
-//    // Getting distinct user data use in spinner
-//    public static List<UserData> getDistinctUser() {
-//        List<UserData> contactList = new ArrayList<UserData>();
-//        // Select All Query
-//        String selectQuery = "SELECT  distinct(user_imei),user_name 
-//                             FROM " + USER_TABLE+"
-//                             ORDER BY "+KEY_ID+" desc";
-//         
-//        final SQLiteDatabase db = open();
-//        Cursor cursor = db.rawQuery(selectQuery, null);
-//  
-//        // looping through all rows and adding to list
-//        if (cursor.moveToFirst()) {
-//            do {
-//                UserData data = new UserData();
-//                 
-//                data.setIMEI(cursor.getString(0));
-//                data.setName(cursor.getString(1));
-//                // Adding contact to list
-//                contactList.add(data);
-//            } while (cursor.moveToNext());
-//        }
-//        cursor.close();
-//         
-//        return contactList;
-//    }
-     
-//    // Getting imei already in user table or not 
-//    public static int validateNewMessageUserData(String IMEI) {
-//         int count = 0;
-//        try {
-//            String countQuery = "SELECT "+KEY_ID+" 
-//                                 FROM " + USER_TABLE + "
-//                                 WHERE user_imei='"+IMEI+"'";
-//                                  
-//            final SQLiteDatabase db = open();
-//            Cursor cursor = db.rawQuery(countQuery, null);
-//             
-//            count = cursor.getCount();
-//            cursor.close();
-//        } catch (Throwable t) {
-//            count = 10;
-//            Log.i("Database", "Exception caught: " + t.getMessage(), t);
-//        }
-//        return count;
-//    }
- 
      
     // Escape string for single quotes (Insert,Update)
     private static String sqlEscapeString(String aString) {
