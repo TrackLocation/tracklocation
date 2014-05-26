@@ -28,7 +28,10 @@ public class ContactList extends ListActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
+		Intent intent = getIntent();
+		jsonStringContactDeviceData = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA);
+		
+		// jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
 		List<String> values = fillListWithContactDeviceDataFromJSON(jsonStringContactDeviceData);
 	    if(values != null){
 	    	setListAdapter(new ContactListArrayAdapter(this, values));

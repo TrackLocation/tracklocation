@@ -49,6 +49,7 @@ public class MainActivity extends Activity {
     private String regid;
     private GoogleCloudMessaging gcm;
     private Context context;
+    ContactDeviceDataList contactDeviceDataList;
 
     @SuppressLint("ResourceAsColor")
 	@Override
@@ -138,6 +139,8 @@ public class MainActivity extends Activity {
 				DBLayer.addContactDeviceDataList(contactDeviceDataList);
 			}
 		}
+		
+		contactDeviceDataList = DBLayer.getContactDeviceDataList();
 	}
 	
 //	@Override
@@ -234,6 +237,8 @@ public class MainActivity extends Activity {
     		LogManager.LogInfoMsg(this.getClass().getName(), "onClick -> Locate button", 
     			"ContactList activity started.");
     		Intent intentContactList = new Intent(this, ContactList.class);
+    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA, 
+    			new Gson().toJson(contactDeviceDataList));
     		startActivity(intentContactList);
         }
     }
