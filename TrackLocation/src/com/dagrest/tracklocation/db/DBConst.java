@@ -83,7 +83,6 @@ public final class DBConst {
 		  CONTACT_DEVICE_IMEI + " text," + 
 		  CONTACT_DEVICE_REG_ID + " text," +
 		  "PRIMARY KEY (" + CONTACT_DEVICE_MAC + ", " + 
-		  CONTACT_DEVICE_PHONE_NUMBER + ", " + 
 		  CONTACT_DEVICE_EMAIL + ")" +
 		  ");";
 

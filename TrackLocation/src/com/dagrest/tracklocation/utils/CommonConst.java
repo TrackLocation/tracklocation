@@ -26,6 +26,7 @@ public class CommonConst {
 	public static final String 	PREFERENCES_REG_ID = "registration_id";
 	// Registry ID list of contacts that will be updated by requested info: location/status/...
 	public static final String 	PREFERENCES_RETURN_TO_REG_ID_LIST = "return_to_reg_id_list";
+	public static final String 	JOIN_FLAG_SMS = "JOIN_TRACK_LOCATION";
 
  	public static final String 	DELIMITER = "\t";
  	public static final String 	DELIMITER_COMMA = ",";

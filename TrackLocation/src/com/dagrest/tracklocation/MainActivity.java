@@ -35,6 +35,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Menu;
@@ -46,10 +47,14 @@ public class MainActivity extends Activity {
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private BroadcastReceiver locationChangeWatcher;
     private String className;
-    private String regid;
+    private String registrationId;
     private GoogleCloudMessaging gcm;
     private Context context;
-    ContactDeviceDataList contactDeviceDataList;
+    private ContactDeviceDataList contactDeviceDataList;
+    private String phoneNumber;
+    private String macAddress;
+    private String account;
+    private SQLiteDatabase db;
 
     @SuppressLint("ResourceAsColor")
 	@Override
@@ -64,9 +69,9 @@ public class MainActivity extends Activity {
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
-            regid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+            registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 
-            if (regid.isEmpty()) {
+            if (registrationId.isEmpty()) {
                 registerInBackground();
             }
             
@@ -92,6 +97,7 @@ public class MainActivity extends Activity {
     			"No valid Google Play Services APK found.");
         }
 
+		DBLayer.init(context);
         init();
 	}
 
@@ -112,7 +118,8 @@ public class MainActivity extends Activity {
 		// CURRENT ACCOUNT
 		List<String> accountList = Controller.getAccountList(context);
 		if(accountList != null && accountList.size() == 1){
-			Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, accountList.get(0));
+			account = accountList.get(0);
+			Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 		} else {
 			// TODO: ask phone number from customer
 			Toast.makeText(MainActivity.this,
@@ -122,14 +129,12 @@ public class MainActivity extends Activity {
 		}
 
 		// PHONE NUMBER
-		String phoneNumber = Controller.getPhoneNumber(context);
+		phoneNumber = Controller.getPhoneNumber(context);
 		Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
 		
 		// MAC ADDRESS
-		String macAddress = Controller.getMacAddress(MainActivity.this);
+		macAddress = Controller.getMacAddress(MainActivity.this);
 		Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, phoneNumber);
-		
-		DBLayer.init(context);
 		
 		// Read contact and device data from json file and insert it to DB
 		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
@@ -214,9 +219,24 @@ public class MainActivity extends Activity {
         	dialogAbout.show(this.getFragmentManager(), "About");
         	
     	// ========================================
-    	// SEND button
+    	// JOIN button
     	// ========================================
-        // } else if (view == findViewById(R.id.send)) {
+        } else if (view == findViewById(R.id.btnJoin)) {
+        	String mutualId = Controller.generateUUID();
+// IMPORTANT !!!			// TODO: INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
+			// TODO: Request phone number by UI dialog - might be from contacts list (phone book)
+
+			DBLayer.addRequest(phoneNumber, mutualId);
+			boolean testRes = DBLayer.isPhoneInJoinRequestTable(phoneNumber);
+			
+        	// Send SMS with registration details: 
+        	// phoneNumber and registartionId (mutual ID - optional) 
+        	SmsManager smsManager = SmsManager.getDefault();
+			ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
+					CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
+					mutualId);
+//			smsManager.sendMultipartTextMessage("+972544504619", null, parts, null, null);    
+			
 
     	// ========================================
     	// CLEAR button
@@ -289,14 +309,14 @@ public class MainActivity extends Activity {
                     if (gcm == null) {
                         gcm = GoogleCloudMessaging.getInstance(context);
                     }
-                    regid = gcm.register(getResources().getString(R.string.google_project_number));
-                    msg = "Device registered, registration ID=" + regid;
+                    registrationId = gcm.register(getResources().getString(R.string.google_project_number));
+                    msg = "Device registered, registration ID=" + registrationId;
 
                     // Persist the version ID 
                     Preferences.setPreferencesInt(context, CommonConst.PROPERTY_APP_VERSION, 
                     	CommonConst.PROPERTY_APP_VERSION_VALUE);
                     // Persist the registration ID - no need to register again.
-                    Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, regid);
+                    Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, registrationId);
                 } catch (IOException ex) {
                     msg = "Error :" + ex.getMessage();
                     // If there is an error, don't just keep trying to register.
@@ -334,4 +354,5 @@ public class MainActivity extends Activity {
     }
 
 }
+
 

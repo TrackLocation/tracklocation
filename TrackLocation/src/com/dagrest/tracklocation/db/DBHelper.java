@@ -7,6 +7,7 @@ import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper{
 
+	// http://blog.lemberg.co.uk/concurrent-database-access
     public DBHelper(Context context) {
         super(context, DBConst.DATABASE_NAME, null, DBConst.DATABASE_VERSION);
     }

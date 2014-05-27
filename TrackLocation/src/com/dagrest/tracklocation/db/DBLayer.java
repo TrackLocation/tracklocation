@@ -36,12 +36,79 @@ public class DBLayer {
         return dbHelper.getWritableDatabase();
     }	
 
-	// Insert installing contact data
+	public static boolean addRequest(String phoneNumber, String mutualId){
+		
+		if(phoneNumber == null || phoneNumber.isEmpty()){
+			// TODO: notify that no registrationId to insert
+			return false;
+		}
+		
+		if(mutualId == null || mutualId.isEmpty()){
+			// TODO: notify that no mutualId to insert
+			return false;
+		}
+		
+		SQLiteDatabase db = null;
+		try{
+			db = open();
+			 
+			ContentValues cVal = new ContentValues();
+			cVal.put(DBConst.PHONE_NUMBER, phoneNumber);
+			cVal.put(DBConst.MUTUAL_ID, mutualId);
+			
+			if(!isPhoneInJoinRequestTable(phoneNumber)){
+				db.insert(DBConst.TABLE_JOIN_REQUEST, null, cVal);
+			} else {
+			    db.update(DBConst.TABLE_JOIN_REQUEST, cVal, DBConst.PHONE_NUMBER + "=" + phoneNumber, null);
+			}
+		} catch (Throwable t) {
+			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
+		return false;
+	}
+	
+	public void deleteRow(String table, String fieldName, String fieldValue) {
+		SQLiteDatabase db = null;
+		try{
+			db = open();
+			db.delete(table, fieldName + "=" + fieldValue, null);
+		} catch (Throwable t) {
+			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				db.close(); // Closing database connection
+			}
+		}
+	}
+	
+	// Insert contact data
+	public static ContactData addContactData(ContactData contactData) {
+		String nick = contactData.getNick();
+		String firstName = contactData.getFirstName();
+		String lastName = contactData.getLastName();
+		String contactEmail = contactData.getEmail();
+		if(contactEmail == null || contactEmail.isEmpty()){
+			return null;
+		}
+		return addContactData(nick, firstName, lastName, contactEmail);
+	}
+
+	// Insert contact data
 	public static ContactData addContactData(String nick, String firstName, String lastName, 
 		String contactEmail) 
 	{
 		ContactData contactData = null;
 		SQLiteDatabase db = null;
+
+		if(contactEmail == null || contactEmail.isEmpty()){
+			// TODO: notify that no ContactData to insert
+			return null;
+		}
+		
 		try{
 			db = open();
 			
@@ -70,11 +137,28 @@ public class DBLayer {
 		return contactData;
 	}
     
-    // Insert installing device data
+	// Insert contact data
+	public static DeviceData addDeviceData(DeviceData deviceData) {
+		String deviceMac = deviceData.getDeviceMac();
+		DeviceTypeEnum deviceTypeEnum = deviceData.getDeviceTypeEnum();
+		String deviceName = deviceData.getDeviceName();
+		if(deviceMac == null || deviceMac.isEmpty()){
+			return null;
+		}
+		return addDeviceData(deviceMac, deviceName, deviceTypeEnum);
+	}
+
+    // Insert device data
     public static DeviceData addDeviceData(String  macAddress, String deviceName, DeviceTypeEnum deviceTypeEnum) 
      {
     	DeviceData deviceData = null;
 		SQLiteDatabase db = null;
+
+		if(macAddress == null || macAddress.isEmpty()){
+			// TODO: notify that no ContactData to insert
+			return null;
+		}
+
 		try{
 			db = open();
             
@@ -100,8 +184,35 @@ public class DBLayer {
 		}
         return deviceData;
     }
-     
-    // Insert installing contact/device data
+
+    // Insert contact/device data
+    private static ContactDeviceData addContactDeviceData(ContactDeviceData contactDeviceData, 
+    	ContactData contactData, DeviceData deviceData){
+    	
+    	if(contactDeviceData == null){
+    		// TODO: unable to add - insert to log and check what to do...
+    		return null;
+    	}
+
+    	String registartionId = contactDeviceData.getRegistration_id();
+    	String phoneNumber = contactDeviceData.getPhoneNumber();
+    	String imei = contactDeviceData.getImei();
+    	
+    	if(contactData == null || contactData.getEmail() == null){
+    		// TODO: unable to add - insert to log and check what to do...
+    		return null;
+    	}
+
+    	if(deviceData == null || deviceData.getDeviceMac() == null){
+    		// TODO: unable to add - insert to log and check what to do...
+    		return null;
+    	}
+
+    	return addContactDeviceData(phoneNumber, contactData, 
+        		deviceData, imei, registartionId);
+	}
+
+    // Insert contact/device data
     private static ContactDeviceData addContactDeviceData(String phoneNumber, ContactData  contactData, 
     		DeviceData deviceData, String imei, String registartionId)
      {
@@ -170,11 +281,11 @@ public class DBLayer {
 					}
 					
 					if(!isContactWithEmailExist(email) && !isDeviceWithMacAddressExist(macAddress) &&
-						!isContactDeviceExist(phoneNumber, email, macAddress)){
+						!isContactDeviceExist(email, macAddress)){
 						ContactData resultContactData = 
-							addContactData(contactData.getNick(), contactData.getFirstName(), contactData.getLastName(), email);
+							addContactData(contactData);
 						DeviceData resultDeviceData = 
-							addDeviceData(macAddress, deviceData.getDeviceName(), deviceData.getDeviceTypeEnum());
+							addDeviceData(deviceData);
 						ContactDeviceData resultContactDeviceData = addContactDeviceData(phoneNumber, contactData, 
 							deviceData, imei, registrationId);
 						if(resultContactDeviceData == null){
@@ -397,12 +508,19 @@ public class DBLayer {
 		return isFieldExist(selectQuery, new String[] { macAddress});
     }
 
-    public static boolean isContactDeviceExist(String phoneNumber, String email, String macAddress){
+    public static boolean isContactDeviceExist(String email, String macAddress){
 		String selectQuery = "select contact_device_email from " + DBConst.TABLE_CONTACT_DEVICE +
-				" where contact_device_phone_number = ? and contact_device_email = ? " +
+				" where contact_device_email = ? " +
 				"and contact_device_mac = ?";
 		// TODO: check that phoneNumber, email and macAddress are valid values to avoid SQL injection
-		return isFieldExist(selectQuery, new String[] {phoneNumber, email, macAddress});
+		return isFieldExist(selectQuery, new String[] {email, macAddress});
+    }
+
+    public static boolean isPhoneInJoinRequestTable(String phoneNumber){
+		String selectQuery = "select " + DBConst.PHONE_NUMBER + " from " + DBConst.TABLE_JOIN_REQUEST +
+				" where " + DBConst.PHONE_NUMBER + " = ?";
+		// TODO: check that macAddress is valid value to avoid SQL injection
+		return isFieldExist(selectQuery, new String[] { phoneNumber });
     }
 
     private static boolean isFieldExist(String selectQuery, String[] val){
