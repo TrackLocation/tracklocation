@@ -13,7 +13,9 @@ import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.SMSMessage;
+import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
+import com.dagrest.tracklocation.db.DBManager;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -97,7 +99,7 @@ public class MainActivity extends Activity {
     			"No valid Google Play Services APK found.");
         }
 
-		DBLayer.init(context);
+		//DBLayer.init(context);
         init();
 	}
 
@@ -135,6 +137,8 @@ public class MainActivity extends Activity {
 		// MAC ADDRESS
 		macAddress = Controller.getMacAddress(MainActivity.this);
 		Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, phoneNumber);
+		
+		DBManager.initDBManagerInstance(new DBHelper(context));
 		
 		// Read contact and device data from json file and insert it to DB
 		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();

@@ -15,27 +15,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 public class DBLayer {
+	
 	protected DBLayer() {
     }
 	
-	// Used to open database in synchronized way
-    private static DBHelper dbHelper = null;
-    
-	// Initialize database
-    public static void init(Context context) {
-        if (dbHelper == null) {
-            if (DBConst.IS_DEBUG_LOG_ENABLED){
-                Log.i(DBConst.LOG_TAG_DB, context.toString());
-            }
-            dbHelper = new DBHelper(context);
-        }
-    }
-    
-    // Open database for insert,update,delete in synchronized way 
-    private static synchronized SQLiteDatabase open() throws SQLException {
-        return dbHelper.getWritableDatabase();
-    }	
-
 	public static boolean addRequest(String phoneNumber, String mutualId){
 		
 		if(phoneNumber == null || phoneNumber.isEmpty()){
@@ -50,7 +33,7 @@ public class DBLayer {
 		
 		SQLiteDatabase db = null;
 		try{
-			db = open();
+			db = DBManager.getDBManagerInstance().open();
 			 
 			ContentValues cVal = new ContentValues();
 			cVal.put(DBConst.PHONE_NUMBER, phoneNumber);
@@ -65,7 +48,7 @@ public class DBLayer {
 			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
 		return false;
@@ -74,13 +57,14 @@ public class DBLayer {
 	public void deleteRow(String table, String fieldName, String fieldValue) {
 		SQLiteDatabase db = null;
 		try{
-			db = open();
+			db = DBManager.getDBManagerInstance().open();
+			
 			db.delete(table, fieldName + "=" + fieldValue, null);
 		} catch (Throwable t) {
 			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
 	}
@@ -110,7 +94,7 @@ public class DBLayer {
 		}
 		
 		try{
-			db = open();
+			db = DBManager.getDBManagerInstance().open();
 			
 			contactData = new ContactData();
 			
@@ -131,7 +115,7 @@ public class DBLayer {
 			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
 		return contactData;
@@ -160,7 +144,7 @@ public class DBLayer {
 		}
 
 		try{
-			db = open();
+			db = DBManager.getDBManagerInstance().open();
             
 			deviceData = new DeviceData();
 			
@@ -179,7 +163,7 @@ public class DBLayer {
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
         return deviceData;
@@ -219,8 +203,8 @@ public class DBLayer {
     	ContactDeviceData contactDeviceData = null;
 		SQLiteDatabase db = null;
 		try{
-			db = open();
-            
+			db = DBManager.getDBManagerInstance().open();
+			
 			contactDeviceData = new ContactDeviceData();
 			
             contactDeviceData.setPhoneNumber(sqlEscapeString(phoneNumber));
@@ -242,7 +226,7 @@ public class DBLayer {
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
         return contactDeviceData;
@@ -301,7 +285,7 @@ public class DBLayer {
     	ContactData contactData = null;
 		SQLiteDatabase db = null;
 		try{
-			db = open();
+			db = DBManager.getDBManagerInstance().open();
             
 	        // Select All Query
 			String selectQuery = "select * from " + DBConst.TABLE_CONTACT;
@@ -329,7 +313,7 @@ public class DBLayer {
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
     	return contactData;
@@ -339,8 +323,8 @@ public class DBLayer {
     	DeviceData deviceData = null;
 		SQLiteDatabase db = null;
 		try{
-			db = open();
-            
+			db = DBManager.getDBManagerInstance().open();
+			
 	        // Select All Query
 			String selectQuery = "select * from " + DBConst.TABLE_DEVICE;
 	        Cursor cursor = db.rawQuery(selectQuery, null);
@@ -365,7 +349,7 @@ public class DBLayer {
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
     	return deviceData;
@@ -375,7 +359,7 @@ public class DBLayer {
     	ContactDeviceData contactDeviceData = null;
 		SQLiteDatabase db = null;
 		try{
-			db = open();
+			db = DBManager.getDBManagerInstance().open();
             
 	        // Select All Query
 			String selectQuery = "select * from " + DBConst.TABLE_CONTACT_DEVICE;
@@ -411,7 +395,7 @@ public class DBLayer {
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
     	return contactDeviceData;
@@ -424,7 +408,7 @@ public class DBLayer {
 		
     	SQLiteDatabase db = null;
 		try{
-			db = open();
+			db = DBManager.getDBManagerInstance().open();
             
 	        // Select All Query
 	        String selectQuery = 
@@ -481,7 +465,7 @@ public class DBLayer {
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
     	return contactDeviceDataList;
@@ -527,7 +511,7 @@ public class DBLayer {
     	boolean result = false;
 		SQLiteDatabase db = null;
 		try{
-			db = open();
+			db = DBManager.getDBManagerInstance().open();
             
 	        Cursor cursor = db.rawQuery(selectQuery, val);
 	        int count = cursor.getCount();
@@ -539,7 +523,7 @@ public class DBLayer {
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
 		return result;
@@ -557,8 +541,8 @@ public class DBLayer {
     	ContactDeviceData contactDeviceData = null;
 		SQLiteDatabase db = null;
 		try{
-			db = open();
-            
+			db = DBManager.getDBManagerInstance().open();
+			
 	        // Select All Query
 	        String selectQuery = 
 	        "select " +		
@@ -611,7 +595,7 @@ public class DBLayer {
             Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
-				db.close(); // Closing database connection
+				DBManager.getDBManagerInstance().close();
 			}
 		}
     	return contactDeviceData;
