@@ -1,16 +1,16 @@
 package com.dagrest.tracklocation.db;
 
+import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
+import com.dagrest.tracklocation.datatype.JoinRequestData;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
@@ -19,16 +19,43 @@ public class DBLayer {
 	protected DBLayer() {
     }
 	
-	public static boolean addRequest(String phoneNumber, String mutualId){
+	public static int deleteJoinRequest(String phoneNumber){
 		
 		if(phoneNumber == null || phoneNumber.isEmpty()){
 			// TODO: notify that no registrationId to insert
-			return false;
+			return -1;
+		}
+		
+		SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			 
+			String whereClause = DBConst.PHONE_NUMBER + " = ?";
+			String[] whereArgs = new String[] { phoneNumber };
+			
+			if(!isPhoneInJoinRequestTable(phoneNumber)){
+				return db.delete(DBConst.TABLE_JOIN_REQUEST, whereClause, whereArgs);
+			}
+		} catch (Throwable t) {
+			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+		return -1;
+	}
+
+	public static long addJoinRequest(String phoneNumber, String mutualId){
+		
+		if(phoneNumber == null || phoneNumber.isEmpty()){
+			// TODO: notify that no registrationId to insert
+			return -1;
 		}
 		
 		if(mutualId == null || mutualId.isEmpty()){
 			// TODO: notify that no mutualId to insert
-			return false;
+			return -1;
 		}
 		
 		SQLiteDatabase db = null;
@@ -38,11 +65,12 @@ public class DBLayer {
 			ContentValues cVal = new ContentValues();
 			cVal.put(DBConst.PHONE_NUMBER, phoneNumber);
 			cVal.put(DBConst.MUTUAL_ID, mutualId);
+			cVal.put(DBConst.TIMESTAMP, Controller.getDateTime());
 			
 			if(!isPhoneInJoinRequestTable(phoneNumber)){
-				db.insert(DBConst.TABLE_JOIN_REQUEST, null, cVal);
+				return db.insert(DBConst.TABLE_JOIN_REQUEST, null, cVal);
 			} else {
-			    db.update(DBConst.TABLE_JOIN_REQUEST, cVal, DBConst.PHONE_NUMBER + "=" + phoneNumber, null);
+				return db.update(DBConst.TABLE_JOIN_REQUEST, cVal, DBConst.PHONE_NUMBER + " = ? ", new String[] { phoneNumber });
 			}
 		} catch (Throwable t) {
 			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
@@ -51,24 +79,44 @@ public class DBLayer {
 				DBManager.getDBManagerInstance().close();
 			}
 		}
-		return false;
+		return -1;
 	}
 	
-	public void deleteRow(String table, String fieldName, String fieldValue) {
+    public static JoinRequestData getJoinRequest(String phoneNumberIn){
+    	JoinRequestData joinRequestData = null;
 		SQLiteDatabase db = null;
 		try{
 			db = DBManager.getDBManagerInstance().open();
 			
-			db.delete(table, fieldName + "=" + fieldValue, null);
-		} catch (Throwable t) {
-			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+	        // Select All Query
+			String selectQuery = "select " + DBConst.PHONE_NUMBER + ", " + 
+				DBConst.MUTUAL_ID + ", " + DBConst.TIMESTAMP + " from " + 
+				DBConst.TABLE_JOIN_REQUEST + 
+				" where " + DBConst.PHONE_NUMBER + " = ?";
+	        Cursor cursor = db.rawQuery(selectQuery, new String[] { phoneNumberIn });
+	  
+	        if (cursor.moveToFirst()) {
+            	joinRequestData = new JoinRequestData();
+            	
+            	String phoneNumber = cursor.getString(0);
+            	String mutualId = cursor.getString(1);
+            	String timestamp = cursor.getString(2);
+
+            	joinRequestData.setPhoneNumber(phoneNumber);
+            	joinRequestData.setMutualId(mutualId);
+            	joinRequestData.setTimestamp(timestamp);
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
 			}
 		}
-	}
-	
+    	return joinRequestData;
+    }
+
 	// Insert contact data
 	public static ContactData addContactData(ContactData contactData) {
 		String nick = contactData.getNick();

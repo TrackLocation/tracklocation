@@ -12,6 +12,7 @@ import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
+import com.dagrest.tracklocation.datatype.JoinRequestData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
@@ -227,20 +228,24 @@ public class MainActivity extends Activity {
     	// ========================================
         } else if (view == findViewById(R.id.btnJoin)) {
         	String mutualId = Controller.generateUUID();
-// IMPORTANT !!!			// TODO: INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
-			// TODO: Request phone number by UI dialog - might be from contacts list (phone book)
 
-			DBLayer.addRequest(phoneNumber, mutualId);
-			boolean testRes = DBLayer.isPhoneInJoinRequestTable(phoneNumber);
+//        	
+// IMPORTANT !!!			// TODO: INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
+//			// TODO: Request phone number by UI dialog - might be from contacts list (phone book)
+//
+			long res = DBLayer.addJoinRequest(phoneNumber, mutualId);
+			JoinRequestData joinRequestData = DBLayer.getJoinRequest(phoneNumber);
 			
-        	// Send SMS with registration details: 
-        	// phoneNumber and registartionId (mutual ID - optional) 
-        	SmsManager smsManager = SmsManager.getDefault();
-			ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
-					CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-					mutualId);
-//			smsManager.sendMultipartTextMessage("+972544504619", null, parts, null, null);    
-			
+			String phoneNumberToJoin = "+972544504619";
+			if(registrationId != null && !registrationId.isEmpty()){
+	        	// Send SMS with registration details: 
+	        	// phoneNumber and registartionId (mutual ID - optional) 
+	        	SmsManager smsManager = SmsManager.getDefault();
+				ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
+						CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
+						mutualId);
+				smsManager.sendMultipartTextMessage(phoneNumberToJoin, null, parts, null, null);    
+			}
 
     	// ========================================
     	// CLEAR button

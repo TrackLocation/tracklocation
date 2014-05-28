@@ -10,6 +10,8 @@ public final class DBConst {
     public static final int 	DATABASE_VERSION = 1;
  	public static final String 	LOG_TAG_DB = "TrackLocationDB";
  	
+ 	public static final String TIMESTAMP = "DATETIME";
+ 	
     public static final String TABLE_CONTACT = "TABLE_CONTACT"; 
     public static final String CONTACT_FIRST_NAME = "contact_first_name"; 	// OPTIONAL 
     public static final String CONTACT_LAST_NAME = "contact_last_name"; 	// OPTIONAL 
@@ -90,7 +92,8 @@ public final class DBConst {
     public static final String TABLE_JOIN_REQUEST_CREATE = 
       "create table " + TABLE_JOIN_REQUEST + "(" +
     	  PHONE_NUMBER + " text not null unique, " +
-    	  MUTUAL_ID + " text not null " +	  
+    	  MUTUAL_ID + " text not null, " +
+    	  TIMESTAMP + " datetime not null" + 
     	  ");";
 
     //    create table if not exists TABLE_PERMISSIONS (email text not null unique, location integer, command integer, 
