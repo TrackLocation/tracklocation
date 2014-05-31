@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -13,6 +14,7 @@ import java.util.regex.Pattern;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -22,9 +24,11 @@ import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Patterns;
+import android.util.SparseArray;
 
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
@@ -142,7 +146,6 @@ public class Controller {
 	        @Override
 	        protected void onPostExecute(String msg) {
 	        	// TODO: fix return value
-	        	int i = 0;
 	        }
 	    }.execute(null, null, null);
     }
@@ -305,6 +308,67 @@ public class Controller {
         return dateFormat.format(date);
 	}
 	
+	public static SparseArray<ContactDetails> fetchContacts(Context context) {
+        String phoneNumber = null;
+        ContactDetails contactDetails = null;
+        SparseArray<ContactDetails> contactDetailsGroups = null;
+        // String email = null;
+        Uri CONTENT_URI = ContactsContract.Contacts.CONTENT_URI;
+        String _ID = ContactsContract.Contacts._ID;
+        String DISPLAY_NAME = ContactsContract.Contacts.DISPLAY_NAME;
+        String HAS_PHONE_NUMBER = ContactsContract.Contacts.HAS_PHONE_NUMBER;
+        Uri PhoneCONTENT_URI = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+        String Phone_CONTACT_ID = ContactsContract.CommonDataKinds.Phone.CONTACT_ID;
+        String NUMBER = ContactsContract.CommonDataKinds.Phone.NUMBER;
+        // Uri EmailCONTENT_URI =  ContactsContract.CommonDataKinds.Email.CONTENT_URI;
+        // String EmailCONTACT_ID = ContactsContract.CommonDataKinds.Email.CONTACT_ID;
+        // String DATA = ContactsContract.CommonDataKinds.Email.DATA;
+        ContentResolver contentResolver = context.getContentResolver();
+        long startTime = System.currentTimeMillis();
+        Cursor cursor = contentResolver.query(CONTENT_URI, null,null, null, null); 
+        long endTime = System.currentTimeMillis() - startTime;
+        System.out.println("Retrieve all contacts query: " + endTime);
+        
+        startTime = System.currentTimeMillis();
+        
+        // Loop for every contact in the phone
+        if (cursor.getCount() > 0) {
+        	contactDetailsGroups = new SparseArray<ContactDetails>();
+        	int i = 0;
+            while (cursor.moveToNext()) {
+            	contactDetails = new ContactDetails();
+                String contact_id = cursor.getString(cursor.getColumnIndex( _ID ));
+                String contactName = cursor.getString(cursor.getColumnIndex( DISPLAY_NAME ));
+                if( contactName != null && !contactName.isEmpty()) {
+	                int hasPhoneNumber = Integer.parseInt(cursor.getString(cursor.getColumnIndex( HAS_PHONE_NUMBER )));
+	                if (hasPhoneNumber > 0) {
+	                	contactDetails.setContactName(contactName);
+	                    // Query and loop for every phone number of the contact
+	                    Cursor phoneCursor = contentResolver.query(PhoneCONTENT_URI, null, Phone_CONTACT_ID + " = ?", new String[] { contact_id }, null);
+	                    while (phoneCursor.moveToNext()) {
+	                        phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex(NUMBER));
+	                        contactDetails.getPhoneNumbersList().add(phoneNumber);
+	                    }
+	                    phoneCursor.close();
+	                    contactDetailsGroups.append(i, contactDetails);
+	                    i++;
+	//                    // Query and loop for every email of the contact
+	//                    Cursor emailCursor = contentResolver.query(EmailCONTENT_URI,    null, EmailCONTACT_ID+ " = ?", new String[] { contact_id }, null);
+	//                    while (emailCursor.moveToNext()) {
+	//                        email = emailCursor.getString(emailCursor.getColumnIndex(DATA));
+	//                        output.append("\nEmail:" + email);
+	//                    }
+	//                    emailCursor.close();
+	                }
+                }
+            }
+        }
+        cursor.close();
+        endTime = System.currentTimeMillis() - startTime;
+        System.out.println("Retrieve all contacts details query and save to groups: " + endTime);
+        return contactDetailsGroups;
+    }
+
 //  TODO: TO DELETE:	
 //	public static String getAccountListFromPreferences(Context context){
 //		final SharedPreferences prefs = Preferences.getGCMPreferences(context);

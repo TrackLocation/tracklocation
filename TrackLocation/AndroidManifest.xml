@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.WRITE_SMS" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!--  permission as GCM requires a Google account (necessary only if if the 
     	device is running a version lower than Android 4.0.4) -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
@@ -101,7 +102,19 @@
             android:screenOrientation="portrait" >
         </activity>
 
-		<meta-data
+        <activity
+            android:name="com.dagrest.tracklocation.Z_NOT_IN_USE_FragmentExample"
+            android:label="WWWWWW" 
+            android:screenOrientation="portrait" >
+        </activity>
+        
+        <activity
+            android:name="com.dagrest.tracklocation.JoinContactList"
+            android:label="Join Contacts List" 
+            android:screenOrientation="portrait" >
+        </activity>
+        
+        <meta-data
 		    android:name="com.google.android.gms.version"
 		    android:value="@integer/google_play_services_version" />
 

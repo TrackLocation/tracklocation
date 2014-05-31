@@ -13,33 +13,64 @@ import android.widget.TextView;
 public class ContactListArrayAdapter extends ArrayAdapter<String> {
 	private final Context context;
 	private final List<String> values;
- 
-	public ContactListArrayAdapter(Context context, List<String> values) {
-		super(context, R.layout.contact_list, values);
+	
+	public ContactListArrayAdapter(Context context, int resource, List<String> values) {
+		super(context, resource, values);
 		this.context = context;
 		this.values = values;
 	}
  
+	public ContactListArrayAdapter(Context context, int resource, int textViewResourceId, List<String> values) {
+		super(context, resource, textViewResourceId, values);
+		
+		this.context = context;
+		this.values = values;
+	}
+
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
+		// TODO Auto-generated method stub
+		
 		LayoutInflater inflater = (LayoutInflater) context
 			.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
- 
-		View rowView = inflater.inflate(R.layout.contact_list, parent, false);
+	
+		View rowView = inflater.inflate(R.layout.contact_list_item, parent, false);
 		TextView textView = (TextView) rowView.findViewById(R.id.contact);
 		ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
 		textView.setText(values.get(position));
- 
+	
 		// Change icon based on name
 		String s = values.get(position);
- 
-		System.out.println(s);
- 
+	
 		if (s.equals("dagrest")) {
 			imageView.setImageResource(R.drawable.ic_launcher);
 		} else if (s.equals("agrest2000")) {
 			imageView.setImageResource(R.drawable.ic_launcher);
 		} 
-		return rowView;
+	
+		return super.getView(position, rowView, parent);
 	}
+	
+//	@Override
+//	public View getView(int position, View convertView, ViewGroup parent) {
+//		LayoutInflater inflater = (LayoutInflater) context
+//			.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+// 
+//		View rowView = inflater.inflate(R.layout.contact_list_item, parent, false);
+//		TextView textView = (TextView) rowView.findViewById(R.id.contact);
+//		ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
+//		textView.setText(values.get(position));
+// 
+//		// Change icon based on name
+//		String s = values.get(position);
+// 
+//		System.out.println(s);
+// 
+//		if (s.equals("dagrest")) {
+//			imageView.setImageResource(R.drawable.ic_launcher);
+//		} else if (s.equals("agrest2000")) {
+//			imageView.setImageResource(R.drawable.ic_launcher);
+//		} 
+//		return rowView;
+//	}
 }
