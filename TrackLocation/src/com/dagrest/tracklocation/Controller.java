@@ -16,6 +16,7 @@ import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -38,6 +39,7 @@ import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
 import com.dagrest.tracklocation.http.HttpUtils;
+import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.google.gson.Gson;
@@ -154,6 +156,17 @@ public class Controller {
 		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy", Locale.US);
 		Calendar cal = Calendar.getInstance();
 		return dateFormat.format(cal.getTime());
+	}
+
+	// actionDescription - only for logging
+	public static void broadcastMessage(Context context, String action, String actionDescription, String key, String value)
+	{
+		LogManager.LogFunctionCall(actionDescription, "broadcastMessage");
+		Intent intent = new Intent();
+		intent.setAction(action); //intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
+		intent.putExtra(key, value);
+		context.sendBroadcast(intent);
+		LogManager.LogFunctionExit(actionDescription, "broadcastMessage");
 	}
 
 	/*

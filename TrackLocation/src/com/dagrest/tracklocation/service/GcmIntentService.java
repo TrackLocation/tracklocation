@@ -162,11 +162,11 @@ public class GcmIntentService extends IntentService {
 //						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
 //							value + CommonConst.DELIMITER_STRING + currentDateTime);
                 		if(value != null && !value.isEmpty()) {
-							broadcastMessage(CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
+							Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
 								BroadcastCommandEnum.gcm_status.toString(),  
 								key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
                 		} else {
-    						broadcastMessage(CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
+                			Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
 								BroadcastCommandEnum.gcm_status.toString(),  
 								"");
                 		}
@@ -183,7 +183,7 @@ public class GcmIntentService extends IntentService {
                 		String value = extras.getString("value");
                 		String currentDateTime = Controller.getCurrentDate();
                 		
-						broadcastMessage(CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
+                		Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
 							BroadcastCommandEnum.location_updated.toString(), 
 							key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
             	}
@@ -195,16 +195,5 @@ public class GcmIntentService extends IntentService {
         // Release the wake lock provided by the WakefulBroadcastReceiver.
         GcmBroadcastReceiver.completeWakefulIntent(intent);
 	} // onHandleIntent(...
-	
-	// actionDescription - only for logging
-	public void broadcastMessage(String action, String actionDescription, String key, String value)
-	{
-		LogManager.LogFunctionCall(actionDescription, "broadcastMessage");
-		Intent intent = new Intent();
-		intent.setAction(action); //intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
-		intent.putExtra(key, value);
-		sendBroadcast(intent);
-		LogManager.LogFunctionExit(actionDescription, "broadcastMessage");
-	}
 	
 }
