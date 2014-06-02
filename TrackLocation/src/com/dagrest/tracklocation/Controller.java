@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -321,10 +322,19 @@ public class Controller {
         return dateFormat.format(date);
 	}
 	
-	public static SparseArray<ContactDetails> fetchContacts(Context context) {
+	public static int getContactsNumber(Context context){
+		Uri CONTENT_URI = ContactsContract.Contacts.CONTENT_URI;
+		ContentResolver contentResolver = context.getContentResolver();
+		Cursor cursor = contentResolver.query(CONTENT_URI, null,null, null, null); 
+		return cursor.getCount();
+	}
+	
+	public static SparseArray<ContactDetails> fetchContacts(Context context, SparseArray<ContactDetails> contactDetailsGroups,
+			ProgressDialog barProgressDialog) {
         String phoneNumber = null;
         ContactDetails contactDetails = null;
-        SparseArray<ContactDetails> contactDetailsGroups = null;
+        //SparseArray<ContactDetails> contactDetailsGroups = null;
+        contactDetailsGroups.clear();
         // String email = null;
         Uri CONTENT_URI = ContactsContract.Contacts.CONTENT_URI;
         String _ID = ContactsContract.Contacts._ID;
@@ -346,9 +356,13 @@ public class Controller {
         
         // Loop for every contact in the phone
         if (cursor.getCount() > 0) {
-        	contactDetailsGroups = new SparseArray<ContactDetails>();
+//        	contactDetailsGroups = new SparseArray<ContactDetails>();
         	int i = 0;
             while (cursor.moveToNext()) {
+            	//barProgressDialog.incrementProgressBy(2);
+                barProgressDialog.incrementProgressBy(1);
+
+            	System.out.println("Element: " + (i + 1));
             	contactDetails = new ContactDetails();
                 String contact_id = cursor.getString(cursor.getColumnIndex( _ID ));
                 String contactName = cursor.getString(cursor.getColumnIndex( DISPLAY_NAME ));

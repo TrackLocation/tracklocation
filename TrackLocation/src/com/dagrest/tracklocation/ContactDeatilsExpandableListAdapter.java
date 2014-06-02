@@ -55,7 +55,7 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 			@Override
 			public void onClick(View v) {
 				//Toast.makeText(activity, children, Toast.LENGTH_SHORT).show();
-        		Controller.broadcastMessage(activity, CommonConst.BROADCAST_JOIN_NUMBER, "OnChildClick", 
+        		Controller.broadcastMessage(activity, CommonConst.BROADCAST_JOIN, "OnChildClick", 
 					BroadcastCommandEnum.join_number.toString(), 
 					children);
 			}
@@ -143,6 +143,5 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 		}
 
 		notifyDataSetChanged();
-
 	}
 } 

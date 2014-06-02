@@ -10,7 +10,13 @@ import android.util.Log;
 import android.util.SparseArray;
 
 public class FetchDeviceContacts extends AsyncTask<Object, Object, SparseArray<ContactDetails>> {
-	private ProgressDialog statusDialog;
+
+	@Override
+	protected SparseArray<ContactDetails> doInBackground(Object... params) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+/*	private ProgressDialog statusDialog;
 	private Activity parentActivity;
 	private Context context;
 	SparseArray<ContactDetails> contactDetailsGroups = null;
@@ -53,4 +59,5 @@ public class FetchDeviceContacts extends AsyncTask<Object, Object, SparseArray<C
 	public SparseArray<ContactDetails> getContactDetailsGroups() {
 		return contactDetailsGroups;
 	}
+	*/
 }
