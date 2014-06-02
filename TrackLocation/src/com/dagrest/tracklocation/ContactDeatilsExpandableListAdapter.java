@@ -1,5 +1,8 @@
 package com.dagrest.tracklocation;
 
+import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.utils.CommonConst;
+
 import android.app.Activity;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
@@ -9,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.CheckedTextView;
 import android.widget.TextView;
-import android.widget.Toast;
+//import android.widget.Toast;
 
 public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapter {
 
@@ -17,6 +20,7 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 	private SparseArray<ContactDetails> contactDetailsGroupsOriginal = null;
 	private LayoutInflater inflater;
 	private Activity activity;
+	private String className = this.getClass().getName();
 
 	public ContactDeatilsExpandableListAdapter(Activity act,
 			SparseArray<ContactDetails> contactDetailsGroups) {
@@ -50,7 +54,10 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 		convertView.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Toast.makeText(activity, children, Toast.LENGTH_SHORT).show();
+				//Toast.makeText(activity, children, Toast.LENGTH_SHORT).show();
+        		Controller.broadcastMessage(activity, CommonConst.BROADCAST_JOIN_NUMBER, "OnChildClick", 
+					BroadcastCommandEnum.join_number.toString(), 
+					children);
 			}
 		});
 		return convertView;

@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum BroadcastCommandEnum {
-	location_updated("location_updated"), gcm_status("gcm_status"), location_service_status("location_service_status");
+	location_updated("location_updated"), gcm_status("gcm_status"), location_service_status("location_service_status"), 
+	join_number("join_number");
 	
 	private final String name;       
 	private static Map<String, BroadcastCommandEnum> valueMap;
