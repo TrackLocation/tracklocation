@@ -27,6 +27,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.PhoneLookup;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Patterns;
@@ -39,6 +40,7 @@ import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
+import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
@@ -51,7 +53,7 @@ public class Controller {
 		return UUID.randomUUID().toString().replaceAll("-", "");
 	}
 
-	public String createJsonMessage(List<String> listRegIDs, 
+	public static String createJsonMessage(List<String> listRegIDs, 
     		String regIDToReturnMessageTo, 
     		CommandEnum command, 
     		String messageString, 
@@ -128,7 +130,7 @@ public class Controller {
     /*
      * Send command to request contact by GCM (Google Cloud Message - push notifictation)
      */
-    public void sendCommand(final String jsonMessage){ 
+    public static void sendCommand(final String jsonMessage){ 
     	// AsyncTask <TypeOfVarArgParams , ProgressValue , ResultValue>
 	    new AsyncTask<Void, Void, String>() {
 	        @Override
@@ -192,30 +194,14 @@ public class Controller {
 	        return null;
 	}
 	
-	//	0	:    _id
-	//	1	:    thread_id
-	//	2	:    address
-	//	3	:    person
-	//	4	:    date
-	//	5	:    protocol
-	//	6	:    read
-	//	7	:    status
-	//	8	:    type
-	//	9 	:    reply_path_present
-	//	10	:    subject
-	//	11	:    body
-	//	12	:    service_center
-	//	13	:    locked
-	
-	public ArrayList<SMSMessage> fetchInboxSms(Activity activity, int type) {
+	public static ArrayList<SMSMessage> fetchInboxSms(Activity activity, int type) {
         ArrayList<SMSMessage> smsInbox = new ArrayList<SMSMessage>();
 
-        Uri uriSms = Uri.parse("content://sms");
+        Uri uriSms = Uri.parse(CommonConst.SMS_URI);
 
         Cursor cursor = activity.getContentResolver()
                 .query(uriSms,
-                        new String[] { "_id", "address", "date", "body",
-                                "type", "read" }, "type=" + type, null,
+                        new String[] { "_id", "address", "date", "body", "type", "read" }, "type=" + type, null,
                         "date" + " COLLATE LOCALIZED ASC");
         if (cursor != null) {
             cursor.moveToLast();
@@ -228,9 +214,10 @@ public class Controller {
                     calendar.setTimeInMillis(timestamp);
                     DateFormat formatter = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss.SSS");
                     SMSMessage message = new SMSMessage();
-                    message.messageNumber = cursor.getString(cursor.getColumnIndex("address"));
-                    message.messageContent = cursor.getString(cursor.getColumnIndex("body"));
-                    message.messageDate = formatter.format(calendar.getTime());
+                    message.setMessageId(cursor.getString(cursor.getColumnIndex("_id")));
+                    message.setMessageNumber(cursor.getString(cursor.getColumnIndex("address")));
+                    message.setMessageContent(cursor.getString(cursor.getColumnIndex("body")));
+                    message.setMessageDate(formatter.format(calendar.getTime()));
                     smsInbox.add(message);
                 } while (cursor.moveToPrevious());
                 
@@ -396,6 +383,110 @@ public class Controller {
         return contactDetailsGroups;
     }
 
+    /*
+     * Send command to request contact by GCM (Google Cloud Message - push notifictation)
+     * Input parematers:
+     * 		Object array {Activity, Context}
+     */
+    public static void checkJoinRequestBySMS(Object[] objects) { 
+    	// AsyncTask <TypeOfVarArgParams , ProgressValue , ResultValue>
+    	
+	    new AsyncTask<Object[], Void, String>() {
+   	
+	    	@Override
+	        protected String doInBackground(Object[]... objects) {
+	    	    // Read SMS messages from inbox
+	    		Context ctx = null;
+	    		if(objects[0][0] != null){
+	    			ctx = (Context)objects[0][0];
+	    		} else {
+	    			// TODO: handle case if input is invalid - expected Context type
+	    		}
+	    		
+	    		Activity activity = null;
+	    		if(objects[0][1] != null){
+	    			activity = (Activity)objects[0][1];
+	    		} else {
+	    			// TODO: handle case if input is invalid - expected Context type
+	    		}
+	    		
+	    	    List<SMSMessage> smsList = fetchInboxSms(activity, 1);
+	    	    if(smsList != null){
+	    	    	for (SMSMessage smsMessage : smsList) {
+	    	    		//String n = smsMessage.getMessageNumber();
+						if(smsMessage != null && smsMessage.getMessageContent().contains(CommonConst.JOIN_FLAG_SMS)){
+				    	    String smsMsg = smsMessage.getMessageContent();
+				    	    String smsId = smsMessage.getMessageId();
+				    	    System.out.println("JOIN SMS: " + smsMsg);
+				    	    String[] smsParams = smsMsg.split(CommonConst.DELIMITER_COMMA);
+				    	    // TODO: save all received join requests to RECEIVED_JOIN_REQUEST table
+				    	    if(smsParams.length >= 4){
+					    	    String phoneNumber = smsParams[3];
+					    	    String mutualId = smsParams[2];
+					    	    String regId = smsParams[1];
+					    	    String account = smsParams[4];
+					    	    if(phoneNumber != null && !phoneNumber.isEmpty() &&
+					    	    	mutualId != null && !mutualId.isEmpty() &&
+					    	    	regId != null && !regId.isEmpty() ){
+					    			long res = DBLayer.addReceivedJoinRequest(phoneNumber, mutualId, regId, account);
+					    			if(res != 1){
+					    				// TODO: Notify that add ReceivedJoinRequest to DB failed...
+					    				System.out.println("addReceivedJoinRequest FAILED for phoneNumber = " + phoneNumber);
+					    			} else {
+					    				// TODO: delete SMS that was handled
+					    				String uriSms = Uri.parse(CommonConst.SMS_URI) + "/" + smsId;
+					    				int count = activity.getContentResolver().delete(Uri.parse(uriSms), null, null);
+					    				if(count != 1){
+					    					// Log that join SMS request has not been removed
+					    				}
+					    	    	    // TODO: Check that join request approved and send back
+					    	    	    // push notification with newly connected contact details
+					    	    	    sendApproveOnJoinRequest(ctx);
+					    			}
+					    	    } else {
+					    	    	// TODO: notify error ??? 
+					    	    	System.out.println("No NULL or empty parameters accepted for mutualId , regId and phoneNumber.");
+					    	    	if(phoneNumber != null && !phoneNumber.isEmpty()){
+					    	    		System.out.println("phoneNumber is null or empty");
+					    	    	}
+					    	    	if(mutualId != null && !mutualId.isEmpty()){
+					    	    		System.out.println("mutualId is null or empty");
+					    	    	}
+					    	    	if(regId != null && !regId.isEmpty()){
+					    	    		System.out.println("regId is null or empty");
+					    	    	}
+					    	    }
+				    	    }
+						}
+					}
+	    	    }
+	    	    return "";
+	        }
+	
+	        @Override
+	        protected void onPostExecute(String msg) {
+	        	// TODO: fix return value
+	        }
+	    }.execute(objects);
+    }
+
+	public static void sendApproveOnJoinRequest(Context context){
+		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+		List<String> listRegIDs = new ArrayList<String>();
+		listRegIDs.add(regIDToReturnMessageTo);
+		String time = "";
+		String messageString = "";
+		String jsonMessage = createJsonMessage(listRegIDs, 
+	    		regIDToReturnMessageTo, 
+	    		CommandEnum.join_approval, 
+	    		"", // messageString, 
+	    		Controller.getCurrentDate(), // time,
+	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+	    		null //PushNotificationServiceStatusEnum.available.toString()
+				);
+		sendCommand(jsonMessage);
+	}
+	
 //  TODO: TO DELETE:	
 //	public static String getAccountListFromPreferences(Context context){
 //		final SharedPreferences prefs = Preferences.getGCMPreferences(context);
@@ -413,3 +504,4 @@ public class Controller {
 //		return macAddress;
 //	}
 }
+

@@ -27,6 +27,7 @@ public class CommonConst {
 	// Registry ID list of contacts that will be updated by requested info: location/status/...
 	public static final String 	PREFERENCES_RETURN_TO_REG_ID_LIST = "return_to_reg_id_list";
 	public static final String 	JOIN_FLAG_SMS = "JOIN_TRACK_LOCATION";
+	public static final String 	JOIN_COMPLETED = "JOIN_COMPLETED";
 
  	public static final String 	DELIMITER = "\t";
  	public static final String 	DELIMITER_COMMA = ",";
@@ -35,6 +36,7 @@ public class CommonConst {
  	public static final String 	DELIMITER_COLON = ":";
  	public static final String 	DELIMITER_STRING = "####";
  	public static final String 	DELIMITER_AT = "@";
+ 	public static final String 	SMS_URI = "content://sms";
  	
 	public static final String 	LOG_DIRECTORY_PATH = "TrackLocation";         
 	public static final String 	LOG_FILE_NAME = "TrackLocation.log";          

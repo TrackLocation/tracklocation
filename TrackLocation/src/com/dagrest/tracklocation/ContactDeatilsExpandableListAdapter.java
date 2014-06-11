@@ -21,6 +21,7 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 	private LayoutInflater inflater;
 	private Activity activity;
 	private String className = this.getClass().getName();
+	private int groupPositionCurrent = -1;
 
 	public ContactDeatilsExpandableListAdapter(Activity act,
 			SparseArray<ContactDetails> contactDetailsGroups) {
@@ -44,20 +45,26 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 	@Override
 	public View getChildView(int groupPosition, final int childPosition,
 			boolean isLastChild, View convertView, ViewGroup parent) {
-		final String children = (String) getChild(groupPosition, childPosition);
+		final String groupPhone = (String) getChild(groupPosition, childPosition);
 		TextView text = null;
 		if (convertView == null) {
 			convertView = inflater.inflate(R.layout.listrow_details, null);
 		}
 		text = (TextView) convertView.findViewById(R.id.textView1);
-		text.setText(children);
+		text.setText(groupPhone);
+		setGroupPositionCurrent(groupPosition);
 		convertView.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				//Toast.makeText(activity, children, Toast.LENGTH_SHORT).show();
+				ContactDetails contactDetails = (ContactDetails) getGroup(getGroupPositionCurrent());
+				String contactName = null;
+				if(contactDetails != null && !contactDetails.getContactName().isEmpty()){
+					contactName = contactDetails.getContactName();
+				}
         		Controller.broadcastMessage(activity, CommonConst.BROADCAST_JOIN, "OnChildClick", 
 					BroadcastCommandEnum.join_number.toString(), 
-					children);
+					contactName + CommonConst.DELIMITER_STRING + groupPhone);
 			}
 		});
 		return convertView;
@@ -143,5 +150,13 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 		}
 
 		notifyDataSetChanged();
+	}
+
+	public int getGroupPositionCurrent() {
+		return groupPositionCurrent;
+	}
+
+	public void setGroupPositionCurrent(int groupPositionCurrent) {
+		this.groupPositionCurrent = groupPositionCurrent;
 	}
 } 

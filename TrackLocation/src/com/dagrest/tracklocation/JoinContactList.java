@@ -1,8 +1,14 @@
 package com.dagrest.tracklocation;
 
+import java.util.ArrayList;
+
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.JoinRequestData;
+import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.Preferences;
+
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -11,12 +17,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
+import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.SparseArray;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.Toast;
 
 public class JoinContactList extends Activity {
 	
@@ -31,8 +39,8 @@ public class JoinContactList extends Activity {
 	
 	public void launchBarDialog(View view) {
 		        barProgressDialog = new ProgressDialog(JoinContactList.this);
-		        barProgressDialog.setTitle("Fetching contacts ...");
-		        barProgressDialog.setMessage("Fetch in progress ...");
+		        barProgressDialog.setTitle("Fetching contacts");
+		        barProgressDialog.setMessage("Please wait ...");
 		        barProgressDialog.setProgressStyle(barProgressDialog.STYLE_HORIZONTAL);
 		        barProgressDialog.setProgress(0);
 		        barProgressDialog.setMax(Controller.getContactsNumber(JoinContactList.this));
@@ -119,11 +127,45 @@ public class JoinContactList extends Activity {
 	    		// ===========================================
 	    		if(bundle != null && (bundle.containsKey(broadcastKeyJoinNumber) || bundle.containsKey(broadcastKeyFetchContactsCompleted))){
 	    			
-		    		String result = bundle.getString(broadcastKeyJoinNumber);
+		    		String namePhoneNumber = bundle.getString(broadcastKeyJoinNumber);
 		    		
-		    		if(result != null && !result.isEmpty() && bundle.containsKey(broadcastKeyJoinNumber)){
-		    			System.out.println("Join number: " + result);
+		    		if(namePhoneNumber != null && !namePhoneNumber.isEmpty() && bundle.containsKey(broadcastKeyJoinNumber)){
+		    			System.out.println("Join number: " + namePhoneNumber);
+		    			
+		    			String[] args = namePhoneNumber.split(CommonConst.DELIMITER_STRING);
+		    			
+		    			String contactName = args[0];
+		    			String phoneNumber = args[1];
+		    			
 		    			// rend join SMS command
+		    			String mutualId = Controller.generateUUID();
+		    			long res = DBLayer.addJoinRequest(phoneNumber, mutualId);
+		    			if(res != 1){
+		    				// TODO: Notify that add to DB failed...
+		    			}
+		    			JoinRequestData joinRequestData = DBLayer.getJoinRequest(phoneNumber);
+		    			if(joinRequestData.getMutualId().equals(CommonConst.JOIN_COMPLETED)){
+		    				// TODO: notify that this contact has been joined
+		    				String msg = contactName + " [" + phoneNumber + "] has been joined already ";
+		    				Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_SHORT).show();
+		    				finish();
+		    			}
+
+		    			String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+		    			if(registrationId != null && !registrationId.isEmpty()){
+				        	// Send SMS with registration details: 
+				        	// phoneNumber and registartionId (mutual ID - optional) 
+				        	SmsManager smsManager = SmsManager.getDefault();
+		                    String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+							ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
+								CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
+								mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account);
+							smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
+							// Notify by toast that join request sent by SMS
+							String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
+							Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_SHORT).show();
+		    			}
+		    			finish();
 		    		} else if(bundle.containsKey(broadcastKeyFetchContactsCompleted)){
 		    			// update expandable list of the device contacts
 		    	        adapter = new ContactDeatilsExpandableListAdapter(JoinContactList.this, contactDetailsGroups);

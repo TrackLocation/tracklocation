@@ -31,17 +31,25 @@ public final class DBConst {
     public static final String CONTACT_DEVICE_IMEI = "contact_device_imei"; 				// OPTIONAL
     public static final String CONTACT_DEVICE_REG_ID = CommonConst.PREFERENCES_REG_ID;  
 
-    public static final String TABLE_JOIN_REQUEST = "TABLE_JOIN_REQUEST";
+    public static final String TABLE_SEND_JOIN_REQUEST = "TABLE_SEND_JOIN_REQUEST";
     public static final String PHONE_NUMBER = "phone_number";
     public static final String MUTUAL_ID = "mutual_id";
     
+//    CommonConst.JOIN_FLAG_SMS + 
+//	CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
+//	mutualId + CommonConst.DELIMITER_COMMA + phoneNumber
+	
+    public static final String TABLE_RECEIVED_JOIN_REQUEST = "TABLE_RECEIVED_JOIN_REQUEST";
+    public static final String REG_ID = CommonConst.PREFERENCES_REG_ID;
+    public static final String RECEIVED_JOIN_REQUEST_ACCOUNT = "account";
+
     public static final String TABLE_PERMISSIONS = "TABLE_PERMISSIONS";
     public static final String EMAIL = "email";
     public static final String LOCATION = "location"; 
     public static final String COMMAND = "command";
     public static final String ADMIN_COMMAND = "admin_command"; 
     
-    public static final String[] TABLES_LIST = { TABLE_CONTACT, TABLE_DEVICE, TABLE_CONTACT_DEVICE, TABLE_JOIN_REQUEST, TABLE_PERMISSIONS };
+    public static final String[] TABLES_LIST = { TABLE_CONTACT, TABLE_DEVICE, TABLE_CONTACT_DEVICE, TABLE_SEND_JOIN_REQUEST, TABLE_RECEIVED_JOIN_REQUEST, TABLE_PERMISSIONS };
 
 	//    create table if not exists TABLE_CONTACT (
     //        contact_first_name text,contact_last_name text, contact_nick text, 
@@ -88,11 +96,21 @@ public final class DBConst {
 		  CONTACT_DEVICE_EMAIL + ")" +
 		  ");";
 
-	//    create table if not exists TABLE_JOIN_REQUEST (phone_number text not null unique, mutual_id text not null);
-    public static final String TABLE_JOIN_REQUEST_CREATE = 
-      "create table " + TABLE_JOIN_REQUEST + "(" +
+	//    create table if not exists TABLE_SEND_JOIN_REQUEST (phone_number text not null unique, mutual_id text not null);
+    public static final String TABLE_SEND_JOIN_REQUEST_CREATE = 
+      "create table " + TABLE_SEND_JOIN_REQUEST + "(" +
     	  PHONE_NUMBER + " text not null unique, " +
     	  MUTUAL_ID + " text not null, " +
+    	  TIMESTAMP + " datetime not null" + 
+    	  ");";
+
+	//    create table if not exists TABLE_RECEIVED_JOIN_REQUEST (phone_number text not null unique, mutual_id text not null);
+    public static final String TABLE_RECEIVED_JOIN_REQUEST_CREATE = 
+      "create table " + TABLE_RECEIVED_JOIN_REQUEST + "(" +
+    	  PHONE_NUMBER + " text not null unique, " +
+    	  MUTUAL_ID + " text not null, " +
+    	  REG_ID + " text not null, " +
+    	  RECEIVED_JOIN_REQUEST_ACCOUNT + " text, " +
     	  TIMESTAMP + " datetime not null" + 
     	  ");";
 

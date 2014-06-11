@@ -73,11 +73,10 @@ public class LocationListenerBasic implements LocationListener{
     				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST); 
 
 			String time = new Date().toString(); 
-    		Controller controller = new Controller();
 
-    		// Get current registration ID
+			// Get current registration ID
     		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-    		String jsonMessage = controller.createJsonMessage(listRegIDs, 
+    		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
 	    		senderRegId, 
 	    		CommandEnum.location, 
 	    		null, // TODO: send device UUID in the message 
@@ -86,7 +85,7 @@ public class LocationListenerBasic implements LocationListener{
 	    		locationInfo// value	
     		);
     		// send message back with PushNotificationServiceStatusEnum.available
-    		controller.sendCommand(jsonMessage);
+    		Controller.sendCommand(jsonMessage);
             // ==============================
             // send GCM to requester
             // ==============================

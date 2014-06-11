@@ -17,6 +17,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.gson.Gson;
+
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -81,6 +82,7 @@ public class MainActivity extends Activity {
 
 		//DBLayer.init(context);
         init();
+        
 	}
 
 	@Override
@@ -92,6 +94,7 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onStart() {
+		Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
 		super.onResume();
 	}
 		
@@ -129,6 +132,22 @@ public class MainActivity extends Activity {
 			}
 		}
 		
+        //Put up the Yes/No message box
+    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    	builder
+    	.setTitle("Join request")
+    	.setMessage("Approve join request from David Agrest, phone: +972 (54) 4504619 ?")
+    	.setIcon(android.R.drawable.ic_dialog_alert)
+    	.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+    	    public void onClick(DialogInterface dialog, int which) {			      	
+    	    	//Yes button clicked, do something
+    	    	Toast.makeText(MainActivity.this, "Yes button pressed", 
+                               Toast.LENGTH_SHORT).show();
+    	    }
+    	})
+    	.setNegativeButton("No", null)						//Do nothing on no
+    	.show();
+		
 		contactDeviceDataList = DBLayer.getContactDeviceDataList();
 	}
 	
@@ -145,20 +164,9 @@ public class MainActivity extends Activity {
     	// JOIN button
     	// ========================================
         } else if (view == findViewById(R.id.btnJoin)) {
-//        	String mutualId = Controller.generateUUID();
 
     		Intent joinContactListIntent = new Intent(this, JoinContactList.class);
     		startActivity(joinContactListIntent);
-
-        	//createDialog(Controller.fetchContacts(context));
-        	//Controller.fetchContacts(context);
-
-////        	
-//// IMPORTANT !!!			// TODO: INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
-////			// TODO: Request phone number by UI dialog - might be from contacts list (phone book)
-////
-//			long res = DBLayer.addJoinRequest(phoneNumber, mutualId);
-//			JoinRequestData joinRequestData = DBLayer.getJoinRequest(phoneNumber);
 
 // 			*********************************************************************************        	
 //		    // Start an activity for the user to pick a phone number from contacts
@@ -169,17 +177,6 @@ public class MainActivity extends Activity {
 //		    }
 // 			*********************************************************************************        	
 			
-//			String phoneNumberToJoin = "+972544504619";
-//			if(registrationId != null && !registrationId.isEmpty()){
-//	        	// Send SMS with registration details: 
-//	        	// phoneNumber and registartionId (mutual ID - optional) 
-//	        	SmsManager smsManager = SmsManager.getDefault();
-//				ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
-//						CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-//						mutualId);
-//				smsManager.sendMultipartTextMessage(phoneNumberToJoin, null, parts, null, null);    
-//			}
-
     	// ========================================
     	// SETTINGS button
     	// ========================================

@@ -58,7 +58,6 @@ public class ContactConfiguration extends Activity {
 	private ContactData contactData;
 	private DeviceData deviceData;
 	private String className;
-	private Controller controller;
 	private String jsonMessage;
 
 	private BroadcastReceiver gcmIntentServiceChangeWatcher;
@@ -75,7 +74,6 @@ public class ContactConfiguration extends Activity {
 		String jsonStringContactDeviceData = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA);
 		String userName = intent.getExtras().getString(CommonConst.CONTACT_LIST_SELECTED_VALUE);
 
-    	controller = new Controller();
     	jsonMessage = "";
 
     	contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
@@ -236,9 +234,7 @@ public class ContactConfiguration extends Activity {
 		} else {
 			LogManager.LogErrorMsg(className, "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
 		}
-		String time = "";
-		String messageString = "";
-		jsonMessage = controller.createJsonMessage(listRegIDs, 
+		jsonMessage = Controller.createJsonMessage(listRegIDs, 
 	    		regIDToReturnMessageTo, 
 	    		CommandEnum.status_request, 
 	    		"", // messageString, 
@@ -246,16 +242,14 @@ public class ContactConfiguration extends Activity {
 	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
 	    		null //PushNotificationServiceStatusEnum.available.toString()
 				);
-		controller.sendCommand(jsonMessage);
+		Controller.sendCommand(jsonMessage);
     }
     
     private void startTrackLocationService(){
 		String regIDToReturnMessageTo = Controller.getRegistrationId(getApplicationContext());
 		List<String> listRegIDs = new ArrayList<String>();
 		listRegIDs.add(contactDeviceData.getRegistration_id());
-		String time = "";
-		String messageString = "";
-		jsonMessage = controller.createJsonMessage(listRegIDs, 
+		jsonMessage = Controller.createJsonMessage(listRegIDs, 
 	    		regIDToReturnMessageTo, 
 	    		CommandEnum.start, 
 	    		"", // messageString, 
@@ -263,14 +257,14 @@ public class ContactConfiguration extends Activity {
 	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
 	    		null //PushNotificationServiceStatusEnum.available.toString()
 				);
-		controller.sendCommand(jsonMessage);
+		Controller.sendCommand(jsonMessage);
     }
 
     private void stopTrackLocationService(){
 		String regIDToReturnMessageToStop = Controller.getRegistrationId(getApplicationContext());
 		List<String> listRegIDsStop = new ArrayList<String>();
 		listRegIDsStop.add(contactDeviceData.getRegistration_id());
-		jsonMessage = controller.createJsonMessage(listRegIDsStop, 
+		jsonMessage = Controller.createJsonMessage(listRegIDsStop, 
 	    		regIDToReturnMessageToStop, 
 	    		CommandEnum.stop, 
 	    		"", // messageString, 
@@ -278,7 +272,7 @@ public class ContactConfiguration extends Activity {
 	    		null, // key
 	    		null // value
 				);
-		controller.sendCommand(jsonMessage);
+		Controller.sendCommand(jsonMessage);
     }
 }
 

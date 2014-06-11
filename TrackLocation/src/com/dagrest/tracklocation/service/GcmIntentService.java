@@ -132,9 +132,8 @@ public class GcmIntentService extends IntentService {
             			//	   CommonConst.DELIMITER_STRING);
            			
 	            		String time = new Date().toString(); 
-	            		Controller controller = new Controller();
 
-	            		String jsonMessage = controller.createJsonMessage(listRegIDs, 
+	            		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
 	        	    		regIDToReturnMessageTo, 
 	        	    		CommandEnum.status_response, 
 	        	    		null, 
@@ -142,7 +141,7 @@ public class GcmIntentService extends IntentService {
 	        	    		NotificationCommandEnum.pushNotificationServiceStatus.toString(),
 	        	    		PushNotificationServiceStatusEnum.available.toString());
 	            		// send message back with PushNotificationServiceStatusEnum.available
-	            		controller.sendCommand(jsonMessage);
+	            		Controller.sendCommand(jsonMessage);
 	            		
                 	} 
  
@@ -186,6 +185,20 @@ public class GcmIntentService extends IntentService {
                 		Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
 							BroadcastCommandEnum.location_updated.toString(), 
 							key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
+        		// ============================================
+                // COMMAND: 	join_approval
+            	// ============================================
+            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
+                			extras.getString(CommandTagEnum.command.toString()).
+                			equals(CommandEnum.join_approval.toString())){ // COMMAND JOIN_APPROVAL
+            		
+                		String key = extras.getString("key");
+                		String value = extras.getString("value");
+                		String currentDateTime = Controller.getCurrentDate();
+                		
+//                		Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
+//							BroadcastCommandEnum.location_updated.toString(), 
+//							key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
             	}
             	
             } // if (GoogleCloudMessaging

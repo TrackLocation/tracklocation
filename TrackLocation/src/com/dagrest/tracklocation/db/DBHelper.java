@@ -20,7 +20,8 @@ public class DBHelper extends SQLiteOpenHelper{
             db.execSQL(DBConst.TABLE_CONTACT_CREATE);
             db.execSQL(DBConst.TABLE_DEVICE_CREATE);
             db.execSQL(DBConst.TABLE_CONTACT_DEVICE_CREATE);
-            db.execSQL(DBConst.TABLE_JOIN_REQUEST_CREATE);
+            db.execSQL(DBConst.TABLE_SEND_JOIN_REQUEST_CREATE);
+            db.execSQL(DBConst.TABLE_RECEIVED_JOIN_REQUEST_CREATE);
             db.execSQL(DBConst.TABLE_PERMISSIONS_CREATE);
 
         } catch (Exception exception) {

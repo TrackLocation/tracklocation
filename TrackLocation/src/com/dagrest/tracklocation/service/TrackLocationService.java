@@ -206,11 +206,10 @@ public class TrackLocationService extends Service {
 				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST); 
 
 		String time = new Date().toString(); 
-		Controller controller = new Controller();
 
 		// Get current registration ID
 		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-		String jsonMessage = controller.createJsonMessage(listRegIDs, 
+		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
     		senderRegId, 
     		CommandEnum.status_response, 
     		null, // TODO: send device UUID in the message 
@@ -218,7 +217,7 @@ public class TrackLocationService extends Service {
     		NotificationCommandEnum.trackLocationServiceStatus.toString(),
     		TrackLocationServiceStatusEnum.stopped.toString());
 		// send message back with PushNotificationServiceStatusEnum.available
-		controller.sendCommand(jsonMessage);
+		Controller.sendCommand(jsonMessage);
         // ==============================
         // send GCM to requester
         // ==============================
@@ -233,11 +232,10 @@ public class TrackLocationService extends Service {
 				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST); 
 
 		String time = new Date().toString(); 
-		Controller controller = new Controller();
 
 		// Get current registration ID
 		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-		String jsonMessage = controller.createJsonMessage(listRegIDs, 
+		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
     		senderRegId, 
     		CommandEnum.status_response, 
     		null, // TODO: send device UUID in the message 
@@ -245,7 +243,7 @@ public class TrackLocationService extends Service {
     		NotificationCommandEnum.trackLocationServiceStatus.toString(),
     		TrackLocationServiceStatusEnum.started.toString());
 		// send message back with PushNotificationServiceStatusEnum.available
-		controller.sendCommand(jsonMessage);
+		Controller.sendCommand(jsonMessage);
         // ==============================
         // send GCM to requester
         // ==============================
