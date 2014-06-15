@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.JoinRequestData;
+import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
@@ -139,7 +140,7 @@ public class JoinContactList extends Activity {
 		    			
 		    			// rend join SMS command
 		    			String mutualId = Controller.generateUUID();
-		    			long res = DBLayer.addJoinRequest(phoneNumber, mutualId);
+		    			long res = DBLayer.addJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
 		    			if(res != 1){
 		    				// TODO: Notify that add to DB failed...
 		    			}

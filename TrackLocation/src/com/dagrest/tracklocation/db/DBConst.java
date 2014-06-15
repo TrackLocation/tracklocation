@@ -34,6 +34,8 @@ public final class DBConst {
     public static final String TABLE_SEND_JOIN_REQUEST = "TABLE_SEND_JOIN_REQUEST";
     public static final String PHONE_NUMBER = "phone_number";
     public static final String MUTUAL_ID = "mutual_id";
+    public static final String STATUS = "status";
+
     
 //    CommonConst.JOIN_FLAG_SMS + 
 //	CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
@@ -101,6 +103,7 @@ public final class DBConst {
       "create table " + TABLE_SEND_JOIN_REQUEST + "(" +
     	  PHONE_NUMBER + " text not null unique, " +
     	  MUTUAL_ID + " text not null, " +
+    	  STATUS + " text not null, " +
     	  TIMESTAMP + " datetime not null" + 
     	  ");";
 

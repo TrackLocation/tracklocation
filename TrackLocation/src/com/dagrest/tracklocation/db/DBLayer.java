@@ -7,6 +7,8 @@ import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.JoinRequestData;
+import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
+import com.dagrest.tracklocation.datatype.ReceivedJoinRequestData;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -46,7 +48,7 @@ public class DBLayer {
 		return -1;
 	}
 
-	public static long addJoinRequest(String phoneNumber, String mutualId){
+	public static long addJoinRequest(String phoneNumber, String mutualId, JoinRequestStatusEnum status){
 		
 		if(phoneNumber == null || phoneNumber.isEmpty()){
 			// TODO: notify that no registrationId to insert
@@ -65,6 +67,7 @@ public class DBLayer {
 			ContentValues cVal = new ContentValues();
 			cVal.put(DBConst.PHONE_NUMBER, phoneNumber);
 			cVal.put(DBConst.MUTUAL_ID, mutualId);
+			cVal.put(DBConst.STATUS, status.toString());
 			cVal.put(DBConst.TIMESTAMP, Controller.getDateTime());
 			
 			if(!isPhoneInJoinRequestTable(phoneNumber)){
@@ -133,8 +136,8 @@ public class DBLayer {
 			
 	        // Select All Query
 			String selectQuery = "select " + DBConst.PHONE_NUMBER + ", " + 
-				DBConst.MUTUAL_ID + ", " + DBConst.TIMESTAMP + " from " + 
-				DBConst.TABLE_SEND_JOIN_REQUEST + 
+				DBConst.MUTUAL_ID + ", " + DBConst.STATUS + ", " + DBConst.TIMESTAMP + 
+				" from " + DBConst.TABLE_SEND_JOIN_REQUEST + 
 				" where " + DBConst.PHONE_NUMBER + " = ?";
 	        Cursor cursor = db.rawQuery(selectQuery, new String[] { phoneNumberIn });
 	  
@@ -143,10 +146,12 @@ public class DBLayer {
             	
             	String phoneNumber = cursor.getString(0);
             	String mutualId = cursor.getString(1);
-            	String timestamp = cursor.getString(2);
+            	String status = cursor.getString(2);
+            	String timestamp = cursor.getString(3);
 
             	joinRequestData.setPhoneNumber(phoneNumber);
             	joinRequestData.setMutualId(mutualId);
+            	joinRequestData.setStatus(status);
             	joinRequestData.setTimestamp(timestamp);
 	        }
 	        cursor.close();
@@ -158,6 +163,47 @@ public class DBLayer {
 			}
 		}
     	return joinRequestData;
+    }
+
+	public static ReceivedJoinRequestData getReceivedJoinRequest(String phoneNumberIn){
+		ReceivedJoinRequestData receivedJoinRequestData = null;
+		SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			
+	        // Select All Query
+			String selectQuery = "select " + DBConst.PHONE_NUMBER + ", " + 
+				DBConst.MUTUAL_ID + ", " + DBConst.REG_ID + ", " +  
+				DBConst.REG_ID + ", " + DBConst.RECEIVED_JOIN_REQUEST_ACCOUNT + ", " + 
+				DBConst.TIMESTAMP + 
+				" from " + DBConst.TABLE_RECEIVED_JOIN_REQUEST + 
+				" where " + DBConst.PHONE_NUMBER + " = ?";
+	        Cursor cursor = db.rawQuery(selectQuery, new String[] { phoneNumberIn });
+	  
+	        if (cursor.moveToFirst()) {
+	        	receivedJoinRequestData = new ReceivedJoinRequestData();
+            	
+            	String phoneNumber = cursor.getString(0);
+            	String mutualId = cursor.getString(1);
+            	String regId = cursor.getString(2);
+            	String account = cursor.getString(3);
+            	String timestamp = cursor.getString(4);
+
+            	receivedJoinRequestData.setPhoneNumber(phoneNumber);
+            	receivedJoinRequestData.setMutualId(mutualId);
+            	receivedJoinRequestData.setRegId(regId);
+            	receivedJoinRequestData.setAccount(account);
+            	receivedJoinRequestData.setTimestamp(timestamp);
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+    	return receivedJoinRequestData;
     }
 
 	// Insert contact data

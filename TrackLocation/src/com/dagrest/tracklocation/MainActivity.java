@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.JoinRequestData;
+import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.db.DBManager;
@@ -221,7 +222,7 @@ public class MainActivity extends Activity {
 // IMPORTANT !!!			// TODO: INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
 //             			// TODO: Request phone number by UI dialog - might be from contacts list (phone book)
 //
-     			long res = DBLayer.addJoinRequest(phoneNumberToJoin, mutualId);
+     			long res = DBLayer.addJoinRequest(phoneNumberToJoin, mutualId, JoinRequestStatusEnum.SENT);
      			JoinRequestData joinRequestData = DBLayer.getJoinRequest(phoneNumberToJoin);
 
                 // TODO: log number that join request was send to

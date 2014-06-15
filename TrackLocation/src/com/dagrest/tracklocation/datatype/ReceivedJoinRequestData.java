@@ -1,17 +1,12 @@
 package com.dagrest.tracklocation.datatype;
 
-public class JoinRequestData {
+public class ReceivedJoinRequestData {
 	private String phoneNumber;
 	private String mutualId;
-	private String status;
+	private String RegId;
+	private String account;
 	private String timestamp;
 	
-	public String getStatus() {
-		return status;
-	}
-	public void setStatus(String status) {
-		this.status = status;
-	}
 	public String getPhoneNumber() {
 		return phoneNumber;
 	}
@@ -23,6 +18,18 @@ public class JoinRequestData {
 	}
 	public void setMutualId(String mutualId) {
 		this.mutualId = mutualId;
+	}
+	public String getRegId() {
+		return RegId;
+	}
+	public void setRegId(String regId) {
+		RegId = regId;
+	}
+	public String getAccount() {
+		return account;
+	}
+	public void setAccount(String account) {
+		this.account = account;
 	}
 	public String getTimestamp() {
 		return timestamp;
