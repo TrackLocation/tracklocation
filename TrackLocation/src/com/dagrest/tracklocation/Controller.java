@@ -349,7 +349,7 @@ public class Controller {
             	//barProgressDialog.incrementProgressBy(2);
                 barProgressDialog.incrementProgressBy(1);
 
-            	System.out.println("Element: " + (i + 1));
+            	//System.out.println("Element: " + (i + 1));
             	contactDetails = new ContactDetails();
                 String contact_id = cursor.getString(cursor.getColumnIndex( _ID ));
                 String contactName = cursor.getString(cursor.getColumnIndex( DISPLAY_NAME ));
