@@ -3,19 +3,30 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
-     
-    <!-- Editext for Search -->
+
+    <!--
+    Editext for Search 
     <EditText android:id="@+id/find_contact"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:hint="Find contact..."
-        android:textSize="30sp"
+        android:textSize="25sp"
         android:inputType="textVisiblePassword"/>
-  
+    -->
     <!-- List View -->
+
     <ListView
         android:id="@+id/contact_list_view"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" />
-  
+        android:layout_height="325dp"
+        android:layout_weight="0.54" >
+
+    </ListView>
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Button" />
+
 </LinearLayout>

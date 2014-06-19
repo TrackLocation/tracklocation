@@ -133,21 +133,21 @@ public class MainActivity extends Activity {
 			}
 		}
 		
-        //Put up the Yes/No message box
-    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
-    	builder
-    	.setTitle("Join request")
-    	.setMessage("Approve join request from David Agrest, phone: +972 (54) 4504619 ?")
-    	.setIcon(android.R.drawable.ic_dialog_alert)
-    	.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-    	    public void onClick(DialogInterface dialog, int which) {			      	
-    	    	//Yes button clicked, do something
-    	    	Toast.makeText(MainActivity.this, "Yes button pressed", 
-                               Toast.LENGTH_SHORT).show();
-    	    }
-    	})
-    	.setNegativeButton("No", null)						//Do nothing on no
-    	.show();
+//        //Put up the Yes/No message box
+//    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//    	builder
+//    	.setTitle("Join request")
+//    	.setMessage("Approve join request from David Agrest, phone: +972 (54) 4504619 ?")
+//    	.setIcon(android.R.drawable.ic_dialog_alert)
+//    	.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+//    	    public void onClick(DialogInterface dialog, int which) {			      	
+//    	    	//Yes button clicked, do something
+//    	    	Toast.makeText(MainActivity.this, "Yes button pressed", 
+//                               Toast.LENGTH_SHORT).show();
+//    	    }
+//    	})
+//    	.setNegativeButton("No", null)						//Do nothing on no
+//    	.show();
 		
 		contactDeviceDataList = DBLayer.getContactDeviceDataList();
 	}
