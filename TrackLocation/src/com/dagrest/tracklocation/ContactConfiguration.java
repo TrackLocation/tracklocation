@@ -71,12 +71,12 @@ public class ContactConfiguration extends Activity {
 		initBroadcastReceiver(CommonConst.BROADCAST_LOCATION_UPDATED, "ContactConfiguration");
 
 		Intent intent = getIntent();
-		String jsonStringContactDeviceData = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA);
+		String jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
 		String userName = intent.getExtras().getString(CommonConst.CONTACT_LIST_SELECTED_VALUE);
 
     	jsonMessage = "";
 
-    	contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
+    	contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceDataList);
 		if(contactDeviceDataList == null){
 			return;
 		}
@@ -147,13 +147,13 @@ public class ContactConfiguration extends Activity {
 
     	switch(view.getId()) {
         	case R.id.check_status:
-        		checkGcmStatus();
+        		Controller.checkGcmStatus(getApplicationContext(), contactData, contactDeviceData);
         		break;
         	case R.id.start:
-        		startTrackLocationService();
+        		Controller.startTrackLocationService(getApplicationContext(), contactDeviceData);
         		break;
         	case R.id.stop:
-        		stopTrackLocationService();
+        		Controller.stopTrackLocationService(getApplicationContext(), contactDeviceData);
         		break;
         	case R.id.show_map:
         		Intent intent = new Intent(getApplicationContext(), Map.class);
@@ -219,61 +219,64 @@ public class ContactConfiguration extends Activity {
 		Intent trackLocationService = new Intent(context, TrackLocationService.class);
 		context.stopService(trackLocationService); 
 
-		stopTrackLocationService();
+		Controller.stopTrackLocationService(context, contactDeviceData);
 		
 		if(gcmIntentServiceChangeWatcher != null) {
 			unregisterReceiver(gcmIntentServiceChangeWatcher);
 		}
     }
 
-    private void checkGcmStatus(){
-		String regIDToReturnMessageTo = Controller.getRegistrationId(getApplicationContext());
-		List<String> listRegIDs = new ArrayList<String>();
-		if(contactData != null){
-			listRegIDs.add(contactDeviceData.getRegistration_id());
-		} else {
-			LogManager.LogErrorMsg(className, "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
-		}
-		jsonMessage = Controller.createJsonMessage(listRegIDs, 
-	    		regIDToReturnMessageTo, 
-	    		CommandEnum.status_request, 
-	    		"", // messageString, 
-	    		Controller.getCurrentDate(), // time,
-	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
-	    		null //PushNotificationServiceStatusEnum.available.toString()
-				);
-		Controller.sendCommand(jsonMessage);
-    }
-    
-    private void startTrackLocationService(){
-		String regIDToReturnMessageTo = Controller.getRegistrationId(getApplicationContext());
-		List<String> listRegIDs = new ArrayList<String>();
-		listRegIDs.add(contactDeviceData.getRegistration_id());
-		jsonMessage = Controller.createJsonMessage(listRegIDs, 
-	    		regIDToReturnMessageTo, 
-	    		CommandEnum.start, 
-	    		"", // messageString, 
-	    		Controller.getCurrentDate(), // time,
-	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
-	    		null //PushNotificationServiceStatusEnum.available.toString()
-				);
-		Controller.sendCommand(jsonMessage);
-    }
-
-    private void stopTrackLocationService(){
-		String regIDToReturnMessageToStop = Controller.getRegistrationId(getApplicationContext());
-		List<String> listRegIDsStop = new ArrayList<String>();
-		listRegIDsStop.add(contactDeviceData.getRegistration_id());
-		jsonMessage = Controller.createJsonMessage(listRegIDsStop, 
-	    		regIDToReturnMessageToStop, 
-	    		CommandEnum.stop, 
-	    		"", // messageString, 
-	    		Controller.getCurrentDate(), // time,
-	    		null, // key
-	    		null // value
-				);
-		Controller.sendCommand(jsonMessage);
-    }
+//    private static void checkGcmStatus(Context context, ContactData contactData, ContactDeviceData contactDeviceData){
+//		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+//		List<String> listRegIDs = new ArrayList<String>();
+//		if(contactData != null){
+//			listRegIDs.add(contactDeviceData.getRegistration_id());
+//		} else {
+//			LogManager.LogErrorMsg("Controller", "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
+//		}
+//		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
+//	    		regIDToReturnMessageTo, 
+//	    		CommandEnum.status_request, 
+//	    		"", // messageString, 
+//	    		Controller.getCurrentDate(), // time,
+//	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+//	    		null //PushNotificationServiceStatusEnum.available.toString()
+//				);
+//		Controller.sendCommand(jsonMessage);
+//    }
+//    
+//    public static void startTrackLocationService(Context context, ContactDeviceData contactDeviceData){
+//		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+//		List<String> listRegIDs = new ArrayList<String>();
+//		listRegIDs.add(contactDeviceData.getRegistration_id());
+//		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
+//	    		regIDToReturnMessageTo, 
+//	    		CommandEnum.start, 
+//	    		"", // messageString, 
+//	    		Controller.getCurrentDate(), // time,
+//	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+//	    		null //PushNotificationServiceStatusEnum.available.toString()
+//				);
+//		Controller.sendCommand(jsonMessage);
+//    }
+//
+//    private void stopTrackLocationService(){
+//		String regIDToReturnMessageToStop = Controller.getRegistrationId(getApplicationContext());
+//		List<String> listRegIDsStop = new ArrayList<String>();
+//		listRegIDsStop.add(contactDeviceData.getRegistration_id());
+//		
+////		if(listRegIDsStop.size() > 0){
+//			jsonMessage = Controller.createJsonMessage(listRegIDsStop, 
+//		    		regIDToReturnMessageToStop, 
+//		    		CommandEnum.stop, 
+//		    		"", // messageString, 
+//		    		Controller.getCurrentDate(), // time,
+//		    		null, // key
+//		    		null // value
+//					);
+//			Controller.sendCommand(jsonMessage);
+////		}
+//    }
 }
 
 

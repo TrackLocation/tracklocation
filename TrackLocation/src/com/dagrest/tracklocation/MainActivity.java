@@ -197,7 +197,7 @@ public class MainActivity extends Activity {
     		LogManager.LogInfoMsg(this.getClass().getName(), "onClick -> Locate button", 
     			"ContactList activity started.");
     		Intent intentContactList = new Intent(this, ContactList.class);
-    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA, 
+    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
     			new Gson().toJson(contactDeviceDataList));
     		startActivity(intentContactList);
         }

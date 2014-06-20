@@ -45,6 +45,7 @@ import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
+import com.dagrest.tracklocation.utils.Utils;
 import com.google.gson.Gson;
 
 public class Controller {
@@ -487,6 +488,115 @@ public class Controller {
 		sendCommand(jsonMessage);
 	}
 	
+	public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
+		List<String> values = null;
+	    
+		ContactDeviceDataList contactDeviceDataCollection = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
+	    if(contactDeviceDataCollection == null){
+	    	return null;
+	    }
+	
+	    values = fillContactListWithContactDeviceDataFromJSON(contactDeviceDataCollection);
+	    return values;
+	}
+	
+	public static List<String> fillContactListWithContactDeviceDataFromJSON(ContactDeviceDataList contactDeviceDataCollection){
+		List<String> values = null;
+	    
+ 	    List<ContactDeviceData> contactDeviceDataList = contactDeviceDataCollection.getContactDeviceDataList();
+	    if(contactDeviceDataList == null){
+	    	return null;
+	    }
+	    
+	    int i = 0;
+	    values = new ArrayList<String>();
+	    for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
+	    	ContactData contactData = contactDeviceData.getContactData();
+	    	if(contactData != null) {
+	    		String nick = contactData.getNick();
+	    		if(nick != null && !nick.isEmpty()){
+	    			values.add(contactData.getNick());
+	    		} else {
+	    			String email = contactData.getEmail();
+	    			if(email != null && !email.isEmpty()) {
+	    				values.add(email);
+	    			} else {
+		    			values.add("unknown");
+		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided username is null - check JSON input file, element :" + (i+1));
+	    			}
+	    		}
+	    	} else {
+	    		LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Contact Data provided incorrectly - check JSON input file, element :" + (i+1));
+	    		return null;
+	    	}
+	    	i++;
+			}
+	    
+	    return values;
+	}
+
+    public static void checkGcmStatus(Context context, ContactData contactData, ContactDeviceData contactDeviceData){
+		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+		List<String> listRegIDs = new ArrayList<String>();
+		if(contactData != null){
+			listRegIDs.add(contactDeviceData.getRegistration_id());
+		} else {
+			LogManager.LogErrorMsg("Controller", "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
+		}
+		if(listRegIDs.size() > 0){
+			String jsonMessage = Controller.createJsonMessage(listRegIDs, 
+		    		regIDToReturnMessageTo, 
+		    		CommandEnum.status_request, 
+		    		"", // messageString, 
+		    		Controller.getCurrentDate(), // time,
+		    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+		    		null //PushNotificationServiceStatusEnum.available.toString()
+					);
+			Controller.sendCommand(jsonMessage);
+		} else {
+			// TODO: error to log! Unable to send command: checkGcmStatus
+		}
+    }
+
+    public static void startTrackLocationService(Context context, ContactDeviceData contactDeviceData){
+		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+		List<String> listRegIDs = new ArrayList<String>();
+		listRegIDs.add(contactDeviceData.getRegistration_id());
+		if(listRegIDs.size() > 0){
+			String jsonMessage = Controller.createJsonMessage(listRegIDs, 
+		    		regIDToReturnMessageTo, 
+		    		CommandEnum.start, 
+		    		"", // messageString, 
+		    		Controller.getCurrentDate(), // time,
+		    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+		    		null //PushNotificationServiceStatusEnum.available.toString()
+					);
+			Controller.sendCommand(jsonMessage);
+		} else {
+			// TODO: error to log! Unable to send command: startTrackLocationService
+		}
+    }
+
+    public static void stopTrackLocationService(Context context, ContactDeviceData contactDeviceData){
+		String regIDToReturnMessageToStop = Controller.getRegistrationId(context);
+		List<String> listRegIDsStop = new ArrayList<String>();
+		listRegIDsStop.add(contactDeviceData.getRegistration_id());
+		
+		if(listRegIDsStop.size() > 0){
+			String jsonMessage = Controller.createJsonMessage(listRegIDsStop, 
+		    		regIDToReturnMessageToStop, 
+		    		CommandEnum.stop, 
+		    		"", // messageString, 
+		    		Controller.getCurrentDate(), // time,
+		    		null, // key
+		    		null // value
+					);
+			Controller.sendCommand(jsonMessage);
+		} else {
+			// TODO: error to log! Unable to send command: stopTrackLocationService
+		}
+    }
+
 //  TODO: TO DELETE:	
 //	public static String getAccountListFromPreferences(Context context){
 //		final SharedPreferences prefs = Preferences.getGCMPreferences(context);
