@@ -169,11 +169,16 @@ public class Map extends Activity implements LocationListener{
 				    		String lanLngUpdated = resultList.get(1);
 				    		
 				    		if( lanLngUpdated != null && !lanLngUpdated.isEmpty() ){
-					    		String[] latLng = lanLngUpdated.split(CommonConst.DELIMITER_COMMA);
+					    		String[] locationDetails = lanLngUpdated.split(CommonConst.DELIMITER_COMMA);
+					    		
+					    		String account = null;
+					    		if(locationDetails.length == 6){
+					    			account = locationDetails[5];
+					    		}
 			
-					    		if(latLng != null) {
-						    		double lat = Double.parseDouble(latLng[0]);
-						    		double lng = Double.parseDouble(latLng[1]);
+					    		if(locationDetails != null) {
+						    		double lat = Double.parseDouble(locationDetails[0]);
+						    		double lng = Double.parseDouble(locationDetails[1]);
 						    		
 						    		if(lat != 0 && lng != 0){
 							    		latLngChanging = new LatLng(lat, lng);
@@ -187,10 +192,12 @@ public class Map extends Activity implements LocationListener{
 							    		//marker.
 							    		marker = map.addMarker(new MarkerOptions()
 							            //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
+				    		            .snippet(account)
+				    		            .title("Title")
 							            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
 							            .position(latLngChanging));
 							    		
-							    		double accuracy = Double.parseDouble(latLng[2]);
+							    		double accuracy = Double.parseDouble(locationDetails[2]);
 
 							    		locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
 							    		            .radius(accuracy)
