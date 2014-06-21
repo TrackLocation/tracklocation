@@ -9,7 +9,9 @@ import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
+
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Bundle;
@@ -21,12 +23,16 @@ public class LocationListenerBasic implements LocationListener{
 	private String locationProviderType; // CommonConst.GPS = GPS, CommonConst.NETWORK = NETWORK...
 	private Context context;
 	private TrackLocationService trackLocationService;
+	private final SharedPreferences prefs;
+	private String account;
 	
 	public LocationListenerBasic(Context context, TrackLocationService trackLocationService, String className, String locationProviderType) {
 		this.className = className;
 		this.locationProviderType = locationProviderType;
 		this.context = context;
 		this.trackLocationService = trackLocationService;
+	    this.prefs = Preferences.getGCMPreferences(context);
+	    this.account = prefs.getString(CommonConst.PREFERENCES_PHONE_ACCOUNT, "");
 	}
 
 	@Override
@@ -59,7 +65,8 @@ public class LocationListenerBasic implements LocationListener{
             	longitude + CommonConst.DELIMITER_COMMA + 
             	accuracy + CommonConst.DELIMITER_COMMA + 
             	speed + CommonConst.DELIMITER_COMMA + 
-            	Utils.getCurrentTime();
+            	Utils.getCurrentTime() + CommonConst.DELIMITER_COMMA +
+            	account;
                     
             LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
             	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", 

@@ -37,6 +37,7 @@ import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
+import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
@@ -535,18 +536,25 @@ public class Controller {
 	    return values;
 	}
 
-    public static void checkGcmStatus(Context context, ContactData contactData, ContactDeviceData contactDeviceData){
+	public static void sendCommand(Context context, ContactDeviceDataList contactDeviceDataList, CommandEnum command){
 		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
 		List<String> listRegIDs = new ArrayList<String>();
-		if(contactData != null){
-			listRegIDs.add(contactDeviceData.getRegistration_id());
-		} else {
-			LogManager.LogErrorMsg("Controller", "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
+		
+		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+			ContactData contactData = contactDeviceData.getContactData();
+			if(contactData != null){
+				listRegIDs.add(contactDeviceData.getRegistration_id());
+			} else {
+				LogManager.LogErrorMsg("Controller", "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
+				Log.e("checkGcmStatus", "Unable to get registration_ID: contactData is null.");
+			}
+			
 		}
+		
 		if(listRegIDs.size() > 0){
 			String jsonMessage = Controller.createJsonMessage(listRegIDs, 
 		    		regIDToReturnMessageTo, 
-		    		CommandEnum.status_request, 
+		    		command, 
 		    		"", // messageString, 
 		    		Controller.getCurrentDate(), // time,
 		    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
@@ -556,46 +564,93 @@ public class Controller {
 		} else {
 			// TODO: error to log! Unable to send command: checkGcmStatus
 		}
-    }
-
-    public static void startTrackLocationService(Context context, ContactDeviceData contactDeviceData){
-		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
-		List<String> listRegIDs = new ArrayList<String>();
-		listRegIDs.add(contactDeviceData.getRegistration_id());
-		if(listRegIDs.size() > 0){
-			String jsonMessage = Controller.createJsonMessage(listRegIDs, 
-		    		regIDToReturnMessageTo, 
-		    		CommandEnum.start, 
-		    		"", // messageString, 
-		    		Controller.getCurrentDate(), // time,
-		    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
-		    		null //PushNotificationServiceStatusEnum.available.toString()
-					);
-			Controller.sendCommand(jsonMessage);
-		} else {
-			// TODO: error to log! Unable to send command: startTrackLocationService
-		}
-    }
-
-    public static void stopTrackLocationService(Context context, ContactDeviceData contactDeviceData){
-		String regIDToReturnMessageToStop = Controller.getRegistrationId(context);
-		List<String> listRegIDsStop = new ArrayList<String>();
-		listRegIDsStop.add(contactDeviceData.getRegistration_id());
+	}
+	
+	public static ContactDeviceDataList removeNonSelectedContacts(ContactDeviceDataList contactDeviceDataList, 
+		List<String> selectedContcatList){
 		
-		if(listRegIDsStop.size() > 0){
-			String jsonMessage = Controller.createJsonMessage(listRegIDsStop, 
-		    		regIDToReturnMessageToStop, 
-		    		CommandEnum.stop, 
-		    		"", // messageString, 
-		    		Controller.getCurrentDate(), // time,
-		    		null, // key
-		    		null // value
-					);
-			Controller.sendCommand(jsonMessage);
-		} else {
-			// TODO: error to log! Unable to send command: stopTrackLocationService
+		if(selectedContcatList.size() == 0){
+			// TODO: Error to log - no selected users were passed...
+			return null;
 		}
-    }
+		ContactDeviceDataList selectedContactDeviceDataList = new ContactDeviceDataList();
+		// remove extra contacts in contactDeviceDataList
+		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+			ContactData contactData = contactDeviceData.getContactData();
+			DeviceData deviceData = contactDeviceData.getDeviceData();
+			if(contactData != null && deviceData != null) {
+				for (String selectedContactID : selectedContcatList) {
+					if(selectedContactID.equals(contactData.getNick()) || selectedContactID.equals(contactData.getEmail())){
+						selectedContactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
+					}
+				}
+			}
+		}
+		
+		return selectedContactDeviceDataList;
+	}
+
+//    public static void checkGcmStatus(Context context, ContactData contactData, ContactDeviceData contactDeviceData){
+//		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+//		List<String> listRegIDs = new ArrayList<String>();
+//		if(contactData != null){
+//			listRegIDs.add(contactDeviceData.getRegistration_id());
+//		} else {
+//			LogManager.LogErrorMsg("Controller", "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
+//		}
+//		if(listRegIDs.size() > 0){
+//			String jsonMessage = Controller.createJsonMessage(listRegIDs, 
+//		    		regIDToReturnMessageTo, 
+//		    		CommandEnum.status_request, 
+//		    		"", // messageString, 
+//		    		Controller.getCurrentDate(), // time,
+//		    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+//		    		null //PushNotificationServiceStatusEnum.available.toString()
+//					);
+//			Controller.sendCommand(jsonMessage);
+//		} else {
+//			// TODO: error to log! Unable to send command: checkGcmStatus
+//		}
+//    }
+//
+//    public static void startTrackLocationService(Context context, ContactDeviceData contactDeviceData){
+//		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+//		List<String> listRegIDs = new ArrayList<String>();
+//		listRegIDs.add(contactDeviceData.getRegistration_id());
+//		if(listRegIDs.size() > 0){
+//			String jsonMessage = Controller.createJsonMessage(listRegIDs, 
+//		    		regIDToReturnMessageTo, 
+//		    		CommandEnum.start, 
+//		    		"", // messageString, 
+//		    		Controller.getCurrentDate(), // time,
+//		    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+//		    		null //PushNotificationServiceStatusEnum.available.toString()
+//					);
+//			Controller.sendCommand(jsonMessage);
+//		} else {
+//			// TODO: error to log! Unable to send command: startTrackLocationService
+//		}
+//    }
+//
+//    public static void stopTrackLocationService(Context context, ContactDeviceData contactDeviceData){
+//		String regIDToReturnMessageToStop = Controller.getRegistrationId(context);
+//		List<String> listRegIDsStop = new ArrayList<String>();
+//		listRegIDsStop.add(contactDeviceData.getRegistration_id());
+//		
+//		if(listRegIDsStop.size() > 0){
+//			String jsonMessage = Controller.createJsonMessage(listRegIDsStop, 
+//		    		regIDToReturnMessageToStop, 
+//		    		CommandEnum.stop, 
+//		    		"", // messageString, 
+//		    		Controller.getCurrentDate(), // time,
+//		    		null, // key
+//		    		null // value
+//					);
+//			Controller.sendCommand(jsonMessage);
+//		} else {
+//			// TODO: error to log! Unable to send command: stopTrackLocationService
+//		}
+//    }
 
 //  TODO: TO DELETE:	
 //	public static String getAccountListFromPreferences(Context context){
