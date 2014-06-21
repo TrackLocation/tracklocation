@@ -185,7 +185,8 @@ public class Controller {
 	    List<String> possibleEmails = new ArrayList<String>();
 
 	    for (Account account : accounts) {
-	        if (emailPattern.matcher(account.name).matches() && !possibleEmails.contains(account.name)) {
+	        if (emailPattern.matcher(account.name).matches() && !possibleEmails.contains(account.name) &&
+	        		account.type.equals("com.google")) {
         		possibleEmails.add(account.name);
 	        }
 	    }

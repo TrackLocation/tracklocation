@@ -45,8 +45,6 @@ public class ContactConfiguration extends Activity {
 	private TextView mDeviceType;
 	private TextView mStatus;
 	private TextView mNotification;
-	private TextView mLat;
-	private TextView mLng;
 	
 	private String deviceStatus;
 	private String notification;
@@ -122,13 +120,9 @@ public class ContactConfiguration extends Activity {
 		mDeviceType = (TextView) findViewById(R.id.devicetype);
 		mStatus = (TextView) findViewById(R.id.status);
 		mNotification = (TextView) findViewById(R.id.notification);
-		mLat = (TextView) findViewById(R.id.lat);
-		mLng = (TextView) findViewById(R.id.lng);
 
 		deviceStatus = mStatus.getText().toString();
 		notification = mNotification.getText().toString();
-		lat = mLat.getText().toString();
-		lng = mLng.getText().toString();
 
 		if(deviceStatus == null || deviceStatus.isEmpty()){
 			mStatus.setText(DEVICE_STATUS_DEFAULT);
@@ -142,20 +136,6 @@ public class ContactConfiguration extends Activity {
 		}
 //		} else {
 //			mNotification.setText(notification);
-//		}
-		
-		if(lat == null || lat.isEmpty()){
-			mLat.setText(LAT_DEFAULT);
-		}
-//		} else {
-//			mLat.setText(lat);
-//		}
-
-		if(lng == null || lng.isEmpty()){
-			mLng.setText(LNG_DEFAULT);
-		}
-//		} else {
-//			mLng.setText(lng);
 //		}
 		
 		mUserName.setText(contactData.getNick());
