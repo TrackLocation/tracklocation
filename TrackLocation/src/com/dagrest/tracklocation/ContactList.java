@@ -206,8 +206,8 @@ public class ContactList extends Activity/*ListActivity*/ {
         if (view == findViewById(R.id.btnTrackLocation)) {
             selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
         	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
-	    		Controller.sendCommand(getApplicationContext(), 
-	    				selectedContactDeviceDataList, CommandEnum.start);
+        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.status_request);
+	    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.start);
 	    		Intent intent = new Intent(getApplicationContext(), Map.class);
 	   			startActivity(intent);
         	} else {

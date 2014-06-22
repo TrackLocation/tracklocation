@@ -154,6 +154,7 @@ public class ContactConfiguration extends Activity {
         		break;
         	case R.id.start:
         		//Controller.startTrackLocationService(getApplicationContext(), contactDeviceData);
+        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.status_request);
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.start);
         		break;
         	case R.id.stop:
