@@ -39,6 +39,9 @@ public class DBLayer {
 				return db.delete(DBConst.TABLE_SEND_JOIN_REQUEST, whereClause, whereArgs);
 			}
 		} catch (Throwable t) {
+            if (DBConst.IS_DEBUG_LOG_ENABLED){
+            	Log.e(DBConst.LOG_TAG_DB, "Exception: DBHelper.onCreate() exception", t);
+            }
 			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){

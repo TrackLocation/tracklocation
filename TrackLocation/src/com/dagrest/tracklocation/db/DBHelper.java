@@ -25,8 +25,9 @@ public class DBHelper extends SQLiteOpenHelper{
             db.execSQL(DBConst.TABLE_PERMISSIONS_CREATE);
 
         } catch (Exception exception) {
-            if (DBConst.IS_DEBUG_LOG_ENABLED)
-                Log.i(DBConst.LOG_TAG_DB, "Exception onCreate() exception");
+            if (DBConst.IS_DEBUG_LOG_ENABLED){
+            	Log.e(DBConst.LOG_TAG_DB, "Exception DBHelper.onCreate() exception", exception);
+            }
         }
     }
 

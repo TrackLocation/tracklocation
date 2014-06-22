@@ -1,6 +1,8 @@
 package com.dagrest.tracklocation;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -17,6 +19,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+
+
 
 
 
@@ -50,6 +54,7 @@ public class Map extends Activity implements LocationListener{
 	private BroadcastReceiver gcmIntentServiceChangeWatcher;
 	private GoogleMap map;
 	private Marker marker;
+	private LinkedHashMap<String, Marker> markerMap;
 	private Circle locationCircle;
 	private float zoom;
 	
@@ -171,43 +176,45 @@ public class Map extends Activity implements LocationListener{
 				    		if( lanLngUpdated != null && !lanLngUpdated.isEmpty() ){
 					    		String[] locationDetails = lanLngUpdated.split(CommonConst.DELIMITER_COMMA);
 					    		
-					    		String account = null;
-					    		if(locationDetails.length == 6){
-					    			account = locationDetails[5];
-					    		}
-			
-					    		if(locationDetails != null) {
-						    		double lat = Double.parseDouble(locationDetails[0]);
-						    		double lng = Double.parseDouble(locationDetails[1]);
-						    		
-						    		if(lat != 0 && lng != 0){
-							    		latLngChanging = new LatLng(lat, lng);
-							    		
-							    		if(marker != null){
-							    			marker.remove();
-							    		}
-							    		if(locationCircle != null){
-							    			locationCircle.remove();
-							    		}
-							    		//marker.
-							    		marker = map.addMarker(new MarkerOptions()
-							            //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-				    		            .snippet(account)
-				    		            .title("Title")
-							            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-							            .position(latLngChanging));
-							    		
-							    		double accuracy = Double.parseDouble(locationDetails[2]);
-
-							    		locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
-							    		            .radius(accuracy)
-							    		            .strokeColor(Color.argb(255, 0, 153, 255))
-							    		            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
+					    		markerMap = new LinkedHashMap<String, Marker>();
+					    		
+//					    		String account = null;
+//					    		if(locationDetails.length == 6){
+//					    			account = locationDetails[5];
+//					    		}
+//			
+//					    		if(locationDetails != null) {
+//						    		double lat = Double.parseDouble(locationDetails[0]);
+//						    		double lng = Double.parseDouble(locationDetails[1]);
+//						    		
+//						    		if(lat != 0 && lng != 0){
+//							    		latLngChanging = new LatLng(lat, lng);
+//							    		
+//							    		if(marker != null){
+//							    			marker.remove();
+//							    		}
+//							    		if(locationCircle != null){
+//							    			locationCircle.remove();
+//							    		}
+//							    		//marker.
+//							    		marker = map.addMarker(new MarkerOptions()
+//							            //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
+//				    		            .snippet(account)
+//				    		            .title("Title")
+//							            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+//							            .position(latLngChanging));
+//							    		
+//							    		double accuracy = Double.parseDouble(locationDetails[2]);
+//
+//							    		locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
+//							    		            .radius(accuracy)
+//							    		            .strokeColor(Color.argb(255, 0, 153, 255))
+//							    		            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
 							    		
 							            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
 							            		latLngChanging, zoom));
-						    		}
-					    		}
+//						    		}
+//					    		}
 				    		}
 			    		}
 		    		}
@@ -218,6 +225,58 @@ public class Map extends Activity implements LocationListener{
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }
 
+	public static void setMapMarker(GoogleMap map, String[] locationDetails, LinkedHashMap<String, Marker> markerMap) {
+		if(locationDetails != null) {
+    		double lat = Double.parseDouble(locationDetails[0]);
+    		double lng = Double.parseDouble(locationDetails[1]);
+    		
+    		if(lat != 0 && lng != 0){
+				LatLng latLngChanging = new LatLng(lat, lng);
+
+	    		String account = null;
+	    		if(locationDetails.length == 6){
+	    			account = locationDetails[5];
+	    		}
+	    		if(account == null || !account.isEmpty()) {
+	    			return;
+	    		}
+	    		
+	    		if(!markerMap.containsKey(account)){
+	    			
+	    		} else {
+	    			
+	    		}
+	    		
+	    		
+				Marker marker = null;
+				Circle locationCircle = null;
+				
+				if(marker != null){
+					marker.remove();
+				}
+				if(locationCircle != null){
+					locationCircle.remove();
+				}
+				
+	
+				//marker.
+				marker = map.addMarker(new MarkerOptions()
+		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
+		        .snippet(account)
+		        .title("Title")
+		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+		        .position(latLngChanging));
+				
+				double accuracy = Double.parseDouble(locationDetails[2]);
+		
+				locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
+				            .radius(accuracy)
+				            .strokeColor(Color.argb(255, 0, 153, 255))
+				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
+    		}
+    	}
+	}
+	
     @Override
     protected void onDestroy() {
     	super.onDestroy();
