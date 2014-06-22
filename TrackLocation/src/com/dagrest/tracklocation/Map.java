@@ -1,16 +1,13 @@
 package com.dagrest.tracklocation;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Random;
 
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Utils;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -19,6 +16,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+
+
+
 
 
 
@@ -41,10 +41,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
 import android.widget.Toast;
-
-import com.google.android.gms.maps.SupportMapFragment;
 
 public class Map extends Activity implements LocationListener{
 
@@ -53,16 +50,19 @@ public class Map extends Activity implements LocationListener{
 	private LatLng latLngChanging;
 	private BroadcastReceiver gcmIntentServiceChangeWatcher;
 	private GoogleMap map;
-	private Marker marker;
-	private LinkedHashMap<String, Marker> markerMap;
-	private Circle locationCircle;
+	//private Marker marker;
+	private LinkedHashMap<String, Marker> markerMap = null;
+	private LinkedHashMap<String, Circle> locationCircleMap = null;
+	//private Circle locationCircle;
 	private float zoom;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.map);	
-		
+
+		Intent intent = getIntent();
+
 		initGcmIntentServiceBroadcastReceiver();
 
 		// Get a handle to the Map Fragment
@@ -74,10 +74,10 @@ public class Map extends Activity implements LocationListener{
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(
         		lastKnownLocation, zoom));
         
-        marker = map.addMarker(new MarkerOptions()
-//        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-        .position(lastKnownLocation));
+//        Marker marker = map.addMarker(new MarkerOptions()
+////        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
+//        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+//        .position(lastKnownLocation));
 	}
 	
 	@Override
@@ -176,45 +176,17 @@ public class Map extends Activity implements LocationListener{
 				    		if( lanLngUpdated != null && !lanLngUpdated.isEmpty() ){
 					    		String[] locationDetails = lanLngUpdated.split(CommonConst.DELIMITER_COMMA);
 					    		
-					    		markerMap = new LinkedHashMap<String, Marker>();
+					    		if(markerMap == null){
+					    			markerMap = new LinkedHashMap<String, Marker>();
+					    		}
+					    		if(locationCircleMap == null){
+					    			locationCircleMap = new LinkedHashMap<String, Circle>();
+					    		}
 					    		
-//					    		String account = null;
-//					    		if(locationDetails.length == 6){
-//					    			account = locationDetails[5];
-//					    		}
-//			
-//					    		if(locationDetails != null) {
-//						    		double lat = Double.parseDouble(locationDetails[0]);
-//						    		double lng = Double.parseDouble(locationDetails[1]);
-//						    		
-//						    		if(lat != 0 && lng != 0){
-//							    		latLngChanging = new LatLng(lat, lng);
-//							    		
-//							    		if(marker != null){
-//							    			marker.remove();
-//							    		}
-//							    		if(locationCircle != null){
-//							    			locationCircle.remove();
-//							    		}
-//							    		//marker.
-//							    		marker = map.addMarker(new MarkerOptions()
-//							            //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-//				    		            .snippet(account)
-//				    		            .title("Title")
-//							            .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-//							            .position(latLngChanging));
-//							    		
-//							    		double accuracy = Double.parseDouble(locationDetails[2]);
-//
-//							    		locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
-//							    		            .radius(accuracy)
-//							    		            .strokeColor(Color.argb(255, 0, 153, 255))
-//							    		            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
-							    		
-							            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-							            		latLngChanging, zoom));
-//						    		}
-//					    		}
+					    		setMapMarker(map, locationDetails, markerMap, locationCircleMap);
+
+					    		map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+					            		lastKnownLocation, zoom));
 				    		}
 			    		}
 		    		}
@@ -225,7 +197,8 @@ public class Map extends Activity implements LocationListener{
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }
 
-	public static void setMapMarker(GoogleMap map, String[] locationDetails, LinkedHashMap<String, Marker> markerMap) {
+	public static void setMapMarker(GoogleMap map, String[] locationDetails, 
+			LinkedHashMap<String, Marker> markerMap, LinkedHashMap<String, Circle> locationCircleMap) {
 		if(locationDetails != null) {
     		double lat = Double.parseDouble(locationDetails[0]);
     		double lng = Double.parseDouble(locationDetails[1]);
@@ -237,28 +210,22 @@ public class Map extends Activity implements LocationListener{
 	    		if(locationDetails.length == 6){
 	    			account = locationDetails[5];
 	    		}
-	    		if(account == null || !account.isEmpty()) {
+	    		if(account == null || account.isEmpty()) {
 	    			return;
 	    		}
 	    		
-	    		if(!markerMap.containsKey(account)){
-	    			
-	    		} else {
-	    			
+	    		if(markerMap.containsKey(account)) {
+	    			markerMap.get(account).remove();
+	    			markerMap.remove(account);
 	    		}
-	    		
+	    		if(locationCircleMap.containsKey(account)) {
+	    			locationCircleMap.get(account).remove();
+	    			locationCircleMap.remove(account);
+	    		}
 	    		
 				Marker marker = null;
 				Circle locationCircle = null;
-				
-				if(marker != null){
-					marker.remove();
-				}
-				if(locationCircle != null){
-					locationCircle.remove();
-				}
-				
-	
+								
 				//marker.
 				marker = map.addMarker(new MarkerOptions()
 		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
@@ -267,12 +234,15 @@ public class Map extends Activity implements LocationListener{
 		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
 		        .position(latLngChanging));
 				
+				markerMap.put(account, marker);
+				
 				double accuracy = Double.parseDouble(locationDetails[2]);
 		
 				locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
 				            .radius(accuracy)
 				            .strokeColor(Color.argb(255, 0, 153, 255))
 				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
+				locationCircleMap.put(account, locationCircle);
     		}
     	}
 	}
@@ -282,4 +252,5 @@ public class Map extends Activity implements LocationListener{
     	super.onDestroy();
     	unregisterReceiver(gcmIntentServiceChangeWatcher);
     }
+
 }

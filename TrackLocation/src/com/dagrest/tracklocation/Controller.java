@@ -505,8 +505,13 @@ public class Controller {
 	public static List<String> fillContactListWithContactDeviceDataFromJSON(ContactDeviceDataList contactDeviceDataCollection){
 		List<String> values = null;
 	    
+		if(contactDeviceDataCollection == null){
+			// TODO: error message to log
+			return null;
+		}
  	    List<ContactDeviceData> contactDeviceDataList = contactDeviceDataCollection.getContactDeviceDataList();
 	    if(contactDeviceDataList == null){
+			// TODO: error message to log
 	    	return null;
 	    }
 	    

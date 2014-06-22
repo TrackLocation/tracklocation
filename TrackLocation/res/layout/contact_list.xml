@@ -24,9 +24,11 @@
     </ListView>
 
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/btnTrackLocation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Button" />
+        android:layout_height="70sp"
+        android:text="Track location ..." 
+        android:textSize="20sp"
+        android:onClick="onClick"/>
 
 </LinearLayout>

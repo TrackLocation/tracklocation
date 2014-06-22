@@ -3,16 +3,19 @@ package com.dagrest.tracklocation;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.log.LogManager;
+import com.dagrest.tracklocation.service.TrackLocationService;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Utils;
 import com.google.gson.Gson;
 
 import android.app.Activity;
 import android.app.ListActivity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -39,6 +42,8 @@ public class ContactList extends Activity/*ListActivity*/ {
 	private ArrayAdapter<String> adapter;
 	private List<Boolean> isSelected;
 	private ContactDeviceDataList contactDeviceDataList;
+	private ContactDeviceDataList selectedContactDeviceDataList;
+	private List<String> selectedContcatList;
 	private Gson gson;
  	
 	@Override
@@ -50,7 +55,7 @@ public class ContactList extends Activity/*ListActivity*/ {
 		gson = new Gson();
 		jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
 		contactDeviceDataList = gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
-		
+
 		// jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
 		//List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(jsonStringContactDeviceDataList);
 		List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(contactDeviceDataList);
@@ -104,9 +109,14 @@ public class ContactList extends Activity/*ListActivity*/ {
 	        });
 	        */
 			// ---------------------------------------
-	        
+	         
 	    } else {
-	    	LogManager.LogErrorMsg("ContactList", "onCreate", "Contact Data provided incorrectly - check JSON input file.");
+	    	// There can be a case when data is not provided.
+	    	// No contacts are joined.
+	    	// Or provided incorrectly - to check JSON input file.
+	    	LogManager.LogErrorMsg("ContactList", "onCreate", "Contact Data not provided "
+	    			+ "- no joined contacts; or provided incorrectly - check JSON input file.");
+	    	return;
 	    }
 
 	    //ListView list = getListView();
@@ -129,22 +139,31 @@ public class ContactList extends Activity/*ListActivity*/ {
 	            int position, long id) {
 	        	final String selectedValue = (String) parent.getItemAtPosition(position);
 	        	
-//	        	boolean isSelectedVal = isSelected.get(position);
-//	        	isSelected.set(position, !isSelectedVal);
-//	        	if(isSelectedVal == false){
-//	        		lv.getChildAt(position).setBackgroundColor(getResources().getColor(R.color.LightGrey));
-//	        	} else {
-//	        		lv.getChildAt(position).setBackgroundColor(android.R.drawable.btn_default);
-//	        	}
+	        	if(selectedContcatList == null){
+	        		selectedContcatList = new ArrayList<String>();
+	        	}
+	        	boolean isSelectedVal = isSelected.get(position);
+	        	isSelected.set(position, !isSelectedVal);
+	        	if(isSelected.get(position) == false){
+	        		lv.getChildAt(position).setBackgroundColor(android.R.drawable.btn_default);
+	        		if(selectedContcatList.contains(selectedValue)){
+	        			selectedContcatList.remove(selectedValue);
+	        		}
+	        	} else {
+	        		lv.getChildAt(position).setBackgroundColor(getResources().getColor(R.color.LightGrey));
+	        		if(!selectedContcatList.contains(selectedValue)){
+	        			selectedContcatList.add(selectedValue);
+	        		}
+	        	}
 	        	
 	        	// TODO: move the following code to a separate function:
-	        	///*
+	        	/*
 				Toast.makeText(ContactList.this, selectedValue, Toast.LENGTH_SHORT).show();
 				Intent intentContactConfig = new Intent(ContactList.this, ContactConfiguration.class);
 				intentContactConfig.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, jsonStringContactDeviceDataList);
 				intentContactConfig.putExtra(CommonConst.CONTACT_LIST_SELECTED_VALUE, selectedValue);
 				startActivity(intentContactConfig);
-				//*/
+				*/
 	        }
 
 	      });
@@ -180,6 +199,34 @@ public class ContactList extends Activity/*ListActivity*/ {
 		return super.onOptionsItemSelected(item);
 	}
 	
+	public void onClick(final View view) {
+    	// ========================================
+    	// ABOUT button
+    	// ========================================
+        if (view == findViewById(R.id.btnTrackLocation)) {
+            selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
+        	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
+	    		Controller.sendCommand(getApplicationContext(), 
+	    				selectedContactDeviceDataList, CommandEnum.start);
+	    		Intent intent = new Intent(getApplicationContext(), Map.class);
+	   			startActivity(intent);
+        	} else {
+        		// TODO: inform customer that no contact was selected
+        	}
+    	// ========================================
+    	// ... button
+    	// ========================================
+        }
+	}
+
+    @Override
+    protected void onDestroy() {
+    	super.onDestroy();
+    	if(!selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
+    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.stop);
+    	}
+    }
+
 //	public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
 //		List<String> values = null;
 //	    
@@ -213,7 +260,6 @@ public class ContactList extends Activity/*ListActivity*/ {
 //	    
 //	    return values;
 //	}
-	
 }
 
 	

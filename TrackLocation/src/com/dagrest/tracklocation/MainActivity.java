@@ -196,10 +196,16 @@ public class MainActivity extends Activity {
         } else if (view == findViewById(R.id.btnLocate)) {
     		LogManager.LogInfoMsg(this.getClass().getName(), "onClick -> Locate button", 
     			"ContactList activity started.");
-    		Intent intentContactList = new Intent(this, ContactList.class);
-    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
-    			new Gson().toJson(contactDeviceDataList));
-    		startActivity(intentContactList);
+    		if(contactDeviceDataList != null){
+	    		Intent intentContactList = new Intent(this, ContactList.class);
+	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
+	    			new Gson().toJson(contactDeviceDataList));
+	    		startActivity(intentContactList);
+    		} else {
+    	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 
+    	    		Toast.LENGTH_SHORT).show();
+    			// TODO: to log - no joined contacts
+    		}
         }
     }
 
