@@ -11,11 +11,15 @@ import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+
+
 
 
 
@@ -185,8 +189,22 @@ public class Map extends Activity implements LocationListener{
 					    		
 					    		setMapMarker(map, locationDetails, markerMap, locationCircleMap);
 
-					    		map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-					            		lastKnownLocation, zoom));
+					    		LatLngBounds.Builder builder = new LatLngBounds.Builder();
+					    		for (LinkedHashMap.Entry<String,Marker> markerEntry : markerMap.entrySet()) {
+					    			Marker m = markerEntry.getValue();
+					    			if(m != null){
+						    			builder.include(m.getPosition());
+					    			}
+					    		}
+					    		LatLngBounds bounds = builder.build();
+					    		
+					    		if(markerMap != null && markerMap.size() > 1) {
+						    		int padding = 50; // offset from edges of the map in pixels
+						    		CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+						    		map.animateCamera(cu); // or map.moveCamera(cu); 
+					    		} else {
+					    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(lastKnownLocation, zoom));
+					    		}
 				    		}
 			    		}
 		    		}
@@ -254,3 +272,4 @@ public class Map extends Activity implements LocationListener{
     }
 
 }
+
