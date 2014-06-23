@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -22,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -47,6 +49,12 @@ import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 
 public class Controller {
@@ -137,17 +145,9 @@ public class Controller {
 	    new AsyncTask<Void, Void, String>() {
 	        @Override
 	        protected String doInBackground(Void... params) {
-//	            try {
-	        		//sendRegistrationIdToBackend(regid);
-	            	String result = HttpUtils.sendRegistrationIdToBackend(jsonMessage);
-	            	// TODO: fix return value
-	            	return result;
-//	            } catch (Exception e) {
-//	//                LogManager.LogErrorMsg(this.getClass().getName(), "onClick->Send", 
-//	//                	"Error :" + ex.getMessage());
-//	            	// TODO: fix return value
-//	            	return "Exception" + e.getMessage();
-//	            }
+            	String result = HttpUtils.sendMessageToBackend(jsonMessage);
+            	// TODO: fix return value
+            	return result;
 	        }
 	
 	        @Override
@@ -567,6 +567,8 @@ public class Controller {
 		    		null //PushNotificationServiceStatusEnum.available.toString()
 					);
 			Controller.sendCommand(jsonMessage);
+			Controller.sendCommand(jsonMessage);
+			Controller.sendCommand(jsonMessage);
 		} else {
 			// TODO: error to log! Unable to send command: checkGcmStatus
 		}
@@ -575,7 +577,7 @@ public class Controller {
 	public static ContactDeviceDataList removeNonSelectedContacts(ContactDeviceDataList contactDeviceDataList, 
 		List<String> selectedContcatList){
 		
-		if(selectedContcatList.size() == 0){
+		if(contactDeviceDataList == null || selectedContcatList == null || selectedContcatList.size() == 0){
 			// TODO: Error to log - no selected users were passed...
 			return null;
 		}
@@ -594,6 +596,57 @@ public class Controller {
 		}
 		
 		return selectedContactDeviceDataList;
+	}
+
+	public static void setMapMarker(GoogleMap map, String[] locationDetails, 
+			LinkedHashMap<String, Marker> markerMap, LinkedHashMap<String, Circle> locationCircleMap) {
+		if(locationDetails != null) {
+    		double lat = Double.parseDouble(locationDetails[0]);
+    		double lng = Double.parseDouble(locationDetails[1]);
+    		
+    		if(lat != 0 && lng != 0){
+				LatLng latLngChanging = new LatLng(lat, lng);
+
+	    		String account = null;
+	    		if(locationDetails.length == 6){
+	    			account = locationDetails[5];
+	    		}
+	    		if(account == null || account.isEmpty()) {
+	    			return;
+	    		}
+	    		
+	    		if(markerMap.containsKey(account)) {
+	    			markerMap.get(account).remove();
+	    			markerMap.remove(account);
+	    		}
+	    		if(locationCircleMap.containsKey(account)) {
+	    			locationCircleMap.get(account).remove();
+	    			locationCircleMap.remove(account);
+	    		}
+	    		
+				Marker marker = null;
+				Circle locationCircle = null;
+								
+				//marker.
+				marker = map.addMarker(new MarkerOptions()
+		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
+		        .snippet(account)
+		        .title("Title")
+		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+		        .position(latLngChanging));
+				
+				markerMap.put(account, marker);
+				System.out.println("MarkerMap size: " + markerMap.size());
+				
+				double accuracy = Double.parseDouble(locationDetails[2]);
+		
+				locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
+				            .radius(accuracy)
+				            .strokeColor(Color.argb(255, 0, 153, 255))
+				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
+				locationCircleMap.put(account, locationCircle);
+    		}
+    	}
 	}
 
 //    public static void checkGcmStatus(Context context, ContactData contactData, ContactDeviceData contactDeviceData){

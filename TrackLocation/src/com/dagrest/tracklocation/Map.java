@@ -1,10 +1,15 @@
 package com.dagrest.tracklocation;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.CommandEnum;
+import com.dagrest.tracklocation.datatype.ContactDeviceData;
+import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Utils;
@@ -32,9 +37,23 @@ import com.google.android.gms.maps.MapFragment;
 
 
 
+import com.google.gson.Gson;
+
+
+
+
+
+
+
+
+
+
+
+
 //import com.google.android.gms.maps.*;
 //import com.google.android.gms.maps.model.*;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -45,6 +64,10 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
+import android.view.View;
 import android.widget.Toast;
 
 public class Map extends Activity implements LocationListener{
@@ -56,23 +79,76 @@ public class Map extends Activity implements LocationListener{
 	private GoogleMap map;
 	//private Marker marker;
 	private LinkedHashMap<String, Marker> markerMap = null;
+	private LinkedHashMap<String, Boolean> accountsList;
 	private LinkedHashMap<String, Circle> locationCircleMap = null;
 	//private Circle locationCircle;
 	private float zoom;
+	private ContactDeviceDataList selectedContactDeviceDataList;
+	private ScaleGestureDetector detector;
+	private int contactsQuantity;
+	private boolean isShowAllMarkersEnabled;
+	ProgressDialog barProgressDialog;
 	
+	public void launchBarDialog() {
+        barProgressDialog = new ProgressDialog(Map.this);
+        barProgressDialog.setTitle("Tracking location");
+        barProgressDialog.setMessage("Please wait ...");
+        barProgressDialog.setProgressStyle(barProgressDialog.STYLE_HORIZONTAL);
+        barProgressDialog.setProgress(0);
+        barProgressDialog.setMax(contactsQuantity);
+        barProgressDialog.show();
+        
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//            	//Controller.fetchContacts(Map.this, contactDetailsGroups, barProgressDialog);
+//            	if(markerMap != null && markerMap.size() >= contactsQuantity) {
+//            		barProgressDialog.dismiss();
+//            	}
+//            	System.out.println("===============>  Test... <==================");
+////            	try {
+////					this.wait(1000);
+////				} catch (InterruptedException e) {
+////					e.printStackTrace();
+////					Log.e(CommonConst.LOG_TAG, "Wait exception...", e);
+////				}
+//            }
+//        }).start();
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.map);	
 
 		Intent intent = getIntent();
+		Bundle bundle = intent.getExtras();
+		String jsonStringContactDeviceDataList = null;
+		if(bundle.containsKey(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST)){
+			jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
+			selectedContactDeviceDataList = 
+				new Gson().fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
+			if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
+				contactsQuantity = selectedContactDeviceDataList.getContactDeviceDataList().size();
+			}
+			isShowAllMarkersEnabled = true;
+		}
 
+		launchBarDialog();
 		initGcmIntentServiceBroadcastReceiver();
 
 		// Get a handle to the Map Fragment
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 
         setupLocation();
+        //selectedContactDeviceDataList
+        String accountsListMsg = "Wainting for:\n";
+        accountsList = new LinkedHashMap<String, Boolean>();
+        for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList.getContactDeviceDataList()) {
+        	accountsListMsg = accountsListMsg + contactDeviceData.getContactData().getEmail() + "\n";
+        	accountsList.put(contactDeviceData.getContactData().getEmail(), true);
+		}
+        barProgressDialog.setMessage(accountsListMsg);
         
         zoom = 15;
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(
@@ -187,8 +263,21 @@ public class Map extends Activity implements LocationListener{
 					    			locationCircleMap = new LinkedHashMap<String, Circle>();
 					    		}
 					    		
-					    		setMapMarker(map, locationDetails, markerMap, locationCircleMap);
-
+					    		Controller.setMapMarker(map, locationDetails, markerMap, locationCircleMap);
+					    		barProgressDialog.setProgress(markerMap.size());
+					    		String accountsListMsg = "Wainting for:\n";
+					    		
+					    		for (Entry<String,Boolean> account : accountsList.entrySet()) {
+					    			if(markerMap.containsKey(account.getKey())){
+					    				account.setValue(false);
+					    			} else {
+					    				if(account.getValue() == true){
+					    					accountsListMsg = accountsListMsg + account.getKey() + "\n";
+					    				}
+					    			}
+								}
+					    		barProgressDialog.setMessage(accountsListMsg);
+					    		
 					    		LatLngBounds.Builder builder = new LatLngBounds.Builder();
 					    		for (LinkedHashMap.Entry<String,Marker> markerEntry : markerMap.entrySet()) {
 					    			Marker m = markerEntry.getValue();
@@ -198,12 +287,18 @@ public class Map extends Activity implements LocationListener{
 					    		}
 					    		LatLngBounds bounds = builder.build();
 					    		
-					    		if(markerMap != null && markerMap.size() > 1) {
+					    		if(markerMap != null && markerMap.size() > 1 && isShowAllMarkersEnabled == true) {
+					    			// put camera to show all markers
 						    		int padding = 50; // offset from edges of the map in pixels
 						    		CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
 						    		map.animateCamera(cu); // or map.moveCamera(cu); 
+						    		if(markerMap.size() == contactsQuantity){
+						    			isShowAllMarkersEnabled = false;
+						    			barProgressDialog.dismiss();
+						    		}
 					    		} else {
 					    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(lastKnownLocation, zoom));
+					    			barProgressDialog.dismiss();
 					    		}
 				    		}
 			    		}
@@ -214,62 +309,29 @@ public class Map extends Activity implements LocationListener{
 	    registerReceiver(gcmIntentServiceChangeWatcher, intentFilter);
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }
-
-	public static void setMapMarker(GoogleMap map, String[] locationDetails, 
-			LinkedHashMap<String, Marker> markerMap, LinkedHashMap<String, Circle> locationCircleMap) {
-		if(locationDetails != null) {
-    		double lat = Double.parseDouble(locationDetails[0]);
-    		double lng = Double.parseDouble(locationDetails[1]);
-    		
-    		if(lat != 0 && lng != 0){
-				LatLng latLngChanging = new LatLng(lat, lng);
-
-	    		String account = null;
-	    		if(locationDetails.length == 6){
-	    			account = locationDetails[5];
-	    		}
-	    		if(account == null || account.isEmpty()) {
-	    			return;
-	    		}
-	    		
-	    		if(markerMap.containsKey(account)) {
-	    			markerMap.get(account).remove();
-	    			markerMap.remove(account);
-	    		}
-	    		if(locationCircleMap.containsKey(account)) {
-	    			locationCircleMap.get(account).remove();
-	    			locationCircleMap.remove(account);
-	    		}
-	    		
-				Marker marker = null;
-				Circle locationCircle = null;
-								
-				//marker.
-				marker = map.addMarker(new MarkerOptions()
-		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-		        .snippet(account)
-		        .title("Title")
-		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-		        .position(latLngChanging));
-				
-				markerMap.put(account, marker);
-				
-				double accuracy = Double.parseDouble(locationDetails[2]);
-		
-				locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
-				            .radius(accuracy)
-				            .strokeColor(Color.argb(255, 0, 153, 255))
-				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
-				locationCircleMap.put(account, locationCircle);
-    		}
-    	}
-	}
 	
     @Override
     protected void onDestroy() {
     	super.onDestroy();
+    	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
+    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.stop);
+    	}
     	unregisterReceiver(gcmIntentServiceChangeWatcher);
     }
-
+    
+//    @Override
+//    public boolean dispatchTouchEvent(MotionEvent motionEvent) {
+//        // TODO Auto-generated method stub
+//        super.dispatchTouchEvent(motionEvent);
+//        final int action = motionEvent.getAction();       
+//        final int fingersCount = motionEvent.getPointerCount();        
+//        
+//        if ((action == MotionEvent.ACTION_POINTER_UP) && (fingersCount == 2)) {             
+//            //onTwoFingersTap(); 
+//        	System.out.println("Two fingers");
+//            return true;         
+//        } 
+//        return true; //detector.onTouchEvent(motionEvent);     
+//    }
 }
 

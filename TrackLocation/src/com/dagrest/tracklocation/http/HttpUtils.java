@@ -17,7 +17,10 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
+import android.util.Log;
+
 import com.dagrest.tracklocation.log.LogManager;
+import com.dagrest.tracklocation.utils.CommonConst;
 
 public class HttpUtils {
 
@@ -58,17 +61,20 @@ public class HttpUtils {
         return null;
     }
     
-    public static String sendRegistrationIdToBackend(String jsonMessage) {
+    public static String sendMessageToBackend(String jsonMessage) {
         LogManager.LogFunctionCall("HttpUtils", "sendRegistrationIdToBackend");
 //        //PostToGCM.post(apiKey, content);
-//        
 //        new Date().toString();
-//        
 //        String messageJSON = "{\"registration_ids\" : "
 //        	+ "[\"" + regid + "\"],"+
 //        	"\"data\" : {\"message\": \"From David\",\"time\": \"" + new Date().toString() + "\"},}";
         
         String result = HttpUtils.postGCM("https://android.googleapis.com/gcm/send", "AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30", jsonMessage);
+        
+        if(result != null && !result.isEmpty() && result.contains("error")){
+        	LogManager.LogErrorMsg("HttpUtils", "sendMessageToBackend", result);
+        	Log.e(CommonConst.LOG_TAG, result);
+        }
         
         LogManager.LogFunctionExit("HttpUtils", "sendRegistrationIdToBackend");
         return result;

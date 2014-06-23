@@ -208,8 +208,10 @@ public class ContactList extends Activity/*ListActivity*/ {
         	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.status_request);
 	    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.start);
-	    		Intent intent = new Intent(getApplicationContext(), Map.class);
-	   			startActivity(intent);
+	    		Intent intentMap = new Intent(getApplicationContext(), Map.class);
+	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
+		    			new Gson().toJson(selectedContactDeviceDataList));
+	   			startActivity(intentMap);
         	} else {
         		// TODO: inform customer that no contact was selected
         	}
@@ -222,9 +224,6 @@ public class ContactList extends Activity/*ListActivity*/ {
     @Override
     protected void onDestroy() {
     	super.onDestroy();
-    	if(!selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
-    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.stop);
-    	}
     }
 
 //	public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){

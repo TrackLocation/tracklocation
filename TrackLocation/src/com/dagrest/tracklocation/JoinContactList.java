@@ -66,8 +66,7 @@ public class JoinContactList extends Activity {
 		                }
 		            }
 		        }).start();
-		        
-		    }
+	}
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
