@@ -1,11 +1,8 @@
 package com.dagrest.tracklocation;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map.Entry;
-
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
@@ -14,42 +11,14 @@ import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.model.Circle;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 import com.google.gson.Gson;
-
-
-
-
-
-
-
-
-
-
-
-
 
 //import com.google.android.gms.maps.*;
 //import com.google.android.gms.maps.model.*;
@@ -59,56 +28,54 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
-import android.view.View;
 import android.widget.Toast;
 
 public class Map extends Activity implements LocationListener{
 
+	// Max time of waiting dialog displaying - 30 seconds
+	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
+	
 	private LocationManager locationManager;
 	private LatLng lastKnownLocation;
 	private LatLng latLngChanging;
-	private BroadcastReceiver gcmIntentServiceChangeWatcher;
+	private BroadcastReceiver gcmLocationUpdatedWatcher;
 	private GoogleMap map;
 	private LinkedHashMap<String, Marker> markerMap = null;
 	private LinkedHashMap<String, Circle> locationCircleMap = null;
 	private float zoom;
 	private ContactDeviceDataList selectedContactDeviceDataList;
-	private ScaleGestureDetector detector;
+	//private ScaleGestureDetector detector;
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
-	ProgressDialog barProgressDialog;
+	ProgressDialog waitingDialog;
 	
-	public void launchBarDialog() {
-        barProgressDialog = new ProgressDialog(Map.this);
-        barProgressDialog.setTitle("Tracking location");
-        barProgressDialog.setMessage("Please wait ...");
-        barProgressDialog.setProgressStyle(barProgressDialog.STYLE_SPINNER);
-        //barProgressDialog.setProgress(0);
-        //barProgressDialog.setMax(contactsQuantity);
-        barProgressDialog.show();
+	public void launchWaitingDialog() {
+        waitingDialog = new ProgressDialog(Map.this);
+        waitingDialog.setTitle("Tracking location");
+        waitingDialog.setMessage("Please wait ...");
+        waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        //progressDialog.setProgress(0);
+        //progressDialog.setMax(contactsQuantity);
+        waitingDialog.setCancelable(false);
+        waitingDialog.setIndeterminate(true);
+        waitingDialog.show();
         
         new Thread(new Runnable() {
             @Override
             public void run() {
             	if(markerMap != null && markerMap.size() >= contactsQuantity) {
-            		barProgressDialog.dismiss();
+            		waitingDialog.dismiss();
             	}
             	try {
-                	System.out.println("===============>  Sleep start ... <==================");
-					Thread.sleep(30000); // Max time of progress dialog - 30 seconds
-	            	System.out.println("===============>  Sleep finished <==================");
-					barProgressDialog.dismiss();
+					Thread.sleep(MAX_SHOW_TIME_WAITING_DIALOG); 
+					waitingDialog.dismiss();
 				} catch (InterruptedException e) {
-					barProgressDialog.dismiss();
+					waitingDialog.dismiss();
 				}
             }
         }).start();
@@ -132,19 +99,20 @@ public class Map extends Activity implements LocationListener{
 		}
 		isShowAllMarkersEnabled = true;
 
-		launchBarDialog();
-		initGcmIntentServiceBroadcastReceiver();
+		launchWaitingDialog();
+		
+		initGcmLocationUpdatedBroadcastReceiver();
 
 		// Get a handle to the Map Fragment
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 
         setupLocation();
 
-        String accountsListMsg = "Wainting for:\n";
+        String accountsListMsg = "Waiting for:\n\n";
         for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList.getContactDeviceDataList()) {
         	accountsListMsg = accountsListMsg + contactDeviceData.getContactData().getEmail() + "\n";
 		}
-        barProgressDialog.setMessage(accountsListMsg);
+        waitingDialog.setMessage(accountsListMsg);
         
         zoom = 15;
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(
@@ -220,19 +188,18 @@ public class Map extends Activity implements LocationListener{
 		
 	}
 
-	private void initGcmIntentServiceBroadcastReceiver()
+	private void initGcmLocationUpdatedBroadcastReceiver()
     {
     	LogManager.LogFunctionCall("ContactConfiguration", "initGcmIntentServiceWatcher");
 	    IntentFilter intentFilter = new IntentFilter();
 	    intentFilter.addAction(CommonConst.BROADCAST_LOCATION_UPDATED);
-	    gcmIntentServiceChangeWatcher = new BroadcastReceiver() 
+	    gcmLocationUpdatedWatcher = new BroadcastReceiver() 
 	    {
 	    	@Override
     		public void onReceive(Context context, Intent intent) {
 	    		
 	    		zoom = map.getCameraPosition().zoom;
 	    		
-    			// TODO Auto-generated method stub
 	    		LogManager.LogInfoMsg("ContactConfiguration", "initGcmIntentServiceWatcher->onReceive", "WORK");
 	    		
 	    		Bundle bundle = intent.getExtras();
@@ -261,21 +228,14 @@ public class Map extends Activity implements LocationListener{
 					    		
 					    		Controller.setMapMarker(map, locationDetails, markerMap, locationCircleMap);
 					    		
-					    		LatLngBounds.Builder builder = new LatLngBounds.Builder();
-					    		for (LinkedHashMap.Entry<String,Marker> markerEntry : markerMap.entrySet()) {
-					    			Marker m = markerEntry.getValue();
-					    			if(m != null){
-						    			builder.include(m.getPosition());
-					    			}
-					    		}
-					    		LatLngBounds bounds = builder.build();
-					    		
 					    		if(markerMap != null && markerMap.size() > 1 && isShowAllMarkersEnabled == true) {
 					    			// put camera to show all markers
-						    		int padding = 50; // offset from edges of the map in pixels
-						    		CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+					    			CameraUpdate cu = Controller.createCameraUpdateLatLngBounds(markerMap);
 						    		map.animateCamera(cu); // or map.moveCamera(cu); 
 						    		if(markerMap.size() >= contactsQuantity){
+						    			// put camera to show all markers
+						    			cu = Controller.createCameraUpdateLatLngBounds(markerMap);
+							    		map.animateCamera(cu); // or map.moveCamera(cu); 
 						    			isShowAllMarkersEnabled = false;
 						    		}
 					    		} else if(markerMap != null && markerMap.size() == 1 && isShowAllMarkersEnabled == true) {
@@ -284,11 +244,13 @@ public class Map extends Activity implements LocationListener{
 					    	    		double lng = Double.parseDouble(locationDetails[1]);
 						    			latLngChanging = new LatLng(lat, lng);
 						    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngChanging, zoom));
-						    			isShowAllMarkersEnabled = false;
+						    			if(markerMap.size() >= contactsQuantity){
+						    				isShowAllMarkersEnabled = false;
+						    			}
 					    			}
 					    		}
-					    		if(markerMap.size() == contactsQuantity){
-					    			barProgressDialog.dismiss();
+					    		if(markerMap != null && markerMap.size() == contactsQuantity){
+					    			waitingDialog.dismiss();
 					    		}
 				    		}
 			    		}
@@ -296,7 +258,7 @@ public class Map extends Activity implements LocationListener{
 	    		}
     		}
 	    };
-	    registerReceiver(gcmIntentServiceChangeWatcher, intentFilter);
+	    registerReceiver(gcmLocationUpdatedWatcher, intentFilter);
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }
 	
@@ -306,7 +268,7 @@ public class Map extends Activity implements LocationListener{
     	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
     		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.stop);
     	}
-    	unregisterReceiver(gcmIntentServiceChangeWatcher);
+    	unregisterReceiver(gcmLocationUpdatedWatcher);
     }
     
 //    @Override

@@ -49,10 +49,13 @@ import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
@@ -636,7 +639,6 @@ public class Controller {
 		        .position(latLngChanging));
 				
 				markerMap.put(account, marker);
-				System.out.println("MarkerMap size: " + markerMap.size());
 				
 				double accuracy = Double.parseDouble(locationDetails[2]);
 		
@@ -649,6 +651,19 @@ public class Controller {
     	}
 	}
 
+	public static CameraUpdate createCameraUpdateLatLngBounds(LinkedHashMap<String, Marker> markerMap) {
+		LatLngBounds.Builder builder = new LatLngBounds.Builder();
+		for (LinkedHashMap.Entry<String,Marker> markerEntry : markerMap.entrySet()) {
+			Marker m = markerEntry.getValue();
+			if(m != null){
+    			builder.include(m.getPosition());
+			}
+		}
+		LatLngBounds bounds = builder.build();
+		int padding = 50; // offset from edges of the map in pixels
+		return  CameraUpdateFactory.newLatLngBounds(bounds, padding);
+	}
+	
 //    public static void checkGcmStatus(Context context, ContactData contactData, ContactDeviceData contactDeviceData){
 //		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
 //		List<String> listRegIDs = new ArrayList<String>();
