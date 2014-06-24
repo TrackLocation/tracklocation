@@ -50,6 +50,7 @@ import com.google.gson.Gson;
 
 
 
+
 //import com.google.android.gms.maps.*;
 //import com.google.android.gms.maps.model.*;
 import android.app.Activity;
@@ -77,11 +78,8 @@ public class Map extends Activity implements LocationListener{
 	private LatLng latLngChanging;
 	private BroadcastReceiver gcmIntentServiceChangeWatcher;
 	private GoogleMap map;
-	//private Marker marker;
 	private LinkedHashMap<String, Marker> markerMap = null;
-	private LinkedHashMap<String, Boolean> accountsList;
 	private LinkedHashMap<String, Circle> locationCircleMap = null;
-	//private Circle locationCircle;
 	private float zoom;
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private ScaleGestureDetector detector;
@@ -95,7 +93,7 @@ public class Map extends Activity implements LocationListener{
         barProgressDialog.setMessage("Please wait ...");
         barProgressDialog.setProgressStyle(barProgressDialog.STYLE_SPINNER);
         //barProgressDialog.setProgress(0);
-        barProgressDialog.setMax(contactsQuantity);
+        //barProgressDialog.setMax(contactsQuantity);
         barProgressDialog.show();
         
         new Thread(new Runnable() {
@@ -131,8 +129,8 @@ public class Map extends Activity implements LocationListener{
 			if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
 				contactsQuantity = selectedContactDeviceDataList.getContactDeviceDataList().size();
 			}
-			isShowAllMarkersEnabled = true;
 		}
+		isShowAllMarkersEnabled = true;
 
 		launchBarDialog();
 		initGcmIntentServiceBroadcastReceiver();
@@ -143,10 +141,8 @@ public class Map extends Activity implements LocationListener{
         setupLocation();
 
         String accountsListMsg = "Wainting for:\n";
-        accountsList = new LinkedHashMap<String, Boolean>();
         for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList.getContactDeviceDataList()) {
         	accountsListMsg = accountsListMsg + contactDeviceData.getContactData().getEmail() + "\n";
-        	accountsList.put(contactDeviceData.getContactData().getEmail(), true);
 		}
         barProgressDialog.setMessage(accountsListMsg);
         
@@ -264,19 +260,6 @@ public class Map extends Activity implements LocationListener{
 					    		}
 					    		
 					    		Controller.setMapMarker(map, locationDetails, markerMap, locationCircleMap);
-					    		barProgressDialog.setProgress(markerMap.size());
-					    		String accountsListMsg = "Wainting for:\n";
-					    		
-					    		for (Entry<String,Boolean> account : accountsList.entrySet()) {
-					    			if(markerMap.containsKey(account.getKey())){
-					    				account.setValue(false);
-					    			} else {
-					    				if(account.getValue() == true){
-					    					accountsListMsg = accountsListMsg + account.getKey() + "\n";
-					    				}
-					    			}
-								}
-					    		barProgressDialog.setMessage(accountsListMsg);
 					    		
 					    		LatLngBounds.Builder builder = new LatLngBounds.Builder();
 					    		for (LinkedHashMap.Entry<String,Marker> markerEntry : markerMap.entrySet()) {
@@ -292,12 +275,19 @@ public class Map extends Activity implements LocationListener{
 						    		int padding = 50; // offset from edges of the map in pixels
 						    		CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
 						    		map.animateCamera(cu); // or map.moveCamera(cu); 
-						    		if(markerMap.size() == contactsQuantity){
+						    		if(markerMap.size() >= contactsQuantity){
 						    			isShowAllMarkersEnabled = false;
-						    			barProgressDialog.dismiss();
 						    		}
-					    		} else {
-					    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(lastKnownLocation, zoom));
+					    		} else if(markerMap != null && markerMap.size() == 1 && isShowAllMarkersEnabled == true) {
+					    			if(locationDetails != null) {
+					    	    		double lat = Double.parseDouble(locationDetails[0]);
+					    	    		double lng = Double.parseDouble(locationDetails[1]);
+						    			latLngChanging = new LatLng(lat, lng);
+						    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngChanging, zoom));
+						    			isShowAllMarkersEnabled = false;
+					    			}
+					    		}
+					    		if(markerMap.size() == contactsQuantity){
 					    			barProgressDialog.dismiss();
 					    		}
 				    		}
