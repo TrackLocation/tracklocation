@@ -93,27 +93,27 @@ public class Map extends Activity implements LocationListener{
         barProgressDialog = new ProgressDialog(Map.this);
         barProgressDialog.setTitle("Tracking location");
         barProgressDialog.setMessage("Please wait ...");
-        barProgressDialog.setProgressStyle(barProgressDialog.STYLE_HORIZONTAL);
-        barProgressDialog.setProgress(0);
+        barProgressDialog.setProgressStyle(barProgressDialog.STYLE_SPINNER);
+        //barProgressDialog.setProgress(0);
         barProgressDialog.setMax(contactsQuantity);
         barProgressDialog.show();
         
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//            	//Controller.fetchContacts(Map.this, contactDetailsGroups, barProgressDialog);
-//            	if(markerMap != null && markerMap.size() >= contactsQuantity) {
-//            		barProgressDialog.dismiss();
-//            	}
-//            	System.out.println("===============>  Test... <==================");
-////            	try {
-////					this.wait(1000);
-////				} catch (InterruptedException e) {
-////					e.printStackTrace();
-////					Log.e(CommonConst.LOG_TAG, "Wait exception...", e);
-////				}
-//            }
-//        }).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+            	if(markerMap != null && markerMap.size() >= contactsQuantity) {
+            		barProgressDialog.dismiss();
+            	}
+            	try {
+                	System.out.println("===============>  Sleep start ... <==================");
+					Thread.sleep(30000); // Max time of progress dialog - 30 seconds
+	            	System.out.println("===============>  Sleep finished <==================");
+					barProgressDialog.dismiss();
+				} catch (InterruptedException e) {
+					barProgressDialog.dismiss();
+				}
+            }
+        }).start();
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class Map extends Activity implements LocationListener{
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 
         setupLocation();
-        //selectedContactDeviceDataList
+
         String accountsListMsg = "Wainting for:\n";
         accountsList = new LinkedHashMap<String, Boolean>();
         for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList.getContactDeviceDataList()) {
