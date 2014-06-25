@@ -545,7 +545,8 @@ public class Controller {
 	    return values;
 	}
 
-	public static void sendCommand(Context context, ContactDeviceDataList contactDeviceDataList, CommandEnum command){
+	public static void sendCommand(Context context, ContactDeviceDataList contactDeviceDataList, CommandEnum command, 
+			String key, String value){
 		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
 		List<String> listRegIDs = new ArrayList<String>();
 		
@@ -566,11 +567,9 @@ public class Controller {
 		    		command, 
 		    		"", // messageString, 
 		    		Controller.getCurrentDate(), // time,
-		    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
-		    		null //PushNotificationServiceStatusEnum.available.toString()
+		    		key, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+		    		value //PushNotificationServiceStatusEnum.available.toString()
 					);
-			Controller.sendCommand(jsonMessage);
-			Controller.sendCommand(jsonMessage);
 			Controller.sendCommand(jsonMessage);
 		} else {
 			// TODO: error to log! Unable to send command: checkGcmStatus

@@ -3,12 +3,16 @@ package com.dagrest.tracklocation;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Timer;
+
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.MapKeepAliveTimerJob;
+import com.dagrest.tracklocation.utils.TimerJob;
 import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
@@ -17,8 +21,10 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
-
 import com.google.gson.Gson;
+
+
+
 
 //import com.google.android.gms.maps.*;
 //import com.google.android.gms.maps.model.*;
@@ -33,6 +39,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 
 public class Map extends Activity implements LocationListener{
@@ -52,7 +59,9 @@ public class Map extends Activity implements LocationListener{
 	//private ScaleGestureDetector detector;
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
-	ProgressDialog waitingDialog;
+	private ProgressDialog waitingDialog;
+	private Timer timer;
+	private MapKeepAliveTimerJob mapKeepAliveTimerJob;
 	
 	public void launchWaitingDialog() {
         waitingDialog = new ProgressDialog(Map.this);
@@ -122,7 +131,32 @@ public class Map extends Activity implements LocationListener{
 ////        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
 //        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
 //        .position(lastKnownLocation));
+        
+// TODO --->>>        keepAliveTrackLocationService();
+        
+        timer = new Timer();
+        mapKeepAliveTimerJob = new MapKeepAliveTimerJob();
+        mapKeepAliveTimerJob.setContext(getApplicationContext());
+        mapKeepAliveTimerJob.setSelectedContactDeviceDataList(selectedContactDeviceDataList);
+    	Log.i(CommonConst.LOG_TAG, "Start KeepAliveTrackLocationService TimerJob with repeat period = " + 
+        		(CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700)/1000/60 + " min");
+        timer.schedule(mapKeepAliveTimerJob, CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY, 
+        	CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700);
+    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - started");
+
 	}
+	
+//	public static void keepAliveTrackLocationService(){
+//        timer = new Timer();
+//        mapKeepAliveTimerJob = new MapKeepAliveTimerJob();
+//        mapKeepAliveTimerJob.setContext(getApplicationContext());
+//        mapKeepAliveTimerJob.setSelectedContactDeviceDataList(selectedContactDeviceDataList);
+//    	Log.i(CommonConst.LOG_TAG, "Start KeepAliveTrackLocationService TimerJob with repeat period = " + 
+//        		(CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700)/1000/60 + " min");
+//        timer.schedule(mapKeepAliveTimerJob, CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY, 
+//        	CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700);
+//    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - started");
+//	}
 	
 	@Override
 	protected void onPause() {
@@ -265,10 +299,15 @@ public class Map extends Activity implements LocationListener{
     @Override
     protected void onDestroy() {
     	super.onDestroy();
-    	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
-    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.stop);
+//    	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
+//    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
+//    			CommandEnum.stop, null, null);
+//    	}
+    	timer.cancel();
+    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - stopped");
+    	if(gcmLocationUpdatedWatcher != null){
+    		unregisterReceiver(gcmLocationUpdatedWatcher);
     	}
-    	unregisterReceiver(gcmLocationUpdatedWatcher);
     }
     
 //    @Override

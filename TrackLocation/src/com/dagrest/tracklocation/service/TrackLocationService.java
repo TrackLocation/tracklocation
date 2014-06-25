@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Timer;
 
 import com.dagrest.tracklocation.Controller;
+import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.NotificationCommandEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
@@ -15,10 +16,13 @@ import com.dagrest.tracklocation.utils.TimerJob;
 import com.dagrest.tracklocation.utils.Preferences;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -35,6 +39,7 @@ public class TrackLocationService extends Service {
 	private Timer timer;
 	private long repeatPeriod;
 	private long trackLocationServiceStartTime;
+	private BroadcastReceiver gcmKeepAliveBroadcastReceiver;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -48,6 +53,7 @@ public class TrackLocationService extends Service {
     {             
         super.onCreate();
         className = this.getClass().getName();
+		initBroadcastReceiver(CommonConst.BROADCAST_LOCATION_KEEP_ALIVE, "ContactConfiguration");
         
         isLocationProviderAvailable = false;
     	LogManager.LogFunctionCall(className, "onCreate");
@@ -64,7 +70,7 @@ public class TrackLocationService extends Service {
             timer = new Timer();
             timerJob = new TimerJob();
             timerJob.setTrackLocationServiceObject(this);
-            repeatPeriod = 60000 * 2; // 2 minutes
+            repeatPeriod = CommonConst.REPEAT_PERIOD_DEFAULT; // 2 minutes
             trackLocationServiceStartTime = System.currentTimeMillis();
             
             LogManager.LogFunctionExit(className, "onCreate");
@@ -87,6 +93,8 @@ public class TrackLocationService extends Service {
         	// Stop timer
         	Log.i(CommonConst.LOG_TAG, "Stop TrackLocationService TimerJob");
         	timerJob.cancel();
+        	Log.i(CommonConst.LOG_TAG, "Timer with TimerJob that stops TrackLocationService - stopped");
+
         	
             if(locationManager != null){
             	if( locationListenerGPS != null){
@@ -99,6 +107,10 @@ public class TrackLocationService extends Service {
             	}
             }
             
+    		if(gcmKeepAliveBroadcastReceiver != null) {
+    			unregisterReceiver(gcmKeepAliveBroadcastReceiver);
+    		}
+    		
 			sendTrackLocationServiceStopped();
 			
             LogManager.LogFunctionExit(className, "onDestroy");
@@ -120,6 +132,7 @@ public class TrackLocationService extends Service {
         	Log.i(CommonConst.LOG_TAG, "Start TrackLocationService TimerJob with repeat period = " + 
         		repeatPeriod/1000/60 + " min");
             timer.schedule(timerJob, 0, repeatPeriod);
+        	Log.i(CommonConst.LOG_TAG, "Timer with TimerJob that stops TrackLocationService - started");
 
 //              String locProvName = null; 
 //              locProvName = Preferences.getPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME);
@@ -281,5 +294,46 @@ public class TrackLocationService extends Service {
 		this.trackLocationServiceStartTime = trackLocationServiceStartTime;
 	}
     
+    private void initBroadcastReceiver(final String action, final String actionDescription)
+    {
+    	LogManager.LogFunctionCall(actionDescription, "initBroadcastReceiver");
+	    IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction(action);
+	    gcmKeepAliveBroadcastReceiver = new BroadcastReceiver() 
+	    {
+	    	@Override
+    		public void onReceive(Context context, Intent intent) {
+	    		LogManager.LogInfoMsg(actionDescription, "initBroadcastReceiver->onReceive", "WORK");
+
+	    		// TODO: refactor with JSON to JAVA and back instead of string with delimiters
+	    		
+	    		Bundle bundle = intent.getExtras();
+	    		String broadcastKepAlive = BroadcastCommandEnum.keep_alive.toString();
+	    		// ===========================================
+	    		// broadcast key = keep_alive
+	    		// ===========================================
+	    		if(bundle != null){
+	    			String result = null;
+	    			if(bundle.containsKey(broadcastKepAlive)){
+	    				result = bundle.getString(broadcastKepAlive);
+	    			}
+		    		if(result != null && !result.isEmpty()){
+		    			if(result.contains(BroadcastCommandEnum.keep_alive.toString())){
+		    				//mStatus.setText(PushNotificationServiceStatusEnum.available.toString());
+		    				String[] inputArray = result.split(CommonConst.DELIMITER_STRING); // key, value, current_time
+		    				String key = inputArray[0];
+		    				String currentTime = inputArray[1];
+		    				trackLocationServiceStartTime = Long.parseLong(currentTime, 10);       
+		    			}
+		    		} else {
+//		    			mNotification.setText(result);
+		    		}
+	    		}
+	    	}
+	    };
+	    registerReceiver(gcmKeepAliveBroadcastReceiver, intentFilter);
+	    LogManager.LogFunctionExit(actionDescription, "initBroadcastReceiver");
+    }
+
 }
 

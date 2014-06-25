@@ -2,6 +2,8 @@ package com.dagrest.tracklocation.utils;
 
 import java.util.TimerTask;
 
+import android.util.Log;
+
 import com.dagrest.tracklocation.service.TrackLocationService;
 
 public class TimerJob extends TimerTask {
@@ -19,8 +21,9 @@ public class TimerJob extends TimerTask {
 		// Get current time
 		long currentTime = System.currentTimeMillis();
 		
-		if(false){
+		if(currentTime - trackLocationServiceStartTime > CommonConst.REPEAT_PERIOD_DEFAULT){
 			trackLocationService.stopTrackLocationService();
+        	Log.i(CommonConst.LOG_TAG, "Timer with TimerJob stoped TrackLocationService");
 		}
 	}
 

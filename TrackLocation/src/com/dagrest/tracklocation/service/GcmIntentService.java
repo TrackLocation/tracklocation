@@ -92,19 +92,19 @@ public class GcmIntentService extends IntentService {
             		Intent trackLocationService = new Intent(context, TrackLocationService.class);
             		context.startService(trackLocationService); 
            	
-        		// ============================================
-                // COMMAND: 	stop
-            	// command received via GCM from Master
-            	// to Slave - in order to stop location
-            	// service on Slave
-            	// ============================================
-            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
-            			extras.getString(CommandTagEnum.command.toString()).
-            			equals(CommandEnum.stop.toString())){ // COMMAND STOP 
-            		Context context = getApplicationContext();
-            		Intent trackLocationService = new Intent(context, TrackLocationService.class);
-            		boolean result = context.stopService(trackLocationService); 
-            		Log.i(LOCATION_SERVICE, "Servise stopped: " + result);
+//        		// ============================================
+//                // COMMAND: 	stop
+//            	// command received via GCM from Master
+//            	// to Slave - in order to stop location
+//            	// service on Slave
+//            	// ============================================
+//            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
+//            			extras.getString(CommandTagEnum.command.toString()).
+//            			equals(CommandEnum.stop.toString())){ // COMMAND STOP 
+//            		Context context = getApplicationContext();
+//            		Intent trackLocationService = new Intent(context, TrackLocationService.class);
+//            		boolean result = context.stopService(trackLocationService); 
+//            		Log.i(LOCATION_SERVICE, "Servise stopped: " + result);
             		
         		// ============================================
                 // COMMAND: 	status_request
@@ -212,11 +212,10 @@ public class GcmIntentService extends IntentService {
             		
             		String key = extras.getString("key");
             		String value = extras.getString("value");
-            		String currentDateTime = Controller.getCurrentDate();
             		
 					Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_KEEP_ALIVE, "GcmIntentService", 
 						BroadcastCommandEnum.keep_alive.toString(),  
-						key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
+						key + CommonConst.DELIMITER_STRING + value);
             	} 
         	
             } // if (GoogleCloudMessaging

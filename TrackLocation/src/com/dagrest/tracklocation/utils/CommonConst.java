@@ -22,6 +22,7 @@ public class CommonConst {
 	public static final String 	LOCATION_INFO_NETWORK = "LOCATION_INFO_NETWORK";
 	// public static final String 	IS_LOCATION_PROVIDER_AVAILABLE = "IS_LOCATION_PROVIDER_AVAILABLE";
 	public static final String 	TRACK_LOCATION_WAKE_LOCK = "TRACK_LOCATION_WAKE_LOCK";
+	public static final long    REPEAT_PERIOD_DEFAULT = 60000 * 2; // 2 minutes;
 	
 	public static final String 	PREFERENCES_REG_ID = "registration_id";
 	// Registry ID list of contacts that will be updated by requested info: location/status/...
@@ -55,5 +56,7 @@ public class CommonConst {
  	public static final String 	BROADCAST_LOCATION_KEEP_ALIVE 	= "com.dagrest.tracklocation.Map.KEEP_ALIVE";
  	
  	public static final int 	REQUEST_SELECT_PHONE_NUMBER = 1;
+ 	
+ 	public static final long    KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY = 40000; // 40 seconds
 
 }

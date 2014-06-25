@@ -150,16 +150,20 @@ public class ContactConfiguration extends Activity {
     	switch(view.getId()) {
         	case R.id.check_status:
         		//Controller.checkGcmStatus(getApplicationContext(), contactData, contactDeviceData);
-        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.status_request);
+        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
+        			CommandEnum.status_request, null, null);
         		break;
         	case R.id.start:
         		//Controller.startTrackLocationService(getApplicationContext(), contactDeviceData);
-        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.status_request);
-        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.start);
+        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
+        			CommandEnum.status_request, null, null);
+        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
+        			CommandEnum.start, null, null);
         		break;
         	case R.id.stop:
         		//Controller.stopTrackLocationService(getApplicationContext(), contactDeviceData);
-        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, CommandEnum.stop);
+        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
+        			CommandEnum.stop, null, null);
         		break;
         	case R.id.show_map:
         		Intent intent = new Intent(getApplicationContext(), Map.class);
@@ -226,7 +230,8 @@ public class ContactConfiguration extends Activity {
 		context.stopService(trackLocationService); 
 
 		//Controller.stopTrackLocationService(context, contactDeviceData);
-		Controller.sendCommand(getApplicationContext(), contactDeviceDataList, CommandEnum.stop);
+		Controller.sendCommand(getApplicationContext(), contactDeviceDataList, 
+			CommandEnum.stop, null, null);
 
 		if(gcmIntentServiceChangeWatcher != null) {
 			unregisterReceiver(gcmIntentServiceChangeWatcher);
