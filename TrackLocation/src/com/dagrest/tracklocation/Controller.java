@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -29,7 +29,6 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
-import android.provider.ContactsContract.PhoneLookup;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Patterns;
@@ -47,6 +46,7 @@ import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.MapKeepAliveTimerJob;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.CameraUpdate;
@@ -62,6 +62,29 @@ import com.google.gson.Gson;
 
 public class Controller {
 
+	private Timer timer;
+	private MapKeepAliveTimerJob mapKeepAliveTimerJob;
+
+	public void keepAliveTrackLocationService(Context context, ContactDeviceDataList selectedContactDeviceDataList, long startDelay){
+        timer = new Timer();
+        mapKeepAliveTimerJob = new MapKeepAliveTimerJob();
+        mapKeepAliveTimerJob.setContext(context);
+        mapKeepAliveTimerJob.setSelectedContactDeviceDataList(selectedContactDeviceDataList);
+    	Log.i(CommonConst.LOG_TAG, "Start KeepAliveTrackLocationService TimerJob with repeat period = " + 
+        		(CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700)/1000/60 + " min");
+        timer.schedule(mapKeepAliveTimerJob, startDelay, 
+        	CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700);
+    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - started");
+	}
+	
+	public void stopKeepAliveTrackLocationService(){
+		timer.cancel();
+	}
+	
+	// =======================
+	// STATIC FUNCTIONS:
+	// =======================
+	
 	public static String generateUUID(){
 		return UUID.randomUUID().toString().replaceAll("-", "");
 	}

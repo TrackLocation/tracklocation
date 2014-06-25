@@ -3,16 +3,11 @@ package com.dagrest.tracklocation;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Timer;
-
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
-import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
-import com.dagrest.tracklocation.utils.MapKeepAliveTimerJob;
-import com.dagrest.tracklocation.utils.TimerJob;
 import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
@@ -46,6 +41,7 @@ public class Map extends Activity implements LocationListener{
 
 	// Max time of waiting dialog displaying - 30 seconds
 	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
+	private final static float DEFAULT_CAMERA_UPDATE = 15;
 	
 	private LocationManager locationManager;
 	private LatLng lastKnownLocation;
@@ -60,8 +56,8 @@ public class Map extends Activity implements LocationListener{
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
 	private ProgressDialog waitingDialog;
-	private Timer timer;
-	private MapKeepAliveTimerJob mapKeepAliveTimerJob;
+	
+	private Controller controller;
 	
 	public void launchWaitingDialog() {
         waitingDialog = new ProgressDialog(Map.this);
@@ -123,7 +119,7 @@ public class Map extends Activity implements LocationListener{
 		}
         waitingDialog.setMessage(accountsListMsg);
         
-        zoom = 15;
+        zoom = DEFAULT_CAMERA_UPDATE;
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(
         		lastKnownLocation, zoom));
         
@@ -132,31 +128,11 @@ public class Map extends Activity implements LocationListener{
 //        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
 //        .position(lastKnownLocation));
         
-// TODO --->>>        keepAliveTrackLocationService();
+        controller = new Controller();
+        controller.keepAliveTrackLocationService(getApplicationContext(), selectedContactDeviceDataList, 
+        	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);
         
-        timer = new Timer();
-        mapKeepAliveTimerJob = new MapKeepAliveTimerJob();
-        mapKeepAliveTimerJob.setContext(getApplicationContext());
-        mapKeepAliveTimerJob.setSelectedContactDeviceDataList(selectedContactDeviceDataList);
-    	Log.i(CommonConst.LOG_TAG, "Start KeepAliveTrackLocationService TimerJob with repeat period = " + 
-        		(CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700)/1000/60 + " min");
-        timer.schedule(mapKeepAliveTimerJob, CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY, 
-        	CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700);
-    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - started");
-
 	}
-	
-//	public static void keepAliveTrackLocationService(){
-//        timer = new Timer();
-//        mapKeepAliveTimerJob = new MapKeepAliveTimerJob();
-//        mapKeepAliveTimerJob.setContext(getApplicationContext());
-//        mapKeepAliveTimerJob.setSelectedContactDeviceDataList(selectedContactDeviceDataList);
-//    	Log.i(CommonConst.LOG_TAG, "Start KeepAliveTrackLocationService TimerJob with repeat period = " + 
-//        		(CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700)/1000/60 + " min");
-//        timer.schedule(mapKeepAliveTimerJob, CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY, 
-//        	CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700);
-//    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - started");
-//	}
 	
 	@Override
 	protected void onPause() {
@@ -303,7 +279,8 @@ public class Map extends Activity implements LocationListener{
 //    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
 //    			CommandEnum.stop, null, null);
 //    	}
-    	timer.cancel();
+    	controller.stopKeepAliveTrackLocationService();
+    	
     	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - stopped");
     	if(gcmLocationUpdatedWatcher != null){
     		unregisterReceiver(gcmLocationUpdatedWatcher);

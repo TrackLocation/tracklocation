@@ -2,6 +2,7 @@ package com.dagrest.tracklocation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
@@ -16,6 +17,7 @@ import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.service.TrackLocationService;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.MapKeepAliveTimerJob;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -28,6 +30,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
@@ -36,8 +39,6 @@ public class ContactConfiguration extends Activity {
 
 	private static final String DEVICE_STATUS_DEFAULT = "N/A";
 	private static final String NOTIFICATION_DEFAULT = "N/A";
-	private static final String LAT_DEFAULT = "N/A";
-	private static final String LNG_DEFAULT = "N/A";
 	
 	private TextView mUserName;
 	private TextView mEmail;
@@ -48,8 +49,6 @@ public class ContactConfiguration extends Activity {
 	
 	private String deviceStatus;
 	private String notification;
-	private String lat;
-	private String lng;
 
 	private ContactDeviceDataList contactDeviceDataList;
 	private ContactDeviceDataList selectedContactDeviceDataList;
@@ -57,10 +56,11 @@ public class ContactConfiguration extends Activity {
 	private ContactData contactData;
 	private DeviceData deviceData;
 	private String className;
-	private String jsonMessage;
 
 	private BroadcastReceiver gcmIntentServiceChangeWatcher;
 	
+	private Controller controller;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -73,8 +73,6 @@ public class ContactConfiguration extends Activity {
 		String jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
 		String selectedContactID = intent.getExtras().getString(CommonConst.CONTACT_LIST_SELECTED_VALUE);
 
-    	jsonMessage = "";
-
     	contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceDataList);
 		if(contactDeviceDataList == null){
 			// TODO: error message to log
@@ -84,18 +82,6 @@ public class ContactConfiguration extends Activity {
 		List<String> selectedContcatList = new ArrayList<String>();
 		selectedContcatList.add(selectedContactID);
 		selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
-		
-//		selectedContactDeviceDataList = new ContactDeviceDataList();
-//		// remove extra contacts in contactDeviceDataList
-//		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
-//			ContactData contactData = contactDeviceData.getContactData();
-//			DeviceData deviceData = contactDeviceData.getDeviceData();
-//			if(contactData != null && deviceData != null) {
-//				if(selectedContactID.equals(contactData.getNick()) || selectedContactID.equals(contactData.getEmail())){
-//					selectedContactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
-//				}
-//			}
-//		}
 		
 		contactDeviceData = Utils.getContactDeviceDataByUsername(contactDeviceDataList, selectedContactID);
 		if(contactDeviceData == null){
@@ -147,6 +133,7 @@ public class ContactConfiguration extends Activity {
 
     public void onClick(final View view) {
 
+    	controller = new Controller();
     	switch(view.getId()) {
         	case R.id.check_status:
         		//Controller.checkGcmStatus(getApplicationContext(), contactData, contactDeviceData);
@@ -159,11 +146,13 @@ public class ContactConfiguration extends Activity {
         			CommandEnum.status_request, null, null);
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
         			CommandEnum.start, null, null);
+        		controller.keepAliveTrackLocationService(getApplicationContext(), selectedContactDeviceDataList, 500);
         		break;
         	case R.id.stop:
         		//Controller.stopTrackLocationService(getApplicationContext(), contactDeviceData);
-        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.stop, null, null);
+//        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
+//        			CommandEnum.stop, null, null);
+        		controller.stopKeepAliveTrackLocationService();
         		break;
         	case R.id.show_map:
         		Intent intent = new Intent(getApplicationContext(), Map.class);
@@ -237,58 +226,6 @@ public class ContactConfiguration extends Activity {
 			unregisterReceiver(gcmIntentServiceChangeWatcher);
 		}
     }
-
-//    private static void checkGcmStatus(Context context, ContactData contactData, ContactDeviceData contactDeviceData){
-//		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
-//		List<String> listRegIDs = new ArrayList<String>();
-//		if(contactData != null){
-//			listRegIDs.add(contactDeviceData.getRegistration_id());
-//		} else {
-//			LogManager.LogErrorMsg("Controller", "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
-//		}
-//		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
-//	    		regIDToReturnMessageTo, 
-//	    		CommandEnum.status_request, 
-//	    		"", // messageString, 
-//	    		Controller.getCurrentDate(), // time,
-//	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
-//	    		null //PushNotificationServiceStatusEnum.available.toString()
-//				);
-//		Controller.sendCommand(jsonMessage);
-//    }
-//    
-//    public static void startTrackLocationService(Context context, ContactDeviceData contactDeviceData){
-//		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
-//		List<String> listRegIDs = new ArrayList<String>();
-//		listRegIDs.add(contactDeviceData.getRegistration_id());
-//		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
-//	    		regIDToReturnMessageTo, 
-//	    		CommandEnum.start, 
-//	    		"", // messageString, 
-//	    		Controller.getCurrentDate(), // time,
-//	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
-//	    		null //PushNotificationServiceStatusEnum.available.toString()
-//				);
-//		Controller.sendCommand(jsonMessage);
-//    }
-//
-//    private void stopTrackLocationService(){
-//		String regIDToReturnMessageToStop = Controller.getRegistrationId(getApplicationContext());
-//		List<String> listRegIDsStop = new ArrayList<String>();
-//		listRegIDsStop.add(contactDeviceData.getRegistration_id());
-//		
-////		if(listRegIDsStop.size() > 0){
-//			jsonMessage = Controller.createJsonMessage(listRegIDsStop, 
-//		    		regIDToReturnMessageToStop, 
-//		    		CommandEnum.stop, 
-//		    		"", // messageString, 
-//		    		Controller.getCurrentDate(), // time,
-//		    		null, // key
-//		    		null // value
-//					);
-//			Controller.sendCommand(jsonMessage);
-////		}
-//    }
 }
 
 

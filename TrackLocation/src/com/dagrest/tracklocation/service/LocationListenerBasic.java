@@ -41,7 +41,7 @@ public class LocationListenerBasic implements LocationListener{
         	
             LogManager.LogFunctionCall(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
             	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-            Log.i(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+            Log.i(CommonConst.LOG_TAG, "Entrance " + CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
             	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
             
             // TODO: check if the next key,value is needed...
@@ -102,23 +102,25 @@ public class LocationListenerBasic implements LocationListener{
 
             LogManager.LogFunctionExit(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
                 locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-            Log.i(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+            Log.i(CommonConst.LOG_TAG, "Exit " + CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
                 locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
 
         } catch (Exception e) {
                 LogManager.LogException(e, className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
                     locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-                Log.e(CommonConst.LOG_TAG, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
+                Log.e(CommonConst.LOG_TAG, "Exception " + CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
                     locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", e);
         }      
 	}
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
-		// TODO Auto-generated method stub
-		trackLocationService.requestLocation(true);
-		Log.i(CommonConst.LOG_TAG, "onStatusChanged");
+		LogManager.LogFunctionCall("LocationListenerBasic", "onStatusChanged");
+		
 		LogManager.LogInfoMsg(provider, "LocationListenerBasic", "onStatusChanged");
+		trackLocationService.requestLocation(true);
+		
+		LogManager.LogFunctionExit("LocationListenerBasic", "onStatusChanged");
 	}
 
 	@Override

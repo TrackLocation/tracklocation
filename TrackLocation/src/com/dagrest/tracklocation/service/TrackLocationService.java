@@ -67,11 +67,8 @@ public class TrackLocationService extends Service {
             if(locationManager == null){
             	locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             }
-            timer = new Timer();
-            timerJob = new TimerJob();
-            timerJob.setTrackLocationServiceObject(this);
-            repeatPeriod = CommonConst.REPEAT_PERIOD_DEFAULT; // 2 minutes
-            trackLocationServiceStartTime = System.currentTimeMillis();
+            
+            prepareTrackLocationServiceStopTimer();
             
             LogManager.LogFunctionExit(className, "onCreate");
             Log.i(LOCATION_SERVICE, "onCreate - End");
@@ -90,7 +87,7 @@ public class TrackLocationService extends Service {
         	LogManager.LogFunctionCall(className, "onDestroy");
         	Log.i(LOCATION_SERVICE, "onDestroy - Start");
         	
-        	// Stop timer
+        	// Stop TrackLocationServiceStopTimer
         	Log.i(CommonConst.LOG_TAG, "Stop TrackLocationService TimerJob");
         	timerJob.cancel();
         	Log.i(CommonConst.LOG_TAG, "Timer with TimerJob that stops TrackLocationService - stopped");
@@ -129,6 +126,7 @@ public class TrackLocationService extends Service {
 			LogManager.LogFunctionCall(className, "onStart");
             Log.i(LOCATION_SERVICE, "onStart - Start");
             
+            // Start TrackLocationServiceStopTimer
         	Log.i(CommonConst.LOG_TAG, "Start TrackLocationService TimerJob with repeat period = " + 
         		repeatPeriod/1000/60 + " min");
             timer.schedule(timerJob, 0, repeatPeriod);
@@ -333,6 +331,14 @@ public class TrackLocationService extends Service {
 	    };
 	    registerReceiver(gcmKeepAliveBroadcastReceiver, intentFilter);
 	    LogManager.LogFunctionExit(actionDescription, "initBroadcastReceiver");
+    }
+
+    public void prepareTrackLocationServiceStopTimer(){
+        timer = new Timer();
+        timerJob = new TimerJob();
+        timerJob.setTrackLocationServiceObject(this);
+        repeatPeriod = CommonConst.REPEAT_PERIOD_DEFAULT; // 2 minutes
+        trackLocationServiceStartTime = System.currentTimeMillis();
     }
 
 }

@@ -16,7 +16,7 @@ public class TimerJob extends TimerTask {
 	
 	@Override
 	public void run() {
-		// Get start time
+		// Get start time (keep active request time)
 		long trackLocationServiceStartTime = trackLocationService.getTrackLocationServiceStartTime();
 		// Get current time
 		long currentTime = System.currentTimeMillis();
