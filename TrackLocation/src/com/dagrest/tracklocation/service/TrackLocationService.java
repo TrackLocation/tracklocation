@@ -2,6 +2,7 @@ package com.dagrest.tracklocation.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
 
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.CommandEnum;
@@ -10,6 +11,7 @@ import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.TimerJob;
 import com.dagrest.tracklocation.utils.Preferences;
 
 import android.app.Service;
@@ -29,6 +31,10 @@ public class TrackLocationService extends Service {
 	private Boolean isLocationProviderAvailable;
 	private LocationListener locationListenerGPS = null;
 	private LocationListener locationListenerNetwork = null;
+	private TimerJob timerJob;
+	private Timer timer;
+	private long repeatPeriod;
+	private long trackLocationServiceStartTime;
 	
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -55,6 +61,11 @@ public class TrackLocationService extends Service {
             if(locationManager == null){
             	locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             }
+            timer = new Timer();
+            timerJob = new TimerJob();
+            timerJob.setTrackLocationServiceObject(this);
+            repeatPeriod = 60000 * 2; // 2 minutes
+            trackLocationServiceStartTime = System.currentTimeMillis();
             
             LogManager.LogFunctionExit(className, "onCreate");
             Log.i(LOCATION_SERVICE, "onCreate - End");
@@ -72,6 +83,10 @@ public class TrackLocationService extends Service {
         try{
         	LogManager.LogFunctionCall(className, "onDestroy");
         	Log.i(LOCATION_SERVICE, "onDestroy - Start");
+        	
+        	// Stop timer
+        	Log.i(CommonConst.LOG_TAG, "Stop TrackLocationService TimerJob");
+        	timerJob.cancel();
         	
             if(locationManager != null){
             	if( locationListenerGPS != null){
@@ -101,6 +116,10 @@ public class TrackLocationService extends Service {
 		try{
 			LogManager.LogFunctionCall(className, "onStart");
             Log.i(LOCATION_SERVICE, "onStart - Start");
+            
+        	Log.i(CommonConst.LOG_TAG, "Start TrackLocationService TimerJob with repeat period = " + 
+        		repeatPeriod/1000/60 + " min");
+            timer.schedule(timerJob, 0, repeatPeriod);
 
 //              String locProvName = null; 
 //              locProvName = Preferences.getPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME);
@@ -249,5 +268,18 @@ public class TrackLocationService extends Service {
         // ==============================
     }
 
+    public void stopTrackLocationService(){
+    	Log.i(CommonConst.LOG_TAG, "Stop TrackLocationService");
+    	stopSelf();
+    }
+
+	public long getTrackLocationServiceStartTime() {
+		return trackLocationServiceStartTime;
+	}
+
+	public void setTrackLocationServiceStartTime(long trackLocationServiceStartTime) {
+		this.trackLocationServiceStartTime = trackLocationServiceStartTime;
+	}
+    
 }
 
