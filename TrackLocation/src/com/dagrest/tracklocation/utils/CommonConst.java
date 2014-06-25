@@ -50,8 +50,9 @@ public class CommonConst {
  	
  	// BROADCAST ACTIONS
  	// deprecated: "com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED" use:
- 	public static final String 	BROADCAST_LOCATION_UPDATED = "com.dagrest.tracklocation.service.GcmIntentService.LOCATION_UPDATED";
- 	public static final String 	BROADCAST_JOIN = "com.dagrest.tracklocation.JoinContactList.BROADCAST_JOIN";
+ 	public static final String 	BROADCAST_LOCATION_UPDATED 		= "com.dagrest.tracklocation.service.GcmIntentService.LOCATION_UPDATED";
+ 	public static final String 	BROADCAST_JOIN 					= "com.dagrest.tracklocation.JoinContactList.BROADCAST_JOIN";
+ 	public static final String 	BROADCAST_LOCATION_KEEP_ALIVE 	= "com.dagrest.tracklocation.Map.KEEP_ALIVE";
  	
  	public static final int 	REQUEST_SELECT_PHONE_NUMBER = 1;
 

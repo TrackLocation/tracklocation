@@ -5,7 +5,7 @@ import java.util.Map;
 
 public enum BroadcastCommandEnum {
 	location_updated("location_updated"), gcm_status("gcm_status"), location_service_status("location_service_status"), 
-	join_number("join_number"), fetch_contacts_completed("fetch_contacts_completed");
+	join_number("join_number"), fetch_contacts_completed("fetch_contacts_completed"), keep_alive("keep_alive");
 	
 	private final String name;       
 	private static Map<String, BroadcastCommandEnum> valueMap;

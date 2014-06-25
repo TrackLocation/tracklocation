@@ -199,8 +199,26 @@ public class GcmIntentService extends IntentService {
 //                		Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
 //							BroadcastCommandEnum.location_updated.toString(), 
 //							key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
-            	}
-            	
+        		// ============================================
+                // COMMAND: 	track_location_service_keep_alive
+            	// command received via GCM from Master
+            	// to Slave - in order to keep alive location
+            	// service on Slave 
+                // (update start time on Timer that stops Track Location Service )
+            	// ============================================
+            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
+                			extras.getString(CommandTagEnum.command.toString()).
+                			equals(CommandEnum.track_location_service_keep_alive.toString())){ // COMMAND TRACK_LOCATION_SERVICE_KEEP_ALIVE
+            		
+            		String key = extras.getString("key");
+            		String value = extras.getString("value");
+            		String currentDateTime = Controller.getCurrentDate();
+            		
+					Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_KEEP_ALIVE, "GcmIntentService", 
+						BroadcastCommandEnum.keep_alive.toString(),  
+						key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
+            	} 
+        	
             } // if (GoogleCloudMessaging
             
         } // if (extras.isEmpty())...
