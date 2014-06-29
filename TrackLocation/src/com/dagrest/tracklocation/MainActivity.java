@@ -55,7 +55,6 @@ public class MainActivity extends Activity {
     private String phoneNumber;
     private String macAddress;
     private String account;
-    private SQLiteDatabase db;
     
     @SuppressLint("ResourceAsColor")
 	@Override
@@ -125,6 +124,9 @@ public class MainActivity extends Activity {
 		
 		DBManager.initDBManagerInstance(new DBHelper(context));
 		
+		// ===============================================================
+		// READ CONTACT AND DEVICE DATA FROM JSON FILE AND INSERT IT TO DB
+		// ===============================================================
 		// Read contact and device data from json file and insert it to DB
 		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
 		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
@@ -134,11 +136,17 @@ public class MainActivity extends Activity {
 			}
 		}
 		
-		// get device owner contact information
-		ContactDeviceDataList cddl = DBLayer.getContactDeviceDataList(account);
-		cddl.getContactDeviceDataList();
-		for (ContactDeviceData cdd : cddl.getContactDeviceDataList()) {
-			cdd.getGuid();
+		// Insert into DB: owner information if doesn't exist
+		ContactDeviceDataList contDevDataList = DBLayer.getContactDeviceDataList(account);
+		if( contDevDataList == null || contDevDataList.getContactDeviceDataList().size() == 0){
+			// add information about owner to DB 
+			DBLayer.addContactDeviceDataList(new ContactDeviceDataList(account,
+				macAddress, phoneNumber, registrationId, null));
+		}
+		
+		// get owner information from DB and save GUID to Preferences
+		for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
+			Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
 		}
 		
 //        //Put up the Yes/No message box
@@ -156,8 +164,6 @@ public class MainActivity extends Activity {
 //    	})
 //    	.setNegativeButton("No", null)						//Do nothing on no
 //    	.show();
-		
-		contactDeviceDataList = DBLayer.getContactDeviceDataList();
 	}
 	
     public void onClick(final View view) {

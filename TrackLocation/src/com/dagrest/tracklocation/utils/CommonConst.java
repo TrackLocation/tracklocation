@@ -9,6 +9,7 @@ public class CommonConst {
 	public static final String 	PREFERENCES_PHONE_NUMBER 		= "PhoneNumber";
 	public static final String 	PREFERENCES_PHONE_MAC_ADDRESS 	= "PhoneMacAddress";
 	public static final String 	PREFERENCES_PHONE_ACCOUNT 		= "PhoneAccount";
+	public static final String 	PREFERENCES_OWNER_GUID 			= "OwnerGuid";
 	
 	public static final String 	SHARED_PREFERENCES_NAME = "TRACK_LOCATION";
 	// public static final String 	LOCATION_PROVIDER_NAME = "LOCATION_PROVIDER_NAME";

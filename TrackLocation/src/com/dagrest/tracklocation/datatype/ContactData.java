@@ -7,6 +7,12 @@ public class ContactData {
 	private String firstName;
 	private String lastName;
 	
+	public ContactData() {}
+	
+	public ContactData(String email) {
+		this.email = email;
+	}
+	
 	public String getNick() {
 		return nick;
 	}

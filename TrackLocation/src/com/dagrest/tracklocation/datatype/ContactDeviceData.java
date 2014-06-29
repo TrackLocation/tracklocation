@@ -1,5 +1,7 @@
 package com.dagrest.tracklocation.datatype;
 
+import com.dagrest.tracklocation.Controller;
+
 public class ContactDeviceData {
 	private ContactData contactData;
 	private DeviceData deviceData;
@@ -7,6 +9,18 @@ public class ContactDeviceData {
 	private String imei;
 	private String registration_id;
 	private String guid;
+	
+	public ContactDeviceData() {}
+	
+	public ContactDeviceData(String phoneNumber, String registration_id, String guidId) {
+		this.phoneNumber = phoneNumber;
+		this.registration_id = registration_id;
+		if( guidId == null || guidId.isEmpty() ){
+			this.guid = Controller.generateUUID();
+		} else {
+			this.guid = guidId;
+		}
+	}
 	
 	public String getPhoneNumber() {
 		return phoneNumber;

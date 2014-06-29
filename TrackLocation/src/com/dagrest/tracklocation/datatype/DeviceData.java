@@ -5,6 +5,12 @@ public class DeviceData {
 	private DeviceTypeEnum deviceTypeEnum; // phone/computer/tablet
 	private String deviceMac;
 
+	public DeviceData() {}
+	
+	public DeviceData(String deviceMac) {
+		this.deviceMac = deviceMac;
+	}
+	
 	public String getDeviceName() {
 		return deviceName;
 	}

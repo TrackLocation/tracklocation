@@ -142,9 +142,11 @@ public class JoinContactList extends Activity {
 					        	// phoneNumber and registartionId (mutual ID - optional) 
 					        	SmsManager smsManager = SmsManager.getDefault();
 			                    String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+			                    String ownerGuid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_OWNER_GUID);
 								ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
 									CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-									mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account);
+									mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account + 
+									CommonConst.DELIMITER_COMMA + ownerGuid);
 								smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
 								// Notify by toast that join request sent by SMS
 								String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
