@@ -309,36 +309,36 @@ public class DBLayer {
         return deviceData;
     }
 
-    // Insert contact/device data
-    private static ContactDeviceData addContactDeviceData(ContactDeviceData contactDeviceData, 
-    	ContactData contactData, DeviceData deviceData){
-    	
-    	if(contactDeviceData == null){
-    		// TODO: unable to add - insert to log and check what to do...
-    		return null;
-    	}
-
-    	String registartionId = contactDeviceData.getRegistration_id();
-    	String phoneNumber = contactDeviceData.getPhoneNumber();
-    	String imei = contactDeviceData.getImei();
-    	
-    	if(contactData == null || contactData.getEmail() == null){
-    		// TODO: unable to add - insert to log and check what to do...
-    		return null;
-    	}
-
-    	if(deviceData == null || deviceData.getDeviceMac() == null){
-    		// TODO: unable to add - insert to log and check what to do...
-    		return null;
-    	}
-
-    	return addContactDeviceData(phoneNumber, contactData, 
-        		deviceData, imei, registartionId);
-	}
+//    // Insert contact/device data
+//    private static ContactDeviceData addContactDeviceData(ContactDeviceData contactDeviceData, 
+//    	ContactData contactData, DeviceData deviceData){
+//    	
+//    	if(contactDeviceData == null){
+//    		// TODO: unable to add - insert to log and check what to do...
+//    		return null;
+//    	}
+//
+//    	String registartionId = contactDeviceData.getRegistration_id();
+//    	String phoneNumber = contactDeviceData.getPhoneNumber();
+//    	String imei = contactDeviceData.getImei();
+//    	
+//    	if(contactData == null || contactData.getEmail() == null){
+//    		// TODO: unable to add - insert to log and check what to do...
+//    		return null;
+//    	}
+//
+//    	if(deviceData == null || deviceData.getDeviceMac() == null){
+//    		// TODO: unable to add - insert to log and check what to do...
+//    		return null;
+//    	}
+//
+//    	return addContactDeviceData(phoneNumber, contactData, 
+//        		deviceData, imei, registartionId);
+//	}
 
     // Insert contact/device data
     private static ContactDeviceData addContactDeviceData(String phoneNumber, ContactData  contactData, 
-    		DeviceData deviceData, String imei, String registartionId)
+    		DeviceData deviceData, String imei, String registartionId, String guid)
      {
     	ContactDeviceData contactDeviceData = null;
 		SQLiteDatabase db = null;
@@ -352,13 +352,19 @@ public class DBLayer {
             contactDeviceData.setDeviceData(deviceData);
             contactDeviceData.setImei(sqlEscapeString(imei));
             contactDeviceData.setRegistration_id(sqlEscapeString(registartionId));
-             
+            if(guid == null){
+            	contactDeviceData.setGuid(Controller.generateUUID());
+            } else {
+            	contactDeviceData.setGuid(guid);
+            }
+            
             ContentValues cVal = new ContentValues();
             cVal.put(DBConst.CONTACT_DEVICE_PHONE_NUMBER, contactDeviceData.getPhoneNumber());
             cVal.put(DBConst.CONTACT_DEVICE_EMAIL, contactDeviceData.getContactData().getEmail());
             cVal.put(DBConst.CONTACT_DEVICE_MAC, contactDeviceData.getDeviceData().getDeviceMac());
             cVal.put(DBConst.CONTACT_DEVICE_REG_ID, contactDeviceData.getRegistration_id());
             cVal.put(DBConst.CONTACT_DEVICE_IMEI, contactDeviceData.getImei());
+            cVal.put(DBConst.CONTACT_DEVICE_GUID, contactDeviceData.getGuid());
             
             db.insert(DBConst.TABLE_CONTACT_DEVICE, null, cVal);
         } catch (Throwable t) {
@@ -381,7 +387,8 @@ public class DBLayer {
 					DeviceData deviceData = contactDeviceData.getDeviceData();
 					String phoneNumber = contactDeviceData.getPhoneNumber();
 					String registrationId = contactDeviceData.getRegistration_id();
-					String imei =contactDeviceData.getImei();
+					String imei = contactDeviceData.getImei();
+					String guid = contactDeviceData.getGuid();
 					
 					String email = null;
 					if(contactData != null){
@@ -411,7 +418,7 @@ public class DBLayer {
 						DeviceData resultDeviceData = 
 							addDeviceData(deviceData);
 						ContactDeviceData resultContactDeviceData = addContactDeviceData(phoneNumber, contactData, 
-							deviceData, imei, registrationId);
+							deviceData, imei, registrationId, guid);
 						if(resultContactDeviceData == null){
 							// TODO: Notify - impossible to add contactDeviceData
 						}
@@ -515,6 +522,7 @@ public class DBLayer {
 	            	String mac = cursor.getString(2);
 	            	String imei = cursor.getString(3);
 	            	String regId = cursor.getString(4);
+	            	String guid = cursor.getString(5);
 	            	
 	            	ContactData contactData = new ContactData();
 	            	contactData.setEmail(email);
@@ -527,7 +535,8 @@ public class DBLayer {
 	            	contactDeviceData.setRegistration_id(regId);
 	            	contactDeviceData.setContactData(contactData);
 	            	contactDeviceData.setDeviceData(deviceData);
-	            	
+	            	contactDeviceData.setGuid(guid);
+
 	            } while (cursor.moveToNext());
 	        }
 	        cursor.close();
@@ -554,7 +563,8 @@ public class DBLayer {
 	        String selectQuery = 
 	        "select " +		
 	        "contact_first_name, contact_last_name, contact_nick, contact_email, device_mac, " +
-	        "device_name, device_type, contact_device_imei, contact_device_phone_number, registration_id " +
+	        "device_name, device_type, contact_device_imei, contact_device_phone_number, " +
+	        "registration_id, contact_device_guid  " +
 	        "from TABLE_CONTACT_DEVICE as CD " +
 	        "join TABLE_CONTACT as C " +
 	        "on CD.contact_device_email = C.contact_email " +
@@ -578,6 +588,7 @@ public class DBLayer {
 	            	String contact_device_imei = cursor.getString(7);
 	            	String contact_device_phone_number = cursor.getString(8);
 	            	String registration_id = cursor.getString(9);
+	            	String guid = cursor.getString(10);
 	            	
 	            	ContactData contactData = new ContactData();
 	            	contactData.setEmail(contact_email);
@@ -595,6 +606,7 @@ public class DBLayer {
 	            	contactDeviceData.setRegistration_id(registration_id);
 	            	contactDeviceData.setContactData(contactData);
 	            	contactDeviceData.setDeviceData(deviceData);
+	            	contactDeviceData.setGuid(guid);
 
 	            	contactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
 	            	
@@ -611,6 +623,80 @@ public class DBLayer {
     	return contactDeviceDataList;
     }
     
+    public static ContactDeviceDataList getContactDeviceDataList(String email){
+    	 
+    	ContactDeviceDataList contactDeviceDataList = null;
+    	ContactDeviceData contactDeviceData = null;
+		
+    	SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+            
+	        // Select All Query
+	        String selectQuery = 
+	        "select " +		
+	        "contact_first_name, contact_last_name, contact_nick, contact_email, device_mac, " +
+	        "device_name, device_type, contact_device_imei, contact_device_phone_number, " +
+	        "registration_id, contact_device_guid " +
+	        "from TABLE_CONTACT_DEVICE as CD " +
+	        "join TABLE_CONTACT as C " +
+	        "on CD.contact_device_email = C.contact_email " +
+	        "join TABLE_DEVICE as D " +
+	        "on CD.contact_device_mac = D.device_mac " + 
+	        "where CD.contact_device_email = ?";	  
+	        Cursor cursor = db.rawQuery(selectQuery, new String[] { email });
+	  
+	        // looping through all rows and adding to list
+	        if (cursor.moveToFirst()) {
+	        	contactDeviceDataList = new ContactDeviceDataList();
+	            do {
+	            	contactDeviceData = new ContactDeviceData();
+	            	
+	            	String contact_first_name = cursor.getString(0);
+	            	String contact_last_name = cursor.getString(1);
+	            	String contact_nick = cursor.getString(2);
+	            	String contact_email = cursor.getString(3);
+	            	String device_mac = cursor.getString(4);
+	            	String device_name = cursor.getString(5);
+	            	String device_type = cursor.getString(6);
+	            	String contact_device_imei = cursor.getString(7);
+	            	String contact_device_phone_number = cursor.getString(8);
+	            	String registration_id = cursor.getString(9);
+	            	String guid = cursor.getString(10);
+	            	
+	            	ContactData contactData = new ContactData();
+	            	contactData.setEmail(contact_email);
+	            	contactData.setFirstName(contact_first_name);
+	            	contactData.setLastName(contact_last_name);
+	            	contactData.setNick(contact_nick);
+	            	
+	            	DeviceData deviceData = new DeviceData();
+	            	deviceData.setDeviceMac(device_mac);
+	            	deviceData.setDeviceName(device_name);
+	            	deviceData.setDeviceTypeEnum(DeviceTypeEnum.getValue(device_type));
+	            	
+	            	contactDeviceData.setPhoneNumber(contact_device_phone_number);
+	            	contactDeviceData.setImei(contact_device_imei);
+	            	contactDeviceData.setRegistration_id(registration_id);
+	            	contactDeviceData.setContactData(contactData);
+	            	contactDeviceData.setDeviceData(deviceData);
+	            	contactDeviceData.setGuid(guid);
+
+	            	contactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
+	            	
+	            } while (cursor.moveToNext());
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+    	return contactDeviceDataList;
+    }
+
     public static boolean isContactWithEmailExist(String email){
 		String selectQuery = "select contact_email from " + DBConst.TABLE_CONTACT +
 				" where contact_email = ?";

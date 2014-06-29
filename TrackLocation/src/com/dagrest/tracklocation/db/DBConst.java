@@ -30,6 +30,7 @@ public final class DBConst {
     public static final String CONTACT_DEVICE_EMAIL = "contact_device_email";				// KEY + NOT EMPTY
     public static final String CONTACT_DEVICE_IMEI = "contact_device_imei"; 				// OPTIONAL
     public static final String CONTACT_DEVICE_REG_ID = CommonConst.PREFERENCES_REG_ID;  
+    public static final String CONTACT_DEVICE_GUID = "contact_device_guid";					// generated 
 
     public static final String TABLE_SEND_JOIN_REQUEST = "TABLE_SEND_JOIN_REQUEST";
     public static final String PHONE_NUMBER = "phone_number";
@@ -90,10 +91,11 @@ public final class DBConst {
       "create table " + TABLE_CONTACT_DEVICE + "(" +
 		  //"_id integer primary key autoincrement," + 
 		  CONTACT_DEVICE_MAC + " text not null," + // PRIMARY KEY
-		  CONTACT_DEVICE_PHONE_NUMBER + " text not null," + 
+		  CONTACT_DEVICE_PHONE_NUMBER + " text," + 
 		  CONTACT_DEVICE_EMAIL + " text not null," + 
 		  CONTACT_DEVICE_IMEI + " text," + 
 		  CONTACT_DEVICE_REG_ID + " text," +
+		  CONTACT_DEVICE_GUID + " text not null unique," +
 		  "PRIMARY KEY (" + CONTACT_DEVICE_MAC + ", " + 
 		  CONTACT_DEVICE_EMAIL + ")" +
 		  ");";

@@ -6,6 +6,7 @@ public class ContactDeviceData {
 	private String phoneNumber;
 	private String imei;
 	private String registration_id;
+	private String guid;
 	
 	public String getPhoneNumber() {
 		return phoneNumber;
@@ -36,5 +37,11 @@ public class ContactDeviceData {
 	}
 	public void setRegistration_id(String registration_id) {
 		this.registration_id = registration_id;
+	}
+	public String getGuid() {
+		return guid;
+	}
+	public void setGuid(String guid) {
+		this.guid = guid;
 	}
 }

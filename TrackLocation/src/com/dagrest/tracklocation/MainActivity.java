@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.JoinRequestData;
 import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
@@ -65,7 +66,7 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		
 		context = getApplicationContext();
-
+		
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
         if (checkPlayServices()) {
             gcm = GoogleCloudMessaging.getInstance(this);
@@ -131,6 +132,13 @@ public class MainActivity extends Activity {
 			if(contactDeviceDataList != null){
 				DBLayer.addContactDeviceDataList(contactDeviceDataList);
 			}
+		}
+		
+		// get device owner contact information
+		ContactDeviceDataList cddl = DBLayer.getContactDeviceDataList(account);
+		cddl.getContactDeviceDataList();
+		for (ContactDeviceData cdd : cddl.getContactDeviceDataList()) {
+			cdd.getGuid();
 		}
 		
 //        //Put up the Yes/No message box

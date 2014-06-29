@@ -49,6 +49,8 @@ public class JoinContactList extends Activity {
 		        barProgressDialog.setProgressStyle(barProgressDialog.STYLE_HORIZONTAL);
 		        barProgressDialog.setProgress(0);
 		        barProgressDialog.setMax(Controller.getContactsNumber(JoinContactList.this));
+		        barProgressDialog.setCancelable(false);
+		        //barProgressDialog.setIndeterminate(true);
 		        barProgressDialog.show();
 		        
 		        new Thread(new Runnable() {
@@ -192,8 +194,11 @@ public class JoinContactList extends Activity {
 		    					// DIALOG FUNC
 		    					
 		    					AlertDialog.Builder builder = new AlertDialog.Builder(JoinContactList.this);
-		    					builder.setMessage("Are you sure?").setPositiveButton("Yes", dialogClickListener)
-		    					    .setNegativeButton("No", dialogClickListener).show();
+		    					builder.setTitle("Title")
+		    						.setMessage("Are you sure?")
+		    					    .setNegativeButton("No", dialogClickListener)
+		    						.setPositiveButton("Yes", dialogClickListener)
+		    					    .show();
 		    					
 //		    		        	CommonDialog dialog = new CommonDialog();
 //		    		        	dialog.setPositiveButtonText("Yes");
