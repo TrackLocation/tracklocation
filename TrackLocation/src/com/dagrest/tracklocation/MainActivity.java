@@ -11,6 +11,7 @@ import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.db.DBManager;
+import com.dagrest.tracklocation.grid.ContactDataGridView;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -196,7 +197,10 @@ public class MainActivity extends Activity {
     	// SETTINGS button
     	// ========================================
         } else if (view == findViewById(R.id.btnSettings)) {
-        	
+
+    		Intent contactDataGridViewIntent = new Intent(this, ContactDataGridView.class);
+    		startActivity(contactDataGridViewIntent);
+
         // ========================================
     	// GET REG ID button
     	// ========================================
