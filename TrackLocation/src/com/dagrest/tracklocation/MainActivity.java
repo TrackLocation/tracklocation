@@ -144,7 +144,8 @@ public class MainActivity extends Activity {
 			DBLayer.addContactDeviceDataList(new ContactDeviceDataList(account,
 				macAddress, phoneNumber, registrationId, null));
 		}
-		
+		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
+
 		// get owner information from DB and save GUID to Preferences
 		for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
 			Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
@@ -214,6 +215,7 @@ public class MainActivity extends Activity {
         } else if (view == findViewById(R.id.btnLocate)) {
     		LogManager.LogInfoMsg(this.getClass().getName(), "onClick -> Locate button", 
     			"ContactList activity started.");
+    		
     		if(contactDeviceDataList != null){
 	    		Intent intentContactList = new Intent(this, ContactList.class);
 	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
