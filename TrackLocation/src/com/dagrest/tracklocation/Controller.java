@@ -439,15 +439,21 @@ public class Controller {
 	    			// TODO: handle case if input is invalid - expected Context type
 	    		}
 	    		
+	    		// Fetch all SMS 
 	    	    List<SMSMessage> smsList = fetchInboxSms(activity, 1);
 	    	    if(smsList != null){
 	    	    	for (SMSMessage smsMessage : smsList) {
 	    	    		//String n = smsMessage.getMessageNumber();
+	    	    		// Check if there SMS with JOIN REQUEST from TrackLocation application
 						if(smsMessage != null && smsMessage.getMessageContent().contains(CommonConst.JOIN_FLAG_SMS)){
 				    	    String smsMsg = smsMessage.getMessageContent();
 				    	    String smsId = smsMessage.getMessageId();
+				    	    
+				    	    // TODO: remove the following System.out...
 				    	    System.out.println("JOIN SMS: " + smsMsg);
+				    	    
 				    	    String[] smsParams = smsMsg.split(CommonConst.DELIMITER_COMMA);
+				    	    
 				    	    // TODO: save all received join requests to RECEIVED_JOIN_REQUEST table
 				    	    if(smsParams.length >= 4){
 					    	    String phoneNumber = smsParams[3];
