@@ -31,24 +31,20 @@ import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.telephony.SmsManager;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private final static int STYLE_NORMAL = 0;
+    private final static int JOIN_REQUEST = 1;  
     private BroadcastReceiver locationChangeWatcher;
     private String className;
     private String registrationId;
@@ -152,32 +148,7 @@ public class MainActivity extends Activity {
 		for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
 			Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
 		}
-		
-//        //Put up the Yes/No message box
-//    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//    	builder
-//    	.setTitle("Join request")
-//    	.setMessage("Approve join request from David Agrest, phone: +972 (54) 4504619 ?")
-//    	.setIcon(android.R.drawable.ic_dialog_alert)
-//    	.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-//    	    public void onClick(DialogInterface dialog, int which) {			      	
-//    	    	//Yes button clicked, do something
-//    	    	Toast.makeText(MainActivity.this, "Yes button pressed", 
-//                               Toast.LENGTH_SHORT).show();
-//    	    }
-//    	})
-//    	.setNegativeButton("No", null)						//Do nothing on no
-//    	.show();
 	}
-	
-	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
-		@Override
-		public void doOnPositiveButton() {
-		}
-		@Override
-		public void doOnNegativeButton() {
-		}
-	};
 	
     public void onClick(final View view) {
 
@@ -185,16 +156,8 @@ public class MainActivity extends Activity {
     	// ABOUT button
     	// ========================================
         if (view == findViewById(R.id.btnAbout)) {
-//        	About dialogAbout = new About();
-//        	dialogAbout.show(this.getFragmentManager(), "About");
         	
-        	String dialogMessage = getResources().getString(R.string.about_dialog_text);
-    		CommonDialog aboutDialog = new CommonDialog(this, dialogActionsAboutDialog);
-    		aboutDialog.setDialogMessage(dialogMessage);
-    		aboutDialog.setPositiveButtonText("OK");
-    		aboutDialog.setStyle(STYLE_NORMAL, 0);
-    		aboutDialog.showDialog();
-    		aboutDialog.setCancelable(true);
+        	showAboutDialog();
         	
     	// ========================================
     	// JOIN button
@@ -202,7 +165,7 @@ public class MainActivity extends Activity {
         } else if (view == findViewById(R.id.btnJoin)) {
 
     		Intent joinContactListIntent = new Intent(this, JoinContactList.class);
-    		startActivity(joinContactListIntent);
+    		startActivityForResult(joinContactListIntent, JOIN_REQUEST);
 
 // 			*********************************************************************************        	
 //		    // Start an activity for the user to pick a phone number from contacts
@@ -222,14 +185,6 @@ public class MainActivity extends Activity {
         	Intent contactDataGridViewIntent = new Intent(this, ContactDataGridView.class);
     		startActivity(contactDataGridViewIntent);
 
-    		
-        // ========================================
-    	// GET REG ID button
-    	// ========================================
-//        } else if (view == findViewById(R.id.btnGetRegId)) {
-//        	String regId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-//    		LogManager.LogInfoMsg(this.getClass().getName(), "onClick", 
-//    			"RegID: " + regId + " :RegID");
     	// ========================================
     	// LOCATE button
     	// ========================================
@@ -252,7 +207,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == CommonConst.REQUEST_SELECT_PHONE_NUMBER && resultCode == RESULT_OK) {
+        if (requestCode == JOIN_REQUEST && resultCode == RESULT_OK) {
             // Get the URI and query the content provider for the phone number
             Uri contactUri = data.getData();
             String[] projection = new String[]{CommonDataKinds.Phone.NUMBER};
@@ -265,10 +220,8 @@ public class MainActivity extends Activity {
 
             	String mutualId = Controller.generateUUID();
 
-//            	
-// IMPORTANT !!!			// TODO: INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
-//             			// TODO: Request phone number by UI dialog - might be from contacts list (phone book)
-//
+             	// ??? TODO: Request phone number by UI dialog - might be from contacts list (phone book)
+            	// INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
      			long res = DBLayer.addJoinRequest(phoneNumberToJoin, mutualId, JoinRequestStatusEnum.SENT);
      			JoinRequestData joinRequestData = DBLayer.getJoinRequest(phoneNumberToJoin);
 
@@ -287,47 +240,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void createDialog(String text){
-		// get prompts.xml view
-		LayoutInflater li = LayoutInflater.from(MainActivity.this);
-		View promptsView = li.inflate(R.layout.dialog, null);
-
-		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-				MainActivity.this);
-
-		// set prompts.xml to alertdialog builder
-		alertDialogBuilder.setView(promptsView);
-
-		final EditText userInput = (EditText) promptsView
-				.findViewById(R.id.editTextDialogUserInput);
-
-		userInput.setText(text);
-		
-		// set dialog message
-		alertDialogBuilder
-			.setCancelable(false)
-			.setPositiveButton("OK",
-			  new DialogInterface.OnClickListener() {
-			    public void onClick(DialogInterface dialog,int id) {
-				// get user input and set it to result
-				// edit text
-//				result.setText(userInput.getText());
-			    }
-			  })
-			.setNegativeButton("Cancel",
-			  new DialogInterface.OnClickListener() {
-			    public void onClick(DialogInterface dialog,int id) {
-				dialog.cancel();
-			    }
-			  });
-
-		// create alert dialog
-		AlertDialog alertDialog = alertDialogBuilder.create();
-
-		// show it
-		alertDialog.show();
-    }
-    
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -337,6 +249,27 @@ public class MainActivity extends Activity {
         }
     }
 
+	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
+		@Override
+		public void doOnPositiveButton() {
+		}
+		@Override
+		public void doOnNegativeButton() {
+		}
+	};
+	
+    private void showAboutDialog() {
+    	String dialogMessage = getResources().getString(R.string.about_dialog_text);
+    	
+		CommonDialog aboutDialog = new CommonDialog(this, dialogActionsAboutDialog);
+		aboutDialog.setDialogMessage(dialogMessage);
+		aboutDialog.setDialogTitle("About");
+		aboutDialog.setPositiveButtonText("OK");
+		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+		aboutDialog.showDialog();
+		aboutDialog.setCancelable(true);
+    }
+    
 	/**
 	 * Check the device to make sure it has the Google Play Services APK. If
 	 * it doesn't, display a dialog that allows users to download the APK from
@@ -497,5 +430,6 @@ public class MainActivity extends Activity {
 	
     
 }
+
 
 

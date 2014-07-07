@@ -60,4 +60,7 @@ public class CommonConst {
  	
  	public static final long    KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY = 40000; // 40 seconds
 
+ 	// COMMON DIALOG
+ 	public final static int STYLE_NORMAL = 0;
+
 }

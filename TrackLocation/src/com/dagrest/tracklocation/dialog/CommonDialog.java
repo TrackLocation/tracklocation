@@ -14,6 +14,7 @@ public class CommonDialog extends DialogFragment {
 	
 	private AlertDialog.Builder builder;
 	private String dialogMessage = null;
+	private String dialogTitle = null;
 	private String positiveButtonText = null;
 	private String negativeButtonText = null;
 	private IDialogOnClickAction onClickAction;
@@ -21,7 +22,15 @@ public class CommonDialog extends DialogFragment {
 	
 	public CommonDialog() {};
 			
-    public CommonDialog(Activity activity, IDialogOnClickAction onClickAction) {
+    public String getDialogTitle() {
+		return dialogTitle;
+	}
+
+	public void setDialogTitle(String dialogTitle) {
+		this.dialogTitle = dialogTitle;
+	}
+
+	public CommonDialog(Activity activity, IDialogOnClickAction onClickAction) {
 		this.onClickAction = onClickAction;
 		fm = activity.getFragmentManager();
 	}
@@ -59,7 +68,7 @@ public class CommonDialog extends DialogFragment {
 
     	// Use the Builder class for convenient dialog construction
         builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("About");
+        builder.setTitle(dialogTitle);
         builder.setMessage(dialogMessage)
                .setPositiveButton(positiveButtonText, new DialogInterface.OnClickListener() {
                    public void onClick(DialogInterface dialog, int id) {

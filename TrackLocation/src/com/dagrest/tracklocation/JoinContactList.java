@@ -6,12 +6,13 @@ import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.JoinRequestData;
 import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
 import com.dagrest.tracklocation.db.DBLayer;
+import com.dagrest.tracklocation.dialog.CommonDialog;
+import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -24,7 +25,6 @@ import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.SparseArray;
-import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
@@ -43,31 +43,31 @@ public class JoinContactList extends Activity {
 	private boolean toSendAddJoinRequest = false;
 	
 	public void launchBarDialog(View view) {
-		        barProgressDialog = new ProgressDialog(JoinContactList.this);
-		        barProgressDialog.setTitle("Fetching contacts");
-		        barProgressDialog.setMessage("Please wait ...");
-		        barProgressDialog.setProgressStyle(barProgressDialog.STYLE_HORIZONTAL);
-		        barProgressDialog.setProgress(0);
-		        barProgressDialog.setMax(Controller.getContactsNumber(JoinContactList.this));
-		        barProgressDialog.setCancelable(false);
-		        //barProgressDialog.setIndeterminate(true);
-		        barProgressDialog.show();
-		        
-		        new Thread(new Runnable() {
-		            @Override
-		            public void run() {
-		                try {
-		                	Controller.fetchContacts(JoinContactList.this, contactDetailsGroups, barProgressDialog);
-		                	barProgressDialog.dismiss();
-
-		                	Controller.broadcastMessage(JoinContactList.this, CommonConst.BROADCAST_JOIN, "fetchContacts", 
-		        					BroadcastCommandEnum.fetch_contacts_completed.toString(), 
-		        					"Completed");
-		                } catch (Exception e) {
-		                	System.out.println("Exception IMPORTANT: " + e.getMessage());
-		                }
-		            }
-		        }).start();
+		barProgressDialog = new ProgressDialog(JoinContactList.this);
+		barProgressDialog.setTitle("Fetching contacts");
+		barProgressDialog.setMessage("Please wait ...");
+		barProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		barProgressDialog.setProgress(0);
+		barProgressDialog.setMax(Controller.getContactsNumber(JoinContactList.this));
+		barProgressDialog.setCancelable(false);
+		//barProgressDialog.setIndeterminate(true);
+		barProgressDialog.show();
+		
+		new Thread(new Runnable() {
+		    @Override
+		    public void run() {
+		        try {
+		        	Controller.fetchContacts(JoinContactList.this, contactDetailsGroups, barProgressDialog);
+		        	barProgressDialog.dismiss();
+		
+		        	Controller.broadcastMessage(JoinContactList.this, CommonConst.BROADCAST_JOIN, "fetchContacts", 
+							BroadcastCommandEnum.fetch_contacts_completed.toString(), 
+							"Completed");
+		        } catch (Exception e) {
+		        	System.out.println("Exception IMPORTANT: " + e.getMessage());
+		        }
+		    }
+		}).start();
 	}
 	
 	@Override
@@ -81,9 +81,9 @@ public class JoinContactList extends Activity {
 		
 		listView = (ExpandableListView) findViewById(R.id.listView);
         
-//	    Controller.fetchContacts(JoinContactList.this, contactDetailsGroups, barProgressDialog);
-//		adapter = new ContactDeatilsExpandableListAdapter(this, contactDetailsGroups);
-//	    listView.setAdapter(adapter);
+		//	    Controller.fetchContacts(JoinContactList.this, contactDetailsGroups, barProgressDialog);
+		//		adapter = new ContactDeatilsExpandableListAdapter(this, contactDetailsGroups);
+		//	    listView.setAdapter(adapter);
 
 	    launchBarDialog(listView);
         
@@ -126,41 +126,65 @@ public class JoinContactList extends Activity {
 	    	@Override
     		public void onReceive(final Context context, Intent intent) {
 	    		
-		    	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-	    		
-		    	    @Override
-		    	    public void onClick(DialogInterface dialog, int which) {
-		    	        switch (which){
-		    	        case DialogInterface.BUTTON_POSITIVE:
-		    				long res = DBLayer.addJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
-			    			if(res != 1){
-			    				// TODO: Notify that add to DB failed...
-			    			}
-			    			String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-			    			if(registrationId != null && !registrationId.isEmpty()){
-					        	// Send SMS with registration details: 
-					        	// phoneNumber and registartionId (mutual ID - optional) 
-					        	SmsManager smsManager = SmsManager.getDefault();
-			                    String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-			                    String ownerGuid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_OWNER_GUID);
-								ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
-									CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-									mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account + 
-									CommonConst.DELIMITER_COMMA + ownerGuid);
-								smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
-								// Notify by toast that join request sent by SMS
-								String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
-								Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_SHORT).show();
-			    			}
-			    			finish();
-		    	            break;
-
-		    	        case DialogInterface.BUTTON_NEGATIVE:
-		    	        	toSendAddJoinRequest = false;
-		    	            break;
-		    	        }
-		    	    }
-		    	};
+//		    	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+//		    	    @Override
+//		    	    public void onClick(DialogInterface dialog, int which) {
+//		    	        switch (which){
+//		    	        case DialogInterface.BUTTON_POSITIVE:
+//		    				long res = DBLayer.addJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
+//			    			if(res != 1){
+//			    				// TODO: Notify that add to DB failed...
+//			    			}
+//			    			String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+//			    			if(registrationId != null && !registrationId.isEmpty()){
+//					        	// Send SMS with registration details: 
+//					        	// phoneNumber and registartionId (mutual ID - optional) 
+//					        	SmsManager smsManager = SmsManager.getDefault();
+//			                    String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+//			                    String ownerGuid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_OWNER_GUID);
+//								ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
+//									CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
+//									mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account + 
+//									CommonConst.DELIMITER_COMMA + ownerGuid);
+//								smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
+//								// Notify by toast that join request sent by SMS
+//								String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
+//								Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_SHORT).show();
+//			    			}
+//			    			finish();
+//
+//			    			
+////			    			----
+////			    	    	long res = DBLayer.addJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
+////			    			if(res != 1){
+////			    				// TODO: Notify that add to DB failed...
+////			    			}
+////			    			String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+////			    			if(registrationId != null && !registrationId.isEmpty()){
+////			    	        	// Send SMS with registration details: 
+////			    	        	// phoneNumber and registartionId (mutual ID - optional) 
+////			    	        	SmsManager smsManager = SmsManager.getDefault();
+////			    	            String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+////			    				ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
+////			    					CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
+////			    					mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account);
+////			    				smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
+////			    				// Notify by toast that join request sent by SMS
+////			    				String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
+////			    				Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_SHORT).show();
+////			    			}
+////			    			finish();
+////
+////			    			----
+//			    			
+//			    			break;
+//
+//		    	        case DialogInterface.BUTTON_NEGATIVE:
+//		    	        	toSendAddJoinRequest = false;
+//		    	            break;
+//		    	        }
+//		    	    }
+//		    	};
 
 		    	// TODO Auto-generated method stub
 	    		LogManager.LogInfoMsg(className, "initBroadcastReceiver->onReceive", "WORK");
@@ -168,10 +192,14 @@ public class JoinContactList extends Activity {
 	    		Bundle bundle = intent.getExtras();
 	    		String broadcastKeyJoinNumber = BroadcastCommandEnum.join_number.toString();
 	    		String broadcastKeyFetchContactsCompleted = BroadcastCommandEnum.fetch_contacts_completed.toString();
+	    		String broadcastKeyResendJoinRequest = BroadcastCommandEnum.resend_join_request.toString();
 	    		// ===========================================
 	    		// broadcast key: join_number or any value 
 	    		// ===========================================
-	    		if(bundle != null && (bundle.containsKey(broadcastKeyJoinNumber) || bundle.containsKey(broadcastKeyFetchContactsCompleted))){
+	    		if(bundle != null && 
+	    				(bundle.containsKey(broadcastKeyJoinNumber) || 
+	    				 bundle.containsKey(broadcastKeyFetchContactsCompleted) || 
+	    				 bundle.containsKey(broadcastKeyResendJoinRequest))){
 	    			
 		    		String namePhoneNumber = bundle.getString(broadcastKeyJoinNumber);
 		    		
@@ -191,23 +219,9 @@ public class JoinContactList extends Activity {
 		    				toSendAddJoinRequest = true;
 		    			} else { // join request with <phoneNumber> already exists, check the status
 		    				if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.SENT.toString()) ) {
-		    					// TODO: notify by dialog that join request already sent to <phoneNumber>
+		    					// Notify by dialog that join request already sent to <phoneNumber>
 		    					// check if the following request should be sent again
-		    					// DIALOG FUNC
-		    					
-		    					AlertDialog.Builder builder = new AlertDialog.Builder(JoinContactList.this);
-		    					builder.setTitle("Title")
-		    						.setMessage("Are you sure?")
-		    					    .setNegativeButton("No", dialogClickListener)
-		    						.setPositiveButton("Yes", dialogClickListener)
-		    					    .show();
-		    					
-//		    		        	CommonDialog dialog = new CommonDialog();
-//		    		        	dialog.setPositiveButtonText("Yes");
-//		    		        	dialog.setNegativeButtonText("No");
-//		    		        	dialog.setDialogMessage(contactName + " [" + phoneNumber + "] has been joined already.\n" + 
-//		    		        		"Do you want to sent join request again?");
-//		    		        	dialog.show(JoinContactList.this.getFragmentManager(), "Join request");
+		    					joinRequestDialog(contactName, phoneNumber);
 		    		        	
 		    				} else if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.ACCEPTED.toString()) ) {
 		    					// TODO: notify by dialog that join request already sent to <phoneNumber> and accepted
@@ -226,25 +240,7 @@ public class JoinContactList extends Activity {
 		    				}
 		    			}
 		    			if(toSendAddJoinRequest == true){
-		    				res = DBLayer.addJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
-			    			if(res != 1){
-			    				// TODO: Notify that add to DB failed...
-			    			}
-			    			String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-			    			if(registrationId != null && !registrationId.isEmpty()){
-					        	// Send SMS with registration details: 
-					        	// phoneNumber and registartionId (mutual ID - optional) 
-					        	SmsManager smsManager = SmsManager.getDefault();
-			                    String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-								ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
-									CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-									mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account);
-								smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
-								// Notify by toast that join request sent by SMS
-								String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
-								Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_SHORT).show();
-			    			}
-			    			finish();
+		    				sendJoinRequest(context, contactName, phoneNumber, mutualId);
 		    			}
 		    			
 		    			// TODO: fix the following code - use STATUS instead of Mutual_ID
@@ -259,6 +255,8 @@ public class JoinContactList extends Activity {
 		    			// update expandable list of the device contacts
 		    	        adapter = new ContactDeatilsExpandableListAdapter(JoinContactList.this, contactDetailsGroups);
 		    		    listView.setAdapter(adapter);
+		    		} else if(bundle.containsKey(BroadcastCommandEnum.resend_join_request.toString())){
+		    			sendJoinRequest(context, contactName, phoneNumber, mutualId);
 		    		}
 	    		}
     		}
@@ -271,6 +269,57 @@ public class JoinContactList extends Activity {
     protected void onDestroy() {
     	super.onDestroy();
     	unregisterReceiver(broadcastReceiver);
+    }
+    
+    public void sendJoinRequest(Context context, String contactName, String phoneNumber, String mutualId){
+    	long res = DBLayer.addJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
+		if(res != 1){
+			// TODO: Notify that add to DB failed...
+		}
+		String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+		if(registrationId != null && !registrationId.isEmpty()){
+        	// Send SMS with registration details: 
+        	// phoneNumber and registartionId (mutual ID - optional) 
+        	SmsManager smsManager = SmsManager.getDefault();
+            String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+			ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
+				CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
+				mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account);
+			smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
+			// Notify by toast that join request sent by SMS
+			String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
+			Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_LONG).show();
+		}
+		finish();
+    }
+    
+	IDialogOnClickAction joinRequest = new IDialogOnClickAction() {
+		@Override
+		public void doOnPositiveButton() {
+			toSendAddJoinRequest = true;
+        	Controller.broadcastMessage(JoinContactList.this, CommonConst.BROADCAST_JOIN, "fetchContacts", 
+					BroadcastCommandEnum.resend_join_request.toString(), 
+					"Resend");
+			//sendJoinRequest(context, contactName, phoneNumber, mutualId);
+		}
+		@Override
+		public void doOnNegativeButton() {
+			toSendAddJoinRequest = false;
+		}
+	};
+	
+    private void joinRequestDialog(String contactName, String phoneNumber) {
+    	String dialogMessage = "\nJoin request has been already sent to " + contactName + 
+    		", with phone number " + phoneNumber + ".\n\nDo you want to send it again?\n";
+    	
+		CommonDialog aboutDialog = new CommonDialog(this, joinRequest);
+		aboutDialog.setDialogMessage(dialogMessage);
+		aboutDialog.setDialogTitle("Join contact");
+		aboutDialog.setPositiveButtonText("Yes");
+		aboutDialog.setNegativeButtonText("No");
+		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+		aboutDialog.showDialog();
+		aboutDialog.setCancelable(true);
     }
 }
 
