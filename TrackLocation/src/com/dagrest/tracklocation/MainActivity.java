@@ -11,6 +11,8 @@ import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.db.DBManager;
+import com.dagrest.tracklocation.dialog.CommonDialog;
+import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.grid.ContactDataGridView;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
@@ -35,7 +37,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -47,6 +48,7 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    private final static int STYLE_NORMAL = 0;
     private BroadcastReceiver locationChangeWatcher;
     private String className;
     private String registrationId;
@@ -168,14 +170,31 @@ public class MainActivity extends Activity {
 //    	.show();
 	}
 	
+	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
+		@Override
+		public void doOnPositiveButton() {
+		}
+		@Override
+		public void doOnNegativeButton() {
+		}
+	};
+	
     public void onClick(final View view) {
 
     	// ========================================
     	// ABOUT button
     	// ========================================
         if (view == findViewById(R.id.btnAbout)) {
-        	About dialogAbout = new About();
-        	dialogAbout.show(this.getFragmentManager(), "About");
+//        	About dialogAbout = new About();
+//        	dialogAbout.show(this.getFragmentManager(), "About");
+        	
+        	String dialogMessage = getResources().getString(R.string.about_dialog_text);
+    		CommonDialog aboutDialog = new CommonDialog(this, dialogActionsAboutDialog);
+    		aboutDialog.setDialogMessage(dialogMessage);
+    		aboutDialog.setPositiveButtonText("OK");
+    		aboutDialog.setStyle(STYLE_NORMAL, 0);
+    		aboutDialog.showDialog();
+    		aboutDialog.setCancelable(true);
         	
     	// ========================================
     	// JOIN button
@@ -199,9 +218,11 @@ public class MainActivity extends Activity {
     	// ========================================
         } else if (view == findViewById(R.id.btnSettings)) {
 
-    		Intent contactDataGridViewIntent = new Intent(this, ContactDataGridView.class);
+		
+        	Intent contactDataGridViewIntent = new Intent(this, ContactDataGridView.class);
     		startActivity(contactDataGridViewIntent);
 
+    		
         // ========================================
     	// GET REG ID button
     	// ========================================
