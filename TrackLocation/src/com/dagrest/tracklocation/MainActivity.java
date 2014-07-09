@@ -256,6 +256,9 @@ public class MainActivity extends Activity {
 		@Override
 		public void doOnNegativeButton() {
 		}
+		@Override
+		public void setObject(Object o) {
+		}
 	};
 	
     private void showAboutDialog() {
@@ -270,7 +273,7 @@ public class MainActivity extends Activity {
 		aboutDialog.setCancelable(true);
     }
     
-	/**
+    /**
 	 * Check the device to make sure it has the Google Play Services APK. If
 	 * it doesn't, display a dialog that allows users to download the APK from
 	 * the Google Play Store or enable it in the device's system settings.

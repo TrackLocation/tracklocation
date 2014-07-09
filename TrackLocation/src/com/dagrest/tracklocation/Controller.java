@@ -43,6 +43,8 @@ import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
 import com.dagrest.tracklocation.db.DBLayer;
+import com.dagrest.tracklocation.dialog.CommonDialog;
+import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
@@ -449,17 +451,16 @@ public class Controller {
 				    	    String smsMsg = smsMessage.getMessageContent();
 				    	    String smsId = smsMessage.getMessageId();
 				    	    
-				    	    // TODO: remove the following System.out...
-				    	    System.out.println("JOIN SMS: " + smsMsg);
-				    	    
 				    	    String[] smsParams = smsMsg.split(CommonConst.DELIMITER_COMMA);
 				    	    
 				    	    // TODO: save all received join requests to RECEIVED_JOIN_REQUEST table
 				    	    if(smsParams.length >= 4){
+				    	    	
 					    	    String phoneNumber = smsParams[3];
 					    	    String mutualId = smsParams[2];
 					    	    String regId = smsParams[1];
 					    	    String account = smsParams[4];
+					    	    
 					    	    if(phoneNumber != null && !phoneNumber.isEmpty() &&
 					    	    	mutualId != null && !mutualId.isEmpty() &&
 					    	    	regId != null && !regId.isEmpty() ){
@@ -476,7 +477,8 @@ public class Controller {
 					    				}
 					    	    	    // TODO: Check that join request approved and send back
 					    	    	    // push notification with newly connected contact details
-					    	    	    sendApproveOnJoinRequest(ctx);
+					    				showApproveJoinRequestDialog(activity, ctx, account, phoneNumber);
+					    	    	    //sendApproveOnJoinRequest(ctx);
 					    			}
 					    	    } else {
 					    	    	// TODO: notify error ??? 
@@ -503,6 +505,36 @@ public class Controller {
 	        	// TODO: fix return value
 	        }
 	    }.execute(objects);
+    }
+
+	private static void showApproveJoinRequestDialog(Activity activity, Context context,
+			String account, String phoneNumber) {
+    	String dialogMessage = "Approve join request from " +
+			account + " (" + phoneNumber + ")";
+    	
+ 		CommonDialog aboutDialog = new CommonDialog(activity, 
+			new IDialogOnClickAction() {
+ 				Context context;	
+				@Override
+				public void doOnPositiveButton() {
+					sendApproveOnJoinRequest(context);
+				}
+				@Override
+				public void doOnNegativeButton() {
+			}
+				@Override
+				public void setObject(Object o) {
+					this.context = (Context) o;
+				}
+		});
+		
+		aboutDialog.setDialogMessage(dialogMessage);
+		aboutDialog.setDialogTitle("Join request approval");
+		aboutDialog.setPositiveButtonText("OK");
+		aboutDialog.setNegativeButtonText("Cancel");
+		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+		aboutDialog.showDialog();
+		aboutDialog.setCancelable(true);
     }
 
 	public static void sendApproveOnJoinRequest(Context context){

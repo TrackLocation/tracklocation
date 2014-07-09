@@ -306,6 +306,9 @@ public class JoinContactList extends Activity {
 		public void doOnNegativeButton() {
 			toSendAddJoinRequest = false;
 		}
+		@Override
+		public void setObject(Object o) {
+		}
 	};
 	
     private void joinRequestDialog(String contactName, String phoneNumber) {
