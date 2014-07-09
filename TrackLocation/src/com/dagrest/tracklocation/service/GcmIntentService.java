@@ -7,8 +7,10 @@ import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
-import com.dagrest.tracklocation.datatype.NotificationCommandEnum;
+import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
+import com.dagrest.tracklocation.datatype.SentJoinRequestData;
+import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -138,7 +140,7 @@ public class GcmIntentService extends IntentService {
 	        	    		CommandEnum.status_response, 
 	        	    		null, 
 	        	    		time,
-	        	    		NotificationCommandEnum.pushNotificationServiceStatus.toString(),
+	        	    		NotificationKeyEnum.pushNotificationServiceStatus.toString(),
 	        	    		PushNotificationServiceStatusEnum.available.toString());
 	            		// send message back with PushNotificationServiceStatusEnum.available
 	            		Controller.sendCommand(jsonMessage);
@@ -192,13 +194,20 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.join_approval.toString())){ // COMMAND JOIN_APPROVAL
             		
+            			String email = extras.getString("message");
                 		String key = extras.getString("key");
-                		String value = extras.getString("value");
+                		String mutualId = extras.getString("value"); // mutualId
                 		String currentDateTime = Controller.getCurrentDate();
                 		
-//                		Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
-//							BroadcastCommandEnum.location_updated.toString(), 
-//							key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
+                		// Insert into TABLE_PERMISSIONS account(email) according to mutualId
+                		long countAdded = DBLayer.addPermissions(email, 0, 0, 0);
+                		
+                		SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
+                		// Remove join request from TABLE_SEND_JOIN_REQUEST according to "mutualId"
+                		int count = DBLayer.deleteSentJoinRequest(mutualId);
+                		sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
+                		System.out.println("Test");
+                		
         		// ============================================
                 // COMMAND: 	track_location_service_keep_alive
             	// command received via GCM from Master

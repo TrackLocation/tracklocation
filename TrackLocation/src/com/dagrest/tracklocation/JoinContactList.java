@@ -3,8 +3,8 @@ package com.dagrest.tracklocation;
 import java.util.ArrayList;
 
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
-import com.dagrest.tracklocation.datatype.JoinRequestData;
 import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
+import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
@@ -211,10 +211,9 @@ public class JoinContactList extends Activity {
 		    			contactName = args[0];
 		    			phoneNumber = args[1];
 		    			
-		    			// rend join SMS command
-		    			String mutualId = Controller.generateUUID();
+		    			// send join SMS command
 		    			long res = -1;
-		    			JoinRequestData joinRequestData = DBLayer.getJoinRequest(phoneNumber);
+		    			SentJoinRequestData joinRequestData = DBLayer.getSentJoinRequestByPhone(phoneNumber);
 		    			if( joinRequestData == null ) { 
 		    				toSendAddJoinRequest = true;
 		    			} else { // join request with <phoneNumber> already exists, check the status
@@ -240,7 +239,7 @@ public class JoinContactList extends Activity {
 		    				}
 		    			}
 		    			if(toSendAddJoinRequest == true){
-		    				sendJoinRequest(context, contactName, phoneNumber, mutualId);
+		    				sendJoinRequest(context, contactName, phoneNumber);
 		    			}
 		    			
 		    			// TODO: fix the following code - use STATUS instead of Mutual_ID
@@ -256,7 +255,7 @@ public class JoinContactList extends Activity {
 		    	        adapter = new ContactDeatilsExpandableListAdapter(JoinContactList.this, contactDetailsGroups);
 		    		    listView.setAdapter(adapter);
 		    		} else if(bundle.containsKey(BroadcastCommandEnum.resend_join_request.toString())){
-		    			sendJoinRequest(context, contactName, phoneNumber, mutualId);
+		    			sendJoinRequest(context, contactName, phoneNumber);
 		    		}
 	    		}
     		}
@@ -271,8 +270,9 @@ public class JoinContactList extends Activity {
     	unregisterReceiver(broadcastReceiver);
     }
     
-    public void sendJoinRequest(Context context, String contactName, String phoneNumber, String mutualId){
-    	long res = DBLayer.addJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
+    public void sendJoinRequest(Context context, String contactName, String phoneNumber){
+    	String mutualId = Controller.generateUUID();
+    	long res = DBLayer.addSentJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
 		if(res != 1){
 			// TODO: Notify that add to DB failed...
 		}
@@ -307,7 +307,18 @@ public class JoinContactList extends Activity {
 			toSendAddJoinRequest = false;
 		}
 		@Override
-		public void setObject(Object o) {
+		public void setActivity(Activity activity) {
+			// TODO Auto-generated method stub
+			
+		}
+		@Override
+		public void setContext(Context context) {
+			// TODO Auto-generated method stub
+			
+		}
+		@Override
+		public void setParams(Object[]... objects) {
+			// TODO Auto-generated method stub
 		}
 	};
 	

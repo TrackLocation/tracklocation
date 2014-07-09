@@ -7,7 +7,7 @@ import java.util.Timer;
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
-import com.dagrest.tracklocation.datatype.NotificationCommandEnum;
+import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.dagrest.tracklocation.log.LogManager;
@@ -244,7 +244,7 @@ public class TrackLocationService extends Service {
     		CommandEnum.status_response, 
     		null, // TODO: send device UUID in the message 
     		time,
-    		NotificationCommandEnum.trackLocationServiceStatus.toString(),
+    		NotificationKeyEnum.trackLocationServiceStatus.toString(),
     		TrackLocationServiceStatusEnum.stopped.toString());
 		// send message back with PushNotificationServiceStatusEnum.available
 		Controller.sendCommand(jsonMessage);
@@ -270,7 +270,7 @@ public class TrackLocationService extends Service {
     		CommandEnum.status_response, 
     		null, // TODO: send device UUID in the message 
     		time,
-    		NotificationCommandEnum.trackLocationServiceStatus.toString(),
+    		NotificationKeyEnum.trackLocationServiceStatus.toString(),
     		TrackLocationServiceStatusEnum.started.toString());
 		// send message back with PushNotificationServiceStatusEnum.available
 		Controller.sendCommand(jsonMessage);

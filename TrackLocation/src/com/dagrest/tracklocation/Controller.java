@@ -41,6 +41,7 @@ import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
+import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.SMSMessage;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.dialog.CommonDialog;
@@ -477,7 +478,7 @@ public class Controller {
 					    				}
 					    	    	    // TODO: Check that join request approved and send back
 					    	    	    // push notification with newly connected contact details
-					    				showApproveJoinRequestDialog(activity, ctx, account, phoneNumber);
+					    				showApproveJoinRequestDialog(activity, ctx, account, phoneNumber, mutualId);
 					    	    	    //sendApproveOnJoinRequest(ctx);
 					    			}
 					    	    } else {
@@ -508,25 +509,42 @@ public class Controller {
     }
 
 	private static void showApproveJoinRequestDialog(Activity activity, Context context,
-			String account, String phoneNumber) {
+			String account, String phoneNumber, String mutualId) {
     	String dialogMessage = "Approve join request from " +
-			account + " (" + phoneNumber + ")";
+			account + "\n[" + phoneNumber + "]";
     	
- 		CommonDialog aboutDialog = new CommonDialog(activity, 
-			new IDialogOnClickAction() {
- 				Context context;	
-				@Override
-				public void doOnPositiveButton() {
-					sendApproveOnJoinRequest(context);
-				}
-				@Override
-				public void doOnNegativeButton() {
+    	IDialogOnClickAction approveJoinRequestDialogOnClickAction = new IDialogOnClickAction() {
+			Context context;	
+			String mutualId;
+			String email;
+			@Override
+			public void doOnPositiveButton() {
+				sendApproveOnJoinRequest(context, mutualId, email, CommandEnum.join_approval);
 			}
-				@Override
-				public void setObject(Object o) {
-					this.context = (Context) o;
-				}
-		});
+			@Override
+			public void doOnNegativeButton() {
+				sendApproveOnJoinRequest(context, mutualId, email, CommandEnum.join_rejected);
+			}
+			@Override
+			public void setActivity(Activity activity) {
+			}
+			@Override
+			public void setContext(Context context) {
+				this.context = context;
+			}
+			@Override
+			public void setParams(Object[]... objects) {
+				mutualId = objects[0][0].toString();
+				email = objects[0][1].toString();
+			}
+		};
+		approveJoinRequestDialogOnClickAction.setContext(context);
+		Object[] objects = new Object[2];
+		objects[0] = mutualId;
+		objects[1] = account;
+		approveJoinRequestDialogOnClickAction.setParams(objects);
+    	
+ 		CommonDialog aboutDialog = new CommonDialog(activity, approveJoinRequestDialogOnClickAction);
 		
 		aboutDialog.setDialogMessage(dialogMessage);
 		aboutDialog.setDialogTitle("Join request approval");
@@ -537,7 +555,7 @@ public class Controller {
 		aboutDialog.setCancelable(true);
     }
 
-	public static void sendApproveOnJoinRequest(Context context){
+	public static void sendApproveOnJoinRequest(Context context, String mutualId, String email, CommandEnum command){
 		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
 		List<String> listRegIDs = new ArrayList<String>();
 		listRegIDs.add(regIDToReturnMessageTo);
@@ -545,11 +563,11 @@ public class Controller {
 		String messageString = "";
 		String jsonMessage = createJsonMessage(listRegIDs, 
 	    		regIDToReturnMessageTo, 
-	    		CommandEnum.join_approval, 
-	    		"", // messageString, 
+	    		command, // CommandEnum.join_approval, 
+	    		email, // messageString = email, 
 	    		Controller.getCurrentDate(), // time,
-	    		null, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
-	    		null //PushNotificationServiceStatusEnum.available.toString()
+	    		NotificationKeyEnum.joinRequestApprovalMutualId.toString(), 
+	    		mutualId
 				);
 		sendCommand(jsonMessage);
 	}
@@ -803,4 +821,5 @@ public class Controller {
 //		return macAddress;
 //	}
 }
+
 

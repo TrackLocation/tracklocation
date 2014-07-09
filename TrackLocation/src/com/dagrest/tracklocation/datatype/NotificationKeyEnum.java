@@ -3,13 +3,15 @@ package com.dagrest.tracklocation.datatype;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum NotificationCommandEnum {
-	pushNotificationServiceStatus("pushNotificationServiceStatus"), trackLocationServiceStatus("trackLocationServiceStatus");
+public enum NotificationKeyEnum {
+	pushNotificationServiceStatus("pushNotificationServiceStatus"), 
+	trackLocationServiceStatus("trackLocationServiceStatus"),
+	joinRequestApprovalMutualId("joinRequestApprovalMutualId");
 	
 	private final String name;       
-	private static Map<String, NotificationCommandEnum> valueMap;
+	private static Map<String, NotificationKeyEnum> valueMap;
 	
-    private NotificationCommandEnum(String s) {
+    private NotificationKeyEnum(String s) {
         name = s;
     }
 
@@ -21,11 +23,11 @@ public enum NotificationCommandEnum {
        return name;
     }
     
-    public static NotificationCommandEnum getValue(String value){
+    public static NotificationKeyEnum getValue(String value){
     	if (valueMap == null)
         {
-            valueMap = new HashMap<String, NotificationCommandEnum>();
-            for(NotificationCommandEnum provider: values())
+            valueMap = new HashMap<String, NotificationKeyEnum>();
+            for(NotificationKeyEnum provider: values())
                 valueMap.put(provider.toString(), provider);
         }
     	

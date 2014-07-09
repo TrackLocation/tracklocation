@@ -6,8 +6,8 @@ import java.util.List;
 
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
-import com.dagrest.tracklocation.datatype.JoinRequestData;
 import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
+import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.db.DBManager;
@@ -222,8 +222,8 @@ public class MainActivity extends Activity {
 
              	// ??? TODO: Request phone number by UI dialog - might be from contacts list (phone book)
             	// INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
-     			long res = DBLayer.addJoinRequest(phoneNumberToJoin, mutualId, JoinRequestStatusEnum.SENT);
-     			JoinRequestData joinRequestData = DBLayer.getJoinRequest(phoneNumberToJoin);
+     			long res = DBLayer.addSentJoinRequest(phoneNumberToJoin, mutualId, JoinRequestStatusEnum.SENT);
+     			SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByPhone(phoneNumberToJoin);
 
                 // TODO: log number that join request was send to
                 // TODO: remove all incorrect symbols from number except digits and "+" sign	
@@ -257,7 +257,16 @@ public class MainActivity extends Activity {
 		public void doOnNegativeButton() {
 		}
 		@Override
-		public void setObject(Object o) {
+		public void setActivity(Activity activity) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setContext(Context context) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setParams(Object[]... objects) {
+			// TODO Auto-generated method stub
 		}
 	};
 	

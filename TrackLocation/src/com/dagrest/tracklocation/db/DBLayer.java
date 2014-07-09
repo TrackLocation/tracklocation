@@ -6,9 +6,9 @@ import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
-import com.dagrest.tracklocation.datatype.JoinRequestData;
 import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
 import com.dagrest.tracklocation.datatype.ReceivedJoinRequestData;
+import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -51,7 +51,7 @@ public class DBLayer {
 		return -1;
 	}
 
-	public static long addJoinRequest(String phoneNumber, String mutualId, JoinRequestStatusEnum status){
+	public static long addSentJoinRequest(String phoneNumber, String mutualId, JoinRequestStatusEnum status){
 		
 		if(phoneNumber == null || phoneNumber.isEmpty()){
 			// TODO: notify that no registrationId to insert
@@ -88,6 +88,104 @@ public class DBLayer {
 		return -1;
 	}
 	
+	public static int deleteSentJoinRequest(String inMutualId){
+		
+		if(inMutualId == null || inMutualId.isEmpty()){
+			// TODO: notify that no registrationId to insert
+			return -1;
+		}
+		
+		SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			 
+			String whereClause = DBConst.MUTUAL_ID + " = ?";
+			String[] whereArgs = new String[] { inMutualId };
+			
+			return db.delete(DBConst.TABLE_SEND_JOIN_REQUEST, whereClause, whereArgs);
+		} catch (Throwable t) {
+            if (DBConst.IS_DEBUG_LOG_ENABLED){
+            	Log.e(DBConst.LOG_TAG_DB, "Exception: DBHelper.onCreate() exception", t);
+            }
+			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+		return -1;
+	}
+
+	public static SentJoinRequestData getSentJoinRequestByMutualId(String inMutualId){
+		SentJoinRequestData sentJoinRequestData = null;
+		SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			
+	        // Select All Query
+			String selectQuery = "select " + DBConst.PHONE_NUMBER + ", " + 
+				DBConst.MUTUAL_ID + ", " + DBConst.STATUS + ", " +  
+				DBConst.TIMESTAMP + 
+				" from " + DBConst.TABLE_SEND_JOIN_REQUEST + 
+				" where " + DBConst.MUTUAL_ID + " = ?";
+	        Cursor cursor = db.rawQuery(selectQuery, new String[] { inMutualId });
+	  
+	        if (cursor.moveToFirst()) {
+	        	sentJoinRequestData = new SentJoinRequestData();
+            	
+            	String phoneNumber = cursor.getString(0);
+            	String mutualId = cursor.getString(1);
+            	String status = cursor.getString(2);
+            	String timestamp = cursor.getString(4);
+
+            	sentJoinRequestData.setPhoneNumber(phoneNumber);
+            	sentJoinRequestData.setMutualId(mutualId);
+            	sentJoinRequestData.setStatus(status);
+            	sentJoinRequestData.setTimestamp(timestamp);
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+    	return sentJoinRequestData;
+    }
+
+	public static long addPermissions(String email, int location, int command, int admin_command){
+		
+		if(email == null || email.isEmpty()){
+			// TODO: notify that no email to insert
+			return -1;
+		}
+		
+		SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			 
+			ContentValues cVal = new ContentValues();
+			cVal.put(DBConst.EMAIL, email);
+			cVal.put(DBConst.LOCATION, location);
+			cVal.put(DBConst.COMMAND, command);
+			cVal.put(DBConst.ADMIN_COMMAND, admin_command);
+			
+			if(!isEmailInPermissionsTable(email)){
+				return db.insert(DBConst.TABLE_PERMISSIONS, null, cVal);
+			} else {
+				return db.update(DBConst.TABLE_PERMISSIONS, cVal, DBConst.EMAIL + " = ? ", new String[] { email });
+			}
+		} catch (Throwable t) {
+			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+		return -1;
+	}
+
 	public static long addReceivedJoinRequest(String phoneNumber, String mutualId, String regId, String account){
 		
 		if(phoneNumber == null || phoneNumber.isEmpty()){
@@ -131,8 +229,8 @@ public class DBLayer {
 		return -1;
 	}
 
-	public static JoinRequestData getJoinRequest(String phoneNumberIn){
-    	JoinRequestData joinRequestData = null;
+	public static SentJoinRequestData getSentJoinRequestByPhone(String phoneNumberIn){
+		SentJoinRequestData sentJoinRequestData = null;
 		SQLiteDatabase db = null;
 		try{
 			db = DBManager.getDBManagerInstance().open();
@@ -145,17 +243,17 @@ public class DBLayer {
 	        Cursor cursor = db.rawQuery(selectQuery, new String[] { phoneNumberIn });
 	  
 	        if (cursor.moveToFirst()) {
-            	joinRequestData = new JoinRequestData();
+            	sentJoinRequestData = new SentJoinRequestData();
             	
             	String phoneNumber = cursor.getString(0);
             	String mutualId = cursor.getString(1);
             	String status = cursor.getString(2);
             	String timestamp = cursor.getString(3);
 
-            	joinRequestData.setPhoneNumber(phoneNumber);
-            	joinRequestData.setMutualId(mutualId);
-            	joinRequestData.setStatus(status);
-            	joinRequestData.setTimestamp(timestamp);
+            	sentJoinRequestData.setPhoneNumber(phoneNumber);
+            	sentJoinRequestData.setMutualId(mutualId);
+            	sentJoinRequestData.setStatus(status);
+            	sentJoinRequestData.setTimestamp(timestamp);
 	        }
 	        cursor.close();
         } catch (Throwable t) {
@@ -165,7 +263,7 @@ public class DBLayer {
 				DBManager.getDBManagerInstance().close();
 			}
 		}
-    	return joinRequestData;
+    	return sentJoinRequestData;
     }
 
 	public static ReceivedJoinRequestData getReceivedJoinRequest(String phoneNumberIn){
@@ -737,6 +835,13 @@ public class DBLayer {
 				" where " + DBConst.PHONE_NUMBER + " = ?";
 		// TODO: check that macAddress is valid value to avoid SQL injection
 		return isFieldExist(selectQuery, new String[] { phoneNumber });
+    }
+
+    public static boolean isEmailInPermissionsTable(String email){
+		String selectQuery = "select " + DBConst.EMAIL + " from " + DBConst.TABLE_PERMISSIONS +
+				" where " + DBConst.EMAIL + " = ?";
+		// TODO: check that email is valid value to avoid SQL injection
+		return isFieldExist(selectQuery, new String[] { email });
     }
 
     public static boolean isPhoneInReceivedJoinRequestTable(String phoneNumber){

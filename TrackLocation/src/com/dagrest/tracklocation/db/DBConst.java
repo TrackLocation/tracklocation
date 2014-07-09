@@ -104,12 +104,13 @@ public final class DBConst {
     public static final String TABLE_SEND_JOIN_REQUEST_CREATE = 
       "create table " + TABLE_SEND_JOIN_REQUEST + "(" +
     	  PHONE_NUMBER + " text not null unique, " +
-    	  MUTUAL_ID + " text not null, " +
+    	  MUTUAL_ID + " text not null unique, " +
     	  STATUS + " text not null, " +
     	  TIMESTAMP + " datetime not null" + 
     	  ");";
 
 	//    create table if not exists TABLE_RECEIVED_JOIN_REQUEST (phone_number text not null unique, mutual_id text not null);
+    //	  Content means that join request was received but was not approved
     public static final String TABLE_RECEIVED_JOIN_REQUEST_CREATE = 
       "create table " + TABLE_RECEIVED_JOIN_REQUEST + "(" +
     	  PHONE_NUMBER + " text not null unique, " +
@@ -121,6 +122,9 @@ public final class DBConst {
 
     //    create table if not exists TABLE_PERMISSIONS (email text not null unique, location integer, command integer, 
     //        admin_command integer);
+    // 	  LOCATION 		: 0 = PROHIBITED / 1 = PERMITTED
+    // 	  COMMAND		: RESERVED
+    //	  ADMIN_COMMAND	: RESERVED
     public static final String TABLE_PERMISSIONS_CREATE = 
       "create table " + TABLE_PERMISSIONS + "(" +
     	  EMAIL + " text not null unique, " +	  
