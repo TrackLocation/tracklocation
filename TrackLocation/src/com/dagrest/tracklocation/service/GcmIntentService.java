@@ -202,7 +202,7 @@ public class GcmIntentService extends IntentService {
                 		
                 		// Insert into TABLE_PERMISSIONS account(email) according to mutualId
                 		long countAdded = DBLayer.addPermissions(email, 0, 0, 0);
-                		PermissionsData permissionData = DBLayer.getPermissionsData(email);
+                		PermissionsData permissionData = DBLayer.getPermissions(email);
                 		
                 		SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
                 		// Remove join request from TABLE_SEND_JOIN_REQUEST according to "mutualId"

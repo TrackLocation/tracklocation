@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum DeviceTypeEnum {
-	phone("phone"), tablet("tablet"), computer("computer");
+	phone("phone"), tablet("tablet"), computer("computer"), unknown("unknown");
 	
 	private final String name;       
 	private static Map<String, DeviceTypeEnum> valueMap;

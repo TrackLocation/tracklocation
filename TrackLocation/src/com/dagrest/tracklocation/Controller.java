@@ -39,6 +39,7 @@ import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
+import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
@@ -478,7 +479,7 @@ public class Controller {
 					    				}
 					    	    	    // TODO: Check that join request approved and send back
 					    	    	    // push notification with newly connected contact details
-					    				showApproveJoinRequestDialog(activity, ctx, account, phoneNumber, mutualId);
+					    				showApproveJoinRequestDialog(activity, ctx, account, phoneNumber, mutualId, regId);
 					    	    	    //sendApproveOnJoinRequest(ctx);
 					    			}
 					    	    } else {
@@ -509,7 +510,7 @@ public class Controller {
     }
 
 	private static void showApproveJoinRequestDialog(Activity activity, Context context,
-			String account, String phoneNumber, String mutualId) {
+			String account, String phoneNumber, String mutualId, String regId) {
     	String dialogMessage = "Approve join request from " +
 			account + "\n[" + phoneNumber + "]";
     	
@@ -517,13 +518,14 @@ public class Controller {
 			Context context;	
 			String mutualId;
 			String email;
+			String regId;
 			@Override
 			public void doOnPositiveButton() {
-				sendApproveOnJoinRequest(context, mutualId, email, CommandEnum.join_approval);
+				sendApproveOnJoinRequest(context, mutualId, email, regId, CommandEnum.join_approval);
 			}
 			@Override
 			public void doOnNegativeButton() {
-				sendApproveOnJoinRequest(context, mutualId, email, CommandEnum.join_rejected);
+				sendApproveOnJoinRequest(context, mutualId, email, regId, CommandEnum.join_rejected);
 			}
 			@Override
 			public void setActivity(Activity activity) {
@@ -536,12 +538,14 @@ public class Controller {
 			public void setParams(Object[]... objects) {
 				mutualId = objects[0][0].toString();
 				email = objects[0][1].toString();
+				regId = objects[0][2].toString();
 			}
 		};
 		approveJoinRequestDialogOnClickAction.setContext(context);
 		Object[] objects = new Object[2];
 		objects[0] = mutualId;
 		objects[1] = account;
+		objects[2] = regId;
 		approveJoinRequestDialogOnClickAction.setParams(objects);
     	
  		CommonDialog aboutDialog = new CommonDialog(activity, approveJoinRequestDialogOnClickAction);
@@ -555,10 +559,10 @@ public class Controller {
 		aboutDialog.setCancelable(true);
     }
 
-	public static void sendApproveOnJoinRequest(Context context, String mutualId, String email, CommandEnum command){
+	public static void sendApproveOnJoinRequest(Context context, String mutualId, String email, String regId, CommandEnum command){
 		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
 		List<String> listRegIDs = new ArrayList<String>();
-		listRegIDs.add(regIDToReturnMessageTo);
+		listRegIDs.add(regId);
 		String time = "";
 		String messageString = "";
 		String jsonMessage = createJsonMessage(listRegIDs, 
@@ -570,6 +574,20 @@ public class Controller {
 	    		mutualId
 				);
 		sendCommand(jsonMessage);
+//		if(CommandEnum.join_approval.toString().equals(command)){
+//			// add contact to the following tables:
+//			// TABLE_CONTACT_DEVICE
+//			// TABLE_CONTACT
+//			// TABLE_DEVICE
+//			ContactData contactData = DBLayer.addContactData(null, null, null, email);
+//			DeviceData deviceData = DBLayer.addDeviceData("macAddress", null, DeviceTypeEnum.unknown);
+//			ContactDeviceData contactDeviceData = new ContactDeviceData();
+//			contactDeviceData.setContactData(contactData);
+//			contactDeviceData.setDeviceData(deviceData);
+//			ContactDeviceDataList contactDeviceDataList = new ContactDeviceDataList();
+//			contactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
+//			DBLayer.addContactDeviceDataList(contactDeviceDataList);
+//		}
 	}
 	
 	public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
@@ -821,5 +839,4 @@ public class Controller {
 //		return macAddress;
 //	}
 }
-
 

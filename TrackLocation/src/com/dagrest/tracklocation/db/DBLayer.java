@@ -137,7 +137,7 @@ public class DBLayer {
             	String phoneNumber = cursor.getString(0);
             	String mutualId = cursor.getString(1);
             	String status = cursor.getString(2);
-            	String timestamp = cursor.getString(4);
+            	String timestamp = cursor.getString(3);
 
             	sentJoinRequestData.setPhoneNumber(phoneNumber);
             	sentJoinRequestData.setMutualId(mutualId);
@@ -187,7 +187,7 @@ public class DBLayer {
 		return -1;
 	}
 
-	public static PermissionsData getPermissionsData (String inEmail){
+	public static PermissionsData getPermissions (String inEmail){
 		PermissionsData permissionsData = null;
 		SQLiteDatabase db = null;
 		try{
@@ -211,7 +211,7 @@ public class DBLayer {
             	String email = cursor.getString(0);
             	int location = cursor.getInt(1);
             	int command = cursor.getInt(2);
-            	int adminCommand = cursor.getInt(4);
+            	int adminCommand = cursor.getInt(3);
 
             	permissionsData.setEmail(email);
             	permissionsData.setIsLocationSharePermitted(location);
