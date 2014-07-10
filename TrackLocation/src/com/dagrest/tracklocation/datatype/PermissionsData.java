@@ -1,10 +1,10 @@
 package com.dagrest.tracklocation.datatype;
 
-public class Permissions {
+public class PermissionsData {
 	private String email;
 	private int isLocationSharePermitted;
 	private int command; // reserved
-	private int admin_command;  // reserved
+	private int adminCommand;  // reserved
 	
 	public String getEmail() {
 		return email;
@@ -24,10 +24,10 @@ public class Permissions {
 	public void setCommand(int command) {
 		this.command = command;
 	}
-	public int getAdmin_command() {
-		return admin_command;
+	public int getAdminCommand() {
+		return adminCommand;
 	}
-	public void setAdmin_command(int admin_command) {
-		this.admin_command = admin_command;
+	public void setAdminCommand(int adminCommand) {
+		this.adminCommand = adminCommand;
 	}
 }

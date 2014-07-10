@@ -8,6 +8,7 @@ import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
+import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 import com.dagrest.tracklocation.db.DBLayer;
@@ -201,6 +202,7 @@ public class GcmIntentService extends IntentService {
                 		
                 		// Insert into TABLE_PERMISSIONS account(email) according to mutualId
                 		long countAdded = DBLayer.addPermissions(email, 0, 0, 0);
+                		PermissionsData permissionData = DBLayer.getPermissionsData(email);
                 		
                 		SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
                 		// Remove join request from TABLE_SEND_JOIN_REQUEST according to "mutualId"

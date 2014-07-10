@@ -7,6 +7,7 @@ import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
+import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.datatype.ReceivedJoinRequestData;
 import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 
@@ -185,6 +186,48 @@ public class DBLayer {
 		}
 		return -1;
 	}
+
+	public static PermissionsData getPermissionsData (String inEmail){
+		PermissionsData permissionsData = null;
+		SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			
+	    	// Select All Query
+			String selectQuery = "select " + DBConst.EMAIL + ", " + 
+				DBConst.LOCATION + ", " + DBConst.COMMAND + ", " +  
+				DBConst.ADMIN_COMMAND + 
+				" from " + DBConst.TABLE_PERMISSIONS;
+			
+			if(inEmail != null && !inEmail.isEmpty()){
+				selectQuery = selectQuery + " where " + DBConst.EMAIL + " = ?";
+			}
+			
+	        Cursor cursor = db.rawQuery(selectQuery, new String[] { inEmail });
+	  
+	        if (cursor.moveToFirst()) {
+	        	permissionsData = new PermissionsData();
+            	
+            	String email = cursor.getString(0);
+            	int location = cursor.getInt(1);
+            	int command = cursor.getInt(2);
+            	int adminCommand = cursor.getInt(4);
+
+            	permissionsData.setEmail(email);
+            	permissionsData.setIsLocationSharePermitted(location);
+            	permissionsData.setCommand(command);
+            	permissionsData.setAdminCommand(adminCommand);
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+    	return permissionsData;
+    }
 
 	public static long addReceivedJoinRequest(String phoneNumber, String mutualId, String regId, String account){
 		
