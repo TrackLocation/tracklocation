@@ -10,6 +10,8 @@ import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
 import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.datatype.ReceivedJoinRequestData;
 import com.dagrest.tracklocation.datatype.SentJoinRequestData;
+import com.dagrest.tracklocation.log.LogManager;
+import com.dagrest.tracklocation.utils.CommonConst;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -19,13 +21,17 @@ import android.util.Log;
 
 public class DBLayer {
 	
+	private static final String CLASS_NAME = "DBLayer";
+	
 	protected DBLayer() {
     }
 	
 	public static int deleteJoinRequest(String phoneNumber){
 		
 		if(phoneNumber == null || phoneNumber.isEmpty()){
-			// TODO: notify that no registrationId to insert
+        	String errMsg = "Delete join request failed - no phone number was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "deleteJoinRequest", errMsg);
 			return -1;
 		}
 		
@@ -41,9 +47,10 @@ public class DBLayer {
 			}
 		} catch (Throwable t) {
             if (DBConst.IS_DEBUG_LOG_ENABLED){
-            	Log.e(DBConst.LOG_TAG_DB, "Exception: DBHelper.onCreate() exception", t);
+            	String errMsg = "Exception caught: " + t.getMessage();
+            	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+                LogManager.LogErrorMsg(CLASS_NAME, "deleteJoinRequest", errMsg);
             }
-			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -55,12 +62,16 @@ public class DBLayer {
 	public static long addSentJoinRequest(String phoneNumber, String mutualId, JoinRequestStatusEnum status){
 		
 		if(phoneNumber == null || phoneNumber.isEmpty()){
-			// TODO: notify that no registrationId to insert
+        	String errMsg = "Add sent join request failed - no phone number was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "addSentJoinRequest", errMsg);
 			return -1;
 		}
 		
 		if(mutualId == null || mutualId.isEmpty()){
-			// TODO: notify that no mutualId to insert
+        	String errMsg = "Add sent join request failed - no mutualId was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "addSentJoinRequest", errMsg);
 			return -1;
 		}
 		
@@ -80,7 +91,9 @@ public class DBLayer {
 				return db.update(DBConst.TABLE_SEND_JOIN_REQUEST, cVal, DBConst.PHONE_NUMBER + " = ? ", new String[] { phoneNumber });
 			}
 		} catch (Throwable t) {
-			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "addSentJoinRequest", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -92,7 +105,9 @@ public class DBLayer {
 	public static int deleteSentJoinRequest(String inMutualId){
 		
 		if(inMutualId == null || inMutualId.isEmpty()){
-			// TODO: notify that no registrationId to insert
+        	String errMsg = "Delete sent join request failed - no mutualId was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "deleteSentJoinRequest", errMsg);
 			return -1;
 		}
 		
@@ -108,7 +123,9 @@ public class DBLayer {
             if (DBConst.IS_DEBUG_LOG_ENABLED){
             	Log.e(DBConst.LOG_TAG_DB, "Exception: DBHelper.onCreate() exception", t);
             }
-			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "deleteSentJoinRequest", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -146,7 +163,9 @@ public class DBLayer {
 	        }
 	        cursor.close();
         } catch (Throwable t) {
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "getSentJoinRequestByMutualId", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -158,7 +177,9 @@ public class DBLayer {
 	public static long addPermissions(String email, int location, int command, int admin_command){
 		
 		if(email == null || email.isEmpty()){
-			// TODO: notify that no email to insert
+        	String errMsg = "Add permissions failed - no email account was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "addPermissions", errMsg);
 			return -1;
 		}
 		
@@ -178,7 +199,9 @@ public class DBLayer {
 				return db.update(DBConst.TABLE_PERMISSIONS, cVal, DBConst.EMAIL + " = ? ", new String[] { email });
 			}
 		} catch (Throwable t) {
-			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "addPermissions", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -220,7 +243,9 @@ public class DBLayer {
 	        }
 	        cursor.close();
         } catch (Throwable t) {
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+        	LogManager.LogErrorMsg(CLASS_NAME, "getPermissions", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -232,17 +257,23 @@ public class DBLayer {
 	public static long addReceivedJoinRequest(String phoneNumber, String mutualId, String regId, String account){
 		
 		if(phoneNumber == null || phoneNumber.isEmpty()){
-			// TODO: notify that no registrationId to insert
+        	String errMsg = "Add received join request failed - no phone number was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
 			return -1;
 		}
 		
 		if(mutualId == null || mutualId.isEmpty()){
-			// TODO: notify that no mutualId to insert
+        	String errMsg = "Add received join request failed - no mutualId was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
 			return -1;
 		}
 		
 		if(regId == null || regId.isEmpty()){
-			// TODO: notify that no mutualId to insert
+        	String errMsg = "Add received join request failed - no registrationId was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
 			return -1;
 		}
 
@@ -263,7 +294,9 @@ public class DBLayer {
 				return db.update(DBConst.TABLE_RECEIVED_JOIN_REQUEST, cVal, DBConst.PHONE_NUMBER + " = ? ", new String[] { phoneNumber });
 			}
 		} catch (Throwable t) {
-			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -300,7 +333,9 @@ public class DBLayer {
 	        }
 	        cursor.close();
         } catch (Throwable t) {
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "getSentJoinRequestByPhone", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -341,7 +376,9 @@ public class DBLayer {
 	        }
 	        cursor.close();
         } catch (Throwable t) {
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "getReceivedJoinRequest", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -370,7 +407,9 @@ public class DBLayer {
 		SQLiteDatabase db = null;
 
 		if(contactEmail == null || contactEmail.isEmpty()){
-			// TODO: notify that no ContactData to insert
+        	String errMsg = "Add contact data failed - no email account was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "addContactData", errMsg);
 			return null;
 		}
 		
@@ -393,7 +432,9 @@ public class DBLayer {
 			db.insert(DBConst.TABLE_CONTACT, null, cVal);
 		} catch (Throwable t) {
 			contactData = null;
-			Log.i(DBConst.LOG_TAG_DB, "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "addContactData", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -420,7 +461,9 @@ public class DBLayer {
 		SQLiteDatabase db = null;
 
 		if(macAddress == null || macAddress.isEmpty()){
-			// TODO: notify that no ContactData to insert
+        	String errMsg = "Add device data failed - no … was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "addDeviceData", errMsg);
 			return null;
 		}
 
@@ -441,7 +484,9 @@ public class DBLayer {
             db.insert(DBConst.TABLE_DEVICE, null, cVal);
         } catch (Throwable t) {
         	deviceData = null;
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "addDeviceData", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -449,33 +494,6 @@ public class DBLayer {
 		}
         return deviceData;
     }
-
-//    // Insert contact/device data
-//    private static ContactDeviceData addContactDeviceData(ContactDeviceData contactDeviceData, 
-//    	ContactData contactData, DeviceData deviceData){
-//    	
-//    	if(contactDeviceData == null){
-//    		// TODO: unable to add - insert to log and check what to do...
-//    		return null;
-//    	}
-//
-//    	String registartionId = contactDeviceData.getRegistration_id();
-//    	String phoneNumber = contactDeviceData.getPhoneNumber();
-//    	String imei = contactDeviceData.getImei();
-//    	
-//    	if(contactData == null || contactData.getEmail() == null){
-//    		// TODO: unable to add - insert to log and check what to do...
-//    		return null;
-//    	}
-//
-//    	if(deviceData == null || deviceData.getDeviceMac() == null){
-//    		// TODO: unable to add - insert to log and check what to do...
-//    		return null;
-//    	}
-//
-//    	return addContactDeviceData(phoneNumber, contactData, 
-//        		deviceData, imei, registartionId);
-//	}
 
     // Insert contact/device data
     private static ContactDeviceData addContactDeviceData(String phoneNumber, ContactData  contactData, 
@@ -510,7 +528,8 @@ public class DBLayer {
             db.insert(DBConst.TABLE_CONTACT_DEVICE, null, cVal);
         } catch (Throwable t) {
         	contactDeviceData = null;
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+            Log.e("Database", "Exception caught: " + t.getMessage(), t);
+            LogManager.LogErrorMsg(CLASS_NAME, "addContactDeviceData", t.getMessage());
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -535,7 +554,9 @@ public class DBLayer {
 					if(contactData != null){
 						email = contactData.getEmail();
 					} else {
-						// TODO: Notify - impossible to add contactDeviceData - NO EMAIL
+						String errMsg = "Unable to add contactDeviceData to DB - no email account was provided";
+						Log.e(CommonConst.LOG_TAG, errMsg);
+						LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
 						continue;
 					}
 					
@@ -543,12 +564,16 @@ public class DBLayer {
 					if(deviceData != null){
 						macAddress = deviceData.getDeviceMac();
 					} else {
-						// TODO: Notify - impossible to add contactDeviceData - NO MAC ADDRESS 
+						String errMsg = "Unable to add contactDeviceData to DB - no macAddress was provided";
+						Log.e(CommonConst.LOG_TAG, errMsg);
+						LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
 						continue;
 					}
 					
 					if(registrationId == null || registrationId.isEmpty()){
-						// TODO: Notify - impossible to add contactDeviceData - NO registartionID
+						String errMsg = "Unable to add contactDeviceData to DB - no registrationId was provided";
+						Log.e(CommonConst.LOG_TAG, errMsg);
+						LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
 						continue;
 					}
 					
@@ -561,8 +586,14 @@ public class DBLayer {
 						ContactDeviceData resultContactDeviceData = addContactDeviceData(phoneNumber, contactData, 
 							deviceData, imei, registrationId, guid);
 						if(resultContactDeviceData == null){
-							// TODO: Notify - impossible to add contactDeviceData
+							String errMsg = "Failed to add contactDeviceData to DB by addContactDeviceData()";
+							Log.e(CommonConst.LOG_TAG, errMsg);
+							LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
 						}
+			    	} else {
+						String infoMsg = "Account [" + email + "] already exists in DB";
+						Log.i(CommonConst.LOG_TAG, infoMsg);
+						LogManager.LogInfoMsg("DBLayer", "addContactDeviceDataList", infoMsg);
 			    	}
 		    	}
 			}
@@ -598,7 +629,9 @@ public class DBLayer {
 	        }
 	        cursor.close();
         } catch (Throwable t) {
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "getContactData", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -634,7 +667,9 @@ public class DBLayer {
 	        }
 	        cursor.close();
         } catch (Throwable t) {
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "getDeviceData", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -682,7 +717,9 @@ public class DBLayer {
 	        }
 	        cursor.close();
         } catch (Throwable t) {
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "getContactDeviceDataONLY", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -835,7 +872,9 @@ public class DBLayer {
 	        }
 	        cursor.close();
         } catch (Throwable t) {
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "getContactDeviceDataList", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -907,7 +946,9 @@ public class DBLayer {
 	        	result = true;
 	        }        
 	    } catch (Throwable t) {
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "isFieldExist", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -979,7 +1020,9 @@ public class DBLayer {
 	        }
 	        cursor.close();
         } catch (Throwable t) {
-            Log.i("Database", "Exception caught: " + t.getMessage(), t);
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "getContactDeviceData", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -1001,6 +1044,7 @@ public class DBLayer {
          
         return aReturn;
     }
+    
     // UnEscape string for single quotes (show data)
     private static String sqlUnEscapeString(String aString) {
          
