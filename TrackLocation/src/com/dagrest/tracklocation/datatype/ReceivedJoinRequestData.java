@@ -5,6 +5,7 @@ public class ReceivedJoinRequestData {
 	private String mutualId;
 	private String RegId;
 	private String account;
+	private String macAddress;
 	private String timestamp;
 	
 	public String getPhoneNumber() {
@@ -30,6 +31,12 @@ public class ReceivedJoinRequestData {
 	}
 	public void setAccount(String account) {
 		this.account = account;
+	}
+	public String getMacAddress() {
+		return macAddress;
+	}
+	public void setMacAddress(String macAddress) {
+		this.macAddress = macAddress;
 	}
 	public String getTimestamp() {
 		return timestamp;

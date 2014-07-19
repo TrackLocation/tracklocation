@@ -7,6 +7,7 @@ import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
+import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
@@ -25,6 +26,8 @@ import android.util.Log;
 
 public class GcmIntentService extends IntentService {
 
+	public static final String CLASS_NAME = "GcmIntentService";
+	
 	public GcmIntentService() {
 		super("GcmIntentService");
 //		context = getApplicationContext();
@@ -195,7 +198,24 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.join_approval.toString())){ // COMMAND JOIN_APPROVAL
             		
-            			String email = extras.getString("message");
+            			String message = extras.getString("message"); // email, regId, phoneNumber
+            			
+            			String messageArray[] = message.split(CommonConst.DELIMITER_COMMA);
+            			String email = null;
+            			String registrationId = null;
+            			String phoneNumber = null;
+            			String macAddress = null;
+            			if(messageArray.length == 4){
+	            			email = messageArray[0];
+	            			registrationId = messageArray[1];
+	            			phoneNumber = messageArray[2];
+	            			macAddress = messageArray[3];
+            			} else {
+            				// Join approval request failed
+            	        	String errMsg = "Join approval request failed - not all contact details were provided.";
+            	            Log.e(CommonConst.LOG_TAG, errMsg);
+            	            LogManager.LogErrorMsg(CLASS_NAME, "GCM join_approval COMMAND", errMsg);
+             			}
                 		String key = extras.getString("key");
                 		String mutualId = extras.getString("value"); // mutualId
                 		String currentDateTime = Controller.getCurrentDate();
@@ -208,6 +228,10 @@ public class GcmIntentService extends IntentService {
                 		// Remove join request from TABLE_SEND_JOIN_REQUEST according to "mutualId"
                 		int count = DBLayer.deleteSentJoinRequest(mutualId);
                 		sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
+                		
+                		// Add contact details to CondtactDeviceData table
+                		DBLayer.addContactDeviceDataList(new ContactDeviceDataList(email,
+                				macAddress, phoneNumber, registrationId, null));
                 		System.out.println("Test");
                 		
         		// ============================================

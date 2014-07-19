@@ -43,6 +43,7 @@ import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
+import com.dagrest.tracklocation.datatype.ReceivedJoinRequestData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.dialog.CommonDialog;
@@ -66,6 +67,8 @@ import com.google.gson.Gson;
 
 public class Controller {
 
+	private final static String CLASS_NAME = "";
+	
 	private Timer timer;
 	private MapKeepAliveTimerJob mapKeepAliveTimerJob;
 
@@ -278,12 +281,12 @@ public class Controller {
 		return phoneNumber;
 	}
 
-	public static void saveValueToPreferencesIfNotExist(Context context, String valueName, String value){
-		String tmpValue = Preferences.getPreferencesString(context, valueName);
-		if(tmpValue == null || tmpValue.isEmpty()){
-			Preferences.setPreferencesString(context, valueName, value);
-		}
-	}
+//	public static void saveValueToPreferencesIfNotExist(Context context, String valueName, String value){
+//		String tmpValue = Preferences.getPreferencesString(context, valueName);
+//		if(tmpValue == null || tmpValue.isEmpty()){
+//			Preferences.setPreferencesString(context, valueName, value);
+//		}
+//	}
 	
 	public static String getNickName(Context context){
 		String nickName = null;
@@ -417,7 +420,13 @@ public class Controller {
     }
 
     /*
-     * Send command to request contact by GCM (Google Cloud Message - push notifictation)
+     * Check if received SMS with JOIN REQUEST
+     * 
+     * If join request approved:
+     *  1 - Save "requester" contact details into DB (CONTACT_DATA, DEVICE_DATA, CONTACT_DEVICE_DATA tables)
+     *  2 - Send approve command to "requester" contact by GCM (Google Cloud Message - push notifictation)
+     *      with owner contact details
+     *      
      * Input parematers:
      * 		Object array {Activity, Context}
      */
@@ -452,47 +461,68 @@ public class Controller {
 						if(smsMessage != null && smsMessage.getMessageContent().contains(CommonConst.JOIN_FLAG_SMS)){
 				    	    String smsMsg = smsMessage.getMessageContent();
 				    	    String smsId = smsMessage.getMessageId();
+				    	    String smsPhoneNumber = smsMessage.getMessageNumber();
 				    	    
 				    	    String[] smsParams = smsMsg.split(CommonConst.DELIMITER_COMMA);
 				    	    
-				    	    // TODO: save all received join requests to RECEIVED_JOIN_REQUEST table
 				    	    if(smsParams.length >= 4){
 				    	    	
-					    	    String phoneNumber = smsParams[3];
-					    	    String mutualId = smsParams[2];
-					    	    String regId = smsParams[1];
-					    	    String account = smsParams[4];
+					    	    String phoneNumberFromSMS = smsParams[3];
+					    	    if(phoneNumberFromSMS == null || phoneNumberFromSMS.isEmpty()){
+					    	    	phoneNumberFromSMS = smsPhoneNumber;
+					    	    }
+					    	    String mutualIdFromSMS = smsParams[2];
+					    	    String regIdFromSMS = smsParams[1];
+					    	    String accountFromSMS = smsParams[4];
+					    	    String macAddressFromSMS = smsParams[5];
 					    	    
-					    	    if(phoneNumber != null && !phoneNumber.isEmpty() &&
-					    	    	mutualId != null && !mutualId.isEmpty() &&
-					    	    	regId != null && !regId.isEmpty() ){
-					    			long res = DBLayer.addReceivedJoinRequest(phoneNumber, mutualId, regId, account);
+					    	    if(phoneNumberFromSMS != null && !phoneNumberFromSMS.isEmpty() &&
+					    	    	mutualIdFromSMS != null && macAddressFromSMS != null && !mutualIdFromSMS.isEmpty() &&
+					    	    	regIdFromSMS != null && !regIdFromSMS.isEmpty() && !macAddressFromSMS.isEmpty()){
+					    	    	// Save contact details received by join requests to RECEIVED_JOIN_REQUEST table
+					    			long res = DBLayer.addReceivedJoinRequest(phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, accountFromSMS, macAddressFromSMS);
 					    			if(res != 1){
-					    				// TODO: Notify that add ReceivedJoinRequest to DB failed...
-					    				System.out.println("addReceivedJoinRequest FAILED for phoneNumber = " + phoneNumber);
+					    	        	String errMsg = "Add received join request FAILED for phoneNumber = " + phoneNumberFromSMS;
+					    	            Log.e(CommonConst.LOG_TAG, errMsg);
+					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
 					    			} else {
 					    				// TODO: delete SMS that was handled
 					    				String uriSms = Uri.parse(CommonConst.SMS_URI) + "/" + smsId;
 					    				int count = activity.getContentResolver().delete(Uri.parse(uriSms), null, null);
 					    				if(count != 1){
 					    					// Log that join SMS request has not been removed
+						    	        	String errMsg = "Failed to delete join request SMS";
+						    	            Log.e(CommonConst.LOG_TAG, errMsg);
+						    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
 					    				}
-					    	    	    // TODO: Check that join request approved and send back
-					    	    	    // push notification with newly connected contact details
-					    				showApproveJoinRequestDialog(activity, ctx, account, phoneNumber, mutualId, regId);
-					    	    	    //sendApproveOnJoinRequest(ctx);
+					    	    	    // Check that join request approved and send back by
+					    	    	    // push notification (GCM) owner contact details
+					    				showApproveJoinRequestDialog(activity, ctx, accountFromSMS, phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, macAddressFromSMS);
 					    			}
 					    	    } else {
-					    	    	// TODO: notify error ??? 
-					    	    	System.out.println("No NULL or empty parameters accepted for mutualId , regId and phoneNumber.");
-					    	    	if(phoneNumber != null && !phoneNumber.isEmpty()){
-					    	    		System.out.println("phoneNumber is null or empty");
+				    	        	String errMsg = "No NULL or empty parameters accepted for mutualId , regId, " + 
+						    	    	"macAddress and phoneNumber.";
+				    	            Log.e(CommonConst.LOG_TAG, errMsg);
+				    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
+					    	    	if(phoneNumberFromSMS != null && !phoneNumberFromSMS.isEmpty()){
+					    	        	errMsg = "phoneNumber is null or empty";
+					    	            Log.e(CommonConst.LOG_TAG, errMsg);
+					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
 					    	    	}
-					    	    	if(mutualId != null && !mutualId.isEmpty()){
-					    	    		System.out.println("mutualId is null or empty");
+					    	    	if(mutualIdFromSMS != null && !mutualIdFromSMS.isEmpty()){
+					    	        	errMsg = "mutualId is null or empty";
+					    	            Log.e(CommonConst.LOG_TAG, errMsg);
+					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
 					    	    	}
-					    	    	if(regId != null && !regId.isEmpty()){
-					    	    		System.out.println("regId is null or empty");
+					    	    	if(regIdFromSMS != null && !regIdFromSMS.isEmpty()){
+					    	        	errMsg = "regId is null or empty";
+					    	            Log.e(CommonConst.LOG_TAG, errMsg);
+					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
+					    	    	}
+					    	    	if(macAddressFromSMS != null && !macAddressFromSMS.isEmpty()){
+					    	        	errMsg = "macAddress is null or empty";
+					    	            Log.e(CommonConst.LOG_TAG, errMsg);
+					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
 					    	    	}
 					    	    }
 				    	    }
@@ -510,22 +540,44 @@ public class Controller {
     }
 
 	private static void showApproveJoinRequestDialog(Activity activity, Context context,
-			String account, String phoneNumber, String mutualId, String regId) {
+			String account, String phoneNumber, String mutualId, String regId, String macAddress) {
     	String dialogMessage = "Approve join request from " +
 			account + "\n[" + phoneNumber + "]";
     	
     	IDialogOnClickAction approveJoinRequestDialogOnClickAction = new IDialogOnClickAction() {
 			Context context;	
 			String mutualId;
-			String email;
 			String regId;
+//			String email;
+//			String macAddress;
+			
+            String ownerEmail;
+            String ownerMacAddress;
+            String ownerRegId;
+            String ownerPhoneNumber;
+
+			
 			@Override
 			public void doOnPositiveButton() {
-				sendApproveOnJoinRequest(context, mutualId, email, regId, CommandEnum.join_approval);
+				sendApproveOnJoinRequest(context, regId, mutualId, ownerEmail, ownerRegId, ownerMacAddress, 
+					ownerPhoneNumber, CommandEnum.join_approval);
+				// Remove from RECEIVED_JOIN_REQUEST
+				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
+				// add information about owner to DB 
+				ContactDeviceDataList contactDeviceDataListOwner = 
+					DBLayer.addContactDeviceDataList(
+						new ContactDeviceDataList(receivedJoinRequestData.getAccount(),
+							"macAddress", receivedJoinRequestData.getPhoneNumber(), regId, null));
+				int count = DBLayer.deleteReceivedJoinRequest(mutualId);
+				Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + receivedJoinRequestData.toString());
+				Log.i(CommonConst.LOG_TAG, "Deleted recived join request with mutual id: " + mutualId + " count = " + count);
 			}
 			@Override
 			public void doOnNegativeButton() {
-				sendApproveOnJoinRequest(context, mutualId, email, regId, CommandEnum.join_rejected);
+				sendApproveOnJoinRequest(context, regId, mutualId, ownerEmail, ownerRegId, ownerMacAddress, 
+					ownerPhoneNumber, CommandEnum.join_rejected);
+				// Remove from RECEIVED_JOIN_REQUEST
+				int count = DBLayer.deleteReceivedJoinRequest(mutualId);
 			}
 			@Override
 			public void setActivity(Activity activity) {
@@ -533,19 +585,25 @@ public class Controller {
 			@Override
 			public void setContext(Context context) {
 				this.context = context;
+				ownerEmail = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+	            ownerMacAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+	            ownerRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+	            ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
 			}
 			@Override
 			public void setParams(Object[]... objects) {
 				mutualId = objects[0][0].toString();
-				email = objects[0][1].toString();
-				regId = objects[0][2].toString();
+				regId = objects[0][1].toString();
+//				email = objects[0][2].toString();
+//				macAddress = objects[0][3].toString();
 			}
 		};
 		approveJoinRequestDialogOnClickAction.setContext(context);
 		Object[] objects = new Object[2];
 		objects[0] = mutualId;
-		objects[1] = account;
-		objects[2] = regId;
+		objects[1] = regId;
+//		objects[2] = account;
+//		objects[3] = macAddress;
 		approveJoinRequestDialogOnClickAction.setParams(objects);
     	
  		CommonDialog aboutDialog = new CommonDialog(activity, approveJoinRequestDialogOnClickAction);
@@ -559,19 +617,23 @@ public class Controller {
 		aboutDialog.setCancelable(true);
     }
 
-	public static void sendApproveOnJoinRequest(Context context, String mutualId, String email, String regId, CommandEnum command){
-		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+	public static void sendApproveOnJoinRequest(Context context, String regId, String ownerMutualId, 
+			String ownerEmail, String ownerRegId, String ownerMacAddress, String ownerPhoneNumber, 
+			CommandEnum command){
+		
+		String regIDToReturnMessageTo = regId;
 		List<String> listRegIDs = new ArrayList<String>();
 		listRegIDs.add(regId);
-		String time = "";
-		String messageString = "";
+		String time = Controller.getCurrentDate();
+		String messageString = ownerEmail + CommonConst.DELIMITER_COMMA + ownerRegId + CommonConst.DELIMITER_COMMA + 
+				ownerPhoneNumber + CommonConst.DELIMITER_COMMA + ownerMacAddress;
 		String jsonMessage = createJsonMessage(listRegIDs, 
 	    		regIDToReturnMessageTo, 
 	    		command, // CommandEnum.join_approval, 
-	    		email, // messageString = email, 
-	    		Controller.getCurrentDate(), // time,
+	    		messageString, // email, regId, phoneNumber, macAddress
+	    		time,
 	    		NotificationKeyEnum.joinRequestApprovalMutualId.toString(), 
-	    		mutualId
+	    		ownerMutualId
 				);
 		sendCommand(jsonMessage);
 //		if(CommandEnum.join_approval.toString().equals(command)){

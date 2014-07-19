@@ -36,6 +36,7 @@ public final class DBConst {
     public static final String PHONE_NUMBER = "phone_number";
     public static final String MUTUAL_ID = "mutual_id";
     public static final String STATUS = "status";
+    public static final String MAC_ADDRESS = "mac_address";
 
     
 //    CommonConst.JOIN_FLAG_SMS + 
@@ -117,6 +118,7 @@ public final class DBConst {
     	  MUTUAL_ID + " text not null, " +
     	  REG_ID + " text not null, " +
     	  RECEIVED_JOIN_REQUEST_ACCOUNT + " text, " +
+    	  MAC_ADDRESS + " text not null, " +
     	  TIMESTAMP + " datetime not null" + 
     	  ");";
 

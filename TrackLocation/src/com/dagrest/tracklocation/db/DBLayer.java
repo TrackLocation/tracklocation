@@ -26,38 +26,38 @@ public class DBLayer {
 	protected DBLayer() {
     }
 	
-	public static int deleteJoinRequest(String phoneNumber){
-		
-		if(phoneNumber == null || phoneNumber.isEmpty()){
-        	String errMsg = "Delete join request failed - no phone number was provided";
-        	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "deleteJoinRequest", errMsg);
-			return -1;
-		}
-		
-		SQLiteDatabase db = null;
-		try{
-			db = DBManager.getDBManagerInstance().open();
-			 
-			String whereClause = DBConst.PHONE_NUMBER + " = ?";
-			String[] whereArgs = new String[] { phoneNumber };
-			
-			if(!isPhoneInJoinRequestTable(phoneNumber)){
-				return db.delete(DBConst.TABLE_SEND_JOIN_REQUEST, whereClause, whereArgs);
-			}
-		} catch (Throwable t) {
-            if (DBConst.IS_DEBUG_LOG_ENABLED){
-            	String errMsg = "Exception caught: " + t.getMessage();
-            	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-                LogManager.LogErrorMsg(CLASS_NAME, "deleteJoinRequest", errMsg);
-            }
-		} finally {
-			if(db != null){
-				DBManager.getDBManagerInstance().close();
-			}
-		}
-		return -1;
-	}
+//	public static int deleteJoinRequest(String phoneNumber){
+//		
+//		if(phoneNumber == null || phoneNumber.isEmpty()){
+//        	String errMsg = "Delete join request failed - no phone number was provided";
+//        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+//            LogManager.LogErrorMsg(CLASS_NAME, "deleteJoinRequest", errMsg);
+//			return -1;
+//		}
+//		
+//		SQLiteDatabase db = null;
+//		try{
+//			db = DBManager.getDBManagerInstance().open();
+//			 
+//			String whereClause = DBConst.PHONE_NUMBER + " = ?";
+//			String[] whereArgs = new String[] { phoneNumber };
+//			
+//			if(!isPhoneInJoinRequestTable(phoneNumber)){
+//				return db.delete(DBConst.TABLE_SEND_JOIN_REQUEST, whereClause, whereArgs);
+//			}
+//		} catch (Throwable t) {
+//            if (DBConst.IS_DEBUG_LOG_ENABLED){
+//            	String errMsg = "Exception caught: " + t.getMessage();
+//            	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+//                LogManager.LogErrorMsg(CLASS_NAME, "deleteJoinRequest", errMsg);
+//            }
+//		} finally {
+//			if(db != null){
+//				DBManager.getDBManagerInstance().close();
+//			}
+//		}
+//		return -1;
+//	}
 
 	public static long addSentJoinRequest(String phoneNumber, String mutualId, JoinRequestStatusEnum status){
 		
@@ -254,7 +254,7 @@ public class DBLayer {
     	return permissionsData;
     }
 
-	public static long addReceivedJoinRequest(String phoneNumber, String mutualId, String regId, String account){
+	public static long addReceivedJoinRequest(String phoneNumber, String mutualId, String regId, String account, String macAddress){
 		
 		if(phoneNumber == null || phoneNumber.isEmpty()){
         	String errMsg = "Add received join request failed - no phone number was provided";
@@ -277,6 +277,13 @@ public class DBLayer {
 			return -1;
 		}
 
+		if(macAddress == null || macAddress.isEmpty()){
+        	String errMsg = "Add received join request failed - no macAddress was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
+			return -1;
+		}
+
 		SQLiteDatabase db = null;
 		try{
 			db = DBManager.getDBManagerInstance().open();
@@ -284,8 +291,9 @@ public class DBLayer {
 			ContentValues cVal = new ContentValues();
 			cVal.put(DBConst.PHONE_NUMBER, phoneNumber);
 			cVal.put(DBConst.MUTUAL_ID, mutualId);
-			cVal.put(DBConst.REG_ID, mutualId);
+			cVal.put(DBConst.REG_ID, regId);
 			cVal.put(DBConst.TIMESTAMP, Controller.getDateTime());
+			cVal.put(DBConst.MAC_ADDRESS, macAddress);
 			cVal.put(DBConst.RECEIVED_JOIN_REQUEST_ACCOUNT, account);
 			
 			if(!isPhoneInReceivedJoinRequestTable(phoneNumber)){
@@ -297,6 +305,38 @@ public class DBLayer {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
             LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+		return -1;
+	}
+
+	public static int deleteReceivedJoinRequest(String inMutualId){
+		
+		if(inMutualId == null || inMutualId.isEmpty()){
+        	String errMsg = "Delete received join request failed - no mutualId was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "deleteReceivedJoinRequest", errMsg);
+			return -1;
+		}
+		
+		SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			 
+			String whereClause = DBConst.MUTUAL_ID + " = ?";
+			String[] whereArgs = new String[] { inMutualId };
+			
+			return db.delete(DBConst.TABLE_RECEIVED_JOIN_REQUEST, whereClause, whereArgs);
+		} catch (Throwable t) {
+            if (DBConst.IS_DEBUG_LOG_ENABLED){
+            	Log.e(DBConst.LOG_TAG_DB, "Exception: DBHelper.onCreate() exception", t);
+            }
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "deleteReceivedJoinRequest", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -344,7 +384,7 @@ public class DBLayer {
     	return sentJoinRequestData;
     }
 
-	public static ReceivedJoinRequestData getReceivedJoinRequest(String phoneNumberIn){
+	public static ReceivedJoinRequestData getReceivedJoinRequest(String requestMutualId){
 		ReceivedJoinRequestData receivedJoinRequestData = null;
 		SQLiteDatabase db = null;
 		try{
@@ -353,11 +393,11 @@ public class DBLayer {
 	        // Select All Query
 			String selectQuery = "select " + DBConst.PHONE_NUMBER + ", " + 
 				DBConst.MUTUAL_ID + ", " + DBConst.REG_ID + ", " +  
-				DBConst.REG_ID + ", " + DBConst.RECEIVED_JOIN_REQUEST_ACCOUNT + ", " + 
-				DBConst.TIMESTAMP + 
+				DBConst.RECEIVED_JOIN_REQUEST_ACCOUNT + ", " + 
+				DBConst.MAC_ADDRESS + ", " + DBConst.TIMESTAMP + 
 				" from " + DBConst.TABLE_RECEIVED_JOIN_REQUEST + 
-				" where " + DBConst.PHONE_NUMBER + " = ?";
-	        Cursor cursor = db.rawQuery(selectQuery, new String[] { phoneNumberIn });
+				" where " + DBConst.MUTUAL_ID + " = ?";
+	        Cursor cursor = db.rawQuery(selectQuery, new String[] { requestMutualId });
 	  
 	        if (cursor.moveToFirst()) {
 	        	receivedJoinRequestData = new ReceivedJoinRequestData();
@@ -366,12 +406,14 @@ public class DBLayer {
             	String mutualId = cursor.getString(1);
             	String regId = cursor.getString(2);
             	String account = cursor.getString(3);
-            	String timestamp = cursor.getString(4);
+            	String macAddress = cursor.getString(4);
+            	String timestamp = cursor.getString(5);
 
             	receivedJoinRequestData.setPhoneNumber(phoneNumber);
             	receivedJoinRequestData.setMutualId(mutualId);
             	receivedJoinRequestData.setRegId(regId);
             	receivedJoinRequestData.setAccount(account);
+            	receivedJoinRequestData.setMacAddress(macAddress);
             	receivedJoinRequestData.setTimestamp(timestamp);
 	        }
 	        cursor.close();
@@ -447,6 +489,9 @@ public class DBLayer {
 	public static DeviceData addDeviceData(DeviceData deviceData) {
 		String deviceMac = deviceData.getDeviceMac();
 		DeviceTypeEnum deviceTypeEnum = deviceData.getDeviceTypeEnum();
+		if(deviceTypeEnum == null){
+			deviceTypeEnum = DeviceTypeEnum.unknown;
+		}
 		String deviceName = deviceData.getDeviceName();
 		if(deviceMac == null || deviceMac.isEmpty()){
 			return null;
@@ -538,7 +583,10 @@ public class DBLayer {
         return contactDeviceData;
     }
     
-    public static void addContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
+    public static ContactDeviceDataList addContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
+    	
+    	ContactDeviceDataList contactDeviceDataListInserted = null;
+    	
     	if(contactDeviceDataList != null){
 			for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
 				if(contactDeviceData != null){
@@ -577,8 +625,10 @@ public class DBLayer {
 						continue;
 					}
 					
-					if(!isContactWithEmailExist(email) && !isDeviceWithMacAddressExist(macAddress) &&
-						!isContactDeviceExist(email, macAddress)){
+					boolean isEmailExist = isContactWithEmailExist(email);
+					boolean isMacAddressExist = isDeviceWithMacAddressExist(macAddress);
+					
+					if(!isContactDeviceExist(email, macAddress, phoneNumber)){
 						ContactData resultContactData = 
 							addContactData(contactData);
 						DeviceData resultDeviceData = 
@@ -597,7 +647,9 @@ public class DBLayer {
 			    	}
 		    	}
 			}
+			contactDeviceDataListInserted = getContactDeviceDataList(null);
     	}
+		return contactDeviceDataListInserted;
     }
 
     public static ContactData getContactData(){
@@ -904,12 +956,21 @@ public class DBLayer {
 		return isFieldExist(selectQuery, new String[] { macAddress});
     }
 
-    public static boolean isContactDeviceExist(String email, String macAddress){
-		String selectQuery = "select contact_device_email from " + DBConst.TABLE_CONTACT_DEVICE +
-				" where contact_device_email = ? " +
-				"and contact_device_mac = ?";
+    public static boolean isContactDeviceExist(String email, String macAddress, String phoneNumber){
+		String selectQuery = "select " +		
+	        "contact_first_name, contact_last_name, contact_nick, contact_email, device_mac, " +
+	        "device_name, device_type, contact_device_imei, contact_device_phone_number, " +
+	        "registration_id, contact_device_guid " +
+	        "from " + DBConst.TABLE_CONTACT_DEVICE + " as CD " +
+	        "join " + DBConst.TABLE_CONTACT + " as C " +
+	        "on CD.contact_device_email = C.contact_email " +
+	        "join " + DBConst.TABLE_DEVICE + " as D " +
+	        "on CD.contact_device_mac = D.device_mac " +
+			"where CD.contact_device_email = ? " +
+			"and CD.contact_device_mac = ? " + 
+			"and CD.contact_device_phone_number = ? ";
 		// TODO: check that phoneNumber, email and macAddress are valid values to avoid SQL injection
-		return isFieldExist(selectQuery, new String[] {email, macAddress});
+		return isFieldExist(selectQuery, new String[] {email, macAddress, phoneNumber});
     }
 
     public static boolean isPhoneInJoinRequestTable(String phoneNumber){

@@ -126,66 +126,6 @@ public class JoinContactList extends Activity {
 	    	@Override
     		public void onReceive(final Context context, Intent intent) {
 	    		
-//		    	DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-//		    	    @Override
-//		    	    public void onClick(DialogInterface dialog, int which) {
-//		    	        switch (which){
-//		    	        case DialogInterface.BUTTON_POSITIVE:
-//		    				long res = DBLayer.addJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
-//			    			if(res != 1){
-//			    				// TODO: Notify that add to DB failed...
-//			    			}
-//			    			String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-//			    			if(registrationId != null && !registrationId.isEmpty()){
-//					        	// Send SMS with registration details: 
-//					        	// phoneNumber and registartionId (mutual ID - optional) 
-//					        	SmsManager smsManager = SmsManager.getDefault();
-//			                    String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-//			                    String ownerGuid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_OWNER_GUID);
-//								ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
-//									CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-//									mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account + 
-//									CommonConst.DELIMITER_COMMA + ownerGuid);
-//								smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
-//								// Notify by toast that join request sent by SMS
-//								String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
-//								Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_SHORT).show();
-//			    			}
-//			    			finish();
-//
-//			    			
-////			    			----
-////			    	    	long res = DBLayer.addJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
-////			    			if(res != 1){
-////			    				// TODO: Notify that add to DB failed...
-////			    			}
-////			    			String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-////			    			if(registrationId != null && !registrationId.isEmpty()){
-////			    	        	// Send SMS with registration details: 
-////			    	        	// phoneNumber and registartionId (mutual ID - optional) 
-////			    	        	SmsManager smsManager = SmsManager.getDefault();
-////			    	            String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-////			    				ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
-////			    					CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-////			    					mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account);
-////			    				smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
-////			    				// Notify by toast that join request sent by SMS
-////			    				String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
-////			    				Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_SHORT).show();
-////			    			}
-////			    			finish();
-////
-////			    			----
-//			    			
-//			    			break;
-//
-//		    	        case DialogInterface.BUTTON_NEGATIVE:
-//		    	        	toSendAddJoinRequest = false;
-//		    	            break;
-//		    	        }
-//		    	    }
-//		    	};
-
 		    	// TODO Auto-generated method stub
 	    		LogManager.LogInfoMsg(className, "initBroadcastReceiver->onReceive", "WORK");
 	    		
@@ -282,9 +222,12 @@ public class JoinContactList extends Activity {
         	// phoneNumber and registartionId (mutual ID - optional) 
         	SmsManager smsManager = SmsManager.getDefault();
             String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+            String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+            String ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
 			ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
 				CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-				mutualId + CommonConst.DELIMITER_COMMA + phoneNumber + CommonConst.DELIMITER_COMMA + account);
+				mutualId + CommonConst.DELIMITER_COMMA + ownerPhoneNumber + CommonConst.DELIMITER_COMMA + account +
+				CommonConst.DELIMITER_COMMA + macAddress);
 			smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
 			// Notify by toast that join request sent by SMS
 			String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
@@ -95,6 +96,7 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onStart() {
 		Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
+		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
 		super.onResume();
 	}
 		
@@ -104,7 +106,8 @@ public class MainActivity extends Activity {
 		List<String> accountList = Controller.getAccountList(context);
 		if(accountList != null && accountList.size() == 1){
 			account = accountList.get(0);
-			Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+			//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 		} else {
 			// TODO: ask phone number from customer
 			Toast.makeText(MainActivity.this,
@@ -115,11 +118,13 @@ public class MainActivity extends Activity {
 
 		// PHONE NUMBER
 		phoneNumber = Controller.getPhoneNumber(context);
-		Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
+		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
+		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
 		
 		// MAC ADDRESS
 		macAddress = Controller.getMacAddress(MainActivity.this);
-		Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, phoneNumber);
+		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
+		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
 		
 		DBManager.initDBManagerInstance(new DBHelper(context));
 		
@@ -139,19 +144,32 @@ public class MainActivity extends Activity {
 		ContactDeviceDataList contDevDataList = DBLayer.getContactDeviceDataList(account);
 		if( contDevDataList == null || contDevDataList.getContactDeviceDataList().size() == 0){
 			// add information about owner to DB 
-			DBLayer.addContactDeviceDataList(new ContactDeviceDataList(account,
-				macAddress, phoneNumber, registrationId, null));
+			ContactDeviceDataList contactDeviceDataListOwner = 
+				DBLayer.addContactDeviceDataList(new ContactDeviceDataList(account,
+					macAddress, phoneNumber, registrationId, null));
+		} else {
+			Log.i(CommonConst.LOG_TAG, "Owner information already exists");
 		}
-		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
-
-		// get owner information from DB and save GUID to Preferences
-		for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
-			Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
+		
+		contDevDataList = DBLayer.getContactDeviceDataList(account);
+		if(contDevDataList != null){
+			// get owner information from DB and save GUID to Preferences
+			for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
+				// Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
+				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
+			}
+		} else {
+        	String errMsg = "Failed to save PREFERENCES_OWNER_GUID - no owner details were created";
+        	Log.e(CommonConst.LOG_TAG, errMsg);
+            LogManager.LogErrorMsg(className, "init", errMsg);
 		}
+		
 	}
 	
     public void onClick(final View view) {
 
+    	contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
+    	
     	// ========================================
     	// ABOUT button
     	// ========================================
@@ -332,6 +350,15 @@ public class MainActivity extends Activity {
                     // If there is an error, don't just keep trying to register.
                     // Require the user to click a button again, or perform
                     // exponential back-off.
+                	String errMsg = "Exception caught: " + ex.getMessage();
+                	Log.e(CommonConst.LOG_TAG, errMsg, ex);
+                    LogManager.LogErrorMsg(className, "registerInBackground->doInBackground", errMsg);
+                    
+					registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+					if(registrationId == null || registrationId.isEmpty()){
+						showGoogleServiceNotAvailable();
+					}
+
                 }
                 return msg;
             }
@@ -342,6 +369,42 @@ public class MainActivity extends Activity {
             }
         }.execute(null, null, null);
     }
+    
+	IDialogOnClickAction dialogGoogleServiceNotAvailable = new IDialogOnClickAction() {
+		@Override
+		public void doOnPositiveButton() {
+			//finish();
+		}
+		@Override
+		public void doOnNegativeButton() {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setActivity(Activity activity) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setContext(Context context) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setParams(Object[]... objects) {
+			// TODO Auto-generated method stub
+		}
+	};
+	
+    private void showGoogleServiceNotAvailable() {
+    	String dialogMessage = "\nGoogle Cloud Service is not available right now.\n\nPlease try later.\n";
+    	
+		CommonDialog aboutDialog = new CommonDialog(this, dialogGoogleServiceNotAvailable);
+		aboutDialog.setDialogMessage(dialogMessage);
+		aboutDialog.setDialogTitle("Warning");
+		aboutDialog.setPositiveButtonText("OK");
+		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+		aboutDialog.showDialog();
+		aboutDialog.setCancelable(true);
+    }
+
 
    	// Checking for all possible internet providers
     public boolean isConnectingToInternet(){
@@ -439,7 +502,12 @@ public class MainActivity extends Activity {
 ////			GooglePlayServicesUtil.getErrorDialog(resultCode, this, RQS_GooglePlayServices);
 ////		}
 //	}
-	
+
+//    registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+//    if(registrationId == null || registrationId.isEmpty()){
+//    	showGoogleServiceNotAvailable();
+//    }
+
     
 }
 
