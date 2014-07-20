@@ -4,33 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.dagrest.tracklocation.datatype.CommandEnum;
-import com.dagrest.tracklocation.datatype.ContactData;
-import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.log.LogManager;
-import com.dagrest.tracklocation.service.TrackLocationService;
 import com.dagrest.tracklocation.utils.CommonConst;
-import com.dagrest.tracklocation.utils.Utils;
 import com.google.gson.Gson;
 
 import android.app.Activity;
-import android.app.ListActivity;
-import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.Toast;
 
 public class ContactList extends Activity/*ListActivity*/ {
 

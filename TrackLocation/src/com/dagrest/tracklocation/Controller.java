@@ -288,15 +288,20 @@ public class Controller {
 //		}
 //	}
 	
-	public static String getNickName(Context context){
+	public static String getNickNameFromEmail(String account){
 		String nickName = null;
-		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		if(account != null && !account.isEmpty() && account.contains(CommonConst.DELIMITER_AT)){
 			String[] accountParts = account.split(CommonConst.DELIMITER_AT);
 			if(accountParts != null){
 				nickName = accountParts[0];
 			}
 		}
+		return nickName;
+	}
+	
+	public static String getNickName(Context context){
+		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		String nickName = getNickNameFromEmail(account);
 		return nickName;
 	}
 

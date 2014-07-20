@@ -225,14 +225,30 @@ public class GcmIntentService extends IntentService {
 //                		PermissionsData permissionData = DBLayer.getPermissions(email);
                 		
                 		SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
+        				if( sentJoinRequestData == null ){
+        		        	String errMsg = "Failed to get sent join request data";
+        		            Log.e(CommonConst .LOG_TAG, errMsg);
+        		            LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->OnHandleEvent", errMsg);
+        				}else {
+        					Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + sentJoinRequestData.toString());
+        				}
+                		
                 		// Remove join request from TABLE_SEND_JOIN_REQUEST according to "mutualId"
                 		int count = DBLayer.deleteSentJoinRequest(mutualId);
+        				if( count < 1) {
+        					Log.i(CommonConst.LOG_TAG, "Failed to delete sent join request with mutual id: " + mutualId + " count = " + count);
+        				} else {
+        					Log.i(CommonConst.LOG_TAG, "Deleted sent join request with mutual id: " + mutualId + " count = " + count);
+        				}
+        				
                 		sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
+                		if( sentJoinRequestData != null){
+        					Log.i(CommonConst.LOG_TAG, "Failed to delete sent join request with mutual id: " + mutualId + " count = " + count);
+                		}
                 		
                 		// Add contact details to CondtactDeviceData table
                 		DBLayer.addContactDeviceDataList(new ContactDeviceDataList(email,
                 				macAddress, phoneNumber, registrationId, null));
-                		System.out.println("Test");
                 		
         		// ============================================
                 // COMMAND: 	track_location_service_keep_alive

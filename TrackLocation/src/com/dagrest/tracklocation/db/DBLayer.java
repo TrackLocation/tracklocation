@@ -643,6 +643,11 @@ public class DBLayer {
 						continue;
 					}
 					
+					String nick = contactData.getNick();
+					if( nick == null || nick.isEmpty() ){
+						contactData.setNick(Controller.getNickNameFromEmail(email));
+					}
+					
 					String macAddress = null;
 					if(deviceData != null){
 						macAddress = deviceData.getDeviceMac();
