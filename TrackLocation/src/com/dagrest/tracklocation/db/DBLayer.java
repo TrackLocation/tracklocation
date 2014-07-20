@@ -174,7 +174,7 @@ public class DBLayer {
     	return sentJoinRequestData;
     }
 
-	public static long addPermissions(String email, int location, int command, int admin_command){
+	public static long addFullPermissions(String email){
 		
 		if(email == null || email.isEmpty()){
         	String errMsg = "Add permissions failed - no email account was provided";
@@ -189,19 +189,54 @@ public class DBLayer {
 			 
 			ContentValues cVal = new ContentValues();
 			cVal.put(DBConst.EMAIL, email);
-			cVal.put(DBConst.LOCATION, location);
-			cVal.put(DBConst.COMMAND, command);
-			cVal.put(DBConst.ADMIN_COMMAND, admin_command);
+			cVal.put(DBConst.LOCATION, 1);
+			cVal.put(DBConst.COMMAND, 1);
+			cVal.put(DBConst.ADMIN_COMMAND, 1);
 			
 			if(!isEmailInPermissionsTable(email)){
 				return db.insert(DBConst.TABLE_PERMISSIONS, null, cVal);
-			} else {
-				return db.update(DBConst.TABLE_PERMISSIONS, cVal, DBConst.EMAIL + " = ? ", new String[] { email });
-			}
+			} 
 		} catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
             LogManager.LogErrorMsg(CLASS_NAME, "addPermissions", errMsg);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+		return -1;
+	}
+	
+	public static long updatePermissions(String email, int location, int command, int admin_command){
+		
+		if(email == null || email.isEmpty()){
+        	String errMsg = "Update permissions failed - no email account was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "updatePermissions", errMsg);
+			return -1;
+		}
+		
+		SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			 
+			ContentValues cVal = new ContentValues();
+			cVal.put(DBConst.EMAIL, email);
+			cVal.put(DBConst.LOCATION, location);
+			cVal.put(DBConst.COMMAND, command);
+			cVal.put(DBConst.ADMIN_COMMAND, admin_command);
+			
+			if(isEmailInPermissionsTable(email)){
+				return db.update(DBConst.TABLE_PERMISSIONS, cVal, DBConst.EMAIL + " = ? ", new String[] { email });
+			}
+//			} else {
+//				return db.insert(DBConst.TABLE_PERMISSIONS, null, cVal);
+//			}
+		} catch (Throwable t) {
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "updatePermissions", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -637,6 +672,11 @@ public class DBLayer {
 							deviceData, imei, registrationId, guid);
 						if(resultContactDeviceData == null){
 							String errMsg = "Failed to add contactDeviceData to DB by addContactDeviceData()";
+							Log.e(CommonConst.LOG_TAG, errMsg);
+							LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
+						}
+						if(addFullPermissions(email) < 0){
+							String errMsg = "Failed to add FULL permissions for the following account: " + email;
 							Log.e(CommonConst.LOG_TAG, errMsg);
 							LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
 						}

@@ -479,6 +479,7 @@ public class Controller {
 					    	    if(phoneNumberFromSMS != null && !phoneNumberFromSMS.isEmpty() &&
 					    	    	mutualIdFromSMS != null && macAddressFromSMS != null && !mutualIdFromSMS.isEmpty() &&
 					    	    	regIdFromSMS != null && !regIdFromSMS.isEmpty() && !macAddressFromSMS.isEmpty()){
+					    	    	
 					    	    	// Save contact details received by join requests to RECEIVED_JOIN_REQUEST table
 					    			long res = DBLayer.addReceivedJoinRequest(phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, accountFromSMS, macAddressFromSMS);
 					    			if(res != 1){
@@ -559,29 +560,61 @@ public class Controller {
 			
 			@Override
 			public void doOnPositiveButton() {
+				
+				// Send JOIN APPROVED command (CommandEnum.join_approval) with
+				// information about contact approving join request sent by SMS
 				sendApproveOnJoinRequest(context, regId, mutualId, ownerEmail, ownerRegId, ownerMacAddress, 
 					ownerPhoneNumber, CommandEnum.join_approval);
+				
 				// Remove from RECEIVED_JOIN_REQUEST
 				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
-				// add information about owner to DB 
+				if( receivedJoinRequestData == null ){
+		        	String errMsg = "Failed to get received join request data";
+		            Log.e(CommonConst .LOG_TAG, errMsg);
+		            LogManager.LogErrorMsg(CLASS_NAME, "showApproveJoinRequestDialog", errMsg);
+				}else {
+					Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + receivedJoinRequestData.toString());
+				}
+				
+				// Add information to DB about contact, requesting join operation 
 				ContactDeviceDataList contactDeviceDataListOwner = 
 					DBLayer.addContactDeviceDataList(
-						new ContactDeviceDataList(receivedJoinRequestData.getAccount(),
-							"macAddress", receivedJoinRequestData.getPhoneNumber(), regId, null));
+						new ContactDeviceDataList(	receivedJoinRequestData.getAccount(),
+													receivedJoinRequestData.getMacAddress(), 
+													receivedJoinRequestData.getPhoneNumber(), 
+													regId, 
+													null));
+				if( contactDeviceDataListOwner == null ){
+		        	String errMsg = "Failed to save to DB details of the contcat requesting join operation";
+		            Log.e(CommonConst .LOG_TAG, errMsg);
+		            LogManager.LogErrorMsg(CLASS_NAME, "showApproveJoinRequestDialog", errMsg);
+				}
+				
+				// Delete join request that was handled 
 				int count = DBLayer.deleteReceivedJoinRequest(mutualId);
-				Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + receivedJoinRequestData.toString());
-				Log.i(CommonConst.LOG_TAG, "Deleted recived join request with mutual id: " + mutualId + " count = " + count);
+				if( count < 1) {
+					Log.i(CommonConst.LOG_TAG, "Failed to delete recived join request with mutual id: " + mutualId + " count = " + count);
+				} else {
+					Log.i(CommonConst.LOG_TAG, "Deleted recived join request with mutual id: " + mutualId + " count = " + count);
+				}
 			}
+			
 			@Override
 			public void doOnNegativeButton() {
+
+				// Send JOIN REJECTED command (CommandEnum.join_rejected) with
+				// information about contact approving join request sent by SMS
 				sendApproveOnJoinRequest(context, regId, mutualId, ownerEmail, ownerRegId, ownerMacAddress, 
 					ownerPhoneNumber, CommandEnum.join_rejected);
+				
 				// Remove from RECEIVED_JOIN_REQUEST
 				int count = DBLayer.deleteReceivedJoinRequest(mutualId);
 			}
+			
 			@Override
 			public void setActivity(Activity activity) {
 			}
+			
 			@Override
 			public void setContext(Context context) {
 				this.context = context;
@@ -590,6 +623,7 @@ public class Controller {
 	            ownerRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 	            ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
 			}
+			
 			@Override
 			public void setParams(Object[]... objects) {
 				mutualId = objects[0][0].toString();
@@ -597,7 +631,9 @@ public class Controller {
 //				email = objects[0][2].toString();
 //				macAddress = objects[0][3].toString();
 			}
+			
 		};
+		
 		approveJoinRequestDialogOnClickAction.setContext(context);
 		Object[] objects = new Object[2];
 		objects[0] = mutualId;

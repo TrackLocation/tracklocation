@@ -44,4 +44,11 @@ public class ReceivedJoinRequestData {
 	public void setTimestamp(String timestamp) {
 		this.timestamp = timestamp;
 	}
+	@Override
+	public String toString() {
+		return "ReceivedJoinRequestData [phoneNumber=" + phoneNumber
+				+ ", mutualId=" + mutualId + ", RegId=" + RegId + ", account="
+				+ account + ", macAddress=" + macAddress + ", timestamp="
+				+ timestamp + "]";
+	}
 }
