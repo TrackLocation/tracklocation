@@ -214,6 +214,7 @@ public class MainActivity extends Activity {
 	    		Intent intentContactList = new Intent(this, ContactList.class);
 	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
 	    			new Gson().toJson(contactDeviceDataList));
+	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 	    		startActivity(intentContactList);
     		} else {
     	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 

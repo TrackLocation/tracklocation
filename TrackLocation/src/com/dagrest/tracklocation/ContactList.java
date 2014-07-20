@@ -5,8 +5,11 @@ import java.util.List;
 
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
+import com.dagrest.tracklocation.datatype.PermissionsData;
+import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.Preferences;
 import com.google.gson.Gson;
 
 import android.app.Activity;
@@ -33,6 +36,7 @@ public class ContactList extends Activity/*ListActivity*/ {
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private List<String> selectedContcatList;
 	private Gson gson;
+	private String account;
  	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +46,7 @@ public class ContactList extends Activity/*ListActivity*/ {
 		Intent intent = getIntent();
 		gson = new Gson();
 		jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
+		account = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		contactDeviceDataList = gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
 
 		// jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
@@ -189,9 +194,22 @@ public class ContactList extends Activity/*ListActivity*/ {
 	
 	public void onClick(final View view) {
     	// ========================================
-    	// ABOUT button
+    	// TrackLocation button
     	// ========================================
         if (view == findViewById(R.id.btnTrackLocation)) {
+        	
+//        	PermissionsData permissionsData = DBLayer.getPermissions(account);
+//        	if( permissionsData == null){
+//        		// TODO: Show error - no permission for "account" to invoke TrackLocation
+//        		--return;
+//        	}
+//        	
+//        	int isLocationSharingPermitted = permissionsData.getIsLocationSharePermitted();
+//        	if( isLocationSharingPermitted != 1 ){
+//        		// TODO: Show error - no permission to invoke TrackLocation
+//        		--return;
+//        	}
+        	
             selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
         	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 

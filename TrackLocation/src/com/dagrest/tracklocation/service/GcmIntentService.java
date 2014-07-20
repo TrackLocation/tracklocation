@@ -83,6 +83,8 @@ public class GcmIntentService extends IntentService {
             	if(extras.containsKey(CommandTagEnum.command.toString()) &&
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.start.toString())){ // COMMAND START
+            		
+//            		DBLayer.getPermissions(inEmail);
                 	// ============================================
                     // COMMAND: 	start
                 	// PARAMETER: 	interval
