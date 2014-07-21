@@ -198,24 +198,12 @@ public class ContactList extends Activity/*ListActivity*/ {
     	// ========================================
         if (view == findViewById(R.id.btnTrackLocation)) {
         	
-//        	PermissionsData permissionsData = DBLayer.getPermissions(account);
-//        	if( permissionsData == null){
-//        		// TODO: Show error - no permission for "account" to invoke TrackLocation
-//        		--return;
-//        	}
-//        	
-//        	int isLocationSharingPermitted = permissionsData.getIsLocationSharePermitted();
-//        	if( isLocationSharingPermitted != 1 ){
-//        		// TODO: Show error - no permission to invoke TrackLocation
-//        		--return;
-//        	}
-        	
             selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
         	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
         			CommandEnum.status_request, null, null);
 	    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-	    			CommandEnum.start, null, null);
+	    			CommandEnum.start, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 	    		Intent intentMap = new Intent(getApplicationContext(), Map.class);
 	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
 		    			new Gson().toJson(selectedContactDeviceDataList));

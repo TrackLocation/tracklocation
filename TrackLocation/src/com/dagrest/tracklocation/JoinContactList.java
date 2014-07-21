@@ -263,6 +263,11 @@ public class JoinContactList extends Activity {
 		public void setParams(Object[]... objects) {
 			// TODO Auto-generated method stub
 		}
+		@Override
+		public void doOnChooseItem(int which) {
+			// TODO Auto-generated method stub
+			
+		}
 	};
 	
     private void joinRequestDialog(String contactName, String phoneNumber) {

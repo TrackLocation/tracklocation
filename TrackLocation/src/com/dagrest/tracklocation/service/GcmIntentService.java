@@ -84,7 +84,40 @@ public class GcmIntentService extends IntentService {
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.start.toString())){ // COMMAND START
             		
-//            		DBLayer.getPermissions(inEmail);
+//            		String key = extras.getString("key"); // CommonConst.PREFERENCES_PHONE_ACCOUNT
+//            		if( !CommonConst.PREFERENCES_PHONE_ACCOUNT.equals(key) ){
+//            			
+//            		}
+            		String value = extras.getString("value"); // account = email
+            		if( value == null || value.isEmpty() ) {
+                    	String errMsg = "Account (email) was not delivered to start TrackLocationService";
+                        Log.e(CommonConst.LOG_TAG, errMsg);
+                        LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->onHandleIntent", errMsg);
+                        // TODO: notify to caller by GCM (push notification)
+            			return;
+            		}
+            		
+                	PermissionsData permissionsData = DBLayer.getPermissions(value);
+                	if( permissionsData == null){
+                		// TODO: Show error - no permission for "account" to invoke TrackLocation
+                    	String errMsg = "No permissions defind for account: " + value + 
+                    		". Not permitted to share location";
+                        Log.e(CommonConst.LOG_TAG, errMsg);
+                        LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->onHandleIntent", errMsg);
+                        // TODO: notify to caller by GCM (push notification)
+                		return;
+                	}
+                	
+                	int isLocationSharingPermitted = permissionsData.getIsLocationSharePermitted();
+                	if( isLocationSharingPermitted != 1 ){
+                		// TODO: Show error - no permission to invoke TrackLocation
+                    	String errMsg = "Not permitted to share location to " + value;
+                        Log.e(CommonConst.LOG_TAG, errMsg);
+                        LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->onHandleIntent", errMsg);
+                        // TODO: notify to caller by GCM (push notification)
+                		return;
+                	}
+            		
                 	// ============================================
                     // COMMAND: 	start
                 	// PARAMETER: 	interval

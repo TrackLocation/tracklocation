@@ -19,10 +19,19 @@ public class CommonDialog extends DialogFragment {
 	private String negativeButtonText = null;
 	private IDialogOnClickAction onClickAction;
 	private FragmentManager fm;
+	private String[] itemsList;
 	
 	public CommonDialog() {};
 			
-    public String getDialogTitle() {
+    public String[] getItemsList() {
+		return itemsList;
+	}
+
+	public void setItemsList(String[] itemsList) {
+		this.itemsList = itemsList;
+	}
+
+	public String getDialogTitle() {
 		return dialogTitle;
 	}
 
@@ -75,13 +84,23 @@ public class CommonDialog extends DialogFragment {
                 	   onClickAction.doOnPositiveButton();
                    }
                });
-        	if( negativeButtonText != null ){
-        		builder.setNegativeButton(negativeButtonText, new DialogInterface.OnClickListener() {
-                   public void onClick(DialogInterface dialog, int id) {
-                	   onClickAction.doOnNegativeButton();
-                   }
-               });
-        	}
+        
+    	if( negativeButtonText != null ){
+    		builder.setNegativeButton(negativeButtonText, new DialogInterface.OnClickListener() {
+               public void onClick(DialogInterface dialog, int id) {
+            	   onClickAction.doOnNegativeButton();
+               }
+           });
+    	}
+        
+    	if( itemsList != null ){
+	        builder.setItems(itemsList, new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int which) {
+					onClickAction.doOnChooseItem(which);
+				}
+			});
+    	}
+        	
         // Create the AlertDialog object and return it 
         return builder.create();
     }

@@ -636,6 +636,12 @@ public class Controller {
 //				email = objects[0][2].toString();
 //				macAddress = objects[0][3].toString();
 			}
+
+			@Override
+			public void doOnChooseItem(int which) {
+				// TODO Auto-generated method stub
+				
+			}
 			
 		};
 		

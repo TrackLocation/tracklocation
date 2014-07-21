@@ -34,6 +34,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.telephony.SmsManager;
@@ -54,6 +55,7 @@ public class MainActivity extends Activity {
     private ContactDeviceDataList contactDeviceDataList;
     private String phoneNumber;
     private String macAddress;
+    private List<String> accountList;
     private String account;
     
     @SuppressLint("ResourceAsColor")
@@ -80,11 +82,17 @@ public class MainActivity extends Activity {
     		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", 
     			"No valid Google Play Services APK found.");
         }
-
-		//DBLayer.init(context);
-        init();
         
-	}
+        account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+        if( account == null || account.isEmpty() ){
+        	getCurrentAccount();
+        	if( account != null && !account.isEmpty() ){
+        		init();
+        	} 
+        } else {
+        	init();
+        }
+    }
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -96,76 +104,9 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onStart() {
 		Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
-		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
 		super.onResume();
 	}
 		
-	
-	private void init(){
-		// CURRENT ACCOUNT
-		List<String> accountList = Controller.getAccountList(context);
-		if(accountList != null && accountList.size() == 1){
-			account = accountList.get(0);
-			//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-		} else {
-			// TODO: ask phone number from customer
-			Toast.makeText(MainActivity.this,
-					"Detected more that one ACCOUNT!",
-					Toast.LENGTH_LONG).show();
-			finish();
-		}
-
-		// PHONE NUMBER
-		phoneNumber = Controller.getPhoneNumber(context);
-		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
-		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
-		
-		// MAC ADDRESS
-		macAddress = Controller.getMacAddress(MainActivity.this);
-		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
-		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
-		
-		DBManager.initDBManagerInstance(new DBHelper(context));
-		
-		// ===============================================================
-		// READ CONTACT AND DEVICE DATA FROM JSON FILE AND INSERT IT TO DB
-		// ===============================================================
-		// Read contact and device data from json file and insert it to DB
-		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
-		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
-			ContactDeviceDataList contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
-			if(contactDeviceDataList != null){
-				DBLayer.addContactDeviceDataList(contactDeviceDataList);
-			}
-		}
-		
-		// Insert into DB: owner information if doesn't exist
-		ContactDeviceDataList contDevDataList = DBLayer.getContactDeviceDataList(account);
-		if( contDevDataList == null || contDevDataList.getContactDeviceDataList().size() == 0){
-			// add information about owner to DB 
-			ContactDeviceDataList contactDeviceDataListOwner = 
-				DBLayer.addContactDeviceDataList(new ContactDeviceDataList(account,
-					macAddress, phoneNumber, registrationId, null));
-		} else {
-			Log.i(CommonConst.LOG_TAG, "Owner information already exists");
-		}
-		
-		contDevDataList = DBLayer.getContactDeviceDataList(account);
-		if(contDevDataList != null){
-			// get owner information from DB and save GUID to Preferences
-			for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
-				// Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
-				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
-			}
-		} else {
-        	String errMsg = "Failed to save PREFERENCES_OWNER_GUID - no owner details were created";
-        	Log.e(CommonConst.LOG_TAG, errMsg);
-            LogManager.LogErrorMsg(className, "init", errMsg);
-		}
-		
-	}
-	
     public void onClick(final View view) {
 
     	contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
@@ -268,6 +209,75 @@ public class MainActivity extends Activity {
         }
     }
 
+	private void getCurrentAccount(){
+		// CURRENT ACCOUNT
+		if( Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT) == null || 
+			Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT).isEmpty() ) {
+			
+			accountList = Controller.getAccountList(context);
+			if(accountList != null && accountList.size() == 1){
+				account = accountList.get(0);
+				//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+			} else {
+				showChooseAccountDialog();
+			}
+		}
+	}
+	
+	private void init(){
+		
+		// PHONE NUMBER
+		phoneNumber = Controller.getPhoneNumber(context);
+		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
+		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
+		
+		// MAC ADDRESS
+		macAddress = Controller.getMacAddress(MainActivity.this);
+		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
+		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
+		
+		DBManager.initDBManagerInstance(new DBHelper(context));
+		
+		// ===============================================================
+		// READ CONTACT AND DEVICE DATA FROM JSON FILE AND INSERT IT TO DB
+		// ===============================================================
+		// Read contact and device data from json file and insert it to DB
+		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
+		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
+			ContactDeviceDataList contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
+			if(contactDeviceDataList != null){
+				DBLayer.addContactDeviceDataList(contactDeviceDataList);
+			}
+		}
+		
+		// Insert into DB: owner information if doesn't exist
+		ContactDeviceDataList contDevDataList = DBLayer.getContactDeviceDataList(account);
+		if( contDevDataList == null || contDevDataList.getContactDeviceDataList().size() == 0){
+			// add information about owner to DB 
+			ContactDeviceDataList contactDeviceDataListOwner = 
+				DBLayer.addContactDeviceDataList(new ContactDeviceDataList(account,
+					macAddress, phoneNumber, registrationId, null));
+		} else {
+			Log.i(CommonConst.LOG_TAG, "Owner information already exists");
+		}
+		
+		contDevDataList = DBLayer.getContactDeviceDataList(account);
+		if(contDevDataList != null){
+			// get owner information from DB and save GUID to Preferences
+			for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
+				// Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
+				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
+			}
+		} else {
+        	String errMsg = "Failed to save PREFERENCES_OWNER_GUID - no owner details were created";
+        	Log.e(CommonConst.LOG_TAG, errMsg);
+            LogManager.LogErrorMsg(className, "init", errMsg);
+		}
+		
+		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
+	}
+	
 	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
 		@Override
 		public void doOnPositiveButton() {
@@ -287,15 +297,56 @@ public class MainActivity extends Activity {
 		public void setParams(Object[]... objects) {
 			// TODO Auto-generated method stub
 		}
+		@Override
+		public void doOnChooseItem(int which) {
+			// TODO Auto-generated method stub
+		}
 	};
 	
-    private void showAboutDialog() {
+	IDialogOnClickAction dialogChooseAccountDialog = new IDialogOnClickAction() {
+		@Override
+		public void doOnPositiveButton() {
+		}
+		@Override
+		public void doOnNegativeButton() {
+		}
+		@Override
+		public void setActivity(Activity activity) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setContext(Context context) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setParams(Object[]... objects) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void doOnChooseItem(int which) {
+			account = accountList.get(which);
+			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+			init();
+		}
+	};
+
+	private void showAboutDialog() {
     	String dialogMessage = getResources().getString(R.string.about_dialog_text);
     	
 		CommonDialog aboutDialog = new CommonDialog(this, dialogActionsAboutDialog);
 		aboutDialog.setDialogMessage(dialogMessage);
 		aboutDialog.setDialogTitle("About");
 		aboutDialog.setPositiveButtonText("OK");
+		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+		aboutDialog.showDialog();
+		aboutDialog.setCancelable(true);
+    }
+    
+    private void showChooseAccountDialog() {
+		CommonDialog aboutDialog = new CommonDialog(this, dialogChooseAccountDialog);
+		aboutDialog.setDialogTitle("Choose current account:");
+		aboutDialog.setItemsList(accountList.toArray(new String[0]));
+
 		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
@@ -391,6 +442,11 @@ public class MainActivity extends Activity {
 		@Override
 		public void setParams(Object[]... objects) {
 			// TODO Auto-generated method stub
+		}
+		@Override
+		public void doOnChooseItem(int which) {
+			// TODO Auto-generated method stub
+			
 		}
 	};
 	
