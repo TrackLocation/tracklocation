@@ -44,6 +44,9 @@ public class LocationSharingList extends Activity {
 		// jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
 		//List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(jsonStringContactDeviceDataList);
 		List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(contactDeviceDataList);
+		List<Boolean> checkBoxesShareLocation = 
+			Controller.fillShareLocationListWithContactDeviceDataFromJSON();
+		
 	    if(values != null){
 	    	// TODO: move to init isSelected list:
 	    	isSelected = new ArrayList<Boolean>(values.size());
@@ -53,7 +56,8 @@ public class LocationSharingList extends Activity {
 	    	
 			lv = (ListView) findViewById(R.id.location_sharing_list_view);
 			
-	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, R.id.contact, values);
+	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, 
+	        	R.id.contact, values, checkBoxesShareLocation);
 	    	lv.setAdapter(adapter);
 	    	
 	    } else {

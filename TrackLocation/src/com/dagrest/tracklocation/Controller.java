@@ -750,6 +750,17 @@ public class Controller {
 	    
 	    return values;
 	}
+	
+	public static List<Boolean> fillShareLocationListWithContactDeviceDataFromJSON(){
+		List<Boolean> valuesCheckBoxesShareLocation = null;
+		
+		valuesCheckBoxesShareLocation = new ArrayList<Boolean>();
+		valuesCheckBoxesShareLocation.add(true);
+		valuesCheckBoxesShareLocation.add(false);
+		valuesCheckBoxesShareLocation.add(true);
+		
+		return valuesCheckBoxesShareLocation;
+	}
 
 	public static void sendCommand(Context context, ContactDeviceDataList contactDeviceDataList, CommandEnum command, 
 			String key, String value){

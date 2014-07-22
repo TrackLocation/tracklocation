@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -13,21 +14,26 @@ import android.widget.TextView;
 public class ContactListArrayAdapter extends ArrayAdapter<String> {
 	private final Context context;
 	private final List<String> values;
+	private final List<Boolean> checkBoxValues;
 	private final int res;
 	
-	public ContactListArrayAdapter(Context context, int resource, List<String> values) {
+	public ContactListArrayAdapter(Context context, int resource, List<String> values, 
+			List<Boolean> checkBoxValues) {
 		super(context, resource, values);
 		this.context = context;
 		this.values = values;
 		this.res = resource;
+		this.checkBoxValues = checkBoxValues;
 	}
  
-	public ContactListArrayAdapter(Context context, int resource, int textViewResourceId, List<String> values) {
+	public ContactListArrayAdapter(Context context, int resource, int textViewResourceId, 
+			List<String> values, List<Boolean> checkBoxValues) {
 		super(context, resource, textViewResourceId, values);
 		
 		this.context = context;
 		this.values = values;
 		this.res = resource;
+		this.checkBoxValues = checkBoxValues;
 	}
 
 	@Override
@@ -42,6 +48,12 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 		TextView textView = (TextView) rowView.findViewById(R.id.contact);
 		ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
 		textView.setText(values.get(position));
+		
+		// Case if list with check boxes
+		if(checkBoxValues != null){
+			CheckBox checkBoxShareLocation = (CheckBox) rowView.findViewById(R.id.check_share_location);
+			checkBoxShareLocation.setChecked(checkBoxValues.get(position));
+		}
 	
 		// Change icon based on name
 		String s = values.get(position);

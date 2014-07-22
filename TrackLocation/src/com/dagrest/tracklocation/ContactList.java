@@ -71,7 +71,7 @@ public class ContactList extends Activity/*ListActivity*/ {
 //	    	View header = getLayoutInflater().inflate(R.layout.find_contacts_header, null);
 //	    	ListView listView = getListView();
 //	    	listView.addHeaderView(header);
-	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, values);
+	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, values, null);
 	        //adapter = new ArrayAdapter<String>(this, R.layout.contact_list_item, R.id.contact, values);
 	    	lv.setAdapter(adapter);
 	    	
