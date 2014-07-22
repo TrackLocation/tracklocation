@@ -62,7 +62,7 @@
         android:layout_below="@+id/row01">
         		
 		<Button
-            android:id="@+id/button1"
+            android:id="@+id/btnLocationSharing"
             android:layout_width="0.0dip" 
             android:layout_height="fill_parent"
             android:layout_weight="1"
@@ -70,7 +70,7 @@
 			android:onClick="onClick"
 			android:background="@drawable/button_shape"
 			android:textSize="25sp"
-            android:text="Current\nLocation" />
+            android:text="Location\nSharing" />
 		    <!-- android:background="@android:drawable/bottom_bar" -->
 		
 		<TextView

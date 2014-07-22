@@ -91,6 +91,12 @@
         </activity>
         
         <activity
+            android:name="com.dagrest.tracklocation.LocationSharingList"
+            android:label="@string/title_activity_location_sharing_list" 
+            android:screenOrientation="portrait" >
+        </activity>
+        
+        <activity
             android:name="com.dagrest.tracklocation.ContactConfiguration"
             android:label="@string/title_activity_contact_config" 
             android:screenOrientation="portrait" >
@@ -110,7 +116,7 @@
         
         <activity
             android:name="com.dagrest.tracklocation.JoinContactList"
-            android:label="Join Contacts List" 
+            android:label="@string/title_activity_join_contact_list" 
             android:screenOrientation="portrait" >
         </activity>
         

@@ -13,11 +13,13 @@ import android.widget.TextView;
 public class ContactListArrayAdapter extends ArrayAdapter<String> {
 	private final Context context;
 	private final List<String> values;
+	private final int res;
 	
 	public ContactListArrayAdapter(Context context, int resource, List<String> values) {
 		super(context, resource, values);
 		this.context = context;
 		this.values = values;
+		this.res = resource;
 	}
  
 	public ContactListArrayAdapter(Context context, int resource, int textViewResourceId, List<String> values) {
@@ -25,6 +27,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 		
 		this.context = context;
 		this.values = values;
+		this.res = resource;
 	}
 
 	@Override
@@ -34,7 +37,8 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 		LayoutInflater inflater = (LayoutInflater) context
 			.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	
-		View rowView = inflater.inflate(R.layout.contact_list_item, parent, false);
+		//View rowView = inflater.inflate(R.layout.contact_list_item, parent, false);
+		View rowView = inflater.inflate(res, parent, false);
 		TextView textView = (TextView) rowView.findViewById(R.id.contact);
 		ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
 		textView.setText(values.get(position));
