@@ -39,6 +39,7 @@
 	    android:layout_alignParentRight="true">
 	    <CheckBox
 	        android:id="@+id/check_share_location"
+	        android:focusable="false" 
 	        android:layout_width="30sp"
 	        android:layout_height="30sp"
 	        android:layout_gravity="right"

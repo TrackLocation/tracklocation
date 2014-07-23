@@ -11,9 +11,11 @@ import com.google.gson.Gson;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -43,9 +45,12 @@ public class LocationSharingList extends Activity {
 	
 		// jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
 		//List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(jsonStringContactDeviceDataList);
-		List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(contactDeviceDataList);
-		List<Boolean> checkBoxesShareLocation = 
-			Controller.fillShareLocationListWithContactDeviceDataFromJSON();
+		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
+		List<String> emailList = new ArrayList<String>();
+		List<String> values = 
+			Controller.fillContactListWithContactDeviceDataFromJSON(
+				contactDeviceDataList, checkBoxesShareLocation, emailList);
+//			Controller.fillShareLocationListWithContactDeviceDataFromJSON(contactDeviceDataList, values);
 		
 	    if(values != null){
 	    	// TODO: move to init isSelected list:
@@ -57,7 +62,7 @@ public class LocationSharingList extends Activity {
 			lv = (ListView) findViewById(R.id.location_sharing_list_view);
 			
 	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, 
-	        	R.id.contact, values, checkBoxesShareLocation);
+	        	R.id.contact, values, checkBoxesShareLocation, emailList);
 	    	lv.setAdapter(adapter);
 	    	
 	    } else {
@@ -69,17 +74,17 @@ public class LocationSharingList extends Activity {
 	    	return;
 	    }
 	
-	    lv.setOnItemLongClickListener(new OnItemLongClickListener() {
-			@Override
-			public boolean onItemLongClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				String selectedValue = (String) adapter.getItem(position);
-				// Toast.makeText(ContactList.this, selectedValue + " is LONG_CLICKED", Toast.LENGTH_LONG).show();
-				// Return true to consume the click event. In this case the
-				// onListItemClick listener is not called anymore.
-				return true;
-			}
-		});
+//	    lv.setOnItemLongClickListener(new OnItemLongClickListener() {
+//			@Override
+//			public boolean onItemLongClick(AdapterView<?> parent, View view,
+//					int position, long id) {
+//				String selectedValue = (String) adapter.getItem(position);
+//				// Toast.makeText(ContactList.this, selectedValue + " is LONG_CLICKED", Toast.LENGTH_LONG).show();
+//				// Return true to consume the click event. In this case the
+//				// onListItemClick listener is not called anymore.
+//				return true;
+//			}
+//		});
 	    
 	    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	
@@ -87,29 +92,30 @@ public class LocationSharingList extends Activity {
 	        public void onItemClick(AdapterView<?> parent, final View view,
 	            int position, long id) {
 	        	final String selectedValue = (String) parent.getItemAtPosition(position);
-	        	
-	        	if(selectedContcatList == null){
-	        		selectedContcatList = new ArrayList<String>();
-	        	}
-	        	boolean isSelectedVal = isSelected.get(position);
-	        	isSelected.set(position, !isSelectedVal);
-	        	if(isSelected.get(position) == false){
-	        		lv.getChildAt(position).setBackgroundColor(android.R.drawable.btn_default);
-	        		if(selectedContcatList.contains(selectedValue)){
-	        			selectedContcatList.remove(selectedValue);
-	        		}
-	        	} else {
-	        		lv.getChildAt(position).setBackgroundColor(getResources().getColor(R.color.LightGrey));
-	        		if(!selectedContcatList.contains(selectedValue)){
-	        			selectedContcatList.add(selectedValue);
-	        		}
-	        	}
-	        	
+//	        	
+//	        	if(selectedContcatList == null){
+//	        		selectedContcatList = new ArrayList<String>();
+//	        	}
+//	        	boolean isSelectedVal = isSelected.get(position);
+//	        	isSelected.set(position, !isSelectedVal);
+//	        	if(isSelected.get(position) == false){
+//	        		lv.getChildAt(position).setBackgroundColor(android.R.drawable.btn_default);
+//	        		if(selectedContcatList.contains(selectedValue)){
+//	        			selectedContcatList.remove(selectedValue);
+//	        		}
+//	        	} else {
+//	        		lv.getChildAt(position).setBackgroundColor(getResources().getColor(R.color.LightGrey));
+//	        		if(!selectedContcatList.contains(selectedValue)){
+//	        			selectedContcatList.add(selectedValue);
+//	        		}
+//	        	}
+//	        	
 	        }
 	    });
+	    
 	}
 
-	@Override
+    @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.contact_list, menu);
@@ -128,11 +134,74 @@ public class LocationSharingList extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 	
-	public void onClick(final View view) {
-	}
+//	public void onClick(final View view) {
+//	}
 
-    @Override
+//    public void onClick(View v) {
+//    	System.out.println("Test");
+//        SparseBooleanArray checked = lv.getCheckedItemPositions();
+//        ArrayList<String> selectedItems = new ArrayList<String>();
+//        for (int i = 0; i < checked.size(); i++) {
+//            // Item position in adapter
+//            int position = checked.keyAt(i);
+//            // Add sport if it is checked i.e.) == TRUE!
+//            if (checked.valueAt(i))
+//                selectedItems.add(adapter.getItem(position));
+//        }
+// 
+//        String[] outputStrArr = new String[selectedItems.size()];
+// 
+//        for (int i = 0; i < selectedItems.size(); i++) {
+//            outputStrArr[i] = selectedItems.get(i);
+//        }
+//     }
+	
+
+//	 @Override
+//	  public View getView(int position, View convertView, ViewGroup parent) {
+//	  
+//	   ViewHolder holder = null;
+//	   Log.v("ConvertView", String.valueOf(position));
+//	  
+//	   if (convertView == null) {
+//	   LayoutInflater vi = (LayoutInflater)getSystemService(
+//	     Context.LAYOUT_INFLATER_SERVICE);
+//	   convertView = vi.inflate(R.layout.country_info, null);
+//	  
+//	   holder = new ViewHolder();
+//	   holder.code = (TextView) convertView.findViewById(R.id.code);
+//	   holder.name = (CheckBox) convertView.findViewById(R.id.checkBox1);
+//	   convertView.setTag(holder);
+//	  
+//	    holder.name.setOnClickListener( new View.OnClickListener() { 
+//	     public void onClick(View v) { 
+//	      CheckBox cb = (CheckBox) v ; 
+//	      Country country = (Country) cb.getTag(); 
+//	      Toast.makeText(getApplicationContext(),
+//	       "Clicked on Checkbox: " + cb.getText() +
+//	       " is " + cb.isChecked(),
+//	       Toast.LENGTH_LONG).show();
+//	      country.setSelected(cb.isChecked());
+//	     } 
+//	    }); 
+//	   }
+//	   else {
+//	    holder = (ViewHolder) convertView.getTag();
+//	   }
+//	  
+//	   Country country = countryList.get(position);
+//	   holder.code.setText(" (" +  country.getCode() + ")");
+//	   holder.name.setText(country.getName());
+//	   holder.name.setChecked(country.isSelected());
+//	   holder.name.setTag(country);
+//	  
+//	   return convertView;
+//	  
+//	  }
+	 
+	 @Override
     protected void onDestroy() {
     	super.onDestroy();
     }
+	 
 }

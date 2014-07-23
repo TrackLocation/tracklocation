@@ -699,19 +699,21 @@ public class Controller {
 //		}
 	}
 	
-	public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
-		List<String> values = null;
-	    
-		ContactDeviceDataList contactDeviceDataCollection = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
-	    if(contactDeviceDataCollection == null){
-	    	return null;
-	    }
+//	public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
+//		List<String> values = null;
+//	    
+//		ContactDeviceDataList contactDeviceDataCollection = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
+//	    if(contactDeviceDataCollection == null){
+//	    	return null;
+//	    }
+//	
+//	    values = fillContactListWithContactDeviceDataFromJSON(contactDeviceDataCollection, checkBoxesShareLocation);
+//	    return values;
+//	}
 	
-	    values = fillContactListWithContactDeviceDataFromJSON(contactDeviceDataCollection);
-	    return values;
-	}
-	
-	public static List<String> fillContactListWithContactDeviceDataFromJSON(ContactDeviceDataList contactDeviceDataCollection){
+	public static List<String> fillContactListWithContactDeviceDataFromJSON(
+			ContactDeviceDataList contactDeviceDataCollection,
+			List<Boolean> checkBoxesShareLocation, List<String> emailList){
 		List<String> values = null;
 	    
 		if(contactDeviceDataCollection == null){
@@ -732,12 +734,30 @@ public class Controller {
 	    		String nick = contactData.getNick();
 	    		if(nick != null && !nick.isEmpty()){
 	    			values.add(contactData.getNick());
+	    			if(checkBoxesShareLocation != null){
+	    				checkBoxesShareLocation.add(isLocationSharingEnabled(contactData));
+	    			}
+	    			if(emailList != null){
+	    				emailList.add(contactData.getEmail());
+	    			}
 	    		} else {
 	    			String email = contactData.getEmail();
 	    			if(email != null && !email.isEmpty()) {
 	    				values.add(email);
+		    			if(checkBoxesShareLocation != null){
+		    				checkBoxesShareLocation.add(isLocationSharingEnabled(contactData));
+		    			}
+		    			if(emailList != null){
+		    				emailList.add(contactData.getEmail());
+		    			}
 	    			} else {
 		    			values.add("unknown");
+		    			if(checkBoxesShareLocation != null){
+		    				checkBoxesShareLocation.add(false);
+		    			}
+		    			if(emailList != null){
+		    				emailList.add("unknown@unknown.com");
+		    			}
 		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided username is null - check JSON input file, element :" + (i+1));
 	    			}
 	    		}
@@ -751,7 +771,22 @@ public class Controller {
 	    return values;
 	}
 	
-	public static List<Boolean> fillShareLocationListWithContactDeviceDataFromJSON(){
+	private static boolean isLocationSharingEnabled(ContactData contactData){
+    	if(contactData != null) {
+			String email = contactData.getEmail();
+			if(email != null && !email.isEmpty()) {
+				DBLayer.getPermissions(email);
+				return true;
+			} else {
+				return false;
+			}
+    	} else {
+    		return false;
+    	}
+	}
+	
+	public static List<Boolean> fillShareLocationListWithContactDeviceDataFromJSON(ContactDeviceDataList contactDeviceDataList, 
+			List<String> values){
 		List<Boolean> valuesCheckBoxesShareLocation = null;
 		
 		valuesCheckBoxesShareLocation = new ArrayList<Boolean>();
