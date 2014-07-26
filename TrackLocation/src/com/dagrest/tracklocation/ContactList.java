@@ -5,11 +5,8 @@ import java.util.List;
 
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
-import com.dagrest.tracklocation.datatype.PermissionsData;
-import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
-import com.dagrest.tracklocation.utils.Preferences;
 import com.google.gson.Gson;
 
 import android.app.Activity;
@@ -18,6 +15,8 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
@@ -117,14 +116,14 @@ public class ContactList extends Activity/*ListActivity*/ {
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				String selectedValue = (String) adapter.getItem(position);
+				// String selectedValue = (String) adapter.getItem(position);
 				// Toast.makeText(ContactList.this, selectedValue + " is LONG_CLICKED", Toast.LENGTH_LONG).show();
 				// Return true to consume the click event. In this case the
 				// onListItemClick listener is not called anymore.
 				return true;
 			}
 		});
-	    
+	    	    
 	    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
 	        @Override
@@ -137,15 +136,21 @@ public class ContactList extends Activity/*ListActivity*/ {
 	        	}
 	        	boolean isSelectedVal = isSelected.get(position);
 	        	isSelected.set(position, !isSelectedVal);
+	        	
+	        	int visiblePosition = position - lv.getFirstVisiblePosition();
 	        	if(isSelected.get(position) == false){
-	        		lv.getChildAt(position).setBackgroundColor(android.R.drawable.btn_default);
-	        		if(selectedContcatList.contains(selectedValue)){
-	        			selectedContcatList.remove(selectedValue);
+	        		if(lv.getChildAt(visiblePosition) != null){
+		        		lv.getChildAt(visiblePosition).setBackgroundColor(android.R.drawable.btn_default);
+		        		if(selectedContcatList.contains(selectedValue)){
+		        			selectedContcatList.remove(selectedValue);
+		        		}
 	        		}
 	        	} else {
-	        		lv.getChildAt(position).setBackgroundColor(getResources().getColor(R.color.LightGrey));
-	        		if(!selectedContcatList.contains(selectedValue)){
-	        			selectedContcatList.add(selectedValue);
+	        		if(lv.getChildAt(visiblePosition) != null){
+		        		lv.getChildAt(visiblePosition).setBackgroundColor(getResources().getColor(R.color.LightGrey));
+		        		if(!selectedContcatList.contains(selectedValue)){
+		        			selectedContcatList.add(selectedValue);
+		        		}
 	        		}
 	        	}
 	        	
@@ -159,7 +164,35 @@ public class ContactList extends Activity/*ListActivity*/ {
 				*/
 	        }
 
-	      });
+	    });
+	    
+	    lv.setOnScrollListener(new OnScrollListener(){
+	        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+	          // TODO Auto-generated method stub
+	        }
+	        
+	        public void onScrollStateChanged(AbsListView view, int scrollState) {
+				if(scrollState == 0) 
+	        	{
+					if (view.getId() == lv.getId()) {
+						int firstVisiblePosition = lv.getFirstVisiblePosition();
+						int lastVisiblePosition = lv.getLastVisiblePosition();
+						for (int i = firstVisiblePosition; i < lastVisiblePosition; i++) {
+							int isSelectedIndex = i + firstVisiblePosition;
+				        	if(isSelected.get(isSelectedIndex) == false){
+				        		if(lv.getChildAt(i) != null){
+					        		lv.getChildAt(i).setBackgroundColor(android.R.drawable.btn_default);
+				        		}
+				        	} else {
+				        		if(lv.getChildAt(i) != null){
+					        		lv.getChildAt(i).setBackgroundColor(getResources().getColor(R.color.LightGrey));
+				        		}
+				        	}
+						}
+					}
+	        	}
+			}
+	    });
 	}
 	
 //	@Override

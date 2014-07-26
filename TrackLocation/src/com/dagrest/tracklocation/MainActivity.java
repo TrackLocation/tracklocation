@@ -1,14 +1,10 @@
 package com.dagrest.tracklocation;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
-import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
-import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.db.DBManager;
@@ -26,18 +22,13 @@ import com.google.gson.Gson;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract.CommonDataKinds;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
-import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -182,40 +173,40 @@ public class MainActivity extends Activity {
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == JOIN_REQUEST && resultCode == RESULT_OK) {
-            // Get the URI and query the content provider for the phone number
-            Uri contactUri = data.getData();
-            String[] projection = new String[]{CommonDataKinds.Phone.NUMBER};
-            Cursor cursor = getContentResolver().query(contactUri, projection,
-                    null, null, null);
-            // If the cursor returned is valid, get the phone number
-            if (cursor != null && cursor.moveToFirst()) {
-                int numberIndex = cursor.getColumnIndex(CommonDataKinds.Phone.NUMBER);
-                String phoneNumberToJoin = cursor.getString(numberIndex);
-
-            	String mutualId = Controller.generateUUID();
-
-             	// ??? TODO: Request phone number by UI dialog - might be from contacts list (phone book)
-            	// INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
-     			long res = DBLayer.addSentJoinRequest(phoneNumberToJoin, mutualId, JoinRequestStatusEnum.SENT);
-     			SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByPhone(phoneNumberToJoin);
-
-                // TODO: log number that join request was send to
-                // TODO: remove all incorrect symbols from number except digits and "+" sign	
-    			if(registrationId != null && !registrationId.isEmpty()){
-    	        	// Send SMS with registration details: 
-    	        	// phoneNumber and registartionId (mutual ID - optional) 
-    	        	SmsManager smsManager = SmsManager.getDefault();
-    				ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
-    						CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-    						mutualId);
-    				//smsManager.sendMultipartTextMessage(phoneNumberToJoin, null, parts, null, null);    
-    			}
-            }
-        }
-    }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        if (requestCode == JOIN_REQUEST && resultCode == RESULT_OK) {
+//            // Get the URI and query the content provider for the phone number
+//            Uri contactUri = data.getData();
+//            String[] projection = new String[]{CommonDataKinds.Phone.NUMBER};
+//            Cursor cursor = getContentResolver().query(contactUri, projection,
+//                    null, null, null);
+//            // If the cursor returned is valid, get the phone number
+//            if (cursor != null && cursor.moveToFirst()) {
+//                int numberIndex = cursor.getColumnIndex(CommonDataKinds.Phone.NUMBER);
+//                String phoneNumberToJoin = cursor.getString(numberIndex);
+//
+//            	String mutualId = Controller.generateUUID();
+//
+//             	// ??? TODO: Request phone number by UI dialog - might be from contacts list (phone book)
+//            	// INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
+//     			long res = DBLayer.addSentJoinRequest(phoneNumberToJoin, mutualId, JoinRequestStatusEnum.SENT);
+//     			SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByPhone(phoneNumberToJoin);
+//
+//                // TODO: log number that join request was send to
+//                // TODO: remove all incorrect symbols from number except digits and "+" sign	
+//    			if(registrationId != null && !registrationId.isEmpty()){
+//    	        	// Send SMS with registration details: 
+//    	        	// phoneNumber and registartionId (mutual ID - optional) 
+//    	        	SmsManager smsManager = SmsManager.getDefault();
+//    				ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
+//    						CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
+//    						mutualId);
+//    				//smsManager.sendMultipartTextMessage(phoneNumberToJoin, null, parts, null, null);    
+//    			}
+//            }
+//        }
+//    }
 
     @Override
     protected void onDestroy() {
@@ -278,6 +269,9 @@ public class MainActivity extends Activity {
 		} else {
 			Log.i(CommonConst.LOG_TAG, "Owner information already exists");
 		}
+		LogManager.LogInfoMsg(CommonConst.LOG_TAG, "SAVE OWNER INFO", 
+				account + CommonConst.DELIMITER_COLON + macAddress + CommonConst.DELIMITER_COLON + 
+				phoneNumber + CommonConst.DELIMITER_COLON + registrationId);
 		
 		contDevDataList = DBLayer.getContactDeviceDataList(account);
 		if(contDevDataList != null){

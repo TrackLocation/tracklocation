@@ -56,22 +56,23 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 		CheckBox checkBox = (CheckBox) rowView.findViewById(R.id.check_share_location);
 		textView.setText(values.get(position));
 		
-		if(checkBox != null){
-		checkBox.setOnClickListener( new View.OnClickListener() { 
-		     public void onClick(View v) { 
-		         CheckBox cb = (CheckBox) v;
-		         String t = cb.getText().toString();
-		         int isChecked = cb.isChecked() == true ? 1 : 0;
-		         PermissionsData p = DBLayer.getPermissions(emailList.get(position));
-		         if(p != null){
-			         DBLayer.updatePermissions(p.getEmail(), isChecked, 
-					        	p.getCommand(), p.getAdminCommand());
-		         }
-		        } 
-		       }); 
+		if (checkBox != null) {
+			checkBox.setOnClickListener(new View.OnClickListener() {
+				public void onClick(View v) {
+					CheckBox cb = (CheckBox) v;
+					String t = cb.getText().toString();
+					int isChecked = cb.isChecked() == true ? 1 : 0;
+					PermissionsData p = DBLayer.getPermissions(emailList.get(position));
+					if (p != null) {
+						DBLayer.updatePermissions(p.getEmail(), isChecked,
+								p.getCommand(), p.getAdminCommand());
+					}
+				}
+			});
+		}
 		
 		// Case if list with check boxes
-		if(checkBox != null){
+		if (checkBox != null){
 			//CheckBox checkBoxShareLocation = (CheckBox) rowView.findViewById(R.id.check_share_location);
 			if(emailList != null){
 				PermissionsData p = DBLayer.getPermissions(emailList.get(position));
@@ -84,7 +85,6 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 			} else {
 				checkBox.setChecked(false);
 			}
-		}
 		}
 	
 		// Change icon based on name
