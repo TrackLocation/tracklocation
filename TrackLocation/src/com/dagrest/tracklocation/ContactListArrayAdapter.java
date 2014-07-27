@@ -7,6 +7,7 @@ import com.dagrest.tracklocation.db.DBLayer;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
@@ -57,6 +58,25 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 		textView.setText(values.get(position));
 		
 		if (checkBox != null) {
+			rowView.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View v) {
+					CheckBox checkBox = (CheckBox) v.findViewById(R.id.check_share_location);
+					if (checkBox != null) {
+						int isChecked = checkBox.isChecked() == true ? 0 : 1;
+						PermissionsData p = DBLayer.getPermissions(emailList.get(position));
+						if (p != null) {
+							DBLayer.updatePermissions(p.getEmail(), isChecked,
+									p.getCommand(), p.getAdminCommand());
+							System.out.println("Saved as " + isChecked);
+							checkBox.setChecked(checkBox.isChecked() == true ? false : true);
+						}
+					}
+				}
+			});
+		}
+		
+		if (checkBox != null) {
 			checkBox.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
 					CheckBox cb = (CheckBox) v;
@@ -98,7 +118,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 	
 		return super.getView(position, rowView, parent);
 	}
-	
+		
 //	@Override
 //	public View getView(int position, View convertView, ViewGroup parent) {
 //		LayoutInflater inflater = (LayoutInflater) context
