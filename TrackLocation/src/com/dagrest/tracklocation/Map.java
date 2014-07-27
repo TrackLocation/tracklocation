@@ -1,9 +1,12 @@
 package com.dagrest.tracklocation;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.log.LogManager;
@@ -17,6 +20,8 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.gson.Gson;
+
+
 
 
 
@@ -52,6 +57,7 @@ public class Map extends Activity implements LocationListener{
 	private LinkedHashMap<String, Circle> locationCircleMap = null;
 	private float zoom;
 	private ContactDeviceDataList selectedContactDeviceDataList;
+	private List<String> selectedAccountList;
 	//private ScaleGestureDetector detector;
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
@@ -100,6 +106,14 @@ public class Map extends Activity implements LocationListener{
 				new Gson().fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
 			if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
 				contactsQuantity = selectedContactDeviceDataList.getContactDeviceDataList().size();
+				// Create and fill all requested accounts shat should be shown on the location map
+				selectedAccountList = new ArrayList<String>();
+				for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList.getContactDeviceDataList()) {
+					ContactData contactData = contactDeviceData.getContactData();
+					if(contactData != null){
+						selectedAccountList.add(contactData.getEmail());
+					}
+				}
 			}
 		}
 		isShowAllMarkersEnabled = true;
@@ -236,7 +250,19 @@ public class Map extends Activity implements LocationListener{
 					    			locationCircleMap = new LinkedHashMap<String, Circle>();
 					    		}
 					    		
-					    		Controller.setMapMarker(map, locationDetails, markerMap, locationCircleMap);
+					    		// Check locationDetails length to avoid crash in case less then 6 parameters
+					    		if(locationDetails.length >= 6) {
+						    		// Get account(contact) that sent its updated location on the map
+						    		String updatingAccount = locationDetails[5];
+						    		// Show on map only requested accounts(contacts) from Locate screen
+						    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
+						    			// Set marker on the map
+						    			Controller.setMapMarker(map, locationDetails, markerMap, locationCircleMap);
+						    		}
+					    		} else {
+					    			// A way to try to set marker on the map if something went wrong...
+					    			Controller.setMapMarker(map, locationDetails, markerMap, locationCircleMap);
+					    		}
 					    		
 					    		if(markerMap != null && markerMap.size() > 1 && isShowAllMarkersEnabled == true) {
 					    			// put camera to show all markers

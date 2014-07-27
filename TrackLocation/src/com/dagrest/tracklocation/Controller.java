@@ -862,7 +862,7 @@ public class Controller {
 				LatLng latLngChanging = new LatLng(lat, lng);
 
 	    		String account = null;
-	    		if(locationDetails.length == 6){
+	    		if(locationDetails.length >= 6){
 	    			account = locationDetails[5];
 	    		}
 	    		if(account == null || account.isEmpty()) {
