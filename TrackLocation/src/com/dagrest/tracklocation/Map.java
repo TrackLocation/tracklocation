@@ -275,15 +275,25 @@ public class Map extends Activity implements LocationListener{
 						    			isShowAllMarkersEnabled = false;
 						    		}
 					    		} else if(markerMap != null && markerMap.size() == 1 && isShowAllMarkersEnabled == true) {
-					    			if(locationDetails != null) {
-					    	    		double lat = Double.parseDouble(locationDetails[0]);
-					    	    		double lng = Double.parseDouble(locationDetails[1]);
-						    			latLngChanging = new LatLng(lat, lng);
-						    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngChanging, zoom));
-						    			if(markerMap.size() >= contactsQuantity){
-						    				isShowAllMarkersEnabled = false;
-						    			}
-					    			}
+					    			
+						    		// Check locationDetails length to avoid crash in case less then 6 parameters
+						    		if(locationDetails.length >= 6) {
+							    		// Get account(contact) that sent its updated location on the map
+							    		String updatingAccount = locationDetails[5];
+							    		// Update map's camera only for requested accounts(contacts) from Locate screen
+							    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
+
+							    			if(locationDetails != null) {
+							    	    		double lat = Double.parseDouble(locationDetails[0]);
+							    	    		double lng = Double.parseDouble(locationDetails[1]);
+								    			latLngChanging = new LatLng(lat, lng);
+								    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngChanging, zoom));
+								    			if(markerMap.size() >= contactsQuantity){
+								    				isShowAllMarkersEnabled = false;
+								    			}
+							    			}
+							    		}
+						    		}
 					    		}
 					    		if(markerMap != null && markerMap.size() == contactsQuantity){
 					    			waitingDialog.dismiss();
