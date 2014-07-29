@@ -136,7 +136,7 @@ public class MainActivity extends Activity {
     		startActivity(contactDataGridViewIntent);
 
     	// ========================================
-    	// LOCATE button
+    	// LOCATE button (CONTACT_LIST)
     	// ========================================
         } else if (view == findViewById(R.id.btnLocate)) {
     		LogManager.LogInfoMsg(this.getClass().getName(), "onClick -> Locate button", 
@@ -147,6 +147,8 @@ public class MainActivity extends Activity {
 	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
 	    			new Gson().toJson(contactDeviceDataList));
 	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
+	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
 	    		startActivity(intentContactList);
     		} else {
     	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 

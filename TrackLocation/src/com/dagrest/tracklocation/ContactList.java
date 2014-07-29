@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
+import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
+import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.google.gson.Gson;
@@ -36,6 +38,8 @@ public class ContactList extends Activity/*ListActivity*/ {
 	private List<String> selectedContcatList;
 	private Gson gson;
 	private String account;
+	private String macAddress;
+	private String phoneNumber;
  	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +50,14 @@ public class ContactList extends Activity/*ListActivity*/ {
 		gson = new Gson();
 		jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
 		account = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		macAddress = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+		phoneNumber = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_NUMBER);
 		contactDeviceDataList = gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
+
+//		if(contactDeviceDataList != null){
+//			Controller.sendCommand(getApplicationContext(), contactDeviceDataList, 
+//	    			CommandEnum.status_request, null, null);
+//		}
 
 		// jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
 		//List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(jsonStringContactDeviceDataList);
@@ -233,10 +244,15 @@ public class ContactList extends Activity/*ListActivity*/ {
         	
             selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
         	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
+        		
+    			MessageDataContactDetails contactDetails = 
+    				new MessageDataContactDetails(account, macAddress, phoneNumber, null, -1);
+    			MessageDataLocation location = null;
+
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.status_request, null, null);
+        			CommandEnum.status_request, contactDetails, location, null, null);
 	    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-	    			CommandEnum.start, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+	    			CommandEnum.start, contactDetails, location, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 	    		Intent intentMap = new Intent(getApplicationContext(), Map.class);
 	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
 		    			new Gson().toJson(selectedContactDeviceDataList));

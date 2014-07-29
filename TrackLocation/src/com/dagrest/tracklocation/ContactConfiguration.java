@@ -10,6 +10,8 @@ import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
+import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
+import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
@@ -133,19 +135,22 @@ public class ContactConfiguration extends Activity {
 
     public void onClick(final View view) {
 
+		MessageDataContactDetails contactDetails = null;
+		MessageDataLocation location = null;
+
     	controller = new Controller();
     	switch(view.getId()) {
         	case R.id.check_status:
         		//Controller.checkGcmStatus(getApplicationContext(), contactData, contactDeviceData);
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.status_request, null, null);
+        			CommandEnum.status_request, contactDetails, location, null, null);
         		break;
         	case R.id.start:
         		//Controller.startTrackLocationService(getApplicationContext(), contactDeviceData);
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.status_request, null, null);
+        			CommandEnum.status_request, contactDetails, location, null, null);
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.start, null, null);
+        			CommandEnum.start, contactDetails, location, null, null);
         		controller.keepAliveTrackLocationService(getApplicationContext(), selectedContactDeviceDataList, 500);
         		break;
         	case R.id.stop:
@@ -218,9 +223,12 @@ public class ContactConfiguration extends Activity {
 		Intent trackLocationService = new Intent(context, TrackLocationService.class);
 		context.stopService(trackLocationService); 
 
+		MessageDataContactDetails contactDetails = null;
+		MessageDataLocation location = null;
+
 		//Controller.stopTrackLocationService(context, contactDeviceData);
 		Controller.sendCommand(getApplicationContext(), contactDeviceDataList, 
-			CommandEnum.stop, null, null);
+			CommandEnum.stop, contactDetails, location, null, null);
 
 		if(gcmIntentServiceChangeWatcher != null) {
 			unregisterReceiver(gcmIntentServiceChangeWatcher);

@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.CommandEnum;
+import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
+import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -25,6 +27,9 @@ public class LocationListenerBasic implements LocationListener{
 	private TrackLocationService trackLocationService;
 	private final SharedPreferences prefs;
 	private String account;
+	private String macAddress;
+	private String phoneNumber;
+	private int batteryLevel;
 	
 	public LocationListenerBasic(Context context, TrackLocationService trackLocationService, String className, String locationProviderType) {
 		this.className = className;
@@ -32,7 +37,10 @@ public class LocationListenerBasic implements LocationListener{
 		this.context = context;
 		this.trackLocationService = trackLocationService;
 	    this.prefs = Preferences.getGCMPreferences(context);
-	    this.account = prefs.getString(CommonConst.PREFERENCES_PHONE_ACCOUNT, "");
+		this.account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		this.macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+		this.phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+		this.batteryLevel = Controller.getBatteryLevel(context);
 	}
 
 	@Override
@@ -81,12 +89,18 @@ public class LocationListenerBasic implements LocationListener{
 
 			String time = new Date().toString(); 
 
+    		MessageDataContactDetails contactDetails = new MessageDataContactDetails(
+        			account, macAddress, phoneNumber, null, batteryLevel);
+       		MessageDataLocation messageDataLocation = new MessageDataLocation(latitude, longitude, accuracy, speed);
+
 			// Get current registration ID
     		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
     		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
 	    		senderRegId, 
 	    		CommandEnum.location, 
 	    		null, // TODO: send device UUID in the message 
+	    		contactDetails,
+	    		messageDataLocation,
 	    		time,
 	    		locationProviderType, // key
 	    		locationInfo// value	

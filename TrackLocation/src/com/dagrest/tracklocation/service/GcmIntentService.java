@@ -8,6 +8,8 @@ import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
+import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
+import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
@@ -74,6 +76,12 @@ public class GcmIntentService extends IntentService {
             	LogManager.LogInfoMsg(this.getClass().getName(), "onHandleIntent", 
             		"Received: " + extras.toString());
             	
+        		Context clientContext = getApplicationContext();
+        		String clientAccount = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+        		String clientMacAddress = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+        		String clientPhoneNumber = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_NUMBER);
+        		int clientBatteryLevel = Controller.getBatteryLevel(clientContext);
+
             	// ============================================
                 // COMMAND: 	start
             	// command received via GCM from Master
@@ -128,10 +136,9 @@ public class GcmIntentService extends IntentService {
                         Preferences.setPreferencesString(getApplicationContext(), 
                         	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
             		}
-            		Context context = getApplicationContext();
             		// Start location service to get current location
-            		Intent trackLocationService = new Intent(context, TrackLocationService.class);
-            		context.startService(trackLocationService); 
+            		Intent trackLocationService = new Intent(clientContext, TrackLocationService.class);
+            		clientContext.startService(trackLocationService); 
            	
 //        		// ============================================
 //                // COMMAND: 	stop
@@ -149,6 +156,7 @@ public class GcmIntentService extends IntentService {
             		
         		// ============================================
                 // COMMAND: 	status_request
+            	// CLIENT SIDE	
             	// command received via GCM from Master
             	// to Slave - in order to check that GCM Service
             	// is registered on Slave.
@@ -164,20 +172,25 @@ public class GcmIntentService extends IntentService {
             		String regIDToReturnMessageTo = extras.getString("regIDToReturnMessageTo");
             		if(regIDToReturnMessageTo != null){
              			
-            			Context context = getApplicationContext();
             			// update (insert/add) regIds to list of contacts that will be notified
-            			listRegIDs = Preferences.setPreferencesReturnToRegIDList(context, 
+            			listRegIDs = Preferences.setPreferencesReturnToRegIDList(clientContext, 
             				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST, regIDToReturnMessageTo); 
              			//  listRegIDs = Utils.splitLine(
             			//	   Preferences.getPreferencesString(getApplicationContext(), CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST), 
             			//	   CommonConst.DELIMITER_STRING);
            			
 	            		String time = new Date().toString(); 
+	            			            		
+	            		MessageDataContactDetails contactDetails = new MessageDataContactDetails(
+	            			clientAccount, clientMacAddress, clientPhoneNumber, null, clientBatteryLevel);
+	            		MessageDataLocation location = null;
 
 	            		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
 	        	    		regIDToReturnMessageTo, 
 	        	    		CommandEnum.status_response, 
 	        	    		null, 
+	        	    		contactDetails,
+	        	    		location,
 	        	    		time,
 	        	    		NotificationKeyEnum.pushNotificationServiceStatus.toString(),
 	        	    		PushNotificationServiceStatusEnum.available.toString());

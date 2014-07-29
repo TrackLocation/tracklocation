@@ -5,17 +5,15 @@ public class MessageData {
 	private String time;
 	private CommandEnum command;
 	private String registrationID;
-	private ContactData contactData;
 	private DeviceTypeEnum deviceTypeEnum;
-	private DeviceData deviceData;
-	private Location location;
 	// registration ID - to return answer to this regID 
 	// in case of "status" command
 	private String regIDToReturnMessageTo;
-//	private TrackLocationServiceStatusEnum trackLocationServiceStatusEnum;
-//	private PushNotificationServiceStatusEnum pushNotificationServiceStatusEnum;
 	private String key;
 	private String value;
+	
+	private MessageDataLocation location;
+	private MessageDataContactDetails contactDetails;
 	
 	public String getMessage() {
 		return message;
@@ -41,29 +39,11 @@ public class MessageData {
 	public void setRegistrationID(String registrationID) {
 		this.registrationID = registrationID;
 	}
-	public ContactData getContactData() {
-		return contactData;
-	}
-	public void setContactData(ContactData contactData) {
-		this.contactData = contactData;
-	}
 	public DeviceTypeEnum getDeviceTypeEnum() {
 		return deviceTypeEnum;
 	}
 	public void setDeviceTypeEnum(DeviceTypeEnum deviceTypeEnum) {
 		this.deviceTypeEnum = deviceTypeEnum;
-	}
-	public DeviceData getDeviceData() {
-		return deviceData;
-	}
-	public void setDeviceData(DeviceData deviceData) {
-		this.deviceData = deviceData;
-	}
-	public Location getLocation() {
-		return location;
-	}
-	public void setLocation(Location location) {
-		this.location = location;
 	}
 	public String getRegIDToReturnMessageTo() {
 		return regIDToReturnMessageTo;
@@ -71,20 +51,6 @@ public class MessageData {
 	public void setRegIDToReturnMessageTo(String regIDToReturnMessageTo) {
 		this.regIDToReturnMessageTo = regIDToReturnMessageTo;
 	}
-//	public TrackLocationServiceStatusEnum getTrackLocationServiceStatusEnum() {
-//		return trackLocationServiceStatusEnum;
-//	}
-//	public void setTrackLocationServiceStatusEnum(
-//			TrackLocationServiceStatusEnum trackLocationServiceStatusEnum) {
-//		this.trackLocationServiceStatusEnum = trackLocationServiceStatusEnum;
-//	}
-//	public PushNotificationServiceStatusEnum getPushNotificationServiceStatusEnum() {
-//		return pushNotificationServiceStatusEnum;
-//	}
-//	public void setPushNotificationServiceStatusEnum(
-//			PushNotificationServiceStatusEnum pushNotificationServiceStatusEnum) {
-//		this.pushNotificationServiceStatusEnum = pushNotificationServiceStatusEnum;
-//	}
 	public String getKey() {
 		return key;
 	}
@@ -96,6 +62,18 @@ public class MessageData {
 	}
 	public void setValue(String value) {
 		this.value = value;
+	}
+	public MessageDataLocation getLocation() {
+		return location;
+	}
+	public void setLocation(MessageDataLocation location) {
+		this.location = location;
+	}
+	public MessageDataContactDetails getContactDetails() {
+		return contactDetails;
+	}
+	public void setContactDetails(MessageDataContactDetails contactDetails) {
+		this.contactDetails = contactDetails;
 	}
 	
 }

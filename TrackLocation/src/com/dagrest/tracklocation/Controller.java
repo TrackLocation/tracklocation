@@ -19,6 +19,7 @@ import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -28,6 +29,7 @@ import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
+import android.os.BatteryManager;
 import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -42,6 +44,8 @@ import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
+import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
+import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.ReceivedJoinRequestData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
@@ -99,10 +103,10 @@ public class Controller {
 	public static String createJsonMessage(List<String> listRegIDs, 
     		String regIDToReturnMessageTo, 
     		CommandEnum command, 
-    		String messageString, 
+    		String messageString,
+    		MessageDataContactDetails contactDetails,
+    		MessageDataLocation location,
     		String time,
-//    		TrackLocationServiceStatusEnum trackLocationServiceStatus,
-//    		PushNotificationServiceStatusEnum pushNotificationServiceStatus,
     		String key, 
     		String value){
     	
@@ -115,10 +119,10 @@ public class Controller {
         messageData.setTime(time);
         messageData.setCommand(command);
         messageData.setRegIDToReturnMessageTo(regIDToReturnMessageTo);
-//        messageData.setTrackLocationServiceStatusEnum(trackLocationServiceStatus);
-//        messageData.setPushNotificationServiceStatusEnum(pushNotificationServiceStatus);
         messageData.setKey(key);
         messageData.setValue(value);
+        messageData.setLocation(location);
+        messageData.setContactDetails(contactDetails);
         
         Message message = new Message();
         message.setData(messageData); 
@@ -674,10 +678,14 @@ public class Controller {
 		String time = Controller.getCurrentDate();
 		String messageString = ownerEmail + CommonConst.DELIMITER_COMMA + ownerRegId + CommonConst.DELIMITER_COMMA + 
 				ownerPhoneNumber + CommonConst.DELIMITER_COMMA + ownerMacAddress;
+		MessageDataContactDetails contactDetails = null;
+		MessageDataLocation location = null;
 		String jsonMessage = createJsonMessage(listRegIDs, 
 	    		regIDToReturnMessageTo, 
 	    		command, // CommandEnum.join_approval, 
 	    		messageString, // email, regId, phoneNumber, macAddress
+	    		contactDetails,
+	    		location,
 	    		time,
 	    		NotificationKeyEnum.joinRequestApprovalMutualId.toString(), 
 	    		ownerMutualId
@@ -798,7 +806,7 @@ public class Controller {
 	}
 
 	public static void sendCommand(Context context, ContactDeviceDataList contactDeviceDataList, CommandEnum command, 
-			String key, String value){
+			MessageDataContactDetails contactDetails, MessageDataLocation location, String key, String value){
 		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
 		List<String> listRegIDs = new ArrayList<String>();
 		
@@ -818,6 +826,8 @@ public class Controller {
 		    		regIDToReturnMessageTo, 
 		    		command, 
 		    		"", // messageString, 
+		    		contactDetails,
+		    		location,
 		    		Controller.getCurrentDate(), // time,
 		    		key, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
 		    		value //PushNotificationServiceStatusEnum.available.toString()
@@ -915,6 +925,14 @@ public class Controller {
 		return  CameraUpdateFactory.newLatLngBounds(bounds, padding);
 	}
 	
+	public static int getBatteryLevel(Context context){
+		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+		Intent batteryStatus = context.registerReceiver(null, ifilter);
+		int level = batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+		//int scale = batteryStatus.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+		//float batteryPct = level / (float)scale;
+		return level;
+	}
 //    public static void checkGcmStatus(Context context, ContactData contactData, ContactDeviceData contactDeviceData){
 //		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
 //		List<String> listRegIDs = new ArrayList<String>();

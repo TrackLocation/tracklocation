@@ -7,6 +7,8 @@ import java.util.Timer;
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
+import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
+import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
@@ -237,12 +239,16 @@ public class TrackLocationService extends Service {
 
 		String time = new Date().toString(); 
 
+		MessageDataLocation location = null;
+		MessageDataContactDetails contactDetails = null;
 		// Get current registration ID
 		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
     		senderRegId, 
     		CommandEnum.status_response, 
     		null, // TODO: send device UUID in the message 
+    		contactDetails,
+    		location,
     		time,
     		NotificationKeyEnum.trackLocationServiceStatus.toString(),
     		TrackLocationServiceStatusEnum.stopped.toString());
@@ -263,12 +269,16 @@ public class TrackLocationService extends Service {
 
 		String time = new Date().toString(); 
 
+		MessageDataLocation location = null;
+		MessageDataContactDetails contactDetails = null;
 		// Get current registration ID
 		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
     		senderRegId, 
     		CommandEnum.status_response, 
     		null, // TODO: send device UUID in the message 
+    		contactDetails,
+    		location,
     		time,
     		NotificationKeyEnum.trackLocationServiceStatus.toString(),
     		TrackLocationServiceStatusEnum.started.toString());
