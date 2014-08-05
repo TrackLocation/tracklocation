@@ -6,7 +6,8 @@ import android.content.Context;
 import android.util.Log;
 
 import com.dagrest.tracklocation.Controller;
-import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
@@ -37,7 +38,7 @@ public class MapKeepAliveTimerJob extends TimerTask {
 	   		Controller.sendCommand(context, selectedContactDeviceDataList, 
 	   			CommandEnum.track_location_service_keep_alive, 
 	   			null, contactDetails, location, 
-	   			BroadcastCommandEnum.keep_alive.toString(), 
+	   			BroadcastKeyEnum.keep_alive.toString(), 
 	   			Long.toString(System.currentTimeMillis()));
 	    	Log.i(CommonConst.LOG_TAG, "KeepAlive command sent to trackLocationService from mapKeepAliveTimerJob");
 		} else {

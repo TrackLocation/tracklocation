@@ -1,6 +1,7 @@
 package com.dagrest.tracklocation;
 
-import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.utils.CommonConst;
 
 import android.app.Activity;
@@ -62,9 +63,11 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 				if(contactDetails != null && !contactDetails.getContactName().isEmpty()){
 					contactName = contactDetails.getContactName();
 				}
-        		Controller.broadcastMessage(activity, CommonConst.BROADCAST_JOIN, "OnChildClick",
-        			null, null,	
-					BroadcastCommandEnum.join_number.toString(), 
+        		Controller.broadcastMessage(activity, 
+        			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
+        			"OnChildClick",
+        			null, 
+					BroadcastKeyEnum.join_number.toString(), 
 					contactName + CommonConst.DELIMITER_STRING + groupPhone);
 			}
 		});

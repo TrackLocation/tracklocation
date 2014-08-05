@@ -2,7 +2,8 @@ package com.dagrest.tracklocation;
 
 import java.util.ArrayList;
 
-import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
 import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 import com.dagrest.tracklocation.db.DBLayer;
@@ -60,9 +61,11 @@ public class JoinContactList extends Activity {
 		        	Controller.fetchContacts(JoinContactList.this, contactDetailsGroups, barProgressDialog);
 		        	barProgressDialog.dismiss();
 		
-		        	Controller.broadcastMessage(JoinContactList.this, CommonConst.BROADCAST_JOIN, "fetchContacts",
-		        			null, null,
-							BroadcastCommandEnum.fetch_contacts_completed.toString(), 
+		        	Controller.broadcastMessage(JoinContactList.this, 
+		        			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
+		        			"fetchContacts",
+		        			null,
+							BroadcastKeyEnum.fetch_contacts_completed.toString(), 
 							"Completed");
 		        } catch (Exception e) {
 		        	System.out.println("Exception IMPORTANT: " + e.getMessage());
@@ -117,7 +120,7 @@ public class JoinContactList extends Activity {
     {
     	LogManager.LogFunctionCall(className, "initBroadcastReceiver");
 	    IntentFilter intentFilter = new IntentFilter();
-	    intentFilter.addAction(CommonConst.BROADCAST_JOIN);
+	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_JOIN.toString());
 	    broadcastReceiver = new BroadcastReceiver() 
 	    {
 	    	String phoneNumber = null;
@@ -131,9 +134,9 @@ public class JoinContactList extends Activity {
 	    		LogManager.LogInfoMsg(className, "initBroadcastReceiver->onReceive", "WORK");
 	    		
 	    		Bundle bundle = intent.getExtras();
-	    		String broadcastKeyJoinNumber = BroadcastCommandEnum.join_number.toString();
-	    		String broadcastKeyFetchContactsCompleted = BroadcastCommandEnum.fetch_contacts_completed.toString();
-	    		String broadcastKeyResendJoinRequest = BroadcastCommandEnum.resend_join_request.toString();
+	    		String broadcastKeyJoinNumber = BroadcastKeyEnum.join_number.toString();
+	    		String broadcastKeyFetchContactsCompleted = BroadcastKeyEnum.fetch_contacts_completed.toString();
+	    		String broadcastKeyResendJoinRequest = BroadcastKeyEnum.resend_join_request.toString();
 	    		// ===========================================
 	    		// broadcast key: join_number or any value 
 	    		// ===========================================
@@ -195,7 +198,7 @@ public class JoinContactList extends Activity {
 		    			// update expandable list of the device contacts
 		    	        adapter = new ContactDeatilsExpandableListAdapter(JoinContactList.this, contactDetailsGroups);
 		    		    listView.setAdapter(adapter);
-		    		} else if(bundle.containsKey(BroadcastCommandEnum.resend_join_request.toString())){
+		    		} else if(bundle.containsKey(BroadcastKeyEnum.resend_join_request.toString())){
 		    			sendJoinRequest(context, contactName, phoneNumber);
 		    		}
 	    		}
@@ -241,9 +244,11 @@ public class JoinContactList extends Activity {
 		@Override
 		public void doOnPositiveButton() {
 			toSendAddJoinRequest = true;
-        	Controller.broadcastMessage(JoinContactList.this, CommonConst.BROADCAST_JOIN, "fetchContacts",
-        			null, null,
-					BroadcastCommandEnum.resend_join_request.toString(), 
+        	Controller.broadcastMessage(JoinContactList.this, 
+        			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
+        			"fetchContacts",
+        			null, 
+					BroadcastKeyEnum.resend_join_request.toString(), 
 					"Resend");
 			//sendJoinRequest(context, contactName, phoneNumber, mutualId);
 		}

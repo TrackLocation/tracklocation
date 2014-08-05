@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Timer;
 
 import com.dagrest.tracklocation.Controller;
-import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
@@ -63,7 +63,7 @@ public class TrackLocationService extends Service {
         super.onCreate();
         className = this.getClass().getName();
         
-		initBroadcastReceiver(CommonConst.BROADCAST_LOCATION_KEEP_ALIVE, "ContactConfiguration");
+		initBroadcastReceiver(BroadcastActionEnum.BROADCAST_LOCATION_KEEP_ALIVE.toString(), "ContactConfiguration");
         
         isLocationProviderAvailable = false;
     	LogManager.LogFunctionCall(className, "onCreate");
@@ -343,7 +343,7 @@ public class TrackLocationService extends Service {
 	    		// TODO: refactor with JSON to JAVA and back instead of string with delimiters
 	    		
 	    		Bundle bundle = intent.getExtras();
-	    		String broadcastKepAlive = BroadcastCommandEnum.keep_alive.toString();
+	    		String broadcastKepAlive = BroadcastActionEnum.KEEP_ALIVE.toString();
 	    		// ===========================================
 	    		// broadcast key = keep_alive
 	    		// ===========================================
@@ -353,7 +353,7 @@ public class TrackLocationService extends Service {
 	    				result = bundle.getString(broadcastKepAlive);
 	    			}
 		    		if(result != null && !result.isEmpty()){
-		    			if(result.contains(BroadcastCommandEnum.keep_alive.toString())){
+		    			if(result.contains(BroadcastActionEnum.KEEP_ALIVE.toString())){
 		    				//mStatus.setText(PushNotificationServiceStatusEnum.available.toString());
 		    				String[] inputArray = result.split(CommonConst.DELIMITER_STRING); // key, value, current_time
 		    				String key = inputArray[0];

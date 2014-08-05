@@ -59,12 +59,12 @@ public class CommonConst {
  	public static final String 	CONTACT_LIST_SELECTED_VALUE = "selectedValue";
  	public static final String 	CONTACT_REGISTRATION_ID = "registration_id";
  	
- 	// BROADCAST ACTIONS
- 	// deprecated: "com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED" use:
- 	public static final String 	BROADCAST_LOCATION_UPDATED 		= "com.dagrest.tracklocation.service.GcmIntentService.LOCATION_UPDATED";
- 	public static final String 	BROADCAST_JOIN 					= "com.dagrest.tracklocation.JoinContactList.BROADCAST_JOIN";
- 	public static final String 	BROADCAST_LOCATION_KEEP_ALIVE 	= "com.dagrest.tracklocation.Map.KEEP_ALIVE";
- 	public static final String 	BROADCAST_MESSAGE 				= "com.dagrest.tracklocation.MESSAGE";
+// 	// BROADCAST ACTIONS
+// 	// deprecated: "com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED" use:
+// 	public static final String 	BROADCAST_LOCATION_UPDATED 		= "com.dagrest.tracklocation.service.GcmIntentService.LOCATION_UPDATED";
+// 	public static final String 	BROADCAST_JOIN 					= "com.dagrest.tracklocation.JoinContactList.BROADCAST_JOIN";
+// 	public static final String 	BROADCAST_LOCATION_KEEP_ALIVE 	= "com.dagrest.tracklocation.Map.KEEP_ALIVE";
+// 	public static final String 	BROADCAST_MESSAGE 				= "com.dagrest.tracklocation.MESSAGE";
  	
  	public static final int 	REQUEST_SELECT_PHONE_NUMBER = 1;
  	

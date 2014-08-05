@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 
-import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
@@ -69,7 +70,7 @@ public class ContactConfiguration extends Activity {
 		
 		className = this.getClass().getName();
 		setContentView(R.layout.contact_config);
-		initBroadcastReceiver(CommonConst.BROADCAST_LOCATION_UPDATED, "ContactConfiguration");
+		initBroadcastReceiver(BroadcastActionEnum.BROADCAST_LOCATION_UPDATED.toString(), "ContactConfiguration");
 
 		Intent intent = getIntent();
 		String jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
@@ -184,8 +185,8 @@ public class ContactConfiguration extends Activity {
 	    		// TODO: refactor with JSON to JAVA and back instead of string with delimiters
 	    		
 	    		Bundle bundle = intent.getExtras();
-	    		String broadcastKeyLocationUpdated = BroadcastCommandEnum.location_updated.toString();
-	    		String broadcastKeyGcmStatus = BroadcastCommandEnum.gcm_status.toString();
+	    		String broadcastKeyLocationUpdated = BroadcastKeyEnum.location_updated.toString();
+	    		String broadcastKeyGcmStatus = BroadcastKeyEnum.gcm_status.toString();
 	    		// ===========================================
 	    		// broadcast key = location_updated
 	    		// ===========================================

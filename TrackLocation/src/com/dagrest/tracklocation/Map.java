@@ -5,10 +5,15 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
+import com.dagrest.tracklocation.datatype.BroadcastData;
+import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
+import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
+import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Utils;
@@ -20,6 +25,11 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.gson.Gson;
+
+
+
+
+
 
 
 
@@ -62,6 +72,7 @@ public class Map extends Activity implements LocationListener{
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
 	private ProgressDialog waitingDialog;
+	private Gson gson;
 	
 	private Controller controller;
 	
@@ -97,13 +108,14 @@ public class Map extends Activity implements LocationListener{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.map);	
 
+		gson = new Gson();
 		Intent intent = getIntent();
 		Bundle bundle = intent.getExtras();
 		String jsonStringContactDeviceDataList = null;
 		if(bundle.containsKey(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST)){
 			jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
 			selectedContactDeviceDataList = 
-				new Gson().fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
+				gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
 			if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
 				contactsQuantity = selectedContactDeviceDataList.getContactDeviceDataList().size();
 				// Create and fill all requested accounts shat should be shown on the location map
@@ -216,7 +228,7 @@ public class Map extends Activity implements LocationListener{
     {
     	LogManager.LogFunctionCall("ContactConfiguration", "initGcmIntentServiceWatcher");
 	    IntentFilter intentFilter = new IntentFilter();
-	    intentFilter.addAction(CommonConst.BROADCAST_LOCATION_UPDATED);
+	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_LOCATION_UPDATED.toString());
 	    gcmLocationUpdatedWatcher = new BroadcastReceiver() 
 	    {
 	    	@Override
@@ -227,15 +239,15 @@ public class Map extends Activity implements LocationListener{
 	    		LogManager.LogInfoMsg("ContactConfiguration", "initGcmIntentServiceWatcher->onReceive", "WORK");
 	    		
 	    		Bundle bundle = intent.getExtras();
-	    		String broadcastKeyLocationUpdated = BroadcastCommandEnum.location_updated.toString();
+	    		String broadcastKeyLocationUpdated = BroadcastKeyEnum.location_updated.toString();
 	    		// ===========================================
 	    		// broadcast key = location_updated
 	    		// ===========================================
 	    		if(bundle != null && bundle.containsKey(broadcastKeyLocationUpdated)){
-		    		String result = bundle.getString(broadcastKeyLocationUpdated);
+		    		String locationUpdatedDetails = bundle.getString(broadcastKeyLocationUpdated);
 		    		
-		    		if(result != null && !result.isEmpty()){
-			    		List<String> resultList = Utils.splitLine(result, CommonConst.DELIMITER_STRING);
+		    		if(locationUpdatedDetails != null && !locationUpdatedDetails.isEmpty()){
+			    		List<String> resultList = Utils.splitLine(locationUpdatedDetails, CommonConst.DELIMITER_STRING);
 			    		
 			    		if(resultList != null && resultList.size() >= 2){
 				    		String lanLngUpdated = resultList.get(1);
@@ -301,9 +313,83 @@ public class Map extends Activity implements LocationListener{
 				    		}
 			    		}
 		    		}
+	    		} // if(bundle != null && bundle.containsKey(broadcastKeyLocationUpdated))
+	    		else if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
+	    			String jsonLocationUpdatedData = bundle.getString(BroadcastConstEnum.data.toString());
+	    			if(jsonLocationUpdatedData == null || jsonLocationUpdatedData.isEmpty()){
+	    				return;
+	    			}
+	    			BroadcastData broadcastData = gson.fromJson(jsonLocationUpdatedData, BroadcastData.class);
+	    			if(broadcastData == null){
+	    				return;
+	    			}
+	    			
+	    			// TODO:  Create a new function in Controller class
+	    			// ================================================
+	    			MessageDataContactDetails сontactDetails = broadcastData.getContactDetails();
+	    			// TODO: Check that сontactDetails are not null
+	    			MessageDataLocation locationDetails = broadcastData.getLocation();
+	    			// TODO: Check that locationDetails are not null
+	    			
+	    			String updatingAccount = сontactDetails.getAccount();
+	    			
+		    		if(markerMap == null){
+		    			markerMap = new LinkedHashMap<String, Marker>();
+		    		}
+		    		if(locationCircleMap == null){
+		    			locationCircleMap = new LinkedHashMap<String, Circle>();
+		    		}
+
+		    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
+		    			// Set marker on the map
+		    			Controller.setMapMarker(map, сontactDetails, locationDetails, markerMap, locationCircleMap);
+		    		}
+
+		    		
+		    		
+		    		
+		    		// TODO: Create another function ???
+		    		if(markerMap != null && markerMap.size() > 1 && isShowAllMarkersEnabled == true) {
+		    			// put camera to show all markers
+		    			CameraUpdate cu = Controller.createCameraUpdateLatLngBounds(markerMap);
+			    		map.animateCamera(cu); // or map.moveCamera(cu); 
+			    		if(markerMap.size() >= contactsQuantity){
+			    			// put camera to show all markers
+			    			cu = Controller.createCameraUpdateLatLngBounds(markerMap);
+				    		map.animateCamera(cu); // or map.moveCamera(cu); 
+			    			isShowAllMarkersEnabled = false;
+			    		}
+		    		} else if(markerMap != null && markerMap.size() == 1 && isShowAllMarkersEnabled == true) {
+		    			
+				    		// Update map's camera only for requested accounts(contacts) from Locate screen
+				    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
+
+				    			if(locationDetails != null) {
+				    	    		double lat = locationDetails.getLat();
+				    	    		double lng = locationDetails.getLng();
+					    			latLngChanging = new LatLng(lat, lng);
+					    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngChanging, zoom));
+					    			if(markerMap.size() >= contactsQuantity){
+					    				isShowAllMarkersEnabled = false;
+					    			}
+				    			}
+				    		}
+		    		}
+		    		if(markerMap != null && markerMap.size() == contactsQuantity){
+		    			waitingDialog.dismiss();
+		    		}
+
+		    		
+		    		
+		    		
+		    		
+	    			// ================================================
+		    		
 	    		}
+	    		
     		}
 	    };
+	    
 	    registerReceiver(gcmLocationUpdatedWatcher, intentFilter);
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }

@@ -4,7 +4,9 @@ import java.util.Date;
 import java.util.List;
 
 import com.dagrest.tracklocation.Controller;
-import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastData;
+import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
@@ -31,6 +33,7 @@ import android.util.Log;
 public class GcmIntentService extends IntentService {
 
 	public static final String CLASS_NAME = "GcmIntentService";
+	private Gson gson = new Gson();
 	
 	public GcmIntentService() {
 		super("GcmIntentService");
@@ -278,14 +281,18 @@ public class GcmIntentService extends IntentService {
 //						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
 //							value + CommonConst.DELIMITER_STRING + currentDateTime);
                 		if(value != null && !value.isEmpty()) {
-							Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService",
-								null, null,  
-								BroadcastCommandEnum.gcm_status.toString(),  
+							Controller.broadcastMessage(GcmIntentService.this, 
+								BroadcastActionEnum.BROADCAST_LOCATION_UPDATED.toString(), 
+								"GcmIntentService",
+								null, 
+								BroadcastKeyEnum.gcm_status.toString(),  
 								key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
                 		} else {
-                			Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService",
-                				null, null,	
-								BroadcastCommandEnum.gcm_status.toString(),  
+                			Controller.broadcastMessage(GcmIntentService.this,
+                				BroadcastActionEnum.BROADCAST_LOCATION_UPDATED.toString(), 
+                				"GcmIntentService",
+                				null, 
+                				BroadcastKeyEnum.gcm_status.toString(),  
 								"");
                 		}
         		// ============================================
@@ -303,10 +310,20 @@ public class GcmIntentService extends IntentService {
                 		
                 		String jsonContactDetails = extras.getString("contactDetails");
                 		String jsonLocation = extras.getString("location");
+                		MessageDataContactDetails contactDetails = 
+                			gson.fromJson(jsonContactDetails, MessageDataContactDetails.class);
+                		MessageDataLocation location = 
+                			gson.fromJson(jsonLocation, MessageDataLocation.class);
+                		BroadcastData broadcastData = new BroadcastData();
+                		broadcastData.setContactDetails(contactDetails);
+                		broadcastData.setLocation(location);
+                		String jsonBroadcastData = gson.toJson(broadcastData);
                 		
-                		Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService",
-                			jsonContactDetails, jsonLocation,	
-							BroadcastCommandEnum.location_updated.toString(), 
+                		Controller.broadcastMessage(GcmIntentService.this, 
+                			BroadcastActionEnum.BROADCAST_LOCATION_UPDATED.toString(), 
+                			"GcmIntentService",
+                			jsonBroadcastData,	
+							null, //BroadcastKeyEnum.location_updated.toString(), 
 							key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
         		// ============================================
                 // COMMAND: 	join_approval
@@ -381,9 +398,11 @@ public class GcmIntentService extends IntentService {
             		String key = extras.getString("key");
             		String value = extras.getString("value");
             		
-					Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_KEEP_ALIVE, "GcmIntentService",
-						null, null,	
-						BroadcastCommandEnum.keep_alive.toString(),  
+					Controller.broadcastMessage(GcmIntentService.this, 
+						BroadcastActionEnum.BROADCAST_LOCATION_KEEP_ALIVE.toString(),
+						"GcmIntentService",
+						null, 
+						BroadcastKeyEnum.keep_alive.toString(),  
 						key + CommonConst.DELIMITER_STRING + value);
 					
         		// ============================================
@@ -399,9 +418,11 @@ public class GcmIntentService extends IntentService {
             		}
             		
             		// Broadcast corresponding message
-					Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_MESSAGE, "GcmIntentService",
-						null, null,
-						BroadcastCommandEnum.message.toString(),  
+					Controller.broadcastMessage(GcmIntentService.this, 
+						BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+						"GcmIntentService",
+						null, 
+						BroadcastKeyEnum.message.toString(),  
 						msg);
             	} 
         	

@@ -36,7 +36,8 @@ import android.util.Log;
 import android.util.Patterns;
 import android.util.SparseArray;
 
-import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
+import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
@@ -207,8 +208,7 @@ public class Controller {
 	public static void broadcastMessage(Context context, 
 		String action, 
 		String actionDescription,
-		String contactDetails,
-		String location,
+		String data,
 		String key, 
 		String value)
 	{
@@ -216,8 +216,7 @@ public class Controller {
 		Intent intent = new Intent();
 		intent.setAction(action); //intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
 		intent.putExtra(key, value);
-		intent.putExtra(BroadcastCommandEnum.contcat_details.toString(), contactDetails);
-		intent.putExtra(BroadcastCommandEnum.location.toString(), location);
+		intent.putExtra(BroadcastConstEnum.data.toString(), data);
 		context.sendBroadcast(intent);
 		LogManager.LogFunctionExit(actionDescription, "broadcastMessage");
 	}
@@ -914,6 +913,58 @@ public class Controller {
 				markerMap.put(account, marker);
 				
 				double accuracy = Double.parseDouble(locationDetails[2]);
+		
+				locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
+				            .radius(accuracy)
+				            .strokeColor(Color.argb(255, 0, 153, 255))
+				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
+				locationCircleMap.put(account, locationCircle);
+    		}
+    	}
+	}
+
+	public static void setMapMarker(GoogleMap map, 
+			MessageDataContactDetails сontactDetails, 
+			MessageDataLocation locationDetails, 
+			LinkedHashMap<String, 
+			Marker> markerMap, 
+			LinkedHashMap<String, 
+			Circle> locationCircleMap) {
+		if(locationDetails != null) {
+    		double lat = locationDetails.getLat();
+    		double lng = locationDetails.getLng();
+    		
+    		if(lat != 0 && lng != 0){
+				LatLng latLngChanging = new LatLng(lat, lng);
+
+				String account = сontactDetails.getAccount();
+	    		if(account == null || account.isEmpty()) {
+	    			return;
+	    		}
+	    		
+	    		if(markerMap.containsKey(account)) {
+	    			markerMap.get(account).remove();
+	    			markerMap.remove(account);
+	    		}
+	    		if(locationCircleMap.containsKey(account)) {
+	    			locationCircleMap.get(account).remove();
+	    			locationCircleMap.remove(account);
+	    		}
+	    		
+				Marker marker = null;
+				Circle locationCircle = null;
+								
+				//marker.
+				marker = map.addMarker(new MarkerOptions()
+		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
+		        .snippet("Battery: " + String.valueOf(сontactDetails.getBatteryPercentage()))
+		        .title(account)
+		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+		        .position(latLngChanging));
+				
+				markerMap.put(account, marker);
+				
+				double accuracy = locationDetails.getAccuracy();
 		
 				locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
 				            .radius(accuracy)
