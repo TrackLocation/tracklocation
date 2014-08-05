@@ -19,8 +19,10 @@ import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.gson.Gson;
 
 import android.app.IntentService;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -32,7 +34,6 @@ public class GcmIntentService extends IntentService {
 	
 	public GcmIntentService() {
 		super("GcmIntentService");
-//		context = getApplicationContext();
 	}
 
 	@Override
@@ -76,6 +77,11 @@ public class GcmIntentService extends IntentService {
             	LogManager.LogInfoMsg(this.getClass().getName(), "onHandleIntent", 
             		"Received: " + extras.toString());
             	
+            	// ============================================
+            	// COMMANDS TO RUN ON CLIENT SIDE
+            	// ============================================
+            	
+            	// Collect client details
         		Context clientContext = getApplicationContext();
         		String clientAccount = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_ACCOUNT);
         		String clientMacAddress = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
@@ -83,7 +89,8 @@ public class GcmIntentService extends IntentService {
         		int clientBatteryLevel = Controller.getBatteryLevel(clientContext);
 
             	// ============================================
-                // COMMAND: 	start
+                // COMMAND: 	start - Start Track Location Service on client
+            	// CLIENT SIDE	
             	// command received via GCM from Master
             	// to Slave - in order to start location
             	// service on Slave
@@ -92,16 +99,21 @@ public class GcmIntentService extends IntentService {
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.start.toString())){ // COMMAND START
             		
-//            		String key = extras.getString("key"); // CommonConst.PREFERENCES_PHONE_ACCOUNT
-//            		if( !CommonConst.PREFERENCES_PHONE_ACCOUNT.equals(key) ){
-//            			
-//            		}
+            		String regIdToReturnMessageTo = extras.getString(CommonConst.REGISTRATION_ID_TO_RETURN_MESSAGE_TO);
             		String value = extras.getString("value"); // account = email
             		if( value == null || value.isEmpty() ) {
                     	String errMsg = "Account (email) was not delivered to start TrackLocationService";
                         Log.e(CommonConst.LOG_TAG, errMsg);
-                        LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->onHandleIntent", errMsg);
-                        // TODO: notify to caller by GCM (push notification)
+                        LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->onHandleIntent->[COMMAND:start]", errMsg);
+                        
+                        MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
+                        	clientMacAddress, clientPhoneNumber, null, clientBatteryLevel);
+                        ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
+                        	new ContactDeviceDataList (clientAccount, clientMacAddress, clientPhoneNumber, regIdToReturnMessageTo, null);
+                        // Notify caller by GCM (push notification)
+        	    		Controller.sendCommand(getApplicationContext(), contactDeviceDataToSendNotificationTo, 
+        		    			CommandEnum.notification, errMsg, contactDetails, null, null, null);
+
             			return;
             		}
             		
@@ -111,9 +123,18 @@ public class GcmIntentService extends IntentService {
                     	String errMsg = "No permissions defind for account: " + value + 
                     		". Not permitted to share location";
                         Log.e(CommonConst.LOG_TAG, errMsg);
-                        LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->onHandleIntent", errMsg);
-                        // TODO: notify to caller by GCM (push notification)
-                		return;
+                        LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->onHandleIntent->[COMMAND:start]", errMsg);
+                        
+                        // Notify to caller by GCM (push notification)
+                        MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
+                            	clientMacAddress, clientPhoneNumber, null, clientBatteryLevel);
+                        ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
+                        	new ContactDeviceDataList (clientAccount, clientMacAddress, clientPhoneNumber, regIdToReturnMessageTo, null);
+                        // Notify caller by GCM (push notification)
+        	    		Controller.sendCommand(getApplicationContext(), contactDeviceDataToSendNotificationTo, 
+        		    			CommandEnum.notification, errMsg, contactDetails, null, null, null);
+        	    		
+        	    		return;
                 	}
                 	
                 	int isLocationSharingPermitted = permissionsData.getIsLocationSharePermitted();
@@ -121,27 +142,69 @@ public class GcmIntentService extends IntentService {
                 		// TODO: Show error - no permission to invoke TrackLocation
                     	String errMsg = "Not permitted to share location to " + value;
                         Log.e(CommonConst.LOG_TAG, errMsg);
-                        LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->onHandleIntent", errMsg);
-                        // TODO: notify to caller by GCM (push notification)
-                		return;
+                        LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->onHandleIntent->[COMMAND:start]", errMsg);
+                        
+                        // Notify to caller by GCM (push notification)
+                        MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
+                            	clientMacAddress, clientPhoneNumber, null, clientBatteryLevel);
+                        ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
+                        	new ContactDeviceDataList (clientAccount, clientMacAddress, clientPhoneNumber, regIdToReturnMessageTo, null);
+                        // Notify caller by GCM (push notification)
+        	    		Controller.sendCommand(getApplicationContext(), contactDeviceDataToSendNotificationTo, 
+        		    			CommandEnum.notification, errMsg, contactDetails, null, null, null);
+
+        	    		return;
                 	}
             		
                 	// ============================================
-                    // COMMAND: 	start
+                    // COMMAND: 	start - with parameter:
                 	// PARAMETER: 	interval
+                	// CLIENT SIDE	
                 	// ============================================
-            		if(extras.containsKey(CommandTagEnum.interval.toString())){ // COMMAND INTERVAL
+            		if(extras.containsKey(CommandTagEnum.interval.toString())){ // PARAMETER INTERVAL
             			String intervalString = extras.getString(CommandTagEnum.interval.toString());
-            			//Context ctx = getApplicationContext();
                         Preferences.setPreferencesString(getApplicationContext(), 
                         	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
             		}
+            		
+            		// TODO
+            		// TODO
+            		// TODO create table to contain regIds to sent notification messages to...
+            		// TODO
+            		// TODO
+            		
+//            		// get regID of the current client as a requester
+//            		String regIDToReturnMessageTo = extras.getString("regIDToReturnMessageTo");
+//            		if(regIDToReturnMessageTo != null){
+//             			
+//            			// update (insert/add) regIds to list of contacts that will be notified
+//            			Preferences.setPreferencesReturnToRegIDList(clientContext, 
+//            				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST, regIDToReturnMessageTo); 
+//            		}
+            		
             		// Start location service to get current location
             		Intent trackLocationService = new Intent(clientContext, TrackLocationService.class);
-            		clientContext.startService(trackLocationService); 
+            		trackLocationService.putExtra(CommonConst.REGISTRATION_ID_TO_RETURN_MESSAGE_TO, 
+            				regIdToReturnMessageTo);
+            		ComponentName componentName = clientContext.startService(trackLocationService); 
+            		if(componentName != null){
+            			// TODO: Notify that TrackLoactionService was started
+                        // Notify to caller by GCM (push notification)
+            			String msgServiceStarted = "TrackLoactionService was started for " + clientAccount;
+                        MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
+                            	clientMacAddress, clientPhoneNumber, null, clientBatteryLevel);
+                        ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
+                        	new ContactDeviceDataList (clientAccount, clientMacAddress, clientPhoneNumber, regIdToReturnMessageTo, null);
+                        // Notify caller by GCM (push notification)
+        	    		Controller.sendCommand(getApplicationContext(), contactDeviceDataToSendNotificationTo, 
+        		    			CommandEnum.notification, msgServiceStarted, contactDetails, null, null, null);
+            		} else {
+            			// TODO: Notify that TrackLoactionService was not started
+            		}
            	
 //        		// ============================================
-//                // COMMAND: 	stop
+//            	// COMMAND: 	stop
+//            	// CLIENT SIDE	
 //            	// command received via GCM from Master
 //            	// to Slave - in order to stop location
 //            	// service on Slave
@@ -215,11 +278,13 @@ public class GcmIntentService extends IntentService {
 //						broadcastLocationUpdatedGps(key + CommonConst.DELIMITER_STRING +
 //							value + CommonConst.DELIMITER_STRING + currentDateTime);
                 		if(value != null && !value.isEmpty()) {
-							Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
+							Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService",
+								null, null,  
 								BroadcastCommandEnum.gcm_status.toString(),  
 								key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
                 		} else {
-                			Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
+                			Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService",
+                				null, null,	
 								BroadcastCommandEnum.gcm_status.toString(),  
 								"");
                 		}
@@ -236,7 +301,11 @@ public class GcmIntentService extends IntentService {
                 		String value = extras.getString("value");
                 		String currentDateTime = Controller.getCurrentDate();
                 		
-                		Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService", 
+                		String jsonContactDetails = extras.getString("contactDetails");
+                		String jsonLocation = extras.getString("location");
+                		
+                		Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_UPDATED, "GcmIntentService",
+                			jsonContactDetails, jsonLocation,	
 							BroadcastCommandEnum.location_updated.toString(), 
 							key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
         		// ============================================
@@ -262,7 +331,7 @@ public class GcmIntentService extends IntentService {
             				// Join approval request failed
             	        	String errMsg = "Join approval request failed - not all contact details were provided.";
             	            Log.e(CommonConst.LOG_TAG, errMsg);
-            	            LogManager.LogErrorMsg(CLASS_NAME, "GCM join_approval COMMAND", errMsg);
+            	            LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->OnHandleEvent->[COMMAND:join_approval]", errMsg);
              			}
                 		String key = extras.getString("key");
                 		String mutualId = extras.getString("value"); // mutualId
@@ -276,7 +345,7 @@ public class GcmIntentService extends IntentService {
         				if( sentJoinRequestData == null ){
         		        	String errMsg = "Failed to get sent join request data";
         		            Log.e(CommonConst .LOG_TAG, errMsg);
-        		            LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->OnHandleEvent", errMsg);
+        		            LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->OnHandleEvent->[COMMAND:join_approval]", errMsg);
         				}else {
         					Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + sentJoinRequestData.toString());
         				}
@@ -312,9 +381,28 @@ public class GcmIntentService extends IntentService {
             		String key = extras.getString("key");
             		String value = extras.getString("value");
             		
-					Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_KEEP_ALIVE, "GcmIntentService", 
+					Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_LOCATION_KEEP_ALIVE, "GcmIntentService",
+						null, null,	
 						BroadcastCommandEnum.keep_alive.toString(),  
 						key + CommonConst.DELIMITER_STRING + value);
+					
+        		// ============================================
+                // COMMAND: 	notification
+            	// ============================================
+            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
+                			extras.getString(CommandTagEnum.command.toString()).
+                			equals(CommandEnum.notification.toString())){ // COMMAND NOTIFICATION
+            		
+            		String msg = extras.getString("message");
+            		if(msg != null || !msg.isEmpty()){
+                		LogManager.LogInfoMsg(CLASS_NAME, "GcmIntentService->OnHandleEvent->[COMMAND:notification]", msg);
+            		}
+            		
+            		// Broadcast corresponding message
+					Controller.broadcastMessage(GcmIntentService.this, CommonConst.BROADCAST_MESSAGE, "GcmIntentService",
+						null, null,
+						BroadcastCommandEnum.message.toString(),  
+						msg);
             	} 
         	
             } // if (GoogleCloudMessaging

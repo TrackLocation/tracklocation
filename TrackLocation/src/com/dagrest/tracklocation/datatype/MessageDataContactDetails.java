@@ -6,6 +6,7 @@ public class MessageDataContactDetails {
 	private String phoneNumber;
 	private String regId;
 	private float batteryPercentage;
+	private String ver;
 	
 	public MessageDataContactDetails() {};
 			
@@ -48,5 +49,11 @@ public class MessageDataContactDetails {
 	}
 	public void setRegId(String regId) {
 		this.regId = regId;
+	}
+	public String getVer() {
+		return ver;
+	}
+	public void setVer(String ver) {
+		this.ver = ver;
 	}
 }

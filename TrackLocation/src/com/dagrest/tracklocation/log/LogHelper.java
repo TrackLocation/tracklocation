@@ -9,7 +9,6 @@ import java.util.Calendar;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Utils;
 
-import android.os.Environment;
 import android.util.Log; 
 
 public class LogHelper {

@@ -36,7 +36,7 @@ public class MapKeepAliveTimerJob extends TimerTask {
 			
 	   		Controller.sendCommand(context, selectedContactDeviceDataList, 
 	   			CommandEnum.track_location_service_keep_alive, 
-	   			contactDetails, location, 
+	   			null, contactDetails, location, 
 	   			BroadcastCommandEnum.keep_alive.toString(), 
 	   			Long.toString(System.currentTimeMillis()));
 	    	Log.i(CommonConst.LOG_TAG, "KeepAlive command sent to trackLocationService from mapKeepAliveTimerJob");

@@ -36,6 +36,7 @@ import android.util.Log;
 import android.util.Patterns;
 import android.util.SparseArray;
 
+import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
@@ -47,6 +48,7 @@ import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
+import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.datatype.ReceivedJoinRequestData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
 import com.dagrest.tracklocation.db.DBLayer;
@@ -100,15 +102,16 @@ public class Controller {
 		return UUID.randomUUID().toString().replaceAll("-", "");
 	}
 
-	public static String createJsonMessage(List<String> listRegIDs, 
-    		String regIDToReturnMessageTo, 
-    		CommandEnum command, 
-    		String messageString,
-    		MessageDataContactDetails contactDetails,
-    		MessageDataLocation location,
-    		String time,
-    		String key, 
-    		String value){
+	public static String createJsonMessage(
+			List<String> listRegIDs, 					// List of contact's regIDs to send message to
+    		String regIDToReturnMessageTo,				// regID of contact to return message to 
+    		CommandEnum command, 						// command
+    		String messageString,						// message	
+    		MessageDataContactDetails contactDetails, 	// account, macAddress, phoneNumber, regId, batteryPercentage
+    		MessageDataLocation location,				// latitude, longitude, accuracy, speed
+    		String time,								// time
+    		String key, 								// key
+    		String value){								// value
     	
     	String jsonMessage = null;
     	
@@ -201,12 +204,20 @@ public class Controller {
 	}
 
 	// actionDescription - only for logging
-	public static void broadcastMessage(Context context, String action, String actionDescription, String key, String value)
+	public static void broadcastMessage(Context context, 
+		String action, 
+		String actionDescription,
+		String contactDetails,
+		String location,
+		String key, 
+		String value)
 	{
 		LogManager.LogFunctionCall(actionDescription, "broadcastMessage");
 		Intent intent = new Intent();
 		intent.setAction(action); //intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
 		intent.putExtra(key, value);
+		intent.putExtra(BroadcastCommandEnum.contcat_details.toString(), contactDetails);
+		intent.putExtra(BroadcastCommandEnum.location.toString(), location);
 		context.sendBroadcast(intent);
 		LogManager.LogFunctionExit(actionDescription, "broadcastMessage");
 	}
@@ -783,8 +794,8 @@ public class Controller {
     	if(contactData != null) {
 			String email = contactData.getEmail();
 			if(email != null && !email.isEmpty()) {
-				DBLayer.getPermissions(email);
-				return true;
+				PermissionsData p = DBLayer.getPermissions(email);
+				return p.getIsLocationSharePermitted() == 1 ? true : false;
 			} else {
 				return false;
 			}
@@ -806,7 +817,8 @@ public class Controller {
 	}
 
 	public static void sendCommand(Context context, ContactDeviceDataList contactDeviceDataList, CommandEnum command, 
-			MessageDataContactDetails contactDetails, MessageDataLocation location, String key, String value){
+			String message, MessageDataContactDetails contactDetails, MessageDataLocation location, 
+			String key, String value){
 		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
 		List<String> listRegIDs = new ArrayList<String>();
 		
@@ -825,7 +837,7 @@ public class Controller {
 			String jsonMessage = Controller.createJsonMessage(listRegIDs, 
 		    		regIDToReturnMessageTo, 
 		    		command, 
-		    		"", // messageString, 
+		    		message, // messageString, 
 		    		contactDetails,
 		    		location,
 		    		Controller.getCurrentDate(), // time,
@@ -895,7 +907,7 @@ public class Controller {
 				marker = map.addMarker(new MarkerOptions()
 		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
 		        .snippet(account)
-		        .title("Title")
+		        .title(account)
 		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
 		        .position(latLngChanging));
 				

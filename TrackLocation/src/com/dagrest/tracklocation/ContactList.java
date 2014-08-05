@@ -250,9 +250,9 @@ public class ContactList extends Activity/*ListActivity*/ {
     			MessageDataLocation location = null;
 
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.status_request, contactDetails, location, null, null);
+        			CommandEnum.status_request, null, contactDetails, location, null, null);
 	    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-	    			CommandEnum.start, contactDetails, location, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+	    			CommandEnum.start, null, contactDetails, location, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 	    		Intent intentMap = new Intent(getApplicationContext(), Map.class);
 	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
 		    			new Gson().toJson(selectedContactDeviceDataList));

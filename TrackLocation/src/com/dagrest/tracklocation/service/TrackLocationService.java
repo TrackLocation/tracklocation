@@ -7,10 +7,12 @@ import java.util.Timer;
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.BroadcastCommandEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
+import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
+import com.dagrest.tracklocation.datatype.RegistryIdList;
 import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
@@ -43,6 +45,11 @@ public class TrackLocationService extends Service {
 	private long trackLocationServiceStartTime;
 	private BroadcastReceiver gcmKeepAliveBroadcastReceiver;
 	
+	private String clientAccount;
+	private String clientMacAddress;
+	private String clientPhoneNumber;
+	private int clientBatteryLevel;
+
 	@Override
 	public IBinder onBind(Intent intent) {
         LogManager.LogFunctionCall(className, "onBind");
@@ -55,6 +62,7 @@ public class TrackLocationService extends Service {
     {             
         super.onCreate();
         className = this.getClass().getName();
+        
 		initBroadcastReceiver(CommonConst.BROADCAST_LOCATION_KEEP_ALIVE, "ContactConfiguration");
         
         isLocationProviderAvailable = false;
@@ -79,6 +87,13 @@ public class TrackLocationService extends Service {
         	LogManager.LogException(e, className, "onCreate");
         	Log.e(LOCATION_SERVICE, "onCreate", e);
         }
+        
+    	// Collect client details
+		context = getApplicationContext();
+		clientAccount = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		clientMacAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+		clientPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+
 	}   
     
     @Override          
@@ -128,6 +143,9 @@ public class TrackLocationService extends Service {
 			LogManager.LogFunctionCall(className, "onStart");
             Log.i(LOCATION_SERVICE, "onStart - Start");
             
+//            Bundle extras = intent.getExtras();
+//            String regIDToReturnMessageTo = extras.getString(CommonConst.REGISTRATION_ID_TO_RETURN_MESSAGE_TO);
+
             // Start TrackLocationServiceStopTimer
         	Log.i(CommonConst.LOG_TAG, "Start TrackLocationService TimerJob with repeat period = " + 
         		repeatPeriod/1000/60 + " min");
@@ -158,7 +176,16 @@ public class TrackLocationService extends Service {
 //            }
               
             sendTrackLocationServiceStarted();
-            
+            // Notify to caller by GCM (push notification)
+    		clientBatteryLevel = Controller.getBatteryLevel(context);
+            MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
+                	clientMacAddress, clientPhoneNumber, null, clientBatteryLevel);
+            ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
+            	new ContactDeviceDataList (clientAccount, clientMacAddress, clientPhoneNumber, null, null);
+            // Notify caller by GCM (push notification)
+    		Controller.sendCommand(getApplicationContext(), contactDeviceDataToSendNotificationTo, 
+	    			CommandEnum.notification, "TrackLocationService - Started", contactDetails, null, null, null);
+
             LogManager.LogFunctionExit(className, "onStart");
             Log.i(LOCATION_SERVICE, "onStart - End");
 		} catch (Exception e) {

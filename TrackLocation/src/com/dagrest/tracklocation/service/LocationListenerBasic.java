@@ -89,7 +89,7 @@ public class LocationListenerBasic implements LocationListener{
 
 			String time = new Date().toString(); 
 
-    		MessageDataContactDetails contactDetails = new MessageDataContactDetails(
+    		MessageDataContactDetails messageDataContactDetails = new MessageDataContactDetails(
         			account, macAddress, phoneNumber, null, batteryLevel);
        		MessageDataLocation messageDataLocation = new MessageDataLocation(latitude, longitude, accuracy, speed);
 
@@ -99,7 +99,7 @@ public class LocationListenerBasic implements LocationListener{
 	    		senderRegId, 
 	    		CommandEnum.location, 
 	    		null, // TODO: send device UUID in the message 
-	    		contactDetails,
+	    		messageDataContactDetails,
 	    		messageDataLocation,
 	    		time,
 	    		locationProviderType, // key

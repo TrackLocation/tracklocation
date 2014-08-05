@@ -26,8 +26,17 @@ public class CommonConst {
 	public static final long    REPEAT_PERIOD_DEFAULT = 60000 * 2; // 2 minutes;
 	
 	public static final String 	PREFERENCES_REG_ID = "registration_id";
+	public static final String  REGISTRATION_ID_TO_RETURN_MESSAGE_TO = "regIDToReturnMessageTo";
+	
 	// Registry ID list of contacts that will be updated by requested info: location/status/...
 	public static final String 	PREFERENCES_RETURN_TO_REG_ID_LIST = "return_to_reg_id_list";
+	// Registry ID list of contacts that should receive notification
+	public static final String 	PREFERENCES_NOTIFY_CONTACTS_LIST = "notify_contcats_list"; 
+	// Registry ID list of contacts that should receive "TraclLocationService started" notification
+	public static final String 	PREFERENCES_NOTIFY_START_CONTACTS_LIST = "notify_start_contcats_list"; 
+	// Registry ID list of contacts that should receive "TraclLocationService stopped" notification
+	public static final String 	PREFERENCES_NOTIFY_STOP_CONTACTS_LIST = "notify_stop_contcats_list"; 
+	
 	public static final String 	JOIN_FLAG_SMS = "JOIN_TRACK_LOCATION";
 	public static final String 	JOIN_COMPLETED = "JOIN_COMPLETED";
 
@@ -55,6 +64,7 @@ public class CommonConst {
  	public static final String 	BROADCAST_LOCATION_UPDATED 		= "com.dagrest.tracklocation.service.GcmIntentService.LOCATION_UPDATED";
  	public static final String 	BROADCAST_JOIN 					= "com.dagrest.tracklocation.JoinContactList.BROADCAST_JOIN";
  	public static final String 	BROADCAST_LOCATION_KEEP_ALIVE 	= "com.dagrest.tracklocation.Map.KEEP_ALIVE";
+ 	public static final String 	BROADCAST_MESSAGE 				= "com.dagrest.tracklocation.MESSAGE";
  	
  	public static final int 	REQUEST_SELECT_PHONE_NUMBER = 1;
  	

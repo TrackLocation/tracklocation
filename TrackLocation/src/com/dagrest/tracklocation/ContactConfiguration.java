@@ -143,14 +143,14 @@ public class ContactConfiguration extends Activity {
         	case R.id.check_status:
         		//Controller.checkGcmStatus(getApplicationContext(), contactData, contactDeviceData);
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.status_request, contactDetails, location, null, null);
+        			CommandEnum.status_request, null, contactDetails, location, null, null);
         		break;
         	case R.id.start:
         		//Controller.startTrackLocationService(getApplicationContext(), contactDeviceData);
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.status_request, contactDetails, location, null, null);
+        			CommandEnum.status_request, null, contactDetails, location, null, null);
         		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.start, contactDetails, location, null, null);
+        			CommandEnum.start, null, contactDetails, location, null, null);
         		controller.keepAliveTrackLocationService(getApplicationContext(), selectedContactDeviceDataList, 500);
         		break;
         	case R.id.stop:
@@ -228,7 +228,7 @@ public class ContactConfiguration extends Activity {
 
 		//Controller.stopTrackLocationService(context, contactDeviceData);
 		Controller.sendCommand(getApplicationContext(), contactDeviceDataList, 
-			CommandEnum.stop, contactDetails, location, null, null);
+			CommandEnum.stop, null, contactDetails, location, null, null);
 
 		if(gcmIntentServiceChangeWatcher != null) {
 			unregisterReceiver(gcmIntentServiceChangeWatcher);

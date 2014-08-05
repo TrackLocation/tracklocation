@@ -62,7 +62,8 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 				if(contactDetails != null && !contactDetails.getContactName().isEmpty()){
 					contactName = contactDetails.getContactName();
 				}
-        		Controller.broadcastMessage(activity, CommonConst.BROADCAST_JOIN, "OnChildClick", 
+        		Controller.broadcastMessage(activity, CommonConst.BROADCAST_JOIN, "OnChildClick",
+        			null, null,	
 					BroadcastCommandEnum.join_number.toString(), 
 					contactName + CommonConst.DELIMITER_STRING + groupPhone);
 			}

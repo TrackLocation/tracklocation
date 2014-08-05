@@ -60,7 +60,8 @@ public class JoinContactList extends Activity {
 		        	Controller.fetchContacts(JoinContactList.this, contactDetailsGroups, barProgressDialog);
 		        	barProgressDialog.dismiss();
 		
-		        	Controller.broadcastMessage(JoinContactList.this, CommonConst.BROADCAST_JOIN, "fetchContacts", 
+		        	Controller.broadcastMessage(JoinContactList.this, CommonConst.BROADCAST_JOIN, "fetchContacts",
+		        			null, null,
 							BroadcastCommandEnum.fetch_contacts_completed.toString(), 
 							"Completed");
 		        } catch (Exception e) {
@@ -240,7 +241,8 @@ public class JoinContactList extends Activity {
 		@Override
 		public void doOnPositiveButton() {
 			toSendAddJoinRequest = true;
-        	Controller.broadcastMessage(JoinContactList.this, CommonConst.BROADCAST_JOIN, "fetchContacts", 
+        	Controller.broadcastMessage(JoinContactList.this, CommonConst.BROADCAST_JOIN, "fetchContacts",
+        			null, null,
 					BroadcastCommandEnum.resend_join_request.toString(), 
 					"Resend");
 			//sendJoinRequest(context, contactName, phoneNumber, mutualId);

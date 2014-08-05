@@ -8,6 +8,7 @@ import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
 import com.dagrest.tracklocation.datatype.PermissionsData;
+import com.dagrest.tracklocation.datatype.PermissionsDataList;
 import com.dagrest.tracklocation.datatype.ReceivedJoinRequestData;
 import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 import com.dagrest.tracklocation.log.LogManager;
@@ -255,10 +256,11 @@ public class DBLayer {
 			String selectQuery = "select " + DBConst.EMAIL + ", " + 
 				DBConst.LOCATION + ", " + DBConst.COMMAND + ", " +  
 				DBConst.ADMIN_COMMAND + 
-				" from " + DBConst.TABLE_PERMISSIONS;
+				" from " + DBConst.TABLE_PERMISSIONS +
+				" where " + DBConst.EMAIL + " = ?";
 			
-			if(inEmail != null && !inEmail.isEmpty()){
-				selectQuery = selectQuery + " where " + DBConst.EMAIL + " = ?";
+			if(inEmail == null || inEmail.isEmpty()){
+				return null;
 			}
 			
 	        Cursor cursor = db.rawQuery(selectQuery, new String[] { inEmail });
@@ -287,6 +289,58 @@ public class DBLayer {
 			}
 		}
     	return permissionsData;
+    }
+
+	public static PermissionsDataList getPermissionsList (String inEmail){
+		PermissionsDataList permissionsDataList = null;
+		SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			
+	    	// Select All Query
+			String selectQuery = "select " + DBConst.EMAIL + ", " + 
+				DBConst.LOCATION + ", " + DBConst.COMMAND + ", " +  
+				DBConst.ADMIN_COMMAND + 
+				" from " + DBConst.TABLE_PERMISSIONS; // +
+				//" where " + DBConst.EMAIL + " = ?";
+			
+//			if(inEmail != null && !inEmail.isEmpty()){
+//				return null;
+//			}
+			
+//	        Cursor cursor = db.rawQuery(selectQuery, new String[] { inEmail });
+			Cursor cursor = db.rawQuery(selectQuery, null);
+	  
+	        if (cursor.moveToFirst()) {
+	        	permissionsDataList = new PermissionsDataList();
+	        	do {
+	        		PermissionsData permissionsData = new PermissionsData();
+	            	
+	            	String email = cursor.getString(0);
+	            	int location = cursor.getInt(1);
+	            	int command = cursor.getInt(2);
+	            	int adminCommand = cursor.getInt(3);
+	
+	            	permissionsData.setEmail(email);
+	            	permissionsData.setIsLocationSharePermitted(location);
+	            	permissionsData.setCommand(command);
+	            	permissionsData.setAdminCommand(adminCommand);
+	            	
+	            	permissionsDataList.getPermissionsData().add(permissionsData);
+	            	
+	        	} while (cursor.moveToNext());
+	        }
+	        cursor.close();
+        } catch (Throwable t) {
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+        	LogManager.LogErrorMsg(CLASS_NAME, "getPermissionsList", errMsg);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+    	return permissionsDataList;
     }
 
 	public static long addReceivedJoinRequest(String phoneNumber, String mutualId, String regId, String account, String macAddress){
