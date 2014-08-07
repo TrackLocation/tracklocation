@@ -16,7 +16,9 @@ import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
 import com.dagrest.tracklocation.datatype.SentJoinRequestData;
+import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
+import com.dagrest.tracklocation.db.DBManager;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -34,6 +36,7 @@ public class GcmIntentService extends IntentService {
 
 	public static final String CLASS_NAME = "GcmIntentService";
 	private Gson gson = new Gson();
+	private Context context = getApplicationContext();
 	
 	public GcmIntentService() {
 		super("GcmIntentService");
@@ -41,6 +44,9 @@ public class GcmIntentService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
+
+		DBManager.initDBManagerInstance(new DBHelper(context));
+
         Bundle extras = intent.getExtras();
         GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);
         // The getMessageType() intent parameter must be the intent you received
@@ -123,8 +129,11 @@ public class GcmIntentService extends IntentService {
                 	PermissionsData permissionsData = DBLayer.getPermissions(value);
                 	if( permissionsData == null){
                 		// TODO: Show error - no permission for "account" to invoke TrackLocation
+               		
                     	String errMsg = "No permissions defind for account: " + value + 
-                    		". Not permitted to share location";
+                    		". Not permitted to share location.";
+                    	// "Existing permissions >>> " +
+                    	//	gson.toJson(DBLayer.getPermissionsList(null)) + " <<< ";
                         Log.e(CommonConst.LOG_TAG, errMsg);
                         LogManager.LogErrorMsg(CLASS_NAME, "GcmIntentService->onHandleIntent->[COMMAND:start]", errMsg);
                         
