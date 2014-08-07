@@ -36,7 +36,6 @@ public class GcmIntentService extends IntentService {
 
 	public static final String CLASS_NAME = "GcmIntentService";
 	private Gson gson = new Gson();
-	private Context context = getApplicationContext();
 	
 	public GcmIntentService() {
 		super("GcmIntentService");
@@ -45,7 +44,7 @@ public class GcmIntentService extends IntentService {
 	@Override
 	protected void onHandleIntent(Intent intent) {
 
-		DBManager.initDBManagerInstance(new DBHelper(context));
+		DBManager.initDBManagerInstance(new DBHelper(getApplicationContext()));
 
         Bundle extras = intent.getExtras();
         GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(this);

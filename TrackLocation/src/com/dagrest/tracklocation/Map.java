@@ -146,8 +146,10 @@ public class Map extends Activity implements LocationListener{
         waitingDialog.setMessage(accountsListMsg);
         
         zoom = DEFAULT_CAMERA_UPDATE;
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-        		lastKnownLocation, zoom));
+        if(lastKnownLocation != null){
+	        map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+	        		lastKnownLocation, zoom));
+        }
         
 //        Marker marker = map.addMarker(new MarkerOptions()
 ////        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
