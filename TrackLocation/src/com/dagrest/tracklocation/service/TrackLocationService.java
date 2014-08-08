@@ -12,7 +12,6 @@ import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
-import com.dagrest.tracklocation.datatype.RegistryIdList;
 import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;

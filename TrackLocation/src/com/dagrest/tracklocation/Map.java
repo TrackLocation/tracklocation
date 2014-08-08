@@ -328,12 +328,12 @@ public class Map extends Activity implements LocationListener{
 	    			
 	    			// TODO:  Create a new function in Controller class
 	    			// ================================================
-	    			MessageDataContactDetails сontactDetails = broadcastData.getContactDetails();
-	    			// TODO: Check that сontactDetails are not null
+	    			MessageDataContactDetails contactDetails = broadcastData.getContactDetails();
+	    			// TODO: Check that contactDetails are not null
 	    			MessageDataLocation locationDetails = broadcastData.getLocation();
 	    			// TODO: Check that locationDetails are not null
 	    			
-	    			String updatingAccount = сontactDetails.getAccount();
+	    			String updatingAccount = contactDetails.getAccount();
 	    			
 		    		if(markerMap == null){
 		    			markerMap = new LinkedHashMap<String, Marker>();
@@ -344,7 +344,7 @@ public class Map extends Activity implements LocationListener{
 
 		    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
 		    			// Set marker on the map
-		    			Controller.setMapMarker(map, сontactDetails, locationDetails, markerMap, locationCircleMap);
+		    			Controller.setMapMarker(map, contactDetails, locationDetails, markerMap, locationCircleMap);
 		    		}
 
 		    		

@@ -924,7 +924,7 @@ public class Controller {
 	}
 
 	public static void setMapMarker(GoogleMap map, 
-			MessageDataContactDetails сontactDetails, 
+			MessageDataContactDetails contactDetails, 
 			MessageDataLocation locationDetails, 
 			LinkedHashMap<String, 
 			Marker> markerMap, 
@@ -937,7 +937,7 @@ public class Controller {
     		if(lat != 0 && lng != 0){
 				LatLng latLngChanging = new LatLng(lat, lng);
 
-				String account = сontactDetails.getAccount();
+				String account = contactDetails.getAccount();
 	    		if(account == null || account.isEmpty()) {
 	    			return;
 	    		}
@@ -957,7 +957,7 @@ public class Controller {
 				//marker.
 				marker = map.addMarker(new MarkerOptions()
 		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-		        .snippet("Battery: " + String.valueOf(сontactDetails.getBatteryPercentage()))
+		        .snippet("Battery: " + String.valueOf(contactDetails.getBatteryPercentage()))
 		        .title(account)
 		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
 		        .position(latLngChanging));
