@@ -33,7 +33,7 @@ public class SentJoinRequestData {
 		@Override
 		public String toString() {
 			return "SentJoinRequestData [phoneNumber=" + phoneNumber
-					+ ", mutualId=" + mutualId + ", status=" + status
+					+ ", mutualId=" + "***" + ", status=" + status
 					+ ", timestamp=" + timestamp + "]";
 		}
 }

@@ -265,7 +265,7 @@ public class ContactList extends Activity/*ListActivity*/ {
         	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
         		
         		LogManager.LogInfoMsg(className, "onClick->[BUTTON:TrackLocation]", "Track location of " + 
-        			gson.toJson(selectedContactDeviceDataList));
+        			selectedContactDeviceDataList.toString());
         		
     			MessageDataContactDetails contactDetails = 
     				new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 

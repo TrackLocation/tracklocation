@@ -261,9 +261,16 @@ public class MainActivity extends Activity {
 		} else {
 			Log.i(CommonConst.LOG_TAG, "Owner information already exists");
 		}
+		
+		String tempRegId;
+		if(registrationId != null && !registrationId.isEmpty()){
+			tempRegId = "***";
+		} else {
+			tempRegId = "EMPTY";
+		}
 		LogManager.LogInfoMsg(CommonConst.LOG_TAG, "SAVE OWNER INFO", 
 				account + CommonConst.DELIMITER_COLON + macAddress + CommonConst.DELIMITER_COLON + 
-				phoneNumber + CommonConst.DELIMITER_COLON + registrationId);
+				phoneNumber + CommonConst.DELIMITER_COLON + tempRegId);
 		
 		contDevDataList = DBLayer.getContactDeviceDataList(account);
 		if(contDevDataList != null){

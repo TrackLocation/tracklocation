@@ -102,15 +102,18 @@ public class GcmIntentService extends IntentService {
             if (GoogleCloudMessaging.
                     MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
                 //sendNotification("Send error: " + extras.toString());
-        		LogManager.LogErrorMsg(className, "onHandleIntent", 
-        			"Send error: " + extras.toString());
+            	
+            	// IMPORTANT! - DO NOT LOG extars - it can contain RegistrationID
+        		//LogManager.LogErrorMsg(className, "onHandleIntent", 
+        		//	"Send error: " + extras.toString());
         		
             } else if (GoogleCloudMessaging.
                     MESSAGE_TYPE_DELETED.equals(messageType)) {
-                //sendNotification("Deleted messages on server: " +
+            	//sendNotification("Deleted messages on server: " +
                 //        extras.toString());
-        		LogManager.LogErrorMsg(className, "onHandleIntent", 
-        			"Deleted messages on server: " + extras.toString());
+            	// IMPORTANT! - DO NOT LOG extars - it can contain RegistrationID
+        		// LogManager.LogErrorMsg(className, "onHandleIntent", 
+        		//	"Deleted messages on server: " + extras.toString());
         		
         	// ============================================
             // If it's a regular GCM message, do some work.
@@ -119,8 +122,6 @@ public class GcmIntentService extends IntentService {
                     MESSAGE_TYPE_MESSAGE.equals(messageType)) {
             	LogManager.LogInfoMsg(className, "onHandleIntent", 
                 	"It is a regular GCM message");
-            	LogManager.LogInfoMsg(className, "onHandleIntent", 
-            		"Received: " + extras.toString());
             	
             	// ============================================
             	// COMMANDS TO RUN ON CLIENT SIDE

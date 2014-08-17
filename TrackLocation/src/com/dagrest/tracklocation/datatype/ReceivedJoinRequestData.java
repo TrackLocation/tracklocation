@@ -3,7 +3,7 @@ package com.dagrest.tracklocation.datatype;
 public class ReceivedJoinRequestData {
 	private String phoneNumber;
 	private String mutualId;
-	private String RegId;
+	private String regId;
 	private String account;
 	private String macAddress;
 	private String timestamp;
@@ -21,10 +21,10 @@ public class ReceivedJoinRequestData {
 		this.mutualId = mutualId;
 	}
 	public String getRegId() {
-		return RegId;
+		return this.regId;
 	}
 	public void setRegId(String regId) {
-		RegId = regId;
+		this.regId = regId;
 	}
 	public String getAccount() {
 		return account;
@@ -46,8 +46,14 @@ public class ReceivedJoinRequestData {
 	}
 	@Override
 	public String toString() {
+		String newRegId;
+		if(this.regId != null && !this.regId.isEmpty()){
+			newRegId = "***";
+		} else {
+			newRegId = "EMPTY";
+		}
 		return "ReceivedJoinRequestData [phoneNumber=" + phoneNumber
-				+ ", mutualId=" + mutualId + ", RegId=" + RegId + ", account="
+				+ ", mutualId=" + mutualId + ", RegId=" + newRegId + ", account="
 				+ account + ", macAddress=" + macAddress + ", timestamp="
 				+ timestamp + "]";
 	}
