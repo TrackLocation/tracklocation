@@ -10,6 +10,8 @@ import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.CommandData;
 import com.dagrest.tracklocation.datatype.CommandDataBasic;
 import com.dagrest.tracklocation.datatype.CommandEnum;
+import com.dagrest.tracklocation.datatype.CommandKeyEnum;
+import com.dagrest.tracklocation.datatype.CommandValueEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.JsonMessageData;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
@@ -196,15 +198,19 @@ public class TrackLocationService extends Service {
             	new ContactDeviceDataList (clientAccount, clientMacAddress, clientPhoneNumber, clientRegId, null);
             // Notify caller by GCM (push notification)
             
+            String msgServiceStarted = "TrackLocationService was started by [" + clientAccount + "]";
+            String notificationKey = CommandKeyEnum.status.toString();
+            String notificationValue = CommandValueEnum.success.toString();		
+
             CommandDataBasic commandDataBasic = new CommandData(
 				getApplicationContext(), 
 				contactDeviceDataToSendNotificationTo, 
     			CommandEnum.notification, 
-    			"TrackLocationService - Started", 
+    			msgServiceStarted, 
     			contactDetails, 
-    			null, // location
-    			null, // key
-    			null,  // value
+    			null, 					// location
+    			notificationKey, 		// key
+    			notificationValue,  	// value
     			appInfo
     		);
             commandDataBasic.sendCommand();
@@ -213,7 +219,6 @@ public class TrackLocationService extends Service {
             Log.i(LOCATION_SERVICE, "onStart - End");
 		} catch (Exception e) {
 			LogManager.LogException(e, className, "onStart");
-			LogManager.LogInfoMsg(className, "onStart", e.toString());
 		}
 	}
 	

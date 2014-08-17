@@ -424,8 +424,9 @@ public class GcmIntentService extends IntentService {
 		
 		// Start location service to get current location
 		Intent trackLocationService = new Intent(clientContext, TrackLocationService.class);
-		trackLocationService.putExtra(CommonConst.REGISTRATION_ID_TO_RETURN_MESSAGE_TO, 
-			contactDetailsSentFrom.getRegId());
+// TODO: Delete the following putExtra(CommonConst.REGISTRATION_ID_TO_RETURN_MESSAGE_TO...
+//		trackLocationService.putExtra(CommonConst.REGISTRATION_ID_TO_RETURN_MESSAGE_TO, 
+//			contactDetailsSentFrom.getRegId());
 		
         MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
             clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
@@ -436,18 +437,19 @@ public class GcmIntentService extends IntentService {
             	contactDetailsSentFrom.getPhoneNumber(), 
             	contactDetailsSentFrom.getRegId(), 
         		null);
+        
         String msgServiceStarted;
         String notificationKey;
         String notificationValue;
 		ComponentName componentName = clientContext.startService(trackLocationService); 
 		if(componentName != null){
 			// Notify that TrackLoactionService was started - by GCM (push notification)
-			msgServiceStarted = "TrackLocationService was started on " + clientAccount;
+			msgServiceStarted = "TrackLocationService is starting by [" + clientAccount + "]";
 			notificationKey = CommandKeyEnum.status.toString();
 			notificationValue = CommandValueEnum.success.toString();		
 		} else {
 			// Notify that TrackLoactionService was not started - by GCM (push notification)
-			msgServiceStarted = "Failed to start TrackLocationService on " + clientAccount;
+			msgServiceStarted = "Failed to start TrackLocationService on [" + clientAccount + "]";
 			notificationKey = CommandKeyEnum.status.toString();
 			notificationValue = CommandValueEnum.error.toString();		
 		}
