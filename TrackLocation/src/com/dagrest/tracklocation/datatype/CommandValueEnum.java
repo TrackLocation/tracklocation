@@ -3,14 +3,13 @@ package com.dagrest.tracklocation.datatype;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum CommandTagEnum {
-	command("command"), time("time"), message("message"), interval("interval"), 
-	key("key"), value("value");
+public enum CommandValueEnum {
+	success("success"), error("error");
 	
 	private final String name;       
-	private static Map<String, CommandTagEnum> valueMap;
+	private static Map<String, CommandValueEnum> valueMap;
 	
-    private CommandTagEnum(String s) {
+    private CommandValueEnum(String s) {
         name = s;
     }
 
@@ -22,11 +21,11 @@ public enum CommandTagEnum {
        return name;
     }
     
-    public static CommandTagEnum getValue(String value){
+    public static CommandValueEnum getValue(String value){
     	if (valueMap == null)
         {
-            valueMap = new HashMap<String, CommandTagEnum>();
-            for(CommandTagEnum provider: values())
+            valueMap = new HashMap<String, CommandValueEnum>();
+            for(CommandValueEnum provider: values())
                 valueMap.put(provider.toString(), provider);
         }
     	

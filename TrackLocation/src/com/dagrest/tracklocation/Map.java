@@ -14,8 +14,10 @@ import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
+import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
@@ -25,6 +27,13 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.gson.Gson;
+
+
+
+
+
+
+
 
 
 
@@ -50,6 +59,8 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.WindowManager;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class Map extends Activity implements LocationListener{
@@ -58,10 +69,13 @@ public class Map extends Activity implements LocationListener{
 	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
 	private final static float DEFAULT_CAMERA_UPDATE = 15;
 	
+	private String className;
+	
 	private LocationManager locationManager;
 	private LatLng lastKnownLocation;
 	private LatLng latLngChanging;
 	private BroadcastReceiver gcmLocationUpdatedWatcher;
+	private BroadcastReceiver notificationBroadcastReceiver;
 	private GoogleMap map;
 	private LinkedHashMap<String, Marker> markerMap = null;
 	private LinkedHashMap<String, Circle> locationCircleMap = null;
@@ -73,6 +87,9 @@ public class Map extends Activity implements LocationListener{
 	private boolean isShowAllMarkersEnabled;
 	private ProgressDialog waitingDialog;
 	private Gson gson;
+	private Context context;
+	
+	private TextView notificationView;
 	
 	private Controller controller;
 	
@@ -106,8 +123,16 @@ public class Map extends Activity implements LocationListener{
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		className = this.getClass().getName();
 		setContentView(R.layout.map);	
+		
+		notificationView = (TextView) findViewById(R.id.textViewMap);
+		notificationView.setVisibility(4); // 0 - visible / 4 - invisible
+		
+		context = getApplicationContext();
 
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
 		gson = new Gson();
 		Intent intent = getIntent();
 		Bundle bundle = intent.getExtras();
@@ -133,6 +158,7 @@ public class Map extends Activity implements LocationListener{
 		launchWaitingDialog();
 		
 		initGcmLocationUpdatedBroadcastReceiver();
+		initNotificationBroadcastReceiver();
 
 		// Get a handle to the Map Fragment
         map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
@@ -157,7 +183,7 @@ public class Map extends Activity implements LocationListener{
 //        .position(lastKnownLocation));
         
         controller = new Controller();
-        controller.keepAliveTrackLocationService(getApplicationContext(), selectedContactDeviceDataList, 
+        controller.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
         	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);
         
 	}
@@ -226,8 +252,39 @@ public class Map extends Activity implements LocationListener{
 		
 	}
 
-	private void initGcmLocationUpdatedBroadcastReceiver()
-    {
+	// Initialize BROADCAST_MESSAGE broadcast receiver
+	private void initNotificationBroadcastReceiver() {
+		String methodName = "initNotificationBroadcastReceiver";
+		LogManager.LogFunctionCall(className, methodName);
+	    IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
+	    notificationBroadcastReceiver = new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				Bundle bundle = intent.getExtras();
+	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
+	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
+	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
+	    				return;
+	    			}
+	    			NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
+	    			if(broadcastData == null){
+	    				return;
+	    			}
+	    			
+	    			Toast.makeText(Map.this, broadcastData.getMessage(), Toast.LENGTH_LONG).show();
+	    		}
+			}
+	    };
+	    
+	    registerReceiver(notificationBroadcastReceiver, intentFilter);
+
+		LogManager.LogFunctionExit(className, methodName);
+	}
+	
+	private void initGcmLocationUpdatedBroadcastReceiver() {
+		
     	LogManager.LogFunctionCall("ContactConfiguration", "initGcmIntentServiceWatcher");
 	    IntentFilter intentFilter = new IntentFilter();
 	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_LOCATION_UPDATED.toString());
@@ -245,6 +302,7 @@ public class Map extends Activity implements LocationListener{
 	    		// ===========================================
 	    		// broadcast key = location_updated
 	    		// ===========================================
+/*
 	    		if(bundle != null && bundle.containsKey(broadcastKeyLocationUpdated)){
 		    		String locationUpdatedDetails = bundle.getString(broadcastKeyLocationUpdated);
 		    		
@@ -316,7 +374,9 @@ public class Map extends Activity implements LocationListener{
 			    		}
 		    		}
 	    		} // if(bundle != null && bundle.containsKey(broadcastKeyLocationUpdated))
-	    		else if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
+	    		else 
+*/	    			
+	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
 	    			String jsonLocationUpdatedData = bundle.getString(BroadcastConstEnum.data.toString());
 	    			if(jsonLocationUpdatedData == null || jsonLocationUpdatedData.isEmpty()){
 	    				return;
@@ -399,15 +459,23 @@ public class Map extends Activity implements LocationListener{
     @Override
     protected void onDestroy() {
     	super.onDestroy();
+    	
+		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
 //    	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
-//    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
+//    		Controller.sendCommand(context, selectedContactDeviceDataList, 
 //    			CommandEnum.stop, null, null);
 //    	}
     	controller.stopKeepAliveTrackLocationService();
+    	String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+    	Preferences.clearPreferencesReturnToContactMap(context, account);
     	
     	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - stopped");
     	if(gcmLocationUpdatedWatcher != null){
     		unregisterReceiver(gcmLocationUpdatedWatcher);
+    	}
+    	if(notificationBroadcastReceiver != null){
+    		unregisterReceiver(notificationBroadcastReceiver);
     	}
     }
     

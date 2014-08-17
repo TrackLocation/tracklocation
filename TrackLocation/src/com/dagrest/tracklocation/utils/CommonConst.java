@@ -11,6 +11,10 @@ public class CommonConst {
 	public static final String 	PREFERENCES_PHONE_ACCOUNT 		= "PhoneAccount";
 	public static final String 	PREFERENCES_OWNER_GUID 			= "OwnerGuid";
 	
+	// checkPlayServices
+	public static final String PLAYSERVICES_ERROR	 			= "ERROR";
+	public static final String PLAYSERVICES_DEVICE_NOT_SUPPORTED= "DEVICE_NOT_SUPPORTED";
+	
 	public static final String 	SHARED_PREFERENCES_NAME = "TRACK_LOCATION";
 	// public static final String 	LOCATION_PROVIDER_NAME = "LOCATION_PROVIDER_NAME";
 	public static final String 	LOCATION_SERVICE_INTERVAL = "LOCATION_SERVICE_INTERVAL";
@@ -30,6 +34,7 @@ public class CommonConst {
 	
 	// Registry ID list of contacts that will be updated by requested info: location/status/...
 	public static final String 	PREFERENCES_RETURN_TO_REG_ID_LIST = "return_to_reg_id_list";
+	public static final String 	PREFERENCES_RETURN_TO_CONTACT_MAP = "return_to_contact_map";
 	// Registry ID list of contacts that should receive notification
 	public static final String 	PREFERENCES_NOTIFY_CONTACTS_LIST = "notify_contcats_list"; 
 	// Registry ID list of contacts that should receive "TraclLocationService started" notification
@@ -58,6 +63,10 @@ public class CommonConst {
  	public static final String 	JSON_STRING_CONTACT_DEVICE_DATA_LIST = "jsonStringContactDeviceDataList";
  	public static final String 	CONTACT_LIST_SELECTED_VALUE = "selectedValue";
  	public static final String 	CONTACT_REGISTRATION_ID = "registration_id";
+ 	
+ 	// APPLICATION INFO
+ 	public static final String	PREFERENCES_VERSION_NUMBER = "ApplicationNumber";
+ 	public static final String	PREFERENCES_VERSION_NAME = "ApplicationName";
  	
 // 	// BROADCAST ACTIONS
 // 	// deprecated: "com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED" use:

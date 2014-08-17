@@ -2,10 +2,12 @@ package com.dagrest.tracklocation;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
 
+import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
+import com.dagrest.tracklocation.datatype.CommandData;
+import com.dagrest.tracklocation.datatype.CommandDataBasic;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
@@ -13,19 +15,11 @@ import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
-import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
-import com.dagrest.tracklocation.datatype.TrackLocationServiceStatusEnum;
-import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.service.TrackLocationService;
 import com.dagrest.tracklocation.utils.CommonConst;
-import com.dagrest.tracklocation.utils.MapKeepAliveTimerJob;
-import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -33,9 +27,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.TextView;
 
 public class ContactConfiguration extends Activity {
@@ -63,6 +55,9 @@ public class ContactConfiguration extends Activity {
 	private BroadcastReceiver gcmIntentServiceChangeWatcher;
 	
 	private Controller controller;
+	
+	private	AppInfo appInfo;
+
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -138,20 +133,59 @@ public class ContactConfiguration extends Activity {
 
 		MessageDataContactDetails contactDetails = null;
 		MessageDataLocation location = null;
+		String message = null, key = null, value = null;
 
     	controller = new Controller();
     	switch(view.getId()) {
         	case R.id.check_status:
         		//Controller.checkGcmStatus(getApplicationContext(), contactData, contactDeviceData);
-        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.status_request, null, contactDetails, location, null, null);
+//        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
+//        			CommandEnum.status_request, null, contactDetails, location, null, null, null);
+        		CommandDataBasic commandDataBasic = new CommandData(
+        			getApplicationContext(), 
+        			contactDeviceDataList, 
+        			CommandEnum.status_request,
+        			message,
+        			contactDetails, 
+        			location,
+        			key,
+        			value,
+        			appInfo
+        		);
+        		commandDataBasic.sendCommand();
         		break;
         	case R.id.start:
         		//Controller.startTrackLocationService(getApplicationContext(), contactDeviceData);
-        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.status_request, null, contactDetails, location, null, null);
-        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.start, null, contactDetails, location, null, null);
+//        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
+//        			CommandEnum.status_request, null, contactDetails, location, null, null, null);
+//        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
+//        			CommandEnum.start, null, contactDetails, location, null, null, null);
+        		commandDataBasic = new CommandData(
+        			getApplicationContext(), 
+        			contactDeviceDataList, 
+        			CommandEnum.status_request,
+        			message,
+        			contactDetails, 
+        			location,
+        			key,
+        			value,
+        			appInfo
+        		);
+        		commandDataBasic.sendCommand();
+        		
+        		commandDataBasic = new CommandData(
+        			getApplicationContext(), 
+        			contactDeviceDataList, 
+        			CommandEnum.start,
+        			message,
+        			contactDetails, 
+        			location,
+        			key,
+        			value,
+        			appInfo
+        		);
+        		commandDataBasic.sendCommand();
+        		
         		controller.keepAliveTrackLocationService(getApplicationContext(), selectedContactDeviceDataList, 500);
         		break;
         	case R.id.stop:
@@ -226,11 +260,24 @@ public class ContactConfiguration extends Activity {
 
 		MessageDataContactDetails contactDetails = null;
 		MessageDataLocation location = null;
+		String message = null, key = null, value = null;
 
 		//Controller.stopTrackLocationService(context, contactDeviceData);
-		Controller.sendCommand(getApplicationContext(), contactDeviceDataList, 
-			CommandEnum.stop, null, contactDetails, location, null, null);
-
+//		Controller.sendCommand(getApplicationContext(), contactDeviceDataList, 
+//			CommandEnum.stop, null, contactDetails, location, null, null, null);
+		CommandDataBasic commandDataBasic = new CommandData(
+			getApplicationContext(), 
+			contactDeviceDataList, 
+			CommandEnum.stop,
+			message,
+			contactDetails, 
+			location,
+			key,
+			value,
+			appInfo
+		);
+		commandDataBasic.sendCommand();
+		
 		if(gcmIntentServiceChangeWatcher != null) {
 			unregisterReceiver(gcmIntentServiceChangeWatcher);
 		}

@@ -1,9 +1,8 @@
 package com.dagrest.tracklocation.service;
 
-import java.util.Date;
-import java.util.List;
-
 import com.dagrest.tracklocation.Controller;
+import com.dagrest.tracklocation.datatype.CommandDataBasic;
+import com.dagrest.tracklocation.datatype.CommandDataWithReturnToContactList;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
@@ -29,6 +28,7 @@ public class LocationListenerBasic implements LocationListener{
 	private String account;
 	private String macAddress;
 	private String phoneNumber;
+	private String regId;
 	private int batteryLevel;
 	
 	public LocationListenerBasic(Context context, TrackLocationService trackLocationService, String className, String locationProviderType) {
@@ -40,6 +40,7 @@ public class LocationListenerBasic implements LocationListener{
 		this.account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		this.macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
 		this.phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+		this.regId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 		this.batteryLevel = Controller.getBatteryLevel(context);
 	}
 
@@ -52,9 +53,7 @@ public class LocationListenerBasic implements LocationListener{
             Log.i(CommonConst.LOG_TAG, "Entrance " + CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
             	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
             
-            // TODO: check if the next key,value is needed...
-            // Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, locationProviderType);
-
+            // Fill location parameters
             double latitude = 0, longitude = 0;
             latitude = location.getLatitude();
             longitude = location.getLongitude();
@@ -79,37 +78,67 @@ public class LocationListenerBasic implements LocationListener{
             LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
             	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", 
             	CommonConst.LOCATION_INFO_ + locationProviderType + CommonConst.DELIMITER_COLON + locationInfo);
-//            Preferences.setPreferencesString(context, CommonConst.LOCATION_INFO_ + locationProviderType, locationInfo);
-    
-            // ==========================================
-            // send GCM (push notification) to requester
-            // ==========================================
-			List<String> listRegIDs = Preferences.getPreferencesReturnToRegIDList(context, 
-    				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST); 
-
-			String time = new Date().toString(); 
-
-    		MessageDataContactDetails messageDataContactDetails = new MessageDataContactDetails(
-        			account, macAddress, phoneNumber, null, batteryLevel);
-       		MessageDataLocation messageDataLocation = new MessageDataLocation(latitude, longitude, accuracy, speed);
-
-			// Get current registration ID
-    		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-    		String jsonMessage = Controller.createJsonMessage(listRegIDs, 
-	    		senderRegId, 
-	    		CommandEnum.location, 
-	    		null, // TODO: send device UUID in the message 
-	    		messageDataContactDetails,
-	    		messageDataLocation,
-	    		time,
-	    		locationProviderType, // key
-	    		locationInfo// value	
-    		);
-    		// send message back with PushNotificationServiceStatusEnum.available
-    		Controller.sendCommand(jsonMessage);
-            // ==============================
-            // send GCM to requester
-            // ==============================
+            
+            
+			MessageDataContactDetails contactDetails = 
+    			new MessageDataContactDetails(account, macAddress, phoneNumber, regId, 
+    					Controller.getBatteryLevel(context));
+			MessageDataLocation locationDetails = 
+				new MessageDataLocation(latitude, longitude, accuracy, speed, locationProviderName);
+			CommandDataBasic commandData = new CommandDataWithReturnToContactList(
+					context, 
+        			CommandEnum.location,
+        			null, // message,
+        			contactDetails, 
+        			locationDetails,			
+        			null, // key
+        			null, // value
+        			Controller.getAppInfo(context)
+			);
+			commandData.sendCommand();
+            
+            
+            
+//            // ==========================================
+//            // send GCM (push notification) to requester
+//            // ==========================================
+//			// List<String> listRegIDs = Preferences.getPreferencesReturnToRegIDList(context); 
+//			List<String> listRegIDs = Controller.getPreferencesReturnToRegIDList(context);
+//
+//			String time = new Date().toString(); 
+//
+//    		MessageDataContactDetails messageDataContactDetails = 
+//    			new MessageDataContactDetails(account, macAddress, phoneNumber, regId, batteryLevel);
+//       		MessageDataLocation messageDataLocation = 
+//       			new MessageDataLocation(latitude, longitude, accuracy, speed, locationProviderName);
+//       		
+//			// Get current registration ID
+////    		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+//    		String jsonMessage = Controller.createJsonMessage(
+//    			new JsonMessageData(
+//	    			listRegIDs, 
+////		    		senderRegId, 
+//		    		CommandEnum.location, 
+//		    		null, // TODO: send device UUID in the message 
+//		    		messageDataContactDetails,
+//		    		messageDataLocation,
+//		    		null, // application info
+//		    		time,
+//		    		locationProviderType, // key
+//		    		locationInfo// value
+//		    	)
+//    		);
+//			if(jsonMessage == null){
+//				errorMsg = "Failed to create JSON Message to send to recipient";
+//				LogManager.LogErrorMsg(className, "[Command:" + CommandEnum.location.toString() + "]", errorMsg);
+//				return;
+//			} else {
+//	    		// send message back with PushNotificationServiceStatusEnum.available
+//	    		Controller.sendCommand(jsonMessage);
+//			}
+//            // ==============================
+//            // send GCM to requester
+//            // ==============================
     		
     		// For very OLD version
             //sendLocationByMail(latlong);

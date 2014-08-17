@@ -16,9 +16,8 @@
 	<string name="title_activity_contact_config">ContactConfiguration</string>
 	<string name="title_activity_googlemap">Map</string>
 
-	<string name="about_dialog_text">\n\"Track Location\" application\n\n\nVersion 1.0\nWritten by David Agrest\n\n\nEmail: dagrest@gmail.com\n</string>
+	<string name="about_dialog_text">\n\"Track Location\" application\n\n\nVersion %s\nWritten by David Agrest\n\n\nEmail: dagrest@gmail.com\n</string>
 	<string name="about_dialog_ok_btn">OK</string>
-		
 		
 </resources>
 

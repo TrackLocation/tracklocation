@@ -1,10 +1,12 @@
 package com.dagrest.tracklocation;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -25,6 +27,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -36,31 +40,35 @@ import android.util.Log;
 import android.util.Patterns;
 import android.util.SparseArray;
 
-import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
+import com.dagrest.tracklocation.datatype.CommandData;
+import com.dagrest.tracklocation.datatype.CommandDataBasic;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
-import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
+import com.dagrest.tracklocation.datatype.JsonMessageData;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
-import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.datatype.ReceivedJoinRequestData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
+import com.dagrest.tracklocation.exception.CheckPlayServicesException;
 import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.MapKeepAliveTimerJob;
 import com.dagrest.tracklocation.utils.Preferences;
-import com.dagrest.tracklocation.utils.Utils;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -74,10 +82,112 @@ import com.google.gson.Gson;
 
 public class Controller {
 
-	private final static String CLASS_NAME = "";
+	private final static String CLASS_NAME = "Controller";
 	
 	private Timer timer;
 	private MapKeepAliveTimerJob mapKeepAliveTimerJob;
+
+    /**
+     * Registers the application with GCM servers asynchronously.
+     * <p>
+     * Stores the registration ID and the app versionCode in the application's
+     * shared preferences.
+     */
+    @SuppressWarnings({"unchecked" })
+	public static void registerInBackground(HashMap<String, Object> params) {
+        new AsyncTask<HashMap<String, Object>, Void, String>() {
+            @Override
+            protected String doInBackground(HashMap<String, Object>... params) {
+                String msg = "";
+                Context context = null;
+                String registrationId = null;
+                GoogleCloudMessaging gcm = null;
+                String googleProjectNumber = null;
+                if(params != null){
+                	HashMap<String, Object> mapParams = params[0];
+                	if(mapParams.get("Context") instanceof Context){
+                		context = (Context) mapParams.get("Context");
+                	} else { 
+                		// TODO: Error message
+                	}
+                	if(mapParams.get("GoogleCloudMessaging") instanceof GoogleCloudMessaging){
+                		gcm = (GoogleCloudMessaging) mapParams.get("GoogleCloudMessaging");
+                	} else {
+                		// TODO: Error message
+                	}
+                	if(mapParams.get("GoogleProjectNumber") instanceof String){
+                		googleProjectNumber = (String) mapParams.get("GoogleProjectNumber");
+                	} else {
+                		// TODO: Error message
+                	}
+                } else {
+                	// TODO: Error message: incorrect parameters
+                	return "Error" + msg;
+                }
+                try {
+                    if (gcm == null) {
+                        gcm = GoogleCloudMessaging.getInstance(context);
+                    }
+                    registrationId = gcm.register(googleProjectNumber);
+                    msg = "Device registered, registration ID=" + registrationId;
+
+                    // Persist the version ID 
+                    Preferences.setPreferencesInt(context, CommonConst.PROPERTY_APP_VERSION, 
+                    	CommonConst.PROPERTY_APP_VERSION_VALUE);
+                    // Persist the registration ID - no need to register again.
+                    Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, registrationId);
+                } catch (IOException ex) {
+                    msg = "Error :" + ex.getMessage();
+                    // If there is an error, don't just keep trying to register.
+                    // Require the user to click a button again, or perform
+                    // exponential back-off.
+                	String errMsg = "Exception caught: " + ex.getMessage();
+                	Log.e(CommonConst.LOG_TAG, errMsg, ex);
+                    LogManager.LogErrorMsg(CLASS_NAME, "registerInBackground->doInBackground", errMsg);
+                    
+					registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+					if(registrationId == null || registrationId.isEmpty()){
+						// showGoogleServiceNotAvailable();
+						// TODO: Error: message Google Service Not Available
+					}
+
+                }
+                return msg;
+            }
+
+            @Override
+            protected void onPostExecute(String msg) {
+            	// TODO: do some work here...
+            }
+        }.execute(params, null, null);
+    }
+
+    /**
+	 * Check the device to make sure it has the Google Play Services APK. If
+	 * it doesn't, display a dialog that allows users to download the APK from
+	 * the Google Play Store or enable it in the device's system settings.
+     * @throws CheckPlayServicesException 
+	 */
+	public static void checkPlayServices(Context context) throws CheckPlayServicesException {
+	    int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
+	    if (resultCode != ConnectionResult.SUCCESS) {
+	        if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+	        	// The following dialog should be shown in calling Activity
+	            //GooglePlayServicesUtil.getErrorDialog(resultCode, activity,
+	            //	PLAY_SERVICES_RESOLUTION_REQUEST).show();
+	            Log.e(CommonConst.LOG_TAG, "User recoverable error: " + resultCode);
+	            LogManager.LogErrorMsg(CLASS_NAME, "checkPlayServices", 
+	            	"User recoverable error: " + resultCode);
+	            throw new CheckPlayServicesException(CommonConst.PLAYSERVICES_ERROR, resultCode);
+	        } else {
+	            Log.e(CommonConst.LOG_TAG, "Google Play Services not supported with this device.");
+	            LogManager.LogErrorMsg(CLASS_NAME, "checkPlayServices", 
+	            	"Google Play Services not supported with this device.");
+	            // finish();
+	            throw new CheckPlayServicesException(CommonConst.PLAYSERVICES_DEVICE_NOT_SUPPORTED);
+	        }
+	    }
+	}
 
 	public void keepAliveTrackLocationService(Context context, ContactDeviceDataList selectedContactDeviceDataList, long startDelay){
         timer = new Timer();
@@ -103,6 +213,95 @@ public class Controller {
 		return UUID.randomUUID().toString().replaceAll("-", "");
 	}
 
+	public static String createJsonMessage(JsonMessageData jsonMessageData){	
+
+		List<String> listRegIDs; 					// registration_IDs of the contacts that command will be send to
+		String regIDToReturnMessageTo;				// sender's registartion_ID (contact that response will be returned to)
+		CommandEnum command; 
+		String messageString; 						// message
+		MessageDataContactDetails contactDetails;	// sender's contact details
+		MessageDataLocation location;				// sender's location details
+		AppInfo appInfo;							// application info
+		String time; 								// current time - Controller.getCurrentDate()
+		String key;									// key (free pair of key/value)
+		String value;								// value (free pair of key/value)
+		String errorMsg;
+		
+		LogManager.LogFunctionCall(CLASS_NAME, "[createJsonMessage]");
+
+		time = Controller.getCurrentDate();
+		
+		if(jsonMessageData == null){
+			errorMsg = "There is no JSON Message Data to create JSON Message";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:NO_DATA_FOR_JSON_MESSAGE]", errorMsg);
+			return null;
+		}
+		
+		command = jsonMessageData.getCommand();
+		if(command == null){
+			errorMsg = "Command is undefined";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:UNDEFINED_COMMAND]", errorMsg);
+			return null;
+		}
+		
+		LogManager.LogFunctionCall(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]");
+		
+		listRegIDs = jsonMessageData.getListRegIDs();
+		if(listRegIDs == null){
+			errorMsg = "There is no recipient list defined";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+			return null;
+		}
+
+		contactDetails = jsonMessageData.getContactDetails();
+		if(contactDetails == null){
+			errorMsg = "There is no sender defined";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+			return null;
+		}
+		
+		regIDToReturnMessageTo = contactDetails.getRegId();
+		if(regIDToReturnMessageTo == null || regIDToReturnMessageTo.isEmpty()){
+			errorMsg = "There is no sender defined";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+			return null;
+		}
+		
+		location = jsonMessageData.getLocation();
+		messageString = jsonMessageData.getMessage();
+		appInfo = jsonMessageData.getAppInfo();
+		key = jsonMessageData.getKey();
+		value = jsonMessageData.getValue();
+		
+		String jsonMessage = null;
+    	
+        Gson gson = new Gson();
+    	
+        MessageData messageData = new MessageData();
+        messageData.setMessage(messageString);
+        messageData.setTime(time);
+        messageData.setCommand(command);
+        messageData.setRegIDToReturnMessageTo(regIDToReturnMessageTo);
+        messageData.setKey(key);
+        messageData.setValue(value);
+        messageData.setLocation(location);
+        messageData.setContactDetails(contactDetails);
+        messageData.setAppInfo(appInfo);
+        
+        Message message = new Message();
+        message.setData(messageData); 
+        message.setRegistrationIDs(listRegIDs);
+
+        jsonMessage = gson.toJson(message);
+        
+//        String infoMessage = "JSON Message: " + jsonMessage;
+//        LogManager.LogInfoMsg(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]", infoMessage);
+    	
+		LogManager.LogFunctionExit(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]");
+
+    	return jsonMessage;
+    }
+/*
 	public static String createJsonMessage(
 			List<String> listRegIDs, 					// List of contact's regIDs to send message to
     		String regIDToReturnMessageTo,				// regID of contact to return message to 
@@ -110,10 +309,13 @@ public class Controller {
     		String messageString,						// message	
     		MessageDataContactDetails contactDetails, 	// account, macAddress, phoneNumber, regId, batteryPercentage
     		MessageDataLocation location,				// latitude, longitude, accuracy, speed
+    		AppInfo appInfo,							// application info version number, version name and so on...
     		String time,								// time
     		String key, 								// key
     		String value){								// value
     	
+		LogManager.LogFunctionCall(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]");
+		
     	String jsonMessage = null;
     	
         Gson gson = new Gson();
@@ -133,10 +335,15 @@ public class Controller {
         message.setRegistrationIDs(listRegIDs);
 
         jsonMessage = gson.toJson(message);
+        
+//        String infoMessage = "JSON Message: " + jsonMessage;
+//        LogManager.LogInfoMsg(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]", infoMessage);
     	
+		LogManager.LogFunctionExit(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]");
+
     	return jsonMessage;
     }
-    
+*/    
   /**
 	 * Gets the current registration ID for application on GCM service.
 	 * 
@@ -159,7 +366,9 @@ public class Controller {
 	    int currentVersion = getAppVersion(context);
 	    if (registeredVersion != currentVersion) {
 	        Log.i(CommonConst.LOG_TAG, "App version changed.");
-	        return "";
+	        LogManager.LogErrorMsg(CLASS_NAME, "getRegistrationId", "App version changed.");
+	        // TODO: To check if REG ID should be renewed - HOW? WHEN?
+	        // return "";
 	    }
 	    return registrationId;
 	}
@@ -167,7 +376,7 @@ public class Controller {
     /**
      * @return Application's version code from the {@code PackageManager}.
      */
-    private static int getAppVersion(Context context) {
+    public static int getAppVersion(Context context) {
         try {
             PackageInfo packageInfo = context.getPackageManager()
                     .getPackageInfo(context.getPackageName(), 0);
@@ -178,7 +387,31 @@ public class Controller {
         }
     }
 
-    /*
+	public static void setAppInfo(Context context){
+		PackageInfo pinfo;
+		try {
+			pinfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+			int versionNumber = pinfo.versionCode;
+			Preferences.setPreferencesInt(context, CommonConst.PREFERENCES_VERSION_NUMBER, versionNumber);
+			String versionName = pinfo.versionName;
+			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_VERSION_NAME, versionName);
+		} catch (NameNotFoundException e) {
+			Log.e(CommonConst.LOG_TAG, "NameNotFoundException in getAppInfo: " + e.getMessage());
+        	LogManager.LogException(e, CLASS_NAME, "getAppInfo");
+		}
+	}
+	
+	public static AppInfo getAppInfo(Context context){
+		AppInfo appInfo = null;
+	
+		int versionNumber = Preferences.getPreferencesInt(context, CommonConst.PREFERENCES_VERSION_NUMBER);
+		String versionName = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_VERSION_NAME);
+		appInfo = new AppInfo(versionNumber, versionName);
+		
+		return appInfo;
+	}
+
+	/*
      * Send command to request contact by GCM (Google Cloud Message - push notifictation)
      */
     public static void sendCommand(final String jsonMessage){ 
@@ -186,7 +419,10 @@ public class Controller {
 	    new AsyncTask<Void, Void, String>() {
 	        @Override
 	        protected String doInBackground(Void... params) {
-            	String result = HttpUtils.sendMessageToBackend(jsonMessage);
+	        	String result = null;
+	        	if(jsonMessage != null){
+	            	result = HttpUtils.sendMessageToBackend(jsonMessage);
+	        	}
             	// TODO: fix return value
             	return result;
 	        }
@@ -575,15 +811,34 @@ public class Controller {
             String ownerMacAddress;
             String ownerRegId;
             String ownerPhoneNumber;
+            String message = null, key = null, value = null;
+            float batteryPercentage = -1;
+            AppInfo appInfo = Controller.getAppInfo(context);
 
-			
+            ContactDeviceDataList contactDeviceDataList = null;
+			MessageDataContactDetails contactDetails = null; 
+			MessageDataLocation location = null;
+         
 			@Override
 			public void doOnPositiveButton() {
 				
 				// Send JOIN APPROVED command (CommandEnum.join_approval) with
 				// information about contact approving join request sent by SMS
-				sendApproveOnJoinRequest(context, regId, mutualId, ownerEmail, ownerRegId, ownerMacAddress, 
-					ownerPhoneNumber, CommandEnum.join_approval);
+//				sendApproveOnJoinRequest(context, regId, mutualId, ownerEmail, ownerRegId, ownerMacAddress, 
+//					ownerPhoneNumber, CommandEnum.join_approval);
+				
+				CommandDataBasic commandDataBasic = new CommandData(
+					context, 
+        			contactDeviceDataList, 
+        			CommandEnum.join_approval,
+        			message,					// null
+        			contactDetails,
+        			location, 					// null
+        			key, 						// null
+        			value, 						// null
+        			appInfo
+				);
+				commandDataBasic.sendCommand();
 				
 				// Remove from RECEIVED_JOIN_REQUEST
 				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
@@ -623,11 +878,27 @@ public class Controller {
 
 				// Send JOIN REJECTED command (CommandEnum.join_rejected) with
 				// information about contact approving join request sent by SMS
-				sendApproveOnJoinRequest(context, regId, mutualId, ownerEmail, ownerRegId, ownerMacAddress, 
-					ownerPhoneNumber, CommandEnum.join_rejected);
+//				sendApproveOnJoinRequest(context, regId, mutualId, ownerEmail, ownerRegId, ownerMacAddress, 
+//					ownerPhoneNumber, CommandEnum.join_rejected);
+				CommandDataBasic commandDataBasic = new CommandData(
+					context, 
+        			contactDeviceDataList, 
+        			CommandEnum.join_rejected,
+        			message, 			// null
+        			contactDetails, 
+        			location,			// null
+        			key,				// null
+        			value,				// null
+        			appInfo
+				);
+				commandDataBasic.sendCommand();
 				
 				// Remove from RECEIVED_JOIN_REQUEST
 				int count = DBLayer.deleteReceivedJoinRequest(mutualId);
+				if(count == 0){
+					String errorMsg = "Failed to delete received join request from " + ownerEmail;
+					LogManager.LogErrorMsg(CLASS_NAME, "doOnNegativeButton->deleteReceivedJoinRequest", errorMsg);
+				}
 			}
 			
 			@Override
@@ -641,6 +912,10 @@ public class Controller {
 	            ownerMacAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
 	            ownerRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 	            ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+				contactDeviceDataList = 
+						new ContactDeviceDataList(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, mutualId);
+				contactDetails = 
+						new MessageDataContactDetails(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, batteryPercentage);
 			}
 			
 			@Override
@@ -678,28 +953,37 @@ public class Controller {
 		aboutDialog.setCancelable(true);
     }
 
+/*
+	// TODO: Remove regId - replaced by ownerRegId
 	public static void sendApproveOnJoinRequest(Context context, String regId, String ownerMutualId, 
 			String ownerEmail, String ownerRegId, String ownerMacAddress, String ownerPhoneNumber, 
 			CommandEnum command){
 		
 		String regIDToReturnMessageTo = regId;
 		List<String> listRegIDs = new ArrayList<String>();
-		listRegIDs.add(regId);
+		// listRegIDs.add(regId);
 		String time = Controller.getCurrentDate();
 		String messageString = ownerEmail + CommonConst.DELIMITER_COMMA + ownerRegId + CommonConst.DELIMITER_COMMA + 
 				ownerPhoneNumber + CommonConst.DELIMITER_COMMA + ownerMacAddress;
-		MessageDataContactDetails contactDetails = null;
+		listRegIDs.add(ownerRegId);
+		float batteryPercentage = -1;
+		MessageDataContactDetails contactDetails = 
+			new MessageDataContactDetails(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, batteryPercentage);
 		MessageDataLocation location = null;
-		String jsonMessage = createJsonMessage(listRegIDs, 
+		
+		// TODO: remove regIDToReturnMessageTo from function signature - remove it to function itself
+		String jsonMessage = createJsonMessage(new JsonMessageData(
+				listRegIDs, 
 	    		regIDToReturnMessageTo, 
 	    		command, // CommandEnum.join_approval, 
 	    		messageString, // email, regId, phoneNumber, macAddress
 	    		contactDetails,
 	    		location,
+	    		null, // application info
 	    		time,
 	    		NotificationKeyEnum.joinRequestApprovalMutualId.toString(), 
 	    		ownerMutualId
-				);
+				));
 		sendCommand(jsonMessage);
 //		if(CommandEnum.join_approval.toString().equals(command)){
 //			// add contact to the following tables:
@@ -716,6 +1000,8 @@ public class Controller {
 //			DBLayer.addContactDeviceDataList(contactDeviceDataList);
 //		}
 	}
+*/
+
 	
 //	public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
 //		List<String> values = null;
@@ -814,41 +1100,217 @@ public class Controller {
 		
 		return valuesCheckBoxesShareLocation;
 	}
-
-	public static void sendCommand(Context context, ContactDeviceDataList contactDeviceDataList, CommandEnum command, 
-			String message, MessageDataContactDetails contactDetails, MessageDataLocation location, 
-			String key, String value){
-		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
-		List<String> listRegIDs = new ArrayList<String>();
+/*
+	// TODO: Throw exception id sendCommand failed
+	// TODO: Implement return value
+	public static void sendCommand(CommandData commandData){
+		Context context; 
+		ContactDeviceDataList contactDeviceDataList; 
+		CommandEnum command;
+		String message; 
+		MessageDataContactDetails contactDetails; 
+		MessageDataLocation location; 
+		String key; 
+		String value;
+		AppInfo appInfo;
+		String errorMsg = null;
 		
+		LogManager.LogFunctionCall(CLASS_NAME, "[sendCommand]");
+
+		if(commandData == null) {
+			errorMsg = "There is no data to send";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:NO_DATA_TO_SEND]", errorMsg);
+			return;
+		}
+		
+		command = commandData.getCommand();
+		if(command == null){
+			errorMsg = "Command is undefined";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:UNDEFINED_COMMAND]", errorMsg);
+			return;
+		}
+		
+		LogManager.LogFunctionCall(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
+
+		context = commandData.getContext();
+		if(context == null){
+			errorMsg = "Context is undefined";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+			return;
+		}
+		
+		contactDeviceDataList = commandData.getContactDeviceDataList();
+		if(contactDeviceDataList == null){
+			errorMsg = "There is no recipient list defined";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+			return;
+		}
+		
+		contactDetails = commandData.getContactDetails();
+		if(contactDetails == null){
+			errorMsg = "There is no sender defined";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+			return;
+		}
+		
+		// Not mandatory variables for each sendCommand 
+		location = commandData.getLocation();
+		message = commandData.getMessage();
+		key = commandData.getKey();
+		value = commandData.getValue();
+		appInfo = commandData.getAppInfo();
+	
+		// Original SendCommand started here
+		String infoMessage;
+		
+//		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+//		if(regIDToReturnMessageTo == null || regIDToReturnMessageTo.isEmpty()){
+//			errorMsg = "Check if app was updated; if so, it must clear the registration ID" + 
+//				"since the existing regID is not guaranteed to work with the new" + 
+//				"app version.";
+//			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+//			return;
+//		}
+
+		List<String> listRegIDs = new ArrayList<String>();
+		List<String> listAccounts = new ArrayList<String>();
+		
+		// Collect registration_IDs of the contacts that command will be send to
 		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
 			ContactData contactData = contactDeviceData.getContactData();
 			if(contactData != null){
-				listRegIDs.add(contactDeviceData.getRegistration_id());
+				String regId = contactDeviceData.getRegistration_id();
+				if(regId != null && !regId.isEmpty()){
+					listRegIDs.add(contactDeviceData.getRegistration_id());
+				} else {
+					errorMsg = "Empty registrationID for the following contact: " + contactData.getEmail();
+					LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+					Log.e("[sendCommand:" + command.toString() + "]", errorMsg);
+				}
+				listAccounts.add(contactData.getEmail());
 			} else {
-				LogManager.LogErrorMsg("Controller", "checkGcmStatus", "Unable to get registration_ID: contactData is null.");
-				Log.e("checkGcmStatus", "Unable to get registration_ID: contactData is null.");
+				LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: ContactData is null.");
+				Log.e("[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: contactData is null.");
 			}
 			
 		}
 		
+		Gson gson = new Gson();
+		infoMessage = 	"Sending command [" + command.toString() + "] to the following recipients: " +
+						gson.toJson(listAccounts);
+		LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", infoMessage);
+		
+		JsonMessageData jsonMessageData = new JsonMessageData(
+				listRegIDs, 				// registration_IDs of the contacts that command will be send to
+	    		//regIDToReturnMessageTo, 	// sender's registartion_ID (contact that response will be returned to)
+	    		command, 
+	    		message, 					// messageString
+	    		contactDetails,				// sender's contact details
+	    		location,					// sender's location details
+	    		appInfo,					// application info
+	    		Controller.getCurrentDate(),// current time
+	    		key, 						// key (free pair of key/value)
+	    		value 						// value (free pair of key/value)
+				);
+		
 		if(listRegIDs.size() > 0){
-			String jsonMessage = Controller.createJsonMessage(listRegIDs, 
-		    		regIDToReturnMessageTo, 
-		    		command, 
-		    		message, // messageString, 
-		    		contactDetails,
-		    		location,
-		    		Controller.getCurrentDate(), // time,
-		    		key, //NotificationCommandEnum.pushNotificationServiceStatus.toString(),
-		    		value //PushNotificationServiceStatusEnum.available.toString()
-					);
+			String jsonMessage = Controller.createJsonMessage(jsonMessageData);
+//					listRegIDs, 				// registration_IDs of the contacts that command will be send to
+//		    		regIDToReturnMessageTo, 	// sender's registartion_ID (contact that response will be returned to)
+//		    		command, 
+//		    		message, 					// messageString
+//		    		contactDetails,				// sender's contact details
+//		    		location,					// sender's location details
+//		    		appInfo,					// application info
+//		    		Controller.getCurrentDate(),// current time
+//		    		key, 						// key (free pair of key/value)
+//		    		value 						// value (free pair of key/value)
+//					);
+			
+			if(jsonMessage == null){
+				errorMsg = "Failed to create JSON Message to send to recipient";
+				LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+				return;
+			}
+			
+			LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+				"Sending command [" + command.toString() + "] as asynchonous task... ");
+//			LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+//				"JSON message: " + jsonMessage);
 			Controller.sendCommand(jsonMessage);
 		} else {
-			// TODO: error to log! Unable to send command: checkGcmStatus
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+				"Unable to send command: [" + command.toString() + "] - there is no any recipient.");
 		}
+		
+		LogManager.LogFunctionExit(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
 	}
-	
+*/	
+	// TODO: Implement return value
+/*	
+	public static void sendCommand(
+			Context context, 
+			ContactDeviceDataList contactDeviceDataList, 
+			CommandEnum command, 
+			String message, 
+			MessageDataContactDetails contactDetails, 
+			MessageDataLocation location, 
+			AppInfo appInfo,
+			String key, 
+			String value){
+		
+		String infoMessage;
+		
+		LogManager.LogFunctionCall(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
+		
+		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+		List<String> listRegIDs = new ArrayList<String>();
+		List<String> listAccounts = new ArrayList<String>();
+		
+		// Collect registration_IDs of the contacts that command will be send to
+		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+			ContactData contactData = contactDeviceData.getContactData();
+			if(contactData != null){
+				listRegIDs.add(contactDeviceData.getRegistration_id());
+				listAccounts.add(contactData.getEmail());
+			} else {
+				LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: ContactData is null.");
+				Log.e("[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: contactData is null.");
+			}
+			
+		}
+		
+		Gson gson = new Gson();
+		infoMessage = 	"Sending command [" + command.toString() + "] to the following recipients: " +
+						gson.toJson(listAccounts);
+		LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", infoMessage);
+		
+		if(listRegIDs.size() > 0){
+			String jsonMessage = Controller.createJsonMessage(
+					listRegIDs, 				// registration_IDs of the contacts that command will be send to
+		    		regIDToReturnMessageTo, 	// sender's registartion_ID (contact that response will be returned to)
+		    		command, 
+		    		message, 					// messageString
+		    		contactDetails,				// sender's contact details
+		    		location,					// sender's location details
+		    		appInfo,					// application info
+		    		Controller.getCurrentDate(),// current time
+		    		key, 						// key (free pair of key/value)
+		    		value 						// value (free pair of key/value)
+					);
+			LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+				"Sending command [" + command.toString() + "] as asynchonous task... ");
+//			LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+//				"JSON message: " + jsonMessage);
+			Controller.sendCommand(jsonMessage);
+		} else {
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+				"Unable to send command: [" + command.toString() + "] - there is no any recipient.");
+		}
+		
+		LogManager.LogFunctionExit(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
+	}
+*/	
 	public static ContactDeviceDataList removeNonSelectedContacts(ContactDeviceDataList contactDeviceDataList, 
 		List<String> selectedContcatList){
 		
@@ -996,6 +1458,42 @@ public class Controller {
 		//float batteryPct = level / (float)scale;
 		return level;
 	}
+	
+	// ======================================================================
+	// Example to get ConnectivityManager:
+	// ======================================================================
+	// ConnectivityManager connectivity = 
+	//	 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	// Checking for all possible Internet providers
+	// ======================================================================
+	public static boolean isConnectingToInternet(
+			ConnectivityManager connectivity) {
+
+		if (connectivity != null) {
+			NetworkInfo[] info = connectivity.getAllNetworkInfo();
+			if (info != null) {
+				for (int i = 0; i < info.length; i++)
+					if (info[i].getState() == NetworkInfo.State.CONNECTED) {
+						return true;
+					}
+			}
+		}
+		return false;
+	}
+	
+	public static List<String> getPreferencesReturnToRegIDList(Context context){
+		List<String> listRegIDs = null;
+		java.util.Map<String, String> returnToContactMap = Preferences.getPreferencesReturnToContactMap(context);
+		if(returnToContactMap != null){
+			listRegIDs = new ArrayList<String>();
+			for (java.util.Map.Entry<String, String> entry : returnToContactMap.entrySet()) {
+				listRegIDs.add(entry.getValue());
+			}
+		}
+		return listRegIDs;
+	}
+}
+	
 //    public static void checkGcmStatus(Context context, ContactData contactData, ContactDeviceData contactDeviceData){
 //		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
 //		List<String> listRegIDs = new ArrayList<String>();
@@ -1074,5 +1572,5 @@ public class Controller {
 //		String macAddress = null;
 //		return macAddress;
 //	}
-}
+
 

@@ -5,16 +5,18 @@ public class MessageDataLocation {
 	private double lng;
 	private double accuracy;
 	private double speed;
+	private String locationProviderType;
 
 	public MessageDataLocation(){};
 	
 	public MessageDataLocation(double lat, double lng, double accuracy,
-			double speed) {
+			double speed, String locationProviderType) {
 		super();
 		this.lat = lat;
 		this.lng = lng;
 		this.accuracy = accuracy;
 		this.speed = speed;
+		this.locationProviderType = locationProviderType;
 	}
 	public double getLat() {
 		return lat;
@@ -39,6 +41,12 @@ public class MessageDataLocation {
 	}
 	public void setSpeed(double speed) {
 		this.speed = speed;
+	}
+	public String getLocationProviderType() {
+		return locationProviderType;
+	}
+	public void setLocationProviderType(String locationProviderType) {
+		this.locationProviderType = locationProviderType;
 	}
 	
 }

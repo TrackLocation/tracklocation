@@ -62,21 +62,23 @@ public class HttpUtils {
     }
     
     public static String sendMessageToBackend(String jsonMessage) {
-        LogManager.LogFunctionCall("HttpUtils", "sendRegistrationIdToBackend");
+        LogManager.LogFunctionCall("HttpUtils", "sendMessageToBackend");
 //        //PostToGCM.post(apiKey, content);
 //        new Date().toString();
 //        String messageJSON = "{\"registration_ids\" : "
 //        	+ "[\"" + regid + "\"],"+
 //        	"\"data\" : {\"message\": \"From David\",\"time\": \"" + new Date().toString() + "\"},}";
         
-        String result = HttpUtils.postGCM("https://android.googleapis.com/gcm/send", "AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30", jsonMessage);
+        String result = HttpUtils.postGCM("https://android.googleapis.com/gcm/send", 
+        	"AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30", jsonMessage);
         
         if(result != null && !result.isEmpty() && result.contains("error")){
         	LogManager.LogErrorMsg("HttpUtils", "sendMessageToBackend", result);
         	Log.e(CommonConst.LOG_TAG, result);
+        	// TODO: Broadcast clear error 
         }
         
-        LogManager.LogFunctionExit("HttpUtils", "sendRegistrationIdToBackend");
+        LogManager.LogFunctionExit("HttpUtils", "sendMessageToBackend");
         return result;
     }
 

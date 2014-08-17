@@ -23,7 +23,7 @@ public class CommonDialog extends DialogFragment {
 	
 	public CommonDialog() {};
 			
-    public String[] getItemsList() {
+	public String[] getItemsList() {
 		return itemsList;
 	}
 

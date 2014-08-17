@@ -8,6 +8,7 @@ public class MessageData {
 	private DeviceTypeEnum deviceTypeEnum;
 	// registration ID - to return answer to this regID 
 	// in case of "status" command
+	private AppInfo appInfo;
 	private String regIDToReturnMessageTo;
 	private String key;
 	private String value;
@@ -74,6 +75,12 @@ public class MessageData {
 	}
 	public void setContactDetails(MessageDataContactDetails contactDetails) {
 		this.contactDetails = contactDetails;
+	}
+	public AppInfo getAppInfo() {
+		return appInfo;
+	}
+	public void setAppInfo(AppInfo appInfo) {
+		this.appInfo = appInfo;
 	}
 	
 }

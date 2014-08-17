@@ -3,15 +3,21 @@ package com.dagrest.tracklocation;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dagrest.tracklocation.datatype.AppInfo;
+import com.dagrest.tracklocation.datatype.CommandData;
+import com.dagrest.tracklocation.datatype.CommandDataBasic;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
+import com.dagrest.tracklocation.dialog.CommonDialog;
+import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.google.gson.Gson;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
@@ -40,11 +46,19 @@ public class ContactList extends Activity/*ListActivity*/ {
 	private String account;
 	private String macAddress;
 	private String phoneNumber;
+	private String className;
+	private String registrationId;
+	private Context context;
+	private AppInfo appInfo;
  	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.contact_list);
+		className = this.getClass().getName();
+		context = getApplicationContext();
+		
+		appInfo = Controller.getAppInfo(context);
 		
 		Intent intent = getIntent();
 		gson = new Gson();
@@ -52,10 +66,11 @@ public class ContactList extends Activity/*ListActivity*/ {
 		account = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		macAddress = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
 		phoneNumber = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_NUMBER);
+		registrationId = intent.getExtras().getString(CommonConst.PREFERENCES_REG_ID);
 		contactDeviceDataList = gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
 
 //		if(contactDeviceDataList != null){
-//			Controller.sendCommand(getApplicationContext(), contactDeviceDataList, 
+//			Controller.sendCommand(context, contactDeviceDataList, 
 //	    			CommandEnum.status_request, null, null);
 //		}
 
@@ -237,29 +252,81 @@ public class ContactList extends Activity/*ListActivity*/ {
 	}
 	
 	public void onClick(final View view) {
+		
+		String key = null, value = null, message= null;
     	// ========================================
     	// TrackLocation button
     	// ========================================
         if (view == findViewById(R.id.btnTrackLocation)) {
         	
+        	LogManager.LogFunctionCall(className, "onClick->[BUTTON:TrackLocation]");
+        	
             selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
         	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
         		
+        		LogManager.LogInfoMsg(className, "onClick->[BUTTON:TrackLocation]", "Track location of " + 
+        			gson.toJson(selectedContactDeviceDataList));
+        		
     			MessageDataContactDetails contactDetails = 
-    				new MessageDataContactDetails(account, macAddress, phoneNumber, null, -1);
+    				new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
+    					Controller.getBatteryLevel(context));
     			MessageDataLocation location = null;
+    			
+    			
+    			CommandDataBasic commandDataBasic = new CommandData(
+					context, 
+					selectedContactDeviceDataList, 
+        			CommandEnum.status_request,
+        			message, 			// null
+        			contactDetails, 
+        			location,			// null
+        			key,				// null
+        			value,				// null
+        			appInfo
+				);
+    			commandDataBasic.sendCommand();
 
-        		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-        			CommandEnum.status_request, null, contactDetails, location, null, null);
-	    		Controller.sendCommand(getApplicationContext(), selectedContactDeviceDataList, 
-	    			CommandEnum.start, null, contactDetails, location, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-	    		Intent intentMap = new Intent(getApplicationContext(), Map.class);
+    			
+
+//        		Controller.sendCommand(context, selectedContactDeviceDataList, 
+//        			CommandEnum.status_request, null, contactDetails, location, null, null, null);
+
+// 				OLD WAY TO CALL: Controller.sendCommand - replaced by a new one   			
+//	    		Controller.sendCommand(context, selectedContactDeviceDataList, 
+//	    			CommandEnum.start, null, contactDetails, location, null, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+    			// Send START command (GCM) to selected contacts to start on their side TrackLocationService
+        		// to notify their location
+    			commandDataBasic = new CommandData(
+					context, 
+					selectedContactDeviceDataList, 
+        			CommandEnum.start,
+        			message, 			// null
+        			contactDetails, 
+        			location,			// null
+        			key,				// null
+        			value,				// null
+        			appInfo
+				);
+    			commandDataBasic.sendCommand();
+	    		
+				// Catch ecxeption - version changed, so RegID is empty
+				// Show pop up message - reinstall app/update regID.
+				
+	    		// Start Map activity to see locations of selected contacts
+	    		Intent intentMap = new Intent(context, Map.class);
+	    		// Pass to Map activity list of selected contacts to get their location
 	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
 		    			new Gson().toJson(selectedContactDeviceDataList));
 	   			startActivity(intentMap);
         	} else {
-        		// TODO: inform customer that no contact was selected
+        		// TODO: Inform customer that no contact was selected by pop-up dialog
+        		String title = "No contacs selected";
+        		String dialogMessage = "\nSelect at least one contact to locate it\n\n";
+        		showNotificationDialog(title, dialogMessage);
         	}
+        	
+        	LogManager.LogFunctionExit(className, "onClick->[BUTTON:TrackLocation]");
+
     	// ========================================
     	// ... button
     	// ========================================
@@ -270,6 +337,47 @@ public class ContactList extends Activity/*ListActivity*/ {
     protected void onDestroy() {
     	super.onDestroy();
     }
+
+	private void showNotificationDialog(String title, String errorMessage) {
+    	String dialogMessage = errorMessage;
+    	
+		CommonDialog aboutDialog = new CommonDialog(this, notificationDialogOnClickAction);
+		aboutDialog.setDialogMessage(dialogMessage);
+		aboutDialog.setDialogTitle(title);
+		aboutDialog.setPositiveButtonText("OK");
+		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+		aboutDialog.showDialog();
+		aboutDialog.setCancelable(true);
+    }
+
+	IDialogOnClickAction notificationDialogOnClickAction = new IDialogOnClickAction() {
+		
+		@Override
+		public void doOnPositiveButton() {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void doOnNegativeButton() {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setActivity(Activity activity) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setContext(Context context) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setParams(Object[]... objects) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void doOnChooseItem(int which) {
+			// TODO Auto-generated method stub
+			
+		}
+	};
 
 //	public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
 //		List<String> values = null;

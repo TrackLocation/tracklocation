@@ -1,30 +1,26 @@
 package com.dagrest.tracklocation;
 
-import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
-import com.dagrest.tracklocation.datatype.PermissionsData;
-import com.dagrest.tracklocation.datatype.PermissionsDataList;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.db.DBManager;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
+import com.dagrest.tracklocation.exception.CheckPlayServicesException;
 import com.dagrest.tracklocation.grid.ContactDataGridView;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.gson.Gson;
 
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -56,24 +52,48 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		className = this.getClass().getName();
+				
+		// ======================================================================
+		// Checking for all possible Internet providers
+		// ======================================================================
+		if(Controller.isConnectingToInternet(
+				(ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE)) == false){
+			String message = "\nYour device is not connected to internet\n\n" + 
+				"The application will be closed\n\n";
+			showNotificationDialog(message, "FINISH");
+		}
 		
 		setContentView(R.layout.activity_main);
 		
 		context = getApplicationContext();
 		
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
-        if (checkPlayServices()) {
-            gcm = GoogleCloudMessaging.getInstance(this);
-            registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-
-            if (registrationId.isEmpty()) {
-                registerInBackground();
-            }
-            
-        } else {
+		try {
+			Controller.checkPlayServices(context);
+		} catch (CheckPlayServicesException e) {
+			String errorMessage = e.getMessage();
+			if(CommonConst.PLAYSERVICES_ERROR.equals(errorMessage)){
+	            GooglePlayServicesUtil.getErrorDialog(e.getResultCode(), this,
+	            	PLAY_SERVICES_RESOLUTION_REQUEST).show();
+			} else if(CommonConst.PLAYSERVICES_DEVICE_NOT_SUPPORTED.equals(errorMessage)){
+				// Show dialog with errorMessage and exit from application 
+				showNotificationDialog("\nGoogle Play Services not supported with this device.\nProgram will be closed.\n", "FINISH");
+			}
             Log.e(CommonConst.LOG_TAG, "No valid Google Play Services APK found.");
     		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", 
     			"No valid Google Play Services APK found.");
+			//finish();
+		}
+		
+        gcm = GoogleCloudMessaging.getInstance(this);
+        registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+        if (registrationId == null || registrationId.isEmpty()) {
+            // registerInBackground();
+        	HashMap<String, Object> map = new HashMap<String, Object>();
+        	map.put("GoogleCloudMessaging", gcm);
+        	map.put("GoogleProjectNumber", getResources().getString(R.string.google_project_number));
+        	map.put("Context", context);
+        	Controller.registerInBackground(map);
         }
         
         account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
@@ -151,6 +171,7 @@ public class MainActivity extends Activity {
 	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
 	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
+	    		intentContactList.putExtra(CommonConst.PREFERENCES_REG_ID, registrationId);
 	    		startActivity(intentContactList);
     		} else {
     	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 
@@ -176,41 +197,6 @@ public class MainActivity extends Activity {
     		}
         }
     }
-
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        if (requestCode == JOIN_REQUEST && resultCode == RESULT_OK) {
-//            // Get the URI and query the content provider for the phone number
-//            Uri contactUri = data.getData();
-//            String[] projection = new String[]{CommonDataKinds.Phone.NUMBER};
-//            Cursor cursor = getContentResolver().query(contactUri, projection,
-//                    null, null, null);
-//            // If the cursor returned is valid, get the phone number
-//            if (cursor != null && cursor.moveToFirst()) {
-//                int numberIndex = cursor.getColumnIndex(CommonDataKinds.Phone.NUMBER);
-//                String phoneNumberToJoin = cursor.getString(numberIndex);
-//
-//            	String mutualId = Controller.generateUUID();
-//
-//             	// ??? TODO: Request phone number by UI dialog - might be from contacts list (phone book)
-//            	// INSERT PHONE NUMBER and MUTUAL_ID to TABLE TABLE_JOIN_REQUEST
-//     			long res = DBLayer.addSentJoinRequest(phoneNumberToJoin, mutualId, JoinRequestStatusEnum.SENT);
-//     			SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByPhone(phoneNumberToJoin);
-//
-//                // TODO: log number that join request was send to
-//                // TODO: remove all incorrect symbols from number except digits and "+" sign	
-//    			if(registrationId != null && !registrationId.isEmpty()){
-//    	        	// Send SMS with registration details: 
-//    	        	// phoneNumber and registartionId (mutual ID - optional) 
-//    	        	SmsManager smsManager = SmsManager.getDefault();
-//    				ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
-//    						CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-//    						mutualId);
-//    				//smsManager.sendMultipartTextMessage(phoneNumberToJoin, null, parts, null, null);    
-//    			}
-//            }
-//        }
-//    }
 
     @Override
     protected void onDestroy() {
@@ -238,6 +224,8 @@ public class MainActivity extends Activity {
 	}
 	
 	private void init(){
+		
+		Controller.setAppInfo(context);
 		
 		// PHONE NUMBER
 		phoneNumber = Controller.getPhoneNumber(context);
@@ -291,6 +279,17 @@ public class MainActivity extends Activity {
 		}
 		
 		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
+		
+        registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+        if (registrationId.isEmpty()) {
+        	String errorMessage = "\nFailed to register your application\nwith Google Cloud Message\n\n" + 
+        		"Application will be closed\n\nPlease try later...\n\n";
+        	// Show dialog with errorMessage and exit from application
+        	showNotificationDialog(errorMessage, "FINISH");
+            Log.e(CommonConst.LOG_TAG, errorMessage);
+    		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", 
+    			errorMessage);
+        }
 	}
 	
 	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
@@ -346,7 +345,9 @@ public class MainActivity extends Activity {
 	};
 
 	private void showAboutDialog() {
-    	String dialogMessage = getResources().getString(R.string.about_dialog_text);
+    	String dialogMessage = 
+    		String.format(getResources().getString(R.string.about_dialog_text), 
+    			Preferences.getPreferencesString(context, CommonConst.PREFERENCES_VERSION_NAME));
     	
 		CommonDialog aboutDialog = new CommonDialog(this, dialogActionsAboutDialog);
 		aboutDialog.setDialogMessage(dialogMessage);
@@ -367,80 +368,15 @@ public class MainActivity extends Activity {
 		aboutDialog.setCancelable(true);
     }
     
-    /**
-	 * Check the device to make sure it has the Google Play Services APK. If
-	 * it doesn't, display a dialog that allows users to download the APK from
-	 * the Google Play Store or enable it in the device's system settings.
-	 */
-	private boolean checkPlayServices() {
-	    int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-	    if (resultCode != ConnectionResult.SUCCESS) {
-	        if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-	            GooglePlayServicesUtil.getErrorDialog(resultCode, this,
-	            	PLAY_SERVICES_RESOLUTION_REQUEST).show();
-	        } else {
-	            Log.e(CommonConst.LOG_TAG, "This device is not supported by Google Play Services.");
-	            LogManager.LogErrorMsg(this.getClass().getName(), "checkPlayServices", 
-	            	"This device is not supported by Google Play Services.");
-	            finish();
-	        }
-	        return false;
-	    }
-	    return true;
-	}
-	
-    /**
-     * Registers the application with GCM servers asynchronously.
-     * <p>
-     * Stores the registration ID and the app versionCode in the application's
-     * shared preferences.
-     */
-    private void registerInBackground() {
-        new AsyncTask<Void, Void, String>() {
-            @Override
-            protected String doInBackground(Void... params) {
-                String msg = "";
-                try {
-                    if (gcm == null) {
-                        gcm = GoogleCloudMessaging.getInstance(context);
-                    }
-                    registrationId = gcm.register(getResources().getString(R.string.google_project_number));
-                    msg = "Device registered, registration ID=" + registrationId;
-
-                    // Persist the version ID 
-                    Preferences.setPreferencesInt(context, CommonConst.PROPERTY_APP_VERSION, 
-                    	CommonConst.PROPERTY_APP_VERSION_VALUE);
-                    // Persist the registration ID - no need to register again.
-                    Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, registrationId);
-                } catch (IOException ex) {
-                    msg = "Error :" + ex.getMessage();
-                    // If there is an error, don't just keep trying to register.
-                    // Require the user to click a button again, or perform
-                    // exponential back-off.
-                	String errMsg = "Exception caught: " + ex.getMessage();
-                	Log.e(CommonConst.LOG_TAG, errMsg, ex);
-                    LogManager.LogErrorMsg(className, "registerInBackground->doInBackground", errMsg);
-                    
-					registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-					if(registrationId == null || registrationId.isEmpty()){
-						showGoogleServiceNotAvailable();
-					}
-
-                }
-                return msg;
-            }
-
-            @Override
-            protected void onPostExecute(String msg) {
-            	// TODO: do some work here...
-            }
-        }.execute(null, null, null);
-    }
-    
-	IDialogOnClickAction dialogGoogleServiceNotAvailable = new IDialogOnClickAction() {
+	IDialogOnClickAction notificationDialogOnClickAction = new IDialogOnClickAction() {
+		
+		boolean isExit = false;
+		
 		@Override
 		public void doOnPositiveButton() {
-			//finish();
+			if(isExit == true){
+				finish();
+			}
 		}
 		@Override
 		public void doOnNegativeButton() {
@@ -456,7 +392,9 @@ public class MainActivity extends Activity {
 		}
 		@Override
 		public void setParams(Object[]... objects) {
-			// TODO Auto-generated method stub
+			if(objects[0][0] instanceof Boolean){
+				isExit = (Boolean) objects[0][0];
+			}
 		}
 		@Override
 		public void doOnChooseItem(int which) {
@@ -465,10 +403,15 @@ public class MainActivity extends Activity {
 		}
 	};
 	
-    private void showGoogleServiceNotAvailable() {
-    	String dialogMessage = "\nGoogle Cloud Service is not available right now.\n\nPlease try later.\n";
+    //private void showGoogleServiceNotAvailable(String errorMessage) {
+	private void showNotificationDialog(String errorMessage, String action) {
+    	//String dialogMessage = "\nGoogle Cloud Service is not available right now.\n\nPlease try later.\n";
+    	String dialogMessage = errorMessage;
     	
-		CommonDialog aboutDialog = new CommonDialog(this, dialogGoogleServiceNotAvailable);
+    	if(action != null && "FINISH".equals(action)){
+    		notificationDialogOnClickAction.setParams(new Object[] {true});
+    	}
+		CommonDialog aboutDialog = new CommonDialog(this, notificationDialogOnClickAction);
 		aboutDialog.setDialogMessage(dialogMessage);
 		aboutDialog.setDialogTitle("Warning");
 		aboutDialog.setPositiveButtonText("OK");
@@ -476,112 +419,5 @@ public class MainActivity extends Activity {
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
     }
-
-
-   	// Checking for all possible internet providers
-    public boolean isConnectingToInternet(){
-         
-        ConnectivityManager connectivity = 
-                             (ConnectivityManager) getSystemService(
-                              Context.CONNECTIVITY_SERVICE);
-          if (connectivity != null)
-          {
-              NetworkInfo[] info = connectivity.getAllNetworkInfo();
-              if (info != null)
-                  for (int i = 0; i < info.length; i++)
-                      if (info[i].getState() == NetworkInfo.State.CONNECTED)
-                      {
-                          return true;
-                      }
-  
-          }
-          return false;
-    }
-
-//	@Override
-//	protected void onResume() {
-//		super.onResume();
-//
-//	SmsManager smsManager = SmsManager.getDefault();
-//	regid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-//	smsManager.sendTextMessage("+972544504619", null, "\"" + regid + "\"", null, null);
-
-//	// Send SMS message (multipart text message)            	
-//    regid = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-//    
-//    SmsManager smsManager = SmsManager.getDefault();
-//    ArrayList<String> parts = smsManager.divideMessage("GUID" + "," + "dagrest@gmail.com" + "," + regid);
-//    smsManager.sendMultipartTextMessage("+972544504619", null, parts, null, null);     		
-	
-//    // Read SMS messages from inbox
-//    List<SMSMessage> smsList= controller.fetchInboxSms(MainActivity.this, 1);
-//    String s = smsList.get(0).messageContent;
-//    System.out.println(smsList.get(0).messageContent);
-	
-//		DBLayer.init(context);
-//
-//		ContactData c = DBLayer.getContactData();
-//		DeviceData d = DBLayer.getDeviceData();
-//		ContactDeviceData cd = DBLayer.getContactDeviceData();
-//		ContactDeviceDataList contactDeviceDataList = DBLayer.getContactDeviceDataList();
-//		boolean isEmail = DBLayer.isContactWithEmailExist("dagrest@gmail.com");
-//		boolean isNick = DBLayer.isContactWithNickExist("dagrest");
-//		boolean isMac = DBLayer.isDeviceWithMacAddressExist("88:32:9B:01:26:DD");
-//		boolean isContactDevice = DBLayer.isContactDeviceExist("+972544504619", "dagrest@gmail.com", "88:32:9B:01:26:DD");
-//		
-//		ContactDeviceDataList contactDeviceDataList = DBLayer.getContactDeviceDataList();
-//		boolean isEmail = DBLayer.isContactWithEmailExist("dagrest@gmail.com");
-//		boolean isNick = DBLayer.isContactWithNickExist("dagrest");
-//		boolean isMac = DBLayer.isDeviceWithMacAddressExist("88:32:9B:01:26:DD");
-//		boolean isContactDevice = DBLayer.isContactDeviceExist("+972544504619", "dagrest@gmail.com", "88:32:9B:01:26:DD");
-//	
-//	    String macAddress = Controller.getMacAddress(MainActivity.this);
-//	    String imei = Controller.getIMEI(MainActivity.this);
-//		ContactData contactData = DBLayer.addContactData("dagrest", "David", "Agrest", "dagrest@gmail.com");
-//		//contactData.setRegistration_id("REG_ID");
-//		DeviceData deviceData = DBLayer.addDeviceData(macAddress, "Galaxy S3", DeviceTypeEnum.phone);
-//		DBLayer.addContactDeviceData("+972544504619", contactData, deviceData, imei, "REG_ID");
-//		
-//		ContactData contactDataNEW = DBLayer.getContactData();
-//		DeviceData deviceDataNEW =  DBLayer.getDeviceData();
-//		ContactDeviceData cddOnly = DBLayer.getContactDeviceDataONLY();
-//		
-//		ContactDeviceData cdd = DBLayer.getContactDeviceData();
-//		Gson gson = new Gson();
-//		ContactDeviceDataList contactDeviceDataList = new ContactDeviceDataList();
-//		contactDeviceDataList.getContactDeviceDataList().add(cdd);
-//		String gsonString = gson.toJson(contactDeviceDataList);
-//
-//		ContactDeviceDataList contactDeviceDataListNEW = null;
-//		try {
-//			contactDeviceDataListNEW = gson.fromJson(gsonString, ContactDeviceDataList.class);
-//			int a = 0;
-//		} catch (JsonSyntaxException e) {
-//    		LogManager.LogException(e, "Utils", "fillContactDeviceDataFromJSON");
-//			int s = 0;
-//		} catch (Exception e) {
-//			String s = e.getMessage();
-//		}
-//		
-////		int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
-////		  
-////		if (checkPlayServices()){
-////			Toast.makeText(getApplicationContext(), 
-////				"isGooglePlayServicesAvailable SUCCESS", 
-////			Toast.LENGTH_LONG).show();
-////		}
-////		else{
-////			GooglePlayServicesUtil.getErrorDialog(resultCode, this, RQS_GooglePlayServices);
-////		}
-//	}
-
-//    registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-//    if(registrationId == null || registrationId.isEmpty()){
-//    	showGoogleServiceNotAvailable();
-//    }
-
     
 }
-
-
-
