@@ -20,6 +20,8 @@ import android.util.Log;
 
 public class LocationListenerBasic implements LocationListener{
 
+	private String methodName;
+	private String logMessage;
 	private String className; // LocationListenerBasic
 	private String locationProviderType; // CommonConst.GPS = GPS, CommonConst.NETWORK = NETWORK...
 	private Context context;
@@ -48,10 +50,9 @@ public class LocationListenerBasic implements LocationListener{
 	public void onLocationChanged(Location location) {
         try{
         	
-            LogManager.LogFunctionCall(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-            	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-            Log.i(CommonConst.LOG_TAG, "Entrance " + CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-            	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
+        	methodName = "onLocationChanged";
+    		LogManager.LogFunctionCall(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
             
             // Fill location parameters
             double latitude = 0, longitude = 0;
@@ -63,28 +64,24 @@ public class LocationListenerBasic implements LocationListener{
             float accuracy = location.getAccuracy();
             String locationProviderName = location.getProvider();
             float speed = location.getSpeed();
+            batteryLevel = Controller.getBatteryLevel(context);
 
             // TODO: check if the next key,value is needed...
             // Preferences.setPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME, locationProviderName);
             
-            // Create string = "latitude,longitude,accuracy,speed,time" if a location is provided
-            String locationInfo = latitude + CommonConst.DELIMITER_COMMA + 
-            	longitude + CommonConst.DELIMITER_COMMA + 
-            	accuracy + CommonConst.DELIMITER_COMMA + 
-            	speed + CommonConst.DELIMITER_COMMA + 
-            	Utils.getCurrentTime() + CommonConst.DELIMITER_COMMA +
-            	account;
-                    
-            LogManager.LogInfoMsg(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-            	locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", 
-            	CommonConst.LOCATION_INFO_ + locationProviderType + CommonConst.DELIMITER_COLON + locationInfo);
-            
+            logMessage = "Provider name: " + locationProviderName + 
+            	", Latitude: " + latitude + ", Longitude: " + longitude + 
+            	", Accuracy: " + accuracy + ", Speed: " + speed + 
+            	", Battery level: " + batteryLevel;        
+    		LogManager.LogInfoMsg(className, methodName, logMessage);
             
 			MessageDataContactDetails contactDetails = 
-    			new MessageDataContactDetails(account, macAddress, phoneNumber, regId, 
-    					Controller.getBatteryLevel(context));
+    			new MessageDataContactDetails(account, macAddress, phoneNumber, regId, batteryLevel);
 			MessageDataLocation locationDetails = 
 				new MessageDataLocation(latitude, longitude, accuracy, speed, locationProviderName);
+			// ==========================================
+			// send GCM (push notification) to requester
+			// ==========================================
 			CommandDataBasic commandData = new CommandDataWithReturnToContactList(
 					context, 
         			CommandEnum.location,
@@ -97,62 +94,17 @@ public class LocationListenerBasic implements LocationListener{
 			);
 			commandData.sendCommand();
             
-            
-            
-//            // ==========================================
-//            // send GCM (push notification) to requester
-//            // ==========================================
-//			// List<String> listRegIDs = Preferences.getPreferencesReturnToRegIDList(context); 
-//			List<String> listRegIDs = Controller.getPreferencesReturnToRegIDList(context);
-//
-//			String time = new Date().toString(); 
-//
-//    		MessageDataContactDetails messageDataContactDetails = 
-//    			new MessageDataContactDetails(account, macAddress, phoneNumber, regId, batteryLevel);
-//       		MessageDataLocation messageDataLocation = 
-//       			new MessageDataLocation(latitude, longitude, accuracy, speed, locationProviderName);
-//       		
-//			// Get current registration ID
-////    		String senderRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-//    		String jsonMessage = Controller.createJsonMessage(
-//    			new JsonMessageData(
-//	    			listRegIDs, 
-////		    		senderRegId, 
-//		    		CommandEnum.location, 
-//		    		null, // TODO: send device UUID in the message 
-//		    		messageDataContactDetails,
-//		    		messageDataLocation,
-//		    		null, // application info
-//		    		time,
-//		    		locationProviderType, // key
-//		    		locationInfo// value
-//		    	)
-//    		);
-//			if(jsonMessage == null){
-//				errorMsg = "Failed to create JSON Message to send to recipient";
-//				LogManager.LogErrorMsg(className, "[Command:" + CommandEnum.location.toString() + "]", errorMsg);
-//				return;
-//			} else {
-//	    		// send message back with PushNotificationServiceStatusEnum.available
-//	    		Controller.sendCommand(jsonMessage);
-//			}
-//            // ==============================
-//            // send GCM to requester
-//            // ==============================
-    		
     		// For very OLD version
-            //sendLocationByMail(latlong);
+            //sendLocationByMail(...);
 
-            LogManager.LogFunctionExit(className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-            Log.i(CommonConst.LOG_TAG, "Exit " + CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-
+			LogManager.LogFunctionExit(className, methodName + CommonConst.DELIMITER_ARROW + 
+	                locationProviderType);
+			Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName 
+					+ CommonConst.DELIMITER_ARROW + locationProviderType);
         } catch (Exception e) {
-                LogManager.LogException(e, className, CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged");
-                Log.e(CommonConst.LOG_TAG, "Exception " + CommonConst.LOCATION_LISTENER + CommonConst.DELIMITER_ARROW + 
-                    locationProviderType + CommonConst.DELIMITER_ARROW + "onLocationChanged", e);
+        	logMessage = "Location provider type: " + locationProviderType;
+    		LogManager.LogException(e, "[EXCEPTION] {" + className + "} -> " + methodName, logMessage);
+    		Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
         }      
 	}
 

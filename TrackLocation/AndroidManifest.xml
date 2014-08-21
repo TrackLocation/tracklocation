@@ -97,12 +97,6 @@
         </activity>
         
         <activity
-            android:name="com.dagrest.tracklocation.ContactConfiguration"
-            android:label="@string/title_activity_contact_config" 
-            android:screenOrientation="portrait" >
-        </activity>
-        
-        <activity
             android:name="com.dagrest.tracklocation.Map"
             android:label="@string/title_activity_googlemap" 
             android:screenOrientation="portrait" >

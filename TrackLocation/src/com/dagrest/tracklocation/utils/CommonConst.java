@@ -81,5 +81,8 @@ public class CommonConst {
 
  	// COMMON DIALOG
  	public final static int STYLE_NORMAL = 0;
+ 	
+ 	// SEND COMMAND
+ 	public static final String	PREFERENCES_SEND_COMMAND_TO_ACCOUNTS = "send_command_to_accounts";
 
 }

@@ -22,6 +22,9 @@ public class CommandDataWithReturnToContactList extends CommandDataBasic {
 				message, contactDetails,
 				location, key, value, appInfo);
 		returnToContactMap = Preferences.getPreferencesReturnToContactMap(context);
+		listAccounts = new ArrayList<String>();
+		listRegIDs = new ArrayList<String>();
+		prepareAccountAndRegIdLists(listAccounts, listRegIDs);
 	}
 
 	public java.util.Map<String, String> getReturnToContactMap() {

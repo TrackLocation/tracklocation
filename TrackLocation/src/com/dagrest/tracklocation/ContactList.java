@@ -3,13 +3,8 @@ package com.dagrest.tracklocation;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.dagrest.tracklocation.datatype.AppInfo;
-import com.dagrest.tracklocation.datatype.CommandData;
-import com.dagrest.tracklocation.datatype.CommandDataBasic;
-import com.dagrest.tracklocation.datatype.CommandEnum;
+//import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
-import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
-import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
@@ -43,13 +38,13 @@ public class ContactList extends Activity/*ListActivity*/ {
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private List<String> selectedContcatList;
 	private Gson gson;
-	private String account;
-	private String macAddress;
-	private String phoneNumber;
 	private String className;
-	private String registrationId;
 	private Context context;
-	private AppInfo appInfo;
+//	private String account;
+//	private String macAddress;
+//	private String phoneNumber;
+//	private String registrationId;
+//	private AppInfo appInfo;
  	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -58,16 +53,16 @@ public class ContactList extends Activity/*ListActivity*/ {
 		className = this.getClass().getName();
 		context = getApplicationContext();
 		
-		appInfo = Controller.getAppInfo(context);
 		
 		Intent intent = getIntent();
 		gson = new Gson();
 		jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
-		account = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_ACCOUNT);
-		macAddress = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
-		phoneNumber = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_NUMBER);
-		registrationId = intent.getExtras().getString(CommonConst.PREFERENCES_REG_ID);
 		contactDeviceDataList = gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
+//		account = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_ACCOUNT);
+//		macAddress = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+//		phoneNumber = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_NUMBER);
+//		registrationId = intent.getExtras().getString(CommonConst.PREFERENCES_REG_ID);
+//		appInfo = Controller.getAppInfo(context);
 
 //		if(contactDeviceDataList != null){
 //			Controller.sendCommand(context, contactDeviceDataList, 
@@ -253,7 +248,6 @@ public class ContactList extends Activity/*ListActivity*/ {
 	
 	public void onClick(final View view) {
 		
-		String key = null, value = null, message= null;
     	// ========================================
     	// TrackLocation button
     	// ========================================
@@ -267,48 +261,6 @@ public class ContactList extends Activity/*ListActivity*/ {
         		LogManager.LogInfoMsg(className, "onClick->[BUTTON:TrackLocation]", "Track location of " + 
         			selectedContactDeviceDataList.toString());
         		
-    			MessageDataContactDetails contactDetails = 
-    				new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
-    					Controller.getBatteryLevel(context));
-    			MessageDataLocation location = null;
-    			
-    			
-    			CommandDataBasic commandDataBasic = new CommandData(
-					context, 
-					selectedContactDeviceDataList, 
-        			CommandEnum.status_request,
-        			message, 			// null
-        			contactDetails, 
-        			location,			// null
-        			key,				// null
-        			value,				// null
-        			appInfo
-				);
-    			commandDataBasic.sendCommand();
-
-    			
-
-//        		Controller.sendCommand(context, selectedContactDeviceDataList, 
-//        			CommandEnum.status_request, null, contactDetails, location, null, null, null);
-
-// 				OLD WAY TO CALL: Controller.sendCommand - replaced by a new one   			
-//	    		Controller.sendCommand(context, selectedContactDeviceDataList, 
-//	    			CommandEnum.start, null, contactDetails, location, null, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-    			// Send START command (GCM) to selected contacts to start on their side TrackLocationService
-        		// to notify their location
-    			commandDataBasic = new CommandData(
-					context, 
-					selectedContactDeviceDataList, 
-        			CommandEnum.start,
-        			message, 			// null
-        			contactDetails, 
-        			location,			// null
-        			key,				// null
-        			value,				// null
-        			appInfo
-				);
-    			commandDataBasic.sendCommand();
-	    		
 				// Catch ecxeption - version changed, so RegID is empty
 				// Show pop up message - reinstall app/update regID.
 				

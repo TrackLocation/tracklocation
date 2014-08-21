@@ -1,6 +1,7 @@
 package com.dagrest.tracklocation;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,7 +19,6 @@ import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
-import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -28,25 +28,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.gson.Gson;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//import com.google.android.gms.maps.*;
-//import com.google.android.gms.maps.model.*;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -151,6 +132,28 @@ public class Map extends Activity implements LocationListener{
 						selectedAccountList.add(contactData.getEmail());
 					}
 				}
+				
+				String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+				String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+				String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+				String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+				MessageDataContactDetails contactDetails = 
+						new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
+							Controller.getBatteryLevel(context));
+				HashMap<String, Object> params = new HashMap<String, Object>();
+				params.put("Context", context);
+				params.put("SelectedContactDeviceDataList", selectedContactDeviceDataList);
+				params.put("ContactDetails", contactDetails);
+				final int retryTimes = 5;
+				Log.i(CommonConst.LOG_TAG, "{" +className + "}: BEFORE starting of startTrackLocationService");
+				Runnable startTrackLocationService = new StartTrackLocationService(
+					context,
+					selectedContactDeviceDataList,
+					contactDetails,
+					retryTimes,
+					15000); // delay in milliseconds
+				new Thread(startTrackLocationService).start();
+				Log.i(CommonConst.LOG_TAG, "{" +className + "}: AFTER starting of startTrackLocationService");
 			}
 		}
 		isShowAllMarkersEnabled = true;

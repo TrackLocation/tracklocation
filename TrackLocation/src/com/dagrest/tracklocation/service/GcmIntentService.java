@@ -1,6 +1,7 @@
 package com.dagrest.tracklocation.service;
 
 import java.util.HashMap;
+import java.util.List;
 
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.R;
@@ -17,7 +18,6 @@ import com.dagrest.tracklocation.datatype.CommandValueEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
-import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.datatype.NotificationKeyEnum;
 import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.datatype.PushNotificationServiceStatusEnum;
@@ -89,8 +89,8 @@ public class GcmIntentService extends IntentService {
         // in your BroadcastReceiver.
         String messageType = gcm.getMessageType(intent);
 
-        LogManager.LogInfoMsg(className, "onHandleIntent", 
-            	"messageType :" + messageType);
+        // LogManager.LogInfoMsg(className, "onHandleIntent", 
+        //     	"messageType :" + messageType);
                 
         if (!extras.isEmpty()) {  
             // ============================================
@@ -111,6 +111,7 @@ public class GcmIntentService extends IntentService {
                     MESSAGE_TYPE_DELETED.equals(messageType)) {
             	//sendNotification("Deleted messages on server: " +
                 //        extras.toString());
+            	
             	// IMPORTANT! - DO NOT LOG extars - it can contain RegistrationID
         		// LogManager.LogErrorMsg(className, "onHandleIntent", 
         		//	"Deleted messages on server: " + extras.toString());
@@ -140,7 +141,12 @@ public class GcmIntentService extends IntentService {
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.start.toString())){ // COMMAND START
             		
-            		commandStartTrackLocationService(extras);
+            		errorMsg = "Catched push notification message (GCM): [START TrackLocation Service]";
+        			LogManager.LogInfoMsg(className, "Start Track Location Service", errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" +className + "} -> " + errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" +className + "} -> ThreadID: " + Thread.currentThread().getId());
+            		
+        			handleCommandStartTrackLocationService(extras);
     	    		
 //             	// ============================================
 //             	// ====  COMMAND: STOP  =======================
@@ -154,6 +160,11 @@ public class GcmIntentService extends IntentService {
 //            			extras.getString(CommandTagEnum.command.toString()).
 //            			equals(CommandEnum.stop.toString())){ // COMMAND STOP 
 //            		
+//            		errorMsg = "Catched push notification message (GCM): [STOP ]";
+//        			LogManager.LogInfoMsg(className, "Stop ", errorMsg);
+//        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+//        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
+//
 //            		commandStopTrackLocationService(extras);
             		
                 // ============================================
@@ -169,7 +180,12 @@ public class GcmIntentService extends IntentService {
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.status_request.toString())){ // COMMAND STATUS_REQUEST
             		
-            		commandStatusRequest(extras);
+            		errorMsg = "Catched push notification message (GCM): [STATUS_REQUEST]";
+        			LogManager.LogInfoMsg(className, "Status Request", errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
+            		
+            		handleCommandStatusRequest(extras);
  
                 // ============================================
                 // ====  COMMAND: STATUS_RESPONSE  ============
@@ -181,7 +197,12 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.status_response.toString())){ // COMMAND STATUS_RESPONSE
             		
-            		commandStatusResponse(extras);	
+            		errorMsg = "Catched push notification message (GCM): [STATUS_REQUEST]";
+        			LogManager.LogInfoMsg(className, "Status Response", errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
+        			
+            		handleCommandStatusResponse(extras);	
                 		
                 // ============================================
                 // ====  COMMAND: LOCATION_UPDATE  ============
@@ -193,7 +214,12 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.location.toString())){ // COMMAND LOCATION
             		
-            		commandLocationUpdare(extras);
+            		errorMsg = "Catched push notification message (GCM): [LOCATION_UPDATE]";
+        			LogManager.LogInfoMsg(className, "Location Update", errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
+
+            		handleCommandLocationUpdate(extras);
 
                 // ============================================
                 // ====  COMMAND: JOIN_APPROVAL  ==============
@@ -202,7 +228,12 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.join_approval.toString())){ // COMMAND JOIN_APPROVAL
             		
-            		commandJoinApproval(extras);            		
+            		errorMsg = "Catched push notification message (GCM): [JOIN_APPROVAL]";
+        			LogManager.LogInfoMsg(className, "Join Approval", errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
+            		
+        			handleCommandJoinApproval(extras);            		
                 		
                 // ======================================================
                 // ====  COMMAND: TRACK_LOCATION_SERVICE_KEEP_ALIVE  ====
@@ -216,7 +247,12 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.track_location_service_keep_alive.toString())){ // COMMAND TRACK_LOCATION_SERVICE_KEEP_ALIVE
             		
-            		commandTrackLocationKeepAlive(extras);
+            		errorMsg = "Catched push notification message (GCM): [TRACK_LOCATION_SERVICE_KEEP_ALIVE]";
+        			LogManager.LogInfoMsg(className, "TrackLocation Service Keep Alive", errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
+
+        			handleCommandTrackLocationKeepAlive(extras);
 					
 	            // ============================================
 	            // ====  COMMAND: NOTIFICATION  ===============
@@ -225,7 +261,12 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.notification.toString())){ // COMMAND NOTIFICATION
             		
-            		commandNotification(extras);
+            		errorMsg = "Catched push notification message (GCM): [NOTIFICATION]";
+        			LogManager.LogInfoMsg(className, "Notification", errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
+
+        			handleCommandNotification(extras);
             	} 
         	
             } // if (GoogleCloudMessaging
@@ -250,6 +291,11 @@ public class GcmIntentService extends IntentService {
 	// The code below is taken from MainActivity function
 	// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
 	private void checkDeviceForGooglePlayServices(){
+		
+		String methodName = "checkDeviceForGooglePlayServices";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+		
 		try {
 			Controller.checkPlayServices(clientContext);
 		} catch (CheckPlayServicesException e) {
@@ -257,25 +303,32 @@ public class GcmIntentService extends IntentService {
 			if(CommonConst.PLAYSERVICES_ERROR.equals(errorMessage)){
 	            //GooglePlayServicesUtil.getErrorDialog(e.getResultCode(), this,
 	            //	PLAY_SERVICES_RESOLUTION_REQUEST).show();
-	            Log.e(CommonConst.LOG_TAG, errorMessage + " .Error code: " + e.getResultCode());
-	    		LogManager.LogInfoMsg(className, "onCreate", 
-	    			errorMessage + " .Error code: " + e.getResultCode());
+				errorMsg = errorMessage + " .Error code: " + e.getResultCode();
+				LogManager.LogException(e, errorMsg, methodName);
+				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + errorMsg, e);
 			} else if(CommonConst.PLAYSERVICES_DEVICE_NOT_SUPPORTED.equals(errorMessage)){
 				// Show dialog with errorMessage
 				// showNotificationDialog(errorMessage);
-				String errorMsg = "Current device is not supported by Google Play Services ";
-	            Log.e(CommonConst.LOG_TAG, errorMsg);
-	    		LogManager.LogInfoMsg(className, "onCreate", 
-	    			errorMsg);
+				errorMsg = "Current device is not supported by Google Play Services ";
+				LogManager.LogException(e, errorMsg, methodName);
+				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + errorMsg, e);
 			}
-            Log.e(CommonConst.LOG_TAG, "No valid Google Play Services APK found.");
-    		LogManager.LogInfoMsg(className, "onCreate", 
-    			"No valid Google Play Services APK found.");
+			errorMsg = "No valid Google Play Services APK found.";
+			LogManager.LogErrorMsg(className, methodName, errorMsg);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + errorMsg);
 			//finish();
+    		
+			LogManager.LogFunctionExit(className, methodName);
+			Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 		}
 	}
 	
 	private void getClientRegistartionId(){
+		
+		String methodName = "getClientRegistartionId";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+
 		gcm = GoogleCloudMessaging.getInstance(this);
         registrationId = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_REG_ID);
         if (registrationId == null || registrationId.isEmpty()) {
@@ -286,6 +339,9 @@ public class GcmIntentService extends IntentService {
         	map.put("Context", clientContext);
         	Controller.registerInBackground(map);
         }
+        
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 	private MessageDataContactDetails initCommand(Bundle extras) 
@@ -318,7 +374,11 @@ public class GcmIntentService extends IntentService {
 		return contactDetailsSentFrom;
 	}
 	
-	private void commandStartTrackLocationService(Bundle extras){
+	private void handleCommandStartTrackLocationService(Bundle extras){
+		
+		String methodName = "handleCommandStartTrackLocationService";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 		
 		MessageDataContactDetails contactDetailsSentFrom;
 		String accountCommandSentFrom;
@@ -328,26 +388,25 @@ public class GcmIntentService extends IntentService {
 			accountCommandSentFrom = contactDetailsSentFrom.getAccount();
 		} catch (NoSentContactFromException e) {
 			errorMsg = "Failed to start TrackLocationService - NoSentContactFrom details";
-			LogManager.LogErrorMsg(className, "commandStartTrackLocationService", errorMsg);
-			Log.e(CommonConst.LOG_TAG, errorMsg);
+			LogManager.LogException(e, errorMsg, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + errorMsg, e);
 			return;
 		} catch (NoSentContactFromAccountException e) {
 			errorMsg = "Failed to start TrackLocationService - NoSentContactFromAccount details";
-			LogManager.LogErrorMsg(className, "commandStartTrackLocationService", errorMsg);
-			Log.e(CommonConst.LOG_TAG, errorMsg);
+			LogManager.LogException(e, errorMsg, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + errorMsg, e);
 			return;
 		}
 		
     	PermissionsData permissionsData = DBLayer.getPermissions(accountCommandSentFrom);
     	if( permissionsData == null){
-    		// TODO: Show error - no permission for "account" to invoke TrackLocation
-   		
+    		// Show error - no permission for "account" to invoke TrackLocation
         	errorMsg = "No permissions defind for account: " + accountCommandSentFrom + 
         		". Not permitted to share location.";
         	// "Existing permissions >>> " +
         	//	gson.toJson(DBLayer.getPermissionsList(null)) + " <<< ";
-            Log.e(CommonConst.LOG_TAG, errorMsg);
-            LogManager.LogErrorMsg(className, "GcmIntentService->onHandleIntent->[COMMAND:start]", errorMsg);
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + errorMsg);
+            LogManager.LogErrorMsg(className, methodName, errorMsg);
             
             MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
                 	clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
@@ -358,6 +417,9 @@ public class GcmIntentService extends IntentService {
             		contactDetailsSentFrom.getPhoneNumber(), 
             		contactDetailsSentFrom.getRegId(), 
             		null);
+			// ===========================================================
+			// ===  NOTIFICATION: NO PERMISSIONS DEFINED FOR ACCOUNT  ====
+			// ===========================================================
             // Notify caller by GCM (push notification)
             CommandDataBasic commandDataBasic = new CommandData(
 				getApplicationContext(), 
@@ -379,8 +441,8 @@ public class GcmIntentService extends IntentService {
     	if( isLocationSharingPermitted != 1 ){
     		// TODO: Show error - no permission to invoke TrackLocation
     		errorMsg = "Not permitted to share location to " + accountCommandSentFrom;
-            Log.e(CommonConst.LOG_TAG, errorMsg);
-            LogManager.LogErrorMsg(className, "GcmIntentService->onHandleIntent->[COMMAND:start]", errorMsg);
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + errorMsg);
+            LogManager.LogErrorMsg(className, methodName, errorMsg);
             
             // Notify to caller by GCM (push notification)
             MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
@@ -392,6 +454,9 @@ public class GcmIntentService extends IntentService {
                 		contactDetailsSentFrom.getPhoneNumber(), 
                 		contactDetailsSentFrom.getRegId(), 
             			null);
+			// ===========================================================
+			// ===  NOTIFICATION: NOT PERMITTED TO SHARE FOR ACCOUNT  ====
+			// ===========================================================
             // Notify caller by GCM (push notification)
             CommandDataBasic commandDataBasic = new CommandData(
 				getApplicationContext(), 
@@ -422,12 +487,6 @@ public class GcmIntentService extends IntentService {
             	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
 		}
 		
-		// Start location service to get current location
-		Intent trackLocationService = new Intent(clientContext, TrackLocationService.class);
-// TODO: Delete the following putExtra(CommonConst.REGISTRATION_ID_TO_RETURN_MESSAGE_TO...
-//		trackLocationService.putExtra(CommonConst.REGISTRATION_ID_TO_RETURN_MESSAGE_TO, 
-//			contactDetailsSentFrom.getRegId());
-		
         MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
             clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
         ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
@@ -441,19 +500,32 @@ public class GcmIntentService extends IntentService {
         String msgServiceStarted;
         String notificationKey;
         String notificationValue;
+        
+		// ===========================================================
+		// Start TrackLocation service to get current location
+		// ===========================================================
+		Intent trackLocationService = new Intent(clientContext, TrackLocationService.class);
 		ComponentName componentName = clientContext.startService(trackLocationService); 
 		if(componentName != null){
 			// Notify that TrackLoactionService was started - by GCM (push notification)
 			msgServiceStarted = "TrackLocationService is starting by [" + clientAccount + "]";
-			notificationKey = CommandKeyEnum.status.toString();
-			notificationValue = CommandValueEnum.success.toString();		
+			notificationKey = CommandKeyEnum.starting_status.toString();
+			notificationValue = CommandValueEnum.success.toString();
+			LogManager.LogInfoMsg(className, methodName, msgServiceStarted);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + msgServiceStarted);
 		} else {
 			// Notify that TrackLoactionService was not started - by GCM (push notification)
 			msgServiceStarted = "Failed to start TrackLocationService on [" + clientAccount + "]";
-			notificationKey = CommandKeyEnum.status.toString();
+			notificationKey = CommandKeyEnum.starting_status.toString();
 			notificationValue = CommandValueEnum.error.toString();		
+			LogManager.LogErrorMsg(className, methodName, msgServiceStarted);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + msgServiceStarted);
 		}
-        // Notify caller by GCM (push notification)
+		
+		// ===========================================================
+		// ===  NOTIFICATION: START COMMAND STATUS  ==================
+		// ===========================================================
+		// Notify caller by GCM (push notification)
 		CommandDataBasic commandDataBasic = new CommandData(
 			getApplicationContext(), 
 			contactDeviceDataToSendNotificationTo, 
@@ -466,16 +538,33 @@ public class GcmIntentService extends IntentService {
 			appInfo
 		);
 		commandDataBasic.sendCommand();
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	private void commandStopTrackLocationService(Bundle extras){
+	private void handleCommandStopTrackLocationService(Bundle extras){
+		
+		String methodName = "handleCommandStopTrackLocationService";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL]  {" + className + "} -> " + methodName);
+
 		Intent trackLocationService = new Intent(context, TrackLocationService.class);
 		boolean result = context.stopService(trackLocationService); 
-		Log.i(LOCATION_SERVICE, "Servise stopped: " + result);
+		
+		LogManager.LogInfoMsg(className, methodName, "Servise stopped: " + result);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + "Servise stopped: " + result);
+
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	private void commandStatusRequest(Bundle extras){
+	private void handleCommandStatusRequest(Bundle extras){
 		
+		String methodName = "handleCommandStatusRequest";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+
 		MessageDataContactDetails contactDetailsSentFrom;
 		String accountCommandSentFrom;
 		
@@ -555,9 +644,16 @@ public class GcmIntentService extends IntentService {
 			}
     	} 
 */    	
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	private void commandStatusResponse(Bundle extras){
+	private void handleCommandStatusResponse(Bundle extras){
+		
+		String methodName = "handleCommandStatusResponse";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+		
 		String key = extras.getString(CommandTagEnum.key.toString());
 		String value = extras.getString(CommandTagEnum.value.toString());
 		String currentDateTime = Controller.getCurrentDate();
@@ -579,15 +675,44 @@ public class GcmIntentService extends IntentService {
 				BroadcastKeyEnum.gcm_status.toString(),  
 				"");
 		}
+		
+		errorMsg = "StatusResponse key = " + key;
+		LogManager.LogInfoMsg(className, methodName, errorMsg);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+
+		errorMsg = "StatusResponse value = " + value;
+		LogManager.LogInfoMsg(className, methodName, errorMsg);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	private void commandLocationUpdare(Bundle extras){
+	private void handleCommandLocationUpdate(Bundle extras){
+
+		String methodName = "handleCommandLocationUpdate";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+
 		String key = extras.getString(CommandTagEnum.key.toString());
 		String value = extras.getString(CommandTagEnum.value.toString());
 		String currentDateTime = Controller.getCurrentDate();
 		
+		errorMsg = "StatusResponse key = " + key;
+		LogManager.LogInfoMsg(className, methodName, errorMsg);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+
+		errorMsg = "StatusResponse value = " + value;
+		LogManager.LogInfoMsg(className, methodName, errorMsg);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+
 		String jsonContactDetails = extras.getString("contactDetails");
 		String jsonLocation = extras.getString("location");
+
+		errorMsg = "Location = " + jsonLocation;
+		LogManager.LogInfoMsg(className, methodName, errorMsg);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+
 		MessageDataContactDetails contactDetails = 
 			gson.fromJson(jsonContactDetails, MessageDataContactDetails.class);
 		MessageDataLocation location = 
@@ -603,9 +728,17 @@ public class GcmIntentService extends IntentService {
 			jsonBroadcastData,	
 			null, //BroadcastKeyEnum.location_updated.toString(), 
 			key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	private void commandJoinApproval(Bundle extras){
+	private void handleCommandJoinApproval(Bundle extras){
+		
+		String methodName = "handleCommandJoinApproval";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+		
 		String message = extras.getString("message"); // email, regId, phoneNumber
 		
 		String messageArray[] = message.split(CommonConst.DELIMITER_COMMA);
@@ -635,31 +768,48 @@ public class GcmIntentService extends IntentService {
 		SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
 		if( sentJoinRequestData == null ){
 			errorMsg = "Failed to get sent join request data";
-            Log.e(CommonConst .LOG_TAG, errorMsg);
-            LogManager.LogErrorMsg(className, "GcmIntentService->OnHandleEvent->[COMMAND:join_approval]", errorMsg);
+			LogManager.LogErrorMsg(className, methodName, errorMsg);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + errorMsg);
 		}else {
-			Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + sentJoinRequestData.toString());
+			// TODO: Check which data id possible to show in log - from sentJoinRequestData
+			errorMsg = "ReceivedJoinRequestData = " +  "check which data is possible to log"; // sentJoinRequestData;
+			LogManager.LogInfoMsg(className, methodName, errorMsg);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
 		}
 		
 		// Remove join request from TABLE_SEND_JOIN_REQUEST according to "mutualId"
 		int count = DBLayer.deleteSentJoinRequest(mutualId);
 		if( count < 1) {
-			Log.i(CommonConst.LOG_TAG, "Failed to delete sent join request with mutual id: " + mutualId + " count = " + count);
+			errorMsg = "Failed to delete sent join request with mutual id: " + mutualId + " count = " + count;
+			LogManager.LogInfoMsg(className, methodName, errorMsg);
+			Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
 		} else {
-			Log.i(CommonConst.LOG_TAG, "Deleted sent join request with mutual id: " + mutualId + " count = " + count);
+			errorMsg = "Deleted sent join request with mutual id: " + mutualId + " count = " + count;
+			LogManager.LogInfoMsg(className, methodName, errorMsg);
+			Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
 		}
 		
 		sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
 		if( sentJoinRequestData != null){
-			Log.i(CommonConst.LOG_TAG, "Failed to delete sent join request with mutual id: " + mutualId + " count = " + count);
+			errorMsg = "Failed to delete sent join request with mutual id: " + mutualId + " count = " + count;
+			LogManager.LogInfoMsg(className, methodName, errorMsg);
+			Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
 		}
 		
 		// Add contact details to CondtactDeviceData table
 		DBLayer.addContactDeviceDataList(new ContactDeviceDataList(email,
 				macAddress, phoneNumber, registrationIdJoinApproval, null));
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	private void commandTrackLocationKeepAlive(Bundle extras){
+	private void handleCommandTrackLocationKeepAlive(Bundle extras){
+
+		String methodName = "handleCommandTrackLocationKeepAlive";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+		
 		String key = extras.getString(CommandTagEnum.key.toString());
 		String value = extras.getString(CommandTagEnum.value.toString());
 		
@@ -669,30 +819,83 @@ public class GcmIntentService extends IntentService {
 			null, 
 			BroadcastKeyEnum.keep_alive.toString(),  
 			key + CommonConst.DELIMITER_STRING + value);
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	private void commandNotification(Bundle extras){
-		LogManager.LogFunctionCall(className, "GcmIntentService->OnHandleEvent->[COMMAND:notification]");
+	private void handleCommandNotification(Bundle extras){
+		
+		String methodName = "handleCommandTrackLocationKeepAlive";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+		
 		String msg = extras.getString("message");
 		if(msg != null && !msg.isEmpty()){
-    		LogManager.LogInfoMsg(className, "GcmIntentService->OnHandleEvent->[COMMAND:notification]", msg);
+			errorMsg = "message: " + msg;
+			LogManager.LogInfoMsg(className, methodName, errorMsg);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
 		}
 		
 		String key = extras.getString(CommandTagEnum.key.toString());
+		errorMsg = "[KEY]: " + key;
+		LogManager.LogInfoMsg(className, methodName, errorMsg);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+
 		String value = extras.getString(CommandTagEnum.value.toString());
-		NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
-		notificationBroadcastData.setMessage(extras.getString("message"));
-		notificationBroadcastData.setKey(key);
-		notificationBroadcastData.setValue(value);
-		String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
+		errorMsg = "[VALUE]: " + value;
+		LogManager.LogInfoMsg(className, methodName, errorMsg);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
 		
-		// Broadcast corresponding message
-		Controller.broadcastMessage(GcmIntentService.this, 
-			BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
-			"GcmIntentService",
-			jsonNotificationBroadcastData, 
-			key, // BroadcastKeyEnum.message.toString(),  
-			value);
-		LogManager.LogFunctionExit(className, "GcmIntentService->OnHandleEvent->[COMMAND:notification]");
+		if(CommandKeyEnum.start_status.toString().equals(key) && 
+				CommandValueEnum.success.toString().equals(value)){
+			String jsonListAccounts = Preferences.getPreferencesString(clientContext, 
+	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+			errorMsg = "[Recipients accounts list]: " + jsonListAccounts;
+			LogManager.LogInfoMsg(className, methodName, errorMsg);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+
+	        Gson gson = new Gson();
+	        @SuppressWarnings("unchecked")
+			List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+	        if(listAccounts != null && listAccounts.contains(clientAccount)){
+	        	listAccounts.remove(clientAccount);
+	        	jsonListAccounts = gson.toJson(listAccounts);
+	        	if(jsonListAccounts == null){
+	        		jsonListAccounts = "";
+	        	}	        
+	        	Preferences.setPreferencesString(context, 
+		        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
+	        	errorMsg = "[Updated recipients accounts list]: " + jsonListAccounts;
+	    		LogManager.LogInfoMsg(className, methodName, errorMsg);
+	    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
+	        }
+	        
+	        // TODO: For test only:
+			jsonListAccounts = Preferences.getPreferencesString(clientContext, 
+	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+		}
+
+// TODO: Delete from here - not needed - ONLY as example of BROADCAST:
+//		
+//		NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
+//		notificationBroadcastData.setMessage(extras.getString("message"));
+//		notificationBroadcastData.setKey(key);
+//		notificationBroadcastData.setValue(value);
+//		String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
+//		
+//		MessageDataContactDetails mdcd = 
+//			gson.fromJson(extras.getString("contactDetails"), MessageDataContactDetails.class);
+//
+//		// Broadcast corresponding message
+//		Controller.broadcastMessage(GcmIntentService.this, 
+//			BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+//			"GcmIntentService",
+//			jsonNotificationBroadcastData, 
+//			key, // BroadcastKeyEnum.message.toString(),  
+//			value);
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 }

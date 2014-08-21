@@ -2,7 +2,6 @@ package com.dagrest.tracklocation.http;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -17,6 +16,7 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.dagrest.tracklocation.log.LogManager;
@@ -61,6 +61,35 @@ public class HttpUtils {
         return null;
     }
     
+    
+//    public static String sendMessageToBackendAsync(final String jsonMessage) {
+//        //LogManager.LogFunctionCall("HttpUtils", "sendMessageToBackendAsync");
+//	    new AsyncTask<Void, Void, String>() {
+//	        //@Override
+//		    protected String doInBackground(Void... params) {
+//		    	Log.i(CommonConst.LOG_TAG, "PostThreadId: " + Thread.currentThread().getId());
+//		        String result = HttpUtils.postGCM("https://android.googleapis.com/gcm/send", 
+//		            	"AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30", jsonMessage);
+//		        Log.w(CommonConst.LOG_TAG, "HttpUtils.postGCM [sendMessageToBackendAsync] Result: " + result);
+//		        Log.w(CommonConst.LOG_TAG, "HttpUtils.postGCM [sendMessageToBackendAsync] CMD: " + jsonMessage);
+////		            Log.w(CommonConst.LOG_TAG, "CMD: " + jsonMessage);
+////		            Log.w(CommonConst.LOG_TAG, "Res: " + result);
+//		            if(result != null && !result.isEmpty() && result.contains("error")){
+//		            	LogManager.LogErrorMsg("HttpUtils", "sendMessageToBackend", result);
+//		            	Log.e(CommonConst.LOG_TAG, result);
+//		            	// TODO: Broadcast clear error 
+//		            }
+//
+//				return result;
+//		    }
+//	        @Override
+//	        protected void onPostExecute(String result) {
+//	        	// TODO: fix return value
+//	        }
+//	    }.execute(null, null, null);
+//		return jsonMessage;
+//    }
+
     public static String sendMessageToBackend(String jsonMessage) {
         LogManager.LogFunctionCall("HttpUtils", "sendMessageToBackend");
 //        //PostToGCM.post(apiKey, content);
@@ -71,7 +100,9 @@ public class HttpUtils {
         
         String result = HttpUtils.postGCM("https://android.googleapis.com/gcm/send", 
         	"AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30", jsonMessage);
-        
+//        Log.w(CommonConst.LOG_TAG, "HttpUtils.postGCM [sendMessageToBackend] Result: " + result);
+//        Log.w(CommonConst.LOG_TAG, "HttpUtils.postGCM [sendMessageToBackend] CMD: " + jsonMessage);
+//        Log.w(CommonConst.LOG_TAG, "Res: " + result);
         if(result != null && !result.isEmpty() && result.contains("error")){
         	LogManager.LogErrorMsg("HttpUtils", "sendMessageToBackend", result);
         	Log.e(CommonConst.LOG_TAG, result);

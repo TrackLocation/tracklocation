@@ -1,5 +1,7 @@
 package com.dagrest.tracklocation.db;
 
+import com.dagrest.tracklocation.log.LogManager;
+
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -7,13 +9,18 @@ import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper{
 
+	private String className;
+	private String methodName;
+	
 	// http://blog.lemberg.co.uk/concurrent-database-access
     public DBHelper(Context context) {
         super(context, DBConst.DATABASE_NAME, null, DBConst.DATABASE_VERSION);
+    	className = this.getClass().getName(); 
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+    	methodName = "onCreate";
         if (DBConst.IS_DEBUG_LOG_ENABLED)
             Log.i(DBConst.LOG_TAG_DB, "new create");
         try {
@@ -26,7 +33,8 @@ public class DBHelper extends SQLiteOpenHelper{
 
         } catch (Exception exception) {
             if (DBConst.IS_DEBUG_LOG_ENABLED){
-            	Log.e(DBConst.LOG_TAG_DB, "Exception DBHelper.onCreate() exception", exception);
+            	Log.e(DBConst.LOG_TAG_DB, "[EXCEPTION] {" + className + "} -> Exception DBHelper.onCreate()", exception);
+            	LogManager.LogException(exception, className, methodName);
             }
         }
     }

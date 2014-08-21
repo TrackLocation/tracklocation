@@ -61,7 +61,6 @@ import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.exception.CheckPlayServicesException;
-import com.dagrest.tracklocation.http.HttpUtils;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.MapKeepAliveTimerJob;
@@ -87,6 +86,26 @@ public class Controller {
 	private Timer timer;
 	private MapKeepAliveTimerJob mapKeepAliveTimerJob;
 
+	public void keepAliveTrackLocationService(Context context, ContactDeviceDataList selectedContactDeviceDataList, long startDelay){
+        timer = new Timer();
+        mapKeepAliveTimerJob = new MapKeepAliveTimerJob();
+        mapKeepAliveTimerJob.setContext(context);
+        mapKeepAliveTimerJob.setSelectedContactDeviceDataList(selectedContactDeviceDataList);
+    	Log.i(CommonConst.LOG_TAG, "Start KeepAliveTrackLocationService TimerJob with repeat period = " + 
+        		(CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700)/1000/60 + " min");
+        timer.schedule(mapKeepAliveTimerJob, startDelay, 
+        	CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700);
+    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - started");
+	}
+	
+	public void stopKeepAliveTrackLocationService(){
+		timer.cancel();
+	}
+	
+	// =======================
+	// STATIC FUNCTIONS:
+	// =======================
+	
     /**
      * Registers the application with GCM servers asynchronously.
      * <p>
@@ -189,26 +208,6 @@ public class Controller {
 	    }
 	}
 
-	public void keepAliveTrackLocationService(Context context, ContactDeviceDataList selectedContactDeviceDataList, long startDelay){
-        timer = new Timer();
-        mapKeepAliveTimerJob = new MapKeepAliveTimerJob();
-        mapKeepAliveTimerJob.setContext(context);
-        mapKeepAliveTimerJob.setSelectedContactDeviceDataList(selectedContactDeviceDataList);
-    	Log.i(CommonConst.LOG_TAG, "Start KeepAliveTrackLocationService TimerJob with repeat period = " + 
-        		(CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700)/1000/60 + " min");
-        timer.schedule(mapKeepAliveTimerJob, startDelay, 
-        	CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700);
-    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - started");
-	}
-	
-	public void stopKeepAliveTrackLocationService(){
-		timer.cancel();
-	}
-	
-	// =======================
-	// STATIC FUNCTIONS:
-	// =======================
-	
 	public static String generateUUID(){
 		return UUID.randomUUID().toString().replaceAll("-", "");
 	}
@@ -288,9 +287,16 @@ public class Controller {
         messageData.setContactDetails(contactDetails);
         messageData.setAppInfo(appInfo);
         
+        // time_to_live: from 0 to 2,419,200 seconds 
+        // 0 means messages that can't be delivered immediately will be discarded. 
+        // However, because such messages are never stored, this provides the best 
+        // latency for sending notifications.
+        long time_to_live = 0;
+        
         Message message = new Message();
         message.setData(messageData); 
         message.setRegistrationIDs(listRegIDs);
+        message.setTime_to_live(time_to_live);
 
         jsonMessage = gson.toJson(message);
         
@@ -301,50 +307,8 @@ public class Controller {
 
     	return jsonMessage;
     }
-/*
-	public static String createJsonMessage(
-			List<String> listRegIDs, 					// List of contact's regIDs to send message to
-    		String regIDToReturnMessageTo,				// regID of contact to return message to 
-    		CommandEnum command, 						// command
-    		String messageString,						// message	
-    		MessageDataContactDetails contactDetails, 	// account, macAddress, phoneNumber, regId, batteryPercentage
-    		MessageDataLocation location,				// latitude, longitude, accuracy, speed
-    		AppInfo appInfo,							// application info version number, version name and so on...
-    		String time,								// time
-    		String key, 								// key
-    		String value){								// value
-    	
-		LogManager.LogFunctionCall(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]");
-		
-    	String jsonMessage = null;
-    	
-        Gson gson = new Gson();
-    	
-        MessageData messageData = new MessageData();
-        messageData.setMessage(messageString);
-        messageData.setTime(time);
-        messageData.setCommand(command);
-        messageData.setRegIDToReturnMessageTo(regIDToReturnMessageTo);
-        messageData.setKey(key);
-        messageData.setValue(value);
-        messageData.setLocation(location);
-        messageData.setContactDetails(contactDetails);
-        
-        Message message = new Message();
-        message.setData(messageData); 
-        message.setRegistrationIDs(listRegIDs);
 
-        jsonMessage = gson.toJson(message);
-        
-//        String infoMessage = "JSON Message: " + jsonMessage;
-//        LogManager.LogInfoMsg(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]", infoMessage);
-    	
-		LogManager.LogFunctionExit(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]");
-
-    	return jsonMessage;
-    }
-*/    
-  /**
+	/**
 	 * Gets the current registration ID for application on GCM service.
 	 * 
 	 * If result is empty, the app needs to register.
@@ -410,29 +374,6 @@ public class Controller {
 		
 		return appInfo;
 	}
-
-	/*
-     * Send command to request contact by GCM (Google Cloud Message - push notifictation)
-     */
-    public static void sendCommand(final String jsonMessage){ 
-    	// AsyncTask <TypeOfVarArgParams , ProgressValue , ResultValue>
-	    new AsyncTask<Void, Void, String>() {
-	        @Override
-	        protected String doInBackground(Void... params) {
-	        	String result = null;
-	        	if(jsonMessage != null){
-	            	result = HttpUtils.sendMessageToBackend(jsonMessage);
-	        	}
-            	// TODO: fix return value
-            	return result;
-	        }
-	
-	        @Override
-	        protected void onPostExecute(String msg) {
-	        	// TODO: fix return value
-	        }
-	    }.execute(null, null, null);
-    }
 
 	public static String getCurrentDate(){
 		DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss dd/MM/yyyy", Locale.US);
@@ -838,7 +779,7 @@ public class Controller {
         			value, 						// null
         			appInfo
 				);
-				commandDataBasic.sendCommand();
+				commandDataBasic.sendCommand(/*true*/);
 				
 				// Remove from RECEIVED_JOIN_REQUEST
 				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
@@ -891,7 +832,7 @@ public class Controller {
         			value,				// null
         			appInfo
 				);
-				commandDataBasic.sendCommand();
+				commandDataBasic.sendCommand(/*true*/);
 				
 				// Remove from RECEIVED_JOIN_REQUEST
 				int count = DBLayer.deleteReceivedJoinRequest(mutualId);
@@ -953,68 +894,6 @@ public class Controller {
 		aboutDialog.setCancelable(true);
     }
 
-/*
-	// TODO: Remove regId - replaced by ownerRegId
-	public static void sendApproveOnJoinRequest(Context context, String regId, String ownerMutualId, 
-			String ownerEmail, String ownerRegId, String ownerMacAddress, String ownerPhoneNumber, 
-			CommandEnum command){
-		
-		String regIDToReturnMessageTo = regId;
-		List<String> listRegIDs = new ArrayList<String>();
-		// listRegIDs.add(regId);
-		String time = Controller.getCurrentDate();
-		String messageString = ownerEmail + CommonConst.DELIMITER_COMMA + ownerRegId + CommonConst.DELIMITER_COMMA + 
-				ownerPhoneNumber + CommonConst.DELIMITER_COMMA + ownerMacAddress;
-		listRegIDs.add(ownerRegId);
-		float batteryPercentage = -1;
-		MessageDataContactDetails contactDetails = 
-			new MessageDataContactDetails(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, batteryPercentage);
-		MessageDataLocation location = null;
-		
-		// TODO: remove regIDToReturnMessageTo from function signature - remove it to function itself
-		String jsonMessage = createJsonMessage(new JsonMessageData(
-				listRegIDs, 
-	    		regIDToReturnMessageTo, 
-	    		command, // CommandEnum.join_approval, 
-	    		messageString, // email, regId, phoneNumber, macAddress
-	    		contactDetails,
-	    		location,
-	    		null, // application info
-	    		time,
-	    		NotificationKeyEnum.joinRequestApprovalMutualId.toString(), 
-	    		ownerMutualId
-				));
-		sendCommand(jsonMessage);
-//		if(CommandEnum.join_approval.toString().equals(command)){
-//			// add contact to the following tables:
-//			// TABLE_CONTACT_DEVICE
-//			// TABLE_CONTACT
-//			// TABLE_DEVICE
-//			ContactData contactData = DBLayer.addContactData(null, null, null, email);
-//			DeviceData deviceData = DBLayer.addDeviceData("macAddress", null, DeviceTypeEnum.unknown);
-//			ContactDeviceData contactDeviceData = new ContactDeviceData();
-//			contactDeviceData.setContactData(contactData);
-//			contactDeviceData.setDeviceData(deviceData);
-//			ContactDeviceDataList contactDeviceDataList = new ContactDeviceDataList();
-//			contactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
-//			DBLayer.addContactDeviceDataList(contactDeviceDataList);
-//		}
-	}
-*/
-
-	
-//	public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
-//		List<String> values = null;
-//	    
-//		ContactDeviceDataList contactDeviceDataCollection = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
-//	    if(contactDeviceDataCollection == null){
-//	    	return null;
-//	    }
-//	
-//	    values = fillContactListWithContactDeviceDataFromJSON(contactDeviceDataCollection, checkBoxesShareLocation);
-//	    return values;
-//	}
-	
 	public static List<String> fillContactListWithContactDeviceDataFromJSON(
 			ContactDeviceDataList contactDeviceDataCollection,
 			List<Boolean> checkBoxesShareLocation, List<String> emailList){
@@ -1100,217 +979,7 @@ public class Controller {
 		
 		return valuesCheckBoxesShareLocation;
 	}
-/*
-	// TODO: Throw exception id sendCommand failed
-	// TODO: Implement return value
-	public static void sendCommand(CommandData commandData){
-		Context context; 
-		ContactDeviceDataList contactDeviceDataList; 
-		CommandEnum command;
-		String message; 
-		MessageDataContactDetails contactDetails; 
-		MessageDataLocation location; 
-		String key; 
-		String value;
-		AppInfo appInfo;
-		String errorMsg = null;
-		
-		LogManager.LogFunctionCall(CLASS_NAME, "[sendCommand]");
 
-		if(commandData == null) {
-			errorMsg = "There is no data to send";
-			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:NO_DATA_TO_SEND]", errorMsg);
-			return;
-		}
-		
-		command = commandData.getCommand();
-		if(command == null){
-			errorMsg = "Command is undefined";
-			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:UNDEFINED_COMMAND]", errorMsg);
-			return;
-		}
-		
-		LogManager.LogFunctionCall(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
-
-		context = commandData.getContext();
-		if(context == null){
-			errorMsg = "Context is undefined";
-			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
-			return;
-		}
-		
-		contactDeviceDataList = commandData.getContactDeviceDataList();
-		if(contactDeviceDataList == null){
-			errorMsg = "There is no recipient list defined";
-			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
-			return;
-		}
-		
-		contactDetails = commandData.getContactDetails();
-		if(contactDetails == null){
-			errorMsg = "There is no sender defined";
-			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
-			return;
-		}
-		
-		// Not mandatory variables for each sendCommand 
-		location = commandData.getLocation();
-		message = commandData.getMessage();
-		key = commandData.getKey();
-		value = commandData.getValue();
-		appInfo = commandData.getAppInfo();
-	
-		// Original SendCommand started here
-		String infoMessage;
-		
-//		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
-//		if(regIDToReturnMessageTo == null || regIDToReturnMessageTo.isEmpty()){
-//			errorMsg = "Check if app was updated; if so, it must clear the registration ID" + 
-//				"since the existing regID is not guaranteed to work with the new" + 
-//				"app version.";
-//			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
-//			return;
-//		}
-
-		List<String> listRegIDs = new ArrayList<String>();
-		List<String> listAccounts = new ArrayList<String>();
-		
-		// Collect registration_IDs of the contacts that command will be send to
-		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
-			ContactData contactData = contactDeviceData.getContactData();
-			if(contactData != null){
-				String regId = contactDeviceData.getRegistration_id();
-				if(regId != null && !regId.isEmpty()){
-					listRegIDs.add(contactDeviceData.getRegistration_id());
-				} else {
-					errorMsg = "Empty registrationID for the following contact: " + contactData.getEmail();
-					LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
-					Log.e("[sendCommand:" + command.toString() + "]", errorMsg);
-				}
-				listAccounts.add(contactData.getEmail());
-			} else {
-				LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: ContactData is null.");
-				Log.e("[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: contactData is null.");
-			}
-			
-		}
-		
-		Gson gson = new Gson();
-		infoMessage = 	"Sending command [" + command.toString() + "] to the following recipients: " +
-						gson.toJson(listAccounts);
-		LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", infoMessage);
-		
-		JsonMessageData jsonMessageData = new JsonMessageData(
-				listRegIDs, 				// registration_IDs of the contacts that command will be send to
-	    		//regIDToReturnMessageTo, 	// sender's registartion_ID (contact that response will be returned to)
-	    		command, 
-	    		message, 					// messageString
-	    		contactDetails,				// sender's contact details
-	    		location,					// sender's location details
-	    		appInfo,					// application info
-	    		Controller.getCurrentDate(),// current time
-	    		key, 						// key (free pair of key/value)
-	    		value 						// value (free pair of key/value)
-				);
-		
-		if(listRegIDs.size() > 0){
-			String jsonMessage = Controller.createJsonMessage(jsonMessageData);
-//					listRegIDs, 				// registration_IDs of the contacts that command will be send to
-//		    		regIDToReturnMessageTo, 	// sender's registartion_ID (contact that response will be returned to)
-//		    		command, 
-//		    		message, 					// messageString
-//		    		contactDetails,				// sender's contact details
-//		    		location,					// sender's location details
-//		    		appInfo,					// application info
-//		    		Controller.getCurrentDate(),// current time
-//		    		key, 						// key (free pair of key/value)
-//		    		value 						// value (free pair of key/value)
-//					);
-			
-			if(jsonMessage == null){
-				errorMsg = "Failed to create JSON Message to send to recipient";
-				LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
-				return;
-			}
-			
-			LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
-				"Sending command [" + command.toString() + "] as asynchonous task... ");
-//			LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
-//				"JSON message: " + jsonMessage);
-			Controller.sendCommand(jsonMessage);
-		} else {
-			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
-				"Unable to send command: [" + command.toString() + "] - there is no any recipient.");
-		}
-		
-		LogManager.LogFunctionExit(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
-	}
-*/	
-	// TODO: Implement return value
-/*	
-	public static void sendCommand(
-			Context context, 
-			ContactDeviceDataList contactDeviceDataList, 
-			CommandEnum command, 
-			String message, 
-			MessageDataContactDetails contactDetails, 
-			MessageDataLocation location, 
-			AppInfo appInfo,
-			String key, 
-			String value){
-		
-		String infoMessage;
-		
-		LogManager.LogFunctionCall(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
-		
-		String regIDToReturnMessageTo = Controller.getRegistrationId(context);
-		List<String> listRegIDs = new ArrayList<String>();
-		List<String> listAccounts = new ArrayList<String>();
-		
-		// Collect registration_IDs of the contacts that command will be send to
-		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
-			ContactData contactData = contactDeviceData.getContactData();
-			if(contactData != null){
-				listRegIDs.add(contactDeviceData.getRegistration_id());
-				listAccounts.add(contactData.getEmail());
-			} else {
-				LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: ContactData is null.");
-				Log.e("[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: contactData is null.");
-			}
-			
-		}
-		
-		Gson gson = new Gson();
-		infoMessage = 	"Sending command [" + command.toString() + "] to the following recipients: " +
-						gson.toJson(listAccounts);
-		LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", infoMessage);
-		
-		if(listRegIDs.size() > 0){
-			String jsonMessage = Controller.createJsonMessage(
-					listRegIDs, 				// registration_IDs of the contacts that command will be send to
-		    		regIDToReturnMessageTo, 	// sender's registartion_ID (contact that response will be returned to)
-		    		command, 
-		    		message, 					// messageString
-		    		contactDetails,				// sender's contact details
-		    		location,					// sender's location details
-		    		appInfo,					// application info
-		    		Controller.getCurrentDate(),// current time
-		    		key, 						// key (free pair of key/value)
-		    		value 						// value (free pair of key/value)
-					);
-			LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
-				"Sending command [" + command.toString() + "] as asynchonous task... ");
-//			LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
-//				"JSON message: " + jsonMessage);
-			Controller.sendCommand(jsonMessage);
-		} else {
-			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
-				"Unable to send command: [" + command.toString() + "] - there is no any recipient.");
-		}
-		
-		LogManager.LogFunctionExit(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
-	}
-*/	
 	public static ContactDeviceDataList removeNonSelectedContacts(ContactDeviceDataList contactDeviceDataList, 
 		List<String> selectedContcatList){
 		
@@ -1573,4 +1242,610 @@ public class Controller {
 //		return macAddress;
 //	}
 
+/*
+public static String createJsonMessage(
+		List<String> listRegIDs, 					// List of contact's regIDs to send message to
+		String regIDToReturnMessageTo,				// regID of contact to return message to 
+		CommandEnum command, 						// command
+		String messageString,						// message	
+		MessageDataContactDetails contactDetails, 	// account, macAddress, phoneNumber, regId, batteryPercentage
+		MessageDataLocation location,				// latitude, longitude, accuracy, speed
+		AppInfo appInfo,							// application info version number, version name and so on...
+		String time,								// time
+		String key, 								// key
+		String value){								// value
+	
+	LogManager.LogFunctionCall(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]");
+	
+	String jsonMessage = null;
+	
+    Gson gson = new Gson();
+	
+    MessageData messageData = new MessageData();
+    messageData.setMessage(messageString);
+    messageData.setTime(time);
+    messageData.setCommand(command);
+    messageData.setRegIDToReturnMessageTo(regIDToReturnMessageTo);
+    messageData.setKey(key);
+    messageData.setValue(value);
+    messageData.setLocation(location);
+    messageData.setContactDetails(contactDetails);
+    
+    Message message = new Message();
+    message.setData(messageData); 
+    message.setRegistrationIDs(listRegIDs);
+
+    jsonMessage = gson.toJson(message);
+    
+//    String infoMessage = "JSON Message: " + jsonMessage;
+//    LogManager.LogInfoMsg(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]", infoMessage);
+	
+	LogManager.LogFunctionExit(CLASS_NAME, "[createJsonMessage:" + command.toString() + "]");
+
+	return jsonMessage;
+}
+*/    
+
+/*
+public static void sendCommand(final String jsonMessage, final Context context){ 
+	
+	Gson gson = new Gson();
+	String result;
+	
+	if(jsonMessage != null){
+		String account = "";
+		String macAddress = "";
+		Message m = gson.fromJson(jsonMessage, Message.class);
+		MessageData messageData = m.getData();
+		CommandEnum cmd = null;
+		if(messageData != null){
+			MessageDataContactDetails contactDetails = messageData.getContactDetails();
+			macAddress = contactDetails.getMacAddress();
+			account = contactDetails.getAccount();
+			cmd = messageData.getCommand();
+			Log.w(CommonConst.LOG_TAG, cmd.toString());
+		}
+		
+		if((context != null && CommandEnum.notification.equals(cmd)) ||
+		   (context != null && CommandEnum.start.equals(cmd))){
+            String sendCommandRetryDestination = account+macAddress;
+    		for (int i = 0; i < 5; i++) {
+            	
+    			//result = HttpUtils.sendMessageToBackend(jsonMessage);
+    			Log.i(CommonConst.LOG_TAG, "sendMessageToBackendAsync");
+    			result = HttpUtils.sendMessageToBackendAsync(jsonMessage);
+            	
+    			int resCode = Preferences.getPreferencesInt(context, sendCommandRetryDestination);
+                Log.i(CommonConst.LOG_TAG, "[" + cmd + "] command in BACKGROUND");
+                Log.i(CommonConst.LOG_TAG, "Save to " + sendCommandRetryDestination);
+                Log.i(CommonConst.LOG_TAG, "[RETRY BACKGROIND] " + 
+                    	Preferences.getPreferencesInt(context, sendCommandRetryDestination));
+            	if (resCode == 0){
+            		Log.i(CommonConst.LOG_TAG, "BREAK: " + i);
+            		break;
+            	}
+            	LogManager.LogInfoMsg(CLASS_NAME, "HttpUtils.sendMessageToBackend", jsonMessage);
+                try
+                {
+                	LogManager.LogInfoMsg(CLASS_NAME, "HttpUtils.sendMessageToBackend", "Wait - 3 sec");
+                	Log.i(CommonConst.LOG_TAG, i + ": Sleep 10 sec => HttpUtils.sendMessageToBackend");
+                    Thread.sleep(10000);
+                }
+                catch(Exception e)
+                {
+                	LogManager.LogException(e, CLASS_NAME, "HttpUtils.sendMessageToBackend");
+                	Log.i(CommonConst.LOG_TAG, "Save to " + sendCommandRetryDestination);
+                	Log.e(CommonConst.LOG_TAG, "Exception: Sleep 10 sec => HttpUtils.sendMessageToBackend");
+                }
+            	resCode = Preferences.getPreferencesInt(context, sendCommandRetryDestination);
+            	if (resCode == 0){
+            		Log.i(CommonConst.LOG_TAG, "BREAK: " + i);
+            		break;
+            	}
+			} 
+		}else {
+			Log.i(CommonConst.LOG_TAG, "sendMessageToBackend");
+			result = HttpUtils.sendMessageToBackend(jsonMessage);
+		}
+	}
+}
+*/
+
+
+//@SuppressWarnings("unchecked")
+//// params:
+////	  Context context,
+////	  ContactDeviceDataList selectedContactDeviceDataList, 
+////	  MessageDataContactDetails contactDetails,
+//public static void startTrackLocationService(HashMap<String, Object> params, final int retryTimes) {
+//    new AsyncTask<java.util.Map<String, Object>, Void, String>() {
+//        @Override
+//        protected String doInBackground(java.util.Map<String, Object>... params) {
+//        	String result = null;
+//        	Gson gson = new Gson();
+//        	Context context = null;
+//        	ContactDeviceDataList selectedContactDeviceDataList = null;
+//        	MessageDataContactDetails contactDetails = null;
+//        	Log.i("Thread", Thread.currentThread().getId() + "");
+//        	
+//            if(params != null){
+//            	Map<String, Object> mapParams = params[0];
+//            	if(mapParams.get("Context") instanceof Context){
+//            		context = (Context) mapParams.get("Context");
+//            	} else { 
+//            		// TODO: Error message
+//            	}
+//            	if(mapParams.get("SelectedContactDeviceDataList") instanceof ContactDeviceDataList){
+//            		selectedContactDeviceDataList = (ContactDeviceDataList) mapParams.get("SelectedContactDeviceDataList");
+//            	} else {
+//            		// TODO: Error message
+//            	}
+//            	if(mapParams.get("ContactDetails") instanceof MessageDataContactDetails){
+//            		contactDetails = (MessageDataContactDetails) mapParams.get("ContactDetails");
+//            	} else {
+//            		// TODO: Error message
+//            	}
+//            } else {
+//            	// TODO: Error message: incorrect parameters
+//            	return "Error" + "";
+//            }
+//
+//			// ===========================================================
+//			// ===  START  ===============================================
+//			// ===========================================================
+//			// Send START command (GCM) to selected contacts to start on their side TrackLocationService
+//			// to notify their location
+//			CommandDataBasic commandDataBasic = new CommandData(
+//				context, 
+//				selectedContactDeviceDataList, 
+//				CommandEnum.start,	// [START]	
+//				null, 				// message
+//				contactDetails, 
+//				null,				// location
+//				null, 				// key
+//				null, 				// value,
+//				null 				// appInfo
+//			);
+//			
+//	        int sendCommandRetry = 1;
+//	        if(contactDetails == null){
+//	        	return result;
+//	        }
+//	        String currentAccount = contactDetails.getAccount();
+//	        String sendCommandRetryDestination = currentAccount + contactDetails.getMacAddress();
+//	        Preferences.setPreferencesInt(context, sendCommandRetryDestination, sendCommandRetry);
+//	        Log.i(CommonConst.LOG_TAG, "[RETRY] " + 
+//	        	Preferences.getPreferencesInt(context, sendCommandRetryDestination));
+//	        
+//	        String jsonListAccounts = gson.toJson(commandDataBasic.getListAccounts());
+//	        // Set list of recipients' accounts list 
+//	        Preferences.setPreferencesString(context, 
+//	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
+//	        Log.i(CommonConst.LOG_TAG, "Saved destinations: " + jsonListAccounts);
+//	        List<String> listAccounts = null;
+//			for (int i = 0; i < retryTimes; i++) {
+//				// TODO: Check that loop should run 
+//				// Send [START] TrackLocation Service in Async way
+//				jsonListAccounts = Preferences.getPreferencesString(context, 
+//		        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+//		        Log.i(CommonConst.LOG_TAG, "Inside loop destinations: " + jsonListAccounts);
+//
+//				if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
+//					break;
+//				}
+//				listAccounts = gson.fromJson(jsonListAccounts, List.class);
+//				if(listAccounts == null){
+//					break;
+//				}
+//				if(!listAccounts.contains(currentAccount)){
+//					break;
+//				}
+//				
+//				Log.i(CommonConst.LOG_TAG, "Loop: " + (i+1) + " [START handler before] startTrackLocationService");
+//        		Log.i(CommonConst.LOG_TAG, "Loop: " + (i+1) + " [START ThreadId]: " + Thread.currentThread().getId());
+//				commandDataBasic.sendCommand(/*true*/);
+//				Log.i(CommonConst.LOG_TAG, "Loop: " + (i+1) + " [START] command sent from startTrackLocationService");
+//        		Log.i(CommonConst.LOG_TAG, "Loop: " + (i+1) + " [START handler after] startTrackLocationService");
+//				try {
+//					Thread.sleep(10000 * 6 * 3); // 3 min
+//				} catch (InterruptedException e) {
+//					// Do nothing
+//					// TODO: To log - info about crash
+//				}
+//			}
+//
+//			// Reset list of recipients' accounts list to be empty
+//	        Preferences.setPreferencesString(context, 
+//	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, "");
+//	        Log.i(CommonConst.LOG_TAG, "After loop destinations: " + jsonListAccounts);
+//	        
+//			// TODO: fix return value
+//	    	return result;
+//	    }
+//	
+//	    @Override
+//	    protected void onPostExecute(String msg) {
+//	    	// TODO: fix return value
+//	    }
+//	
+//	}.execute(params, null, null);
+//	
+//	
+//}
+
+/*
+//
+// Send command to request contact by GCM (Google Cloud Message - push notifictation)
+// 
+// public static void sendCommand(final String jsonMessage, final Context context){ 
+@SuppressWarnings("unchecked")
+public static void sendCommand(java.util.Map<String, Object> params){ 	
+	
+	Log.i("ThreadMain", Thread.currentThread().getId() + "");
+	// AsyncTask <TypeOfVarArgParams , ProgressValue , ResultValue>
+    new AsyncTask<java.util.Map<String, Object>, Void, String>() {
+        @Override
+        protected String doInBackground(java.util.Map<String, Object>... params) {
+        	String result = null;
+        	Gson gson = new Gson();
+        	Context context = null;
+        	String jsonMessage = null;
+        	Log.i("Thread", Thread.currentThread().getId() + "");
+        	
+            if(params != null){
+            	Map<String, Object> mapParams = params[0];
+            	if(mapParams.get("Context") instanceof Context){
+            		context = (Context) mapParams.get("Context");
+            	} else { 
+            		// TODO: Error message
+            	}
+            	if(mapParams.get("JsonMessage") instanceof String){
+            		jsonMessage = (String) mapParams.get("JsonMessage");
+            	} else {
+            		// TODO: Error message
+            	}
+            } else {
+            	// TODO: Error message: incorrect parameters
+            	return "Error" + "";
+            }
+        	
+        	if(jsonMessage != null){
+        		String account = "";
+        		String macAddress = "";
+        		Message m = gson.fromJson(jsonMessage, Message.class);
+        		MessageData messageData = m.getData();
+        		CommandEnum cmd = null;
+        		if(messageData != null){
+        			MessageDataContactDetails contactDetails = messageData.getContactDetails();
+        			macAddress = contactDetails.getMacAddress();
+        			account = contactDetails.getAccount();
+        			cmd = messageData.getCommand();
+        			Log.w(CommonConst.LOG_TAG, cmd.toString());
+        		}
+        		
+        		if((context != null && CommandEnum.notification.equals(cmd)) ||
+        		   (context != null && CommandEnum.start.equals(cmd))){
+	                String sendCommandRetryDestination = account+macAddress;
+	        		for (int i = 0; i < 5; i++) {
+		            	
+	        			result = HttpUtils.sendMessageToBackend(jsonMessage);
+		            	
+	        			int resCode = Preferences.getPreferencesInt(context, sendCommandRetryDestination);
+		                Log.i(CommonConst.LOG_TAG, "[" + cmd + "] command in BACKGROUND");
+		                Log.i(CommonConst.LOG_TAG, "Save to " + sendCommandRetryDestination);
+		                Log.i(CommonConst.LOG_TAG, "[RETRY BACKGROIND] " + 
+		                    	Preferences.getPreferencesInt(context, sendCommandRetryDestination));
+		            	if (resCode == 0){
+		            		Log.i(CommonConst.LOG_TAG, "BREAK: " + i);
+		            		break;
+		            	}
+		            	LogManager.LogInfoMsg(CLASS_NAME, "HttpUtils.sendMessageToBackend", jsonMessage);
+		                try
+		                {
+		                	LogManager.LogInfoMsg(CLASS_NAME, "HttpUtils.sendMessageToBackend", "Wait - 3 sec");
+		                	Log.i(CommonConst.LOG_TAG, i + ": Wait - 3 sec => HttpUtils.sendMessageToBackend");
+		                    Thread.sleep(10000);
+		                }
+		                catch(Exception e)
+		                {
+		                	LogManager.LogException(e, CLASS_NAME, "HttpUtils.sendMessageToBackend");
+		                	Log.i(CommonConst.LOG_TAG, "Save to " + sendCommandRetryDestination);
+		                	Log.e(CommonConst.LOG_TAG, "Exception: Wait - 3 sec => HttpUtils.sendMessageToBackend");
+		                }
+		            	resCode = Preferences.getPreferencesInt(context, sendCommandRetryDestination);
+		            	if (resCode == 0){
+		            		Log.i(CommonConst.LOG_TAG, "BREAK: " + i);
+		            		break;
+		            	}
+					} 
+        		}else {
+					result = HttpUtils.sendMessageToBackend(jsonMessage);
+        		}
+        	}
+        	// TODO: fix return value
+        	return result;
+        }
+
+        @Override
+        protected void onPostExecute(String msg) {
+        	// TODO: fix return value
+        }
+
+    }.execute(params, null, null);
+}
+*/
+
+/*
+// TODO: Throw exception id sendCommand failed
+// TODO: Implement return value
+public static void sendCommand(CommandData commandData){
+	Context context; 
+	ContactDeviceDataList contactDeviceDataList; 
+	CommandEnum command;
+	String message; 
+	MessageDataContactDetails contactDetails; 
+	MessageDataLocation location; 
+	String key; 
+	String value;
+	AppInfo appInfo;
+	String errorMsg = null;
+	
+	LogManager.LogFunctionCall(CLASS_NAME, "[sendCommand]");
+
+	if(commandData == null) {
+		errorMsg = "There is no data to send";
+		LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:NO_DATA_TO_SEND]", errorMsg);
+		return;
+	}
+	
+	command = commandData.getCommand();
+	if(command == null){
+		errorMsg = "Command is undefined";
+		LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:UNDEFINED_COMMAND]", errorMsg);
+		return;
+	}
+	
+	LogManager.LogFunctionCall(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
+
+	context = commandData.getContext();
+	if(context == null){
+		errorMsg = "Context is undefined";
+		LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+		return;
+	}
+	
+	contactDeviceDataList = commandData.getContactDeviceDataList();
+	if(contactDeviceDataList == null){
+		errorMsg = "There is no recipient list defined";
+		LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+		return;
+	}
+	
+	contactDetails = commandData.getContactDetails();
+	if(contactDetails == null){
+		errorMsg = "There is no sender defined";
+		LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+		return;
+	}
+	
+	// Not mandatory variables for each sendCommand 
+	location = commandData.getLocation();
+	message = commandData.getMessage();
+	key = commandData.getKey();
+	value = commandData.getValue();
+	appInfo = commandData.getAppInfo();
+
+	// Original SendCommand started here
+	String infoMessage;
+	
+//	String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+//	if(regIDToReturnMessageTo == null || regIDToReturnMessageTo.isEmpty()){
+//		errorMsg = "Check if app was updated; if so, it must clear the registration ID" + 
+//			"since the existing regID is not guaranteed to work with the new" + 
+//			"app version.";
+//		LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+//		return;
+//	}
+
+	List<String> listRegIDs = new ArrayList<String>();
+	List<String> listAccounts = new ArrayList<String>();
+	
+	// Collect registration_IDs of the contacts that command will be send to
+	for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+		ContactData contactData = contactDeviceData.getContactData();
+		if(contactData != null){
+			String regId = contactDeviceData.getRegistration_id();
+			if(regId != null && !regId.isEmpty()){
+				listRegIDs.add(contactDeviceData.getRegistration_id());
+			} else {
+				errorMsg = "Empty registrationID for the following contact: " + contactData.getEmail();
+				LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+				Log.e("[sendCommand:" + command.toString() + "]", errorMsg);
+			}
+			listAccounts.add(contactData.getEmail());
+		} else {
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: ContactData is null.");
+			Log.e("[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: contactData is null.");
+		}
+		
+	}
+	
+	Gson gson = new Gson();
+	infoMessage = 	"Sending command [" + command.toString() + "] to the following recipients: " +
+					gson.toJson(listAccounts);
+	LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", infoMessage);
+	
+	JsonMessageData jsonMessageData = new JsonMessageData(
+			listRegIDs, 				// registration_IDs of the contacts that command will be send to
+    		//regIDToReturnMessageTo, 	// sender's registartion_ID (contact that response will be returned to)
+    		command, 
+    		message, 					// messageString
+    		contactDetails,				// sender's contact details
+    		location,					// sender's location details
+    		appInfo,					// application info
+    		Controller.getCurrentDate(),// current time
+    		key, 						// key (free pair of key/value)
+    		value 						// value (free pair of key/value)
+			);
+	
+	if(listRegIDs.size() > 0){
+		String jsonMessage = Controller.createJsonMessage(jsonMessageData);
+//				listRegIDs, 				// registration_IDs of the contacts that command will be send to
+//	    		regIDToReturnMessageTo, 	// sender's registartion_ID (contact that response will be returned to)
+//	    		command, 
+//	    		message, 					// messageString
+//	    		contactDetails,				// sender's contact details
+//	    		location,					// sender's location details
+//	    		appInfo,					// application info
+//	    		Controller.getCurrentDate(),// current time
+//	    		key, 						// key (free pair of key/value)
+//	    		value 						// value (free pair of key/value)
+//				);
+		
+		if(jsonMessage == null){
+			errorMsg = "Failed to create JSON Message to send to recipient";
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+			return;
+		}
+		
+		LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+			"Sending command [" + command.toString() + "] as asynchonous task... ");
+//		LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+//			"JSON message: " + jsonMessage);
+		Controller.sendCommand(jsonMessage);
+	} else {
+		LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+			"Unable to send command: [" + command.toString() + "] - there is no any recipient.");
+	}
+	
+	LogManager.LogFunctionExit(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
+}
+*/	
+// TODO: Implement return value
+/*	
+public static void sendCommand(
+		Context context, 
+		ContactDeviceDataList contactDeviceDataList, 
+		CommandEnum command, 
+		String message, 
+		MessageDataContactDetails contactDetails, 
+		MessageDataLocation location, 
+		AppInfo appInfo,
+		String key, 
+		String value){
+	
+	String infoMessage;
+	
+	LogManager.LogFunctionCall(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
+	
+	String regIDToReturnMessageTo = Controller.getRegistrationId(context);
+	List<String> listRegIDs = new ArrayList<String>();
+	List<String> listAccounts = new ArrayList<String>();
+	
+	// Collect registration_IDs of the contacts that command will be send to
+	for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+		ContactData contactData = contactDeviceData.getContactData();
+		if(contactData != null){
+			listRegIDs.add(contactDeviceData.getRegistration_id());
+			listAccounts.add(contactData.getEmail());
+		} else {
+			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: ContactData is null.");
+			Log.e("[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: contactData is null.");
+		}
+		
+	}
+	
+	Gson gson = new Gson();
+	infoMessage = 	"Sending command [" + command.toString() + "] to the following recipients: " +
+					gson.toJson(listAccounts);
+	LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", infoMessage);
+	
+	if(listRegIDs.size() > 0){
+		String jsonMessage = Controller.createJsonMessage(
+				listRegIDs, 				// registration_IDs of the contacts that command will be send to
+	    		regIDToReturnMessageTo, 	// sender's registartion_ID (contact that response will be returned to)
+	    		command, 
+	    		message, 					// messageString
+	    		contactDetails,				// sender's contact details
+	    		location,					// sender's location details
+	    		appInfo,					// application info
+	    		Controller.getCurrentDate(),// current time
+	    		key, 						// key (free pair of key/value)
+	    		value 						// value (free pair of key/value)
+				);
+		LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+			"Sending command [" + command.toString() + "] as asynchonous task... ");
+//		LogManager.LogInfoMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+//			"JSON message: " + jsonMessage);
+		Controller.sendCommand(jsonMessage);
+	} else {
+		LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", 
+			"Unable to send command: [" + command.toString() + "] - there is no any recipient.");
+	}
+	
+	LogManager.LogFunctionExit(CLASS_NAME, "[sendCommand:" + command.toString() + "]");
+}
+*/	
+
+/*
+// TODO: Remove regId - replaced by ownerRegId
+public static void sendApproveOnJoinRequest(Context context, String regId, String ownerMutualId, 
+		String ownerEmail, String ownerRegId, String ownerMacAddress, String ownerPhoneNumber, 
+		CommandEnum command){
+	
+	String regIDToReturnMessageTo = regId;
+	List<String> listRegIDs = new ArrayList<String>();
+	// listRegIDs.add(regId);
+	String time = Controller.getCurrentDate();
+	String messageString = ownerEmail + CommonConst.DELIMITER_COMMA + ownerRegId + CommonConst.DELIMITER_COMMA + 
+			ownerPhoneNumber + CommonConst.DELIMITER_COMMA + ownerMacAddress;
+	listRegIDs.add(ownerRegId);
+	float batteryPercentage = -1;
+	MessageDataContactDetails contactDetails = 
+		new MessageDataContactDetails(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, batteryPercentage);
+	MessageDataLocation location = null;
+	
+	// TODO: remove regIDToReturnMessageTo from function signature - remove it to function itself
+	String jsonMessage = createJsonMessage(new JsonMessageData(
+			listRegIDs, 
+    		regIDToReturnMessageTo, 
+    		command, // CommandEnum.join_approval, 
+    		messageString, // email, regId, phoneNumber, macAddress
+    		contactDetails,
+    		location,
+    		null, // application info
+    		time,
+    		NotificationKeyEnum.joinRequestApprovalMutualId.toString(), 
+    		ownerMutualId
+			));
+	sendCommand(jsonMessage);
+//	if(CommandEnum.join_approval.toString().equals(command)){
+//		// add contact to the following tables:
+//		// TABLE_CONTACT_DEVICE
+//		// TABLE_CONTACT
+//		// TABLE_DEVICE
+//		ContactData contactData = DBLayer.addContactData(null, null, null, email);
+//		DeviceData deviceData = DBLayer.addDeviceData("macAddress", null, DeviceTypeEnum.unknown);
+//		ContactDeviceData contactDeviceData = new ContactDeviceData();
+//		contactDeviceData.setContactData(contactData);
+//		contactDeviceData.setDeviceData(deviceData);
+//		ContactDeviceDataList contactDeviceDataList = new ContactDeviceDataList();
+//		contactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
+//		DBLayer.addContactDeviceDataList(contactDeviceDataList);
+//	}
+}
+*/
+
+
+//public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
+//	List<String> values = null;
+//    
+//	ContactDeviceDataList contactDeviceDataCollection = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
+//    if(contactDeviceDataCollection == null){
+//    	return null;
+//    }
+//
+//    values = fillContactListWithContactDeviceDataFromJSON(contactDeviceDataCollection, checkBoxesShareLocation);
+//    return values;
+//}
 

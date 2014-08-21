@@ -22,7 +22,7 @@ import android.util.Log;
 
 public class DBLayer {
 	
-	private static final String CLASS_NAME = "DBLayer";
+	private final static String CLASS_NAME  = "com.dagrest.trackloaction.db.DBLayer"; 
 	
 	protected DBLayer() {
     }
@@ -62,6 +62,7 @@ public class DBLayer {
 
 	public static long addSentJoinRequest(String phoneNumber, String mutualId, JoinRequestStatusEnum status){
 		
+		String methodName = "addSentJoinRequest";
 		if(phoneNumber == null || phoneNumber.isEmpty()){
         	String errMsg = "Add sent join request failed - no phone number was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
@@ -92,9 +93,9 @@ public class DBLayer {
 				return db.update(DBConst.TABLE_SEND_JOIN_REQUEST, cVal, DBConst.PHONE_NUMBER + " = ? ", new String[] { phoneNumber });
 			}
 		} catch (Throwable t) {
-        	String errMsg = "Exception caught: " + t.getMessage();
+        	String errMsg = "EXCEPTION caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "addSentJoinRequest", errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();

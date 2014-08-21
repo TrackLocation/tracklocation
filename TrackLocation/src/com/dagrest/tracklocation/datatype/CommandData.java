@@ -1,5 +1,6 @@
 package com.dagrest.tracklocation.datatype;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.dagrest.tracklocation.log.LogManager;
@@ -43,6 +44,9 @@ public class CommandData extends CommandDataBasic {
 				message, contactDetails,
 				location, key, value, appInfo);
 		this.contactDeviceDataList = contactDeviceDataList;
+		listAccounts = new ArrayList<String>();
+		listRegIDs = new ArrayList<String>();
+		prepareAccountAndRegIdLists(listAccounts, listRegIDs);
 	}
 		
 	@Override
