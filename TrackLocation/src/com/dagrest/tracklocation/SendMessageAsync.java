@@ -18,7 +18,7 @@ public class SendMessageAsync implements Runnable {
 		try {
 			HttpUtils.sendMessageToBackend(jsonMessage);
 		} catch (Exception e) {
-			Log.e(CommonConst.LOG_TAG, e.getMessage());
+			Log.e(CommonConst.LOG_TAG, e.getMessage(), e);
 		}	
 	}
 

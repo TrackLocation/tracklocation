@@ -757,7 +757,7 @@ public class Controller {
             AppInfo appInfo = Controller.getAppInfo(context);
 
             ContactDeviceDataList contactDeviceDataList = null;
-			MessageDataContactDetails contactDetails = null; 
+			MessageDataContactDetails senderMessageDataContactDetails = null; 
 			MessageDataLocation location = null;
          
 			@Override
@@ -773,7 +773,7 @@ public class Controller {
         			contactDeviceDataList, 
         			CommandEnum.join_approval,
         			message,					// null
-        			contactDetails,
+        			senderMessageDataContactDetails,
         			location, 					// null
         			key, 						// null
         			value, 						// null
@@ -826,7 +826,7 @@ public class Controller {
         			contactDeviceDataList, 
         			CommandEnum.join_rejected,
         			message, 			// null
-        			contactDetails, 
+        			senderMessageDataContactDetails, 
         			location,			// null
         			key,				// null
         			value,				// null
@@ -855,7 +855,7 @@ public class Controller {
 	            ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
 				contactDeviceDataList = 
 						new ContactDeviceDataList(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, mutualId);
-				contactDetails = 
+				senderMessageDataContactDetails = 
 						new MessageDataContactDetails(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, batteryPercentage);
 			}
 			
@@ -1160,6 +1160,27 @@ public class Controller {
 			}
 		}
 		return listRegIDs;
+	}
+	
+	public static ContactDeviceDataList getPreferencesContactDeviceDataListToSendCommandTo(Context context){
+		ContactDeviceDataList contactDeviceDataToSendNotificationTo = null;
+		java.util.Map<String, String> sendToMap = Preferences.getPreferencesReturnToContactMap(context);
+		if(sendToMap != null && !sendToMap.isEmpty()){
+		    contactDeviceDataToSendNotificationTo = new ContactDeviceDataList();
+		    List<ContactDeviceData> contactDeviceDataList = 
+		    	contactDeviceDataToSendNotificationTo.getContactDeviceDataList();
+		    for (java.util.Map.Entry<String,String> entry : sendToMap.entrySet()) {
+		    	entry.getKey();
+		    	entry.getValue();
+		    	ContactData cd = new ContactData();
+		    	cd.setEmail(entry.getKey());
+		    	ContactDeviceData cdd = new ContactDeviceData();
+		    	cdd.setRegistration_id(entry.getValue());
+		    	cdd.setContactData(cd);
+		    	contactDeviceDataList.add(cdd);
+			}
+		}
+		return contactDeviceDataToSendNotificationTo;
 	}
 }
 	

@@ -3,9 +3,15 @@ package com.dagrest.tracklocation.datatype;
 import java.util.HashMap;
 import java.util.Map;
 
+// {"data":{"command":"start",
+// "contactDetails":{"account":"dagrest@gmail.com","regId":"...","macAddress":"88:32:9B:01:26:DD","phoneNumber":"+972544504619","batteryPercentage":100.0},
+// "regIDToReturnMessageTo":"...","time":"21:48:10 21/08/2014"},
+// "registration_ids":["..."],"time_to_live":0}
+
 public enum CommandTagEnum {
 	command("command"), time("time"), message("message"), interval("interval"), 
-	key("key"), value("value");
+	key("key"), value("value"), contactDetails("contactDetails"), 
+	regIDToReturnMessageTo("regIDToReturnMessageTo"), registration_ids("registration_ids");
 	
 	private final String name;       
 	private static Map<String, CommandTagEnum> valueMap;

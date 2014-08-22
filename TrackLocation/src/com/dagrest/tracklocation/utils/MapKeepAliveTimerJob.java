@@ -33,7 +33,7 @@ public class MapKeepAliveTimerJob extends TimerTask {
 	public void run() {
 		if(context != null && selectedContactDeviceDataList != null){
 			
-			MessageDataContactDetails contactDetails = null;
+			MessageDataContactDetails senderMessageDataContactDetails = null;
 			MessageDataLocation location = null;
 			AppInfo appInfo = Controller.getAppInfo(context);
 			
@@ -42,7 +42,7 @@ public class MapKeepAliveTimerJob extends TimerTask {
 	   			selectedContactDeviceDataList, 
 	   			CommandEnum.track_location_service_keep_alive, 
 	   			null, // message
-	   			contactDetails, 
+	   			senderMessageDataContactDetails, 
 	   			location, 
 	   			BroadcastKeyEnum.keep_alive.toString(), 
 	   			Long.toString(System.currentTimeMillis()),

@@ -18,7 +18,7 @@ public class StartTrackLocationService  implements Runnable {
 
 	private Context context;
 	private ContactDeviceDataList selectedContactDeviceDataList;
-	private MessageDataContactDetails contactDetails;
+	private MessageDataContactDetails senderMessageDataContactDetails;
 	private int retryTimes;
 	private int delay;
 	private String className;
@@ -26,12 +26,12 @@ public class StartTrackLocationService  implements Runnable {
 	public StartTrackLocationService(
         	Context context,
         	ContactDeviceDataList selectedContactDeviceDataList,
-        	MessageDataContactDetails contactDetails,
+        	MessageDataContactDetails senderMessageDataContactDetails,
         	int retryTimes,
         	int delay) {
 		this.context = context;
 		this.selectedContactDeviceDataList = selectedContactDeviceDataList;
-		this.contactDetails = contactDetails;
+		this.senderMessageDataContactDetails = senderMessageDataContactDetails;
 		this.retryTimes = retryTimes;
 		this.delay = delay; // in milliseconds
 		className = this.getClass().getName();
@@ -44,14 +44,14 @@ public class StartTrackLocationService  implements Runnable {
 				selectedContactDeviceDataList, 
 				CommandEnum.start,	// [START]	
 				null, 				// message
-				contactDetails, 
+				senderMessageDataContactDetails, 
 				null,				// location
 				null, 				// key
 				null, 				// value,
 				null 				// appInfo
 		);
 			
-        if(contactDetails == null){
+        if(senderMessageDataContactDetails == null){
         	return;
         }
         
@@ -59,7 +59,7 @@ public class StartTrackLocationService  implements Runnable {
         	return;
         }
         
-        String currentAccount = contactDetails.getAccount();
+        // String currentAccount = senderMessageDataContactDetails.getAccount();
         
         Gson gson = new Gson();
         String jsonListAccounts = gson.toJson(commandDataBasic.getListAccounts());
@@ -80,12 +80,15 @@ public class StartTrackLocationService  implements Runnable {
 			if(listAccounts == null || listAccounts.isEmpty()){
 				break;
 			}
-			
-    		Log.i(CommonConst.LOG_TAG, className + ": Loop: " + (i+1) + " [START] command, threadId: " + Thread.currentThread().getId());
+
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> LOOP: " + (i+1) + 
+				" ThreadID: " + Thread.currentThread().getId());
 			commandDataBasic.sendCommand();
-			Log.i(CommonConst.LOG_TAG, className + ": Loop: " + (i+1) + " [START] command sent to recipients: " + jsonListAccounts);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> LOOP: " + (i+1) + 
+				" [START] command sent to recipients: [" + jsonListAccounts + "]");
 			
 			try {
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + delay / 1000 + " sec");
 				Thread.sleep(delay);
 			} catch (InterruptedException e) {
 				// Do nothing
@@ -96,7 +99,7 @@ public class StartTrackLocationService  implements Runnable {
 		// Reset list of recipients' accounts list to be empty
         Preferences.setPreferencesString(context, 
         		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, "");
-        Log.i(CommonConst.LOG_TAG, className + ": Recipients list after loop: " + jsonListAccounts);
+        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> : Recipients list after loop: [" + jsonListAccounts + "]");
 	}
 
 }

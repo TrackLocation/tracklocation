@@ -17,6 +17,8 @@ import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.TimerJob;
 import com.dagrest.tracklocation.utils.Preferences;
+import com.google.gson.Gson;
+
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -94,7 +96,7 @@ public class TrackLocationService extends Service {
     		
         } catch (Exception e) {
         	LogManager.LogException(e, className, methodName);
-        	Log.e(LOCATION_SERVICE, "[EXCEPTION] {" + className + "} -> " + methodName, e);
+        	Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + methodName, e);
         }
 	}   
     
@@ -104,12 +106,12 @@ public class TrackLocationService extends Service {
         super.onDestroy();
         try{
         	LogManager.LogFunctionCall(className, "onDestroy");
-        	Log.i(LOCATION_SERVICE, "onDestroy - Start");
+        	Log.i(CommonConst.LOG_TAG, "[INFO]  {" + className + "} -> onDestroy - Start");
         	
         	// Stop TrackLocationServiceStopTimer
-        	Log.i(CommonConst.LOG_TAG, "Stop TrackLocationService TimerJob");
+        	Log.i(CommonConst.LOG_TAG, "[INFO]  {" + className + "} -> Stop TrackLocationService TimerJob");
         	timerJob.cancel();
-        	Log.i(CommonConst.LOG_TAG, "Timer with TimerJob that stops TrackLocationService - stopped");
+        	Log.i(CommonConst.LOG_TAG, "[INFO]  {" + className + "} -> Timer with TimerJob that stops TrackLocationService - stopped");
 
         	
             if(locationManager != null){
@@ -130,11 +132,11 @@ public class TrackLocationService extends Service {
 			// sendTrackLocationServiceStopped();
 			
             LogManager.LogFunctionExit(className, "onDestroy");
-            Log.i(LOCATION_SERVICE, "onDestroy - End");
+            Log.i(CommonConst.LOG_TAG, "onDestroy - End");
             
         } catch (Exception e) {
             LogManager.LogException(e, className, "onDestroy");
-            Log.e(LOCATION_SERVICE, "onDestroy", e);
+            Log.e(CommonConst.LOG_TAG, "onDestroy", e);
         }
     }  
 
@@ -143,10 +145,17 @@ public class TrackLocationService extends Service {
 	{                  
 		try{
 			LogManager.LogFunctionCall(className, "onStart");
-            Log.i(LOCATION_SERVICE, "{" + className + "} onStart - Start");
+            Log.i(CommonConst.LOG_TAG, "{" + className + "} onStart - Start");
             
-//            Bundle extras = intent.getExtras();
-//            String regIDToReturnMessageTo = extras.getString(CommonConst.REGISTRATION_ID_TO_RETURN_MESSAGE_TO);
+            Gson gson = new Gson();
+            Bundle extras = intent.getExtras();
+            String jsonSenderMessageDataContactDetails = extras.getString(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS);
+            MessageDataContactDetails senderMessageDataContactDetails = 
+            	gson.fromJson(jsonSenderMessageDataContactDetails, MessageDataContactDetails.class);
+            if(senderMessageDataContactDetails == null){
+            	// TODO: !!!
+            }
+
 
             // Start TrackLocationServiceStopTimer
         	Log.i(CommonConst.LOG_TAG, "{" + className + "} Start TrackLocationService TimerJob with repeat period = " + 
@@ -154,15 +163,21 @@ public class TrackLocationService extends Service {
             try {
 				timer.schedule(timerJob, 0, repeatPeriod);
 			} catch (IllegalStateException e) {
-				logMessage = "{" + className + "} Failed to Start TrackLocationService TimerJob";
-				LogManager.LogException(e, className, methodName);
-				Log.e(CommonConst.LOG_TAG, logMessage, e);
+				String ecxeptionMessage = "Timer task is scheduled already";
+				logMessage = "[EXCEPTION] {" + className + "} Failed to Start TrackLocationService TimerJob";
+				if(!ecxeptionMessage.equals(e.getMessage())){
+					LogManager.LogException(e, className, methodName);
+					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
+				} else {
+					LogManager.LogInfoMsg(className, methodName, ecxeptionMessage);
+					Log.e(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + ecxeptionMessage);
+				}
 			} catch (IllegalArgumentException e) {
-				logMessage = "{" + className + "} Failed to Start TrackLocationService TimerJob";
+				logMessage = "[EXCEPTION] {" + className + "} Failed to Start TrackLocationService TimerJob";
 				LogManager.LogException(e, className, methodName);
 				Log.e(CommonConst.LOG_TAG, logMessage, e);
 			}
-        	Log.i(CommonConst.LOG_TAG, "{" + className + "} Timer with TimerJob that stops TrackLocationService - started");
+    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Timer with TimerJob that stops TrackLocationService - started");
 
 //	        // Get list of recipients' accounts list 
 //	        String jsonListAccounts = Preferences.getPreferencesString(context, 
@@ -204,13 +219,18 @@ public class TrackLocationService extends Service {
 //            sendTrackLocationServiceStarted();
             // Notify to caller by GCM (push notification)
     		clientBatteryLevel = Controller.getBatteryLevel(context);
-            MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
-                	clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
+            MessageDataContactDetails messageDataContactDetails = new MessageDataContactDetails(clientAccount, 
+                clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
             ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
-            	new ContactDeviceDataList (clientAccount, clientMacAddress, clientPhoneNumber, clientRegId, null);
+            	new ContactDeviceDataList (
+            		senderMessageDataContactDetails.getAccount(), 
+            		senderMessageDataContactDetails.getMacAddress(), 
+            		senderMessageDataContactDetails.getPhoneNumber(), 
+            		senderMessageDataContactDetails.getRegId(), 
+            		null);
             // Notify caller by GCM (push notification)
             
-            String msgServiceStarted = "{" + className + "} TrackLocationService was started by [" + clientAccount + "]";
+            String msgServiceStarted = "{" + className + "} TrackLocationService was started by [" + senderMessageDataContactDetails.getAccount() + "]";
             String notificationKey = CommandKeyEnum.start_status.toString();
             String notificationValue = CommandValueEnum.success.toString();		
 
@@ -219,22 +239,18 @@ public class TrackLocationService extends Service {
 				contactDeviceDataToSendNotificationTo, 
     			CommandEnum.notification, 
     			msgServiceStarted, 
-    			contactDetails, 
+    			messageDataContactDetails, 
     			null, 					// location
     			notificationKey, 		// key
     			notificationValue,  	// value
     			appInfo
     		);
-            commandDataBasic.sendCommand(/*false*/);
+            commandDataBasic.sendCommand();
             
-            Log.i(LOCATION_SERVICE, "{" + className + "} TrackLocationService - send NOTIFICATION Command performed");
-            Log.i(LOCATION_SERVICE, "{" + className + "} TrackLocationService - send NOTIFICATION Command performed");
-            Log.i(LOCATION_SERVICE, "{" + className + "} TrackLocationService - send NOTIFICATION Command performed");
-            Log.i(LOCATION_SERVICE, "{" + className + "} TrackLocationService - send NOTIFICATION Command performed");
-            Log.i(LOCATION_SERVICE, "{" + className + "} TrackLocationService - send NOTIFICATION Command performed");
+            Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} TrackLocationService - send NOTIFICATION Command performed");
 
             LogManager.LogFunctionExit(className, "onStart");
-            Log.i(LOCATION_SERVICE, "{" + className + "} onStart - End");
+            Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} onStart - End");
 		} catch (Exception e) {
 			LogManager.LogException(e, className, "onStart");
 		}

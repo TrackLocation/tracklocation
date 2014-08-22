@@ -83,6 +83,9 @@ public class CommonConst {
  	public final static int STYLE_NORMAL = 0;
  	
  	// SEND COMMAND
+// 	public static final String	START_CMD_CONTEXT = "Context";
+// 	public static final String	START_CMD_SELECTED_CONTACT_DEVICE_DATA_LIST = "SelectedContactDeviceDataList";
+ 	public static final String	START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS = "SenderMessageDataContactDetails";
+ 	//public static final String	PREFERENCES_CONTACT_DETAILS_SENT_FROM = "contact_details_sent_from";
  	public static final String	PREFERENCES_SEND_COMMAND_TO_ACCOUNTS = "send_command_to_accounts";
-
 }

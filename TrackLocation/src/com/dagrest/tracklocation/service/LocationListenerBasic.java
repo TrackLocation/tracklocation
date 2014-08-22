@@ -2,15 +2,13 @@ package com.dagrest.tracklocation.service;
 
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.CommandDataBasic;
-import com.dagrest.tracklocation.datatype.CommandDataWithReturnToContactList;
+import com.dagrest.tracklocation.datatype.CommandDataWithReturnToContactMap;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
-import com.dagrest.tracklocation.utils.Utils;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
@@ -75,25 +73,41 @@ public class LocationListenerBasic implements LocationListener{
             	", Battery level: " + batteryLevel;        
     		LogManager.LogInfoMsg(className, methodName, logMessage);
             
-			MessageDataContactDetails contactDetails = 
+			MessageDataContactDetails senderMessageDataContactDetails = 
     			new MessageDataContactDetails(account, macAddress, phoneNumber, regId, batteryLevel);
 			MessageDataLocation locationDetails = 
 				new MessageDataLocation(latitude, longitude, accuracy, speed, locationProviderName);
-			// ==========================================
-			// send GCM (push notification) to requester
-			// ==========================================
-			CommandDataBasic commandData = new CommandDataWithReturnToContactList(
+			
+//    		ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
+//        			Controller.getPreferencesContactDeviceDataListToSendCommandTo(context);
+//			// ==========================================
+//			// send GCM (push notification) to requester
+//			// ==========================================
+//			CommandDataBasic commandData = new CommandData(
+//					context, 
+//					contactDeviceDataToSendNotificationTo,
+//        			CommandEnum.location,
+//        			null, // message,
+//        			senderMessageDataContactDetails, 
+//        			locationDetails,			
+//        			null, // key
+//        			null, // value
+//        			Controller.getAppInfo(context)
+//			);
+//			commandData.sendCommand();
+            
+			CommandDataBasic commandData = new CommandDataWithReturnToContactMap(
 					context, 
         			CommandEnum.location,
         			null, // message,
-        			contactDetails, 
+        			senderMessageDataContactDetails, 
         			locationDetails,			
         			null, // key
         			null, // value
         			Controller.getAppInfo(context)
 			);
 			commandData.sendCommand();
-            
+			
     		// For very OLD version
             //sendLocationByMail(...);
 

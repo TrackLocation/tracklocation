@@ -380,12 +380,12 @@ public class GcmIntentService extends IntentService {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 		
-		MessageDataContactDetails contactDetailsSentFrom;
-		String accountCommandSentFrom;
+		MessageDataContactDetails senderMessageDataContactDetails;
+		String senderAccount;
 		
 		try {
-			contactDetailsSentFrom = initCommand(extras);
-			accountCommandSentFrom = contactDetailsSentFrom.getAccount();
+			senderMessageDataContactDetails = initCommand(extras);
+			senderAccount = senderMessageDataContactDetails.getAccount();
 		} catch (NoSentContactFromException e) {
 			errorMsg = "Failed to start TrackLocationService - NoSentContactFrom details";
 			LogManager.LogException(e, errorMsg, methodName);
@@ -398,81 +398,19 @@ public class GcmIntentService extends IntentService {
 			return;
 		}
 		
-    	PermissionsData permissionsData = DBLayer.getPermissions(accountCommandSentFrom);
-    	if( permissionsData == null){
-    		// Show error - no permission for "account" to invoke TrackLocation
-        	errorMsg = "No permissions defind for account: " + accountCommandSentFrom + 
-        		". Not permitted to share location.";
-        	// "Existing permissions >>> " +
-        	//	gson.toJson(DBLayer.getPermissionsList(null)) + " <<< ";
-            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + errorMsg);
-            LogManager.LogErrorMsg(className, methodName, errorMsg);
-            
-            MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
-                	clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
-            ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
-            	new ContactDeviceDataList (
-            		contactDetailsSentFrom.getAccount(), 
-            		contactDetailsSentFrom.getMacAddress(), 
-            		contactDetailsSentFrom.getPhoneNumber(), 
-            		contactDetailsSentFrom.getRegId(), 
-            		null);
-			// ===========================================================
-			// ===  NOTIFICATION: NO PERMISSIONS DEFINED FOR ACCOUNT  ====
-			// ===========================================================
-            // Notify caller by GCM (push notification)
-            CommandDataBasic commandDataBasic = new CommandData(
-				getApplicationContext(), 
-				contactDeviceDataToSendNotificationTo, 
-    			CommandEnum.notification, 
-    			errorMsg, 
-    			contactDetails, 
-    			null, // location
-    			null, // key
-    			null, // value
-    			appInfo
-    		);
-            commandDataBasic.sendCommand();
-    		
-    		return;
-    	}
-    	
-    	int isLocationSharingPermitted = permissionsData.getIsLocationSharePermitted();
-    	if( isLocationSharingPermitted != 1 ){
-    		// TODO: Show error - no permission to invoke TrackLocation
-    		errorMsg = "Not permitted to share location to " + accountCommandSentFrom;
-            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + errorMsg);
-            LogManager.LogErrorMsg(className, methodName, errorMsg);
-            
-            // Notify to caller by GCM (push notification)
-            MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
-                	clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
-            ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
-            	new ContactDeviceDataList (
-                		contactDetailsSentFrom.getAccount(), 
-                		contactDetailsSentFrom.getMacAddress(), 
-                		contactDetailsSentFrom.getPhoneNumber(), 
-                		contactDetailsSentFrom.getRegId(), 
-            			null);
-			// ===========================================================
-			// ===  NOTIFICATION: NOT PERMITTED TO SHARE FOR ACCOUNT  ====
-			// ===========================================================
-            // Notify caller by GCM (push notification)
-            CommandDataBasic commandDataBasic = new CommandData(
-				getApplicationContext(), 
-				contactDeviceDataToSendNotificationTo, 
-    			CommandEnum.notification, 
-    			errorMsg, 
-    			contactDetails, 
-    			null, // location
-    			null, // key
-    			null, // value
-    			appInfo
-    		);
-            commandDataBasic.sendCommand();
+		MessageDataContactDetails messageDataContactDetails = new MessageDataContactDetails(
+			clientAccount, clientMacAddress, clientPhoneNumber,
+			clientRegId, clientBatteryLevel);
+		ContactDeviceDataList contactDeviceDataToSendNotificationTo = new ContactDeviceDataList(
+			senderMessageDataContactDetails.getAccount(),
+			senderMessageDataContactDetails.getMacAddress(),
+			senderMessageDataContactDetails.getPhoneNumber(),
+			senderMessageDataContactDetails.getRegId(), null);
 
-    		return;
-    	}
+		if(isPermissionToGetLocation(senderAccount, contactDeviceDataToSendNotificationTo, 
+				messageDataContactDetails, methodName) == false){
+			return;
+		}
 		
     	// ============================================
     	// ====  COMMAND: START + INTERVAL PARAM  =====
@@ -487,16 +425,6 @@ public class GcmIntentService extends IntentService {
             	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
 		}
 		
-        MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
-            clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
-        ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
-        	new ContactDeviceDataList (
-            	contactDetailsSentFrom.getAccount(), 
-            	contactDetailsSentFrom.getMacAddress(), 
-            	contactDetailsSentFrom.getPhoneNumber(), 
-            	contactDetailsSentFrom.getRegId(), 
-        		null);
-        
         String msgServiceStarted;
         String notificationKey;
         String notificationValue;
@@ -505,6 +433,11 @@ public class GcmIntentService extends IntentService {
 		// Start TrackLocation service to get current location
 		// ===========================================================
 		Intent trackLocationService = new Intent(clientContext, TrackLocationService.class);
+		String jsonSenderMessageDataContactDetails = gson.toJson(senderMessageDataContactDetails);
+		//String jsonContactDetailsSentFrom = gson.toJson(contactDetailsSentFrom, MessageDataContactDetails.class);
+		trackLocationService.putExtra(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS, jsonSenderMessageDataContactDetails);
+//		trackLocationService.putExtra(CommonConst.REGISTRATION_ID_TO_RETURN_MESSAGE_TO, 
+//				contactDetailsSentFrom.getRegId());
 		ComponentName componentName = clientContext.startService(trackLocationService); 
 		if(componentName != null){
 			// Notify that TrackLoactionService was started - by GCM (push notification)
@@ -531,7 +464,7 @@ public class GcmIntentService extends IntentService {
 			contactDeviceDataToSendNotificationTo, 
 			CommandEnum.notification, 
 			msgServiceStarted, 
-			contactDetails, 
+			messageDataContactDetails, 
 			null, 					// location
 			notificationKey, 
 			notificationValue,
@@ -577,7 +510,7 @@ public class GcmIntentService extends IntentService {
 			return;
 		}
 
-        MessageDataContactDetails contactDetails = new MessageDataContactDetails(clientAccount, 
+        MessageDataContactDetails senderMessageDataContactDetails = new MessageDataContactDetails(clientAccount, 
             	clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
         ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
         	new ContactDeviceDataList (
@@ -592,7 +525,7 @@ public class GcmIntentService extends IntentService {
 			contactDeviceDataToSendNotificationTo, 
 			CommandEnum.status_response, 
 			errorMsg, 
-			contactDetails, 
+			senderMessageDataContactDetails, 
 			null, // location
     		NotificationKeyEnum.pushNotificationServiceStatus.toString(),
     		PushNotificationServiceStatusEnum.available.toString(),
@@ -830,7 +763,7 @@ public class GcmIntentService extends IntentService {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 		
-		String msg = extras.getString("message");
+		String msg = extras.getString(CommandTagEnum.message.toString());
 		if(msg != null && !msg.isEmpty()){
 			errorMsg = "message: " + msg;
 			LogManager.LogInfoMsg(className, methodName, errorMsg);
@@ -847,6 +780,27 @@ public class GcmIntentService extends IntentService {
 		LogManager.LogInfoMsg(className, methodName, errorMsg);
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
 		
+		String jsonContactDetails = extras.getString(CommandTagEnum.contactDetails.toString());
+		MessageDataContactDetails contactDetails = gson.fromJson(jsonContactDetails, MessageDataContactDetails.class);
+		String senderAccount = null;
+		if(contactDetails == null){
+			errorMsg = "[contactDetails]: not defined";
+			LogManager.LogErrorMsg(className, methodName, errorMsg);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + errorMsg);
+			return;
+		} else {
+			senderAccount = contactDetails.getAccount();
+		}
+		if(senderAccount == null || senderAccount.isEmpty()){
+			errorMsg = "[senderAccount]: not defined";
+			LogManager.LogErrorMsg(className, methodName, errorMsg);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + errorMsg);
+			return;
+		}		
+		
+		// ============================================================
+		// TrackLocation Service started - notification received
+		// ============================================================
 		if(CommandKeyEnum.start_status.toString().equals(key) && 
 				CommandValueEnum.success.toString().equals(value)){
 			String jsonListAccounts = Preferences.getPreferencesString(clientContext, 
@@ -858,8 +812,8 @@ public class GcmIntentService extends IntentService {
 	        Gson gson = new Gson();
 	        @SuppressWarnings("unchecked")
 			List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
-	        if(listAccounts != null && listAccounts.contains(clientAccount)){
-	        	listAccounts.remove(clientAccount);
+	        if(listAccounts != null && listAccounts.contains(senderAccount)){
+	        	listAccounts.remove(senderAccount);
 	        	jsonListAccounts = gson.toJson(listAccounts);
 	        	if(jsonListAccounts == null){
 	        		jsonListAccounts = "";
@@ -897,5 +851,68 @@ public class GcmIntentService extends IntentService {
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	}
+	
+	private boolean isPermissionToGetLocation(String senderAccount, 
+			ContactDeviceDataList contactDeviceDataToSendNotificationTo, 
+			MessageDataContactDetails messageDataContactDetails,
+			String methodName){
+		PermissionsData permissionsData = DBLayer.getPermissions(senderAccount);
+    	if( permissionsData == null){
+    		// Show error - no permission for "account" to invoke TrackLocation
+        	errorMsg = "No permissions defind for account: " + senderAccount + 
+        		". Not permitted to share location.";
+        	// "Existing permissions >>> " +
+        	//	gson.toJson(DBLayer.getPermissionsList(null)) + " <<< ";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + errorMsg);
+            LogManager.LogErrorMsg(className, methodName, errorMsg);
+            
+			// ===========================================================
+			// ===  NOTIFICATION: NO PERMISSIONS DEFINED FOR ACCOUNT  ====
+			// ===========================================================
+            // Notify caller by GCM (push notification)
+            CommandDataBasic commandDataBasic = new CommandData(
+				getApplicationContext(), 
+				contactDeviceDataToSendNotificationTo, 
+    			CommandEnum.notification, 
+    			errorMsg, 
+    			messageDataContactDetails, 
+    			null, // location
+    			null, // key
+    			null, // value
+    			appInfo
+    		);
+            commandDataBasic.sendCommand();
+    		
+    		return false;
+    	}
+    	
+    	int isLocationSharingPermitted = permissionsData.getIsLocationSharePermitted();
+    	if( isLocationSharingPermitted != 1 ){
+    		// TODO: Show error - no permission to invoke TrackLocation
+    		errorMsg = "Not permitted to share location to " + senderAccount;
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + errorMsg);
+            LogManager.LogErrorMsg(className, methodName, errorMsg);
+            
+			// ===========================================================
+			// ===  NOTIFICATION: NOT PERMITTED TO SHARE FOR ACCOUNT  ====
+			// ===========================================================
+            // Notify caller by GCM (push notification)
+            CommandDataBasic commandDataBasic = new CommandData(
+				getApplicationContext(), 
+				contactDeviceDataToSendNotificationTo, 
+    			CommandEnum.notification, 
+    			errorMsg, 
+    			messageDataContactDetails, 
+    			null, // location
+    			null, // key
+    			null, // value
+    			appInfo
+    		);
+            commandDataBasic.sendCommand();
+
+    		return false;
+    	}
+    	return true;
 	}
 }

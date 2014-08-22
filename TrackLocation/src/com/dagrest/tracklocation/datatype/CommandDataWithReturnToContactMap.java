@@ -8,18 +8,18 @@ import com.dagrest.tracklocation.utils.Preferences;
 
 import android.content.Context;
 
-public class CommandDataWithReturnToContactList extends CommandDataBasic {
+public class CommandDataWithReturnToContactMap extends CommandDataBasic {
 //	private List<String> returnToContactList; // registration_IDs of the contacts that command will be send to
 	protected java.util.Map<String, String> returnToContactMap;
 	
 	// returnToContactList = Controller.getPreferencesReturnToRegIDList(context);
-	public CommandDataWithReturnToContactList(Context context,
+	public CommandDataWithReturnToContactMap(Context context,
 			CommandEnum command,
-			String message, MessageDataContactDetails contactDetails,
+			String message, MessageDataContactDetails senderMessageDataContactDetails,
 			MessageDataLocation location, String key, String value, AppInfo appInfo) {
 		super(context,
 				command,
-				message, contactDetails,
+				message, senderMessageDataContactDetails,
 				location, key, value, appInfo);
 		returnToContactMap = Preferences.getPreferencesReturnToContactMap(context);
 		listAccounts = new ArrayList<String>();

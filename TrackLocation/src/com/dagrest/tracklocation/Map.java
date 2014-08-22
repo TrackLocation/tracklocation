@@ -51,6 +51,8 @@ public class Map extends Activity implements LocationListener{
 	private final static float DEFAULT_CAMERA_UPDATE = 15;
 	
 	private String className;
+	private String methodName;
+	private String logMessage;
 	
 	private LocationManager locationManager;
 	private LatLng lastKnownLocation;
@@ -81,8 +83,8 @@ public class Map extends Activity implements LocationListener{
         waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         //progressDialog.setProgress(0);
         //progressDialog.setMax(contactsQuantity);
-        waitingDialog.setCancelable(false);
-        waitingDialog.setIndeterminate(true);
+        //waitingDialog.setCancelable(false);
+        //waitingDialog.setIndeterminate(true);
         waitingDialog.show();
         
         new Thread(new Runnable() {
@@ -105,6 +107,7 @@ public class Map extends Activity implements LocationListener{
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		className = this.getClass().getName();
+		methodName = "onCreate";
 		setContentView(R.layout.map);	
 		
 		notificationView = (TextView) findViewById(R.id.textViewMap);
@@ -137,23 +140,31 @@ public class Map extends Activity implements LocationListener{
 				String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
 				String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
 				String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-				MessageDataContactDetails contactDetails = 
+				MessageDataContactDetails senderMessageDataContactDetails = // sender contact details
 						new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
 							Controller.getBatteryLevel(context));
-				HashMap<String, Object> params = new HashMap<String, Object>();
-				params.put("Context", context);
-				params.put("SelectedContactDeviceDataList", selectedContactDeviceDataList);
-				params.put("ContactDetails", contactDetails);
+//				HashMap<String, Object> params = new HashMap<String, Object>();
+//				params.put(CommonConst.START_CMD_CONTEXT, context);
+//				params.put(CommonConst.START_CMD_SELECTED_CONTACT_DEVICE_DATA_LIST, selectedContactDeviceDataList);
+//				params.put(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS, senderMessageDataContactDetails); 
 				final int retryTimes = 5;
-				Log.i(CommonConst.LOG_TAG, "{" +className + "}: BEFORE starting of startTrackLocationService");
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> BEGIN of LOOP: CMD START TrackLocationService");
+				LogManager.LogInfoMsg(className, methodName, "BEGIN of LOOP: CMD START TrackLocationService");
 				Runnable startTrackLocationService = new StartTrackLocationService(
 					context,
 					selectedContactDeviceDataList,
-					contactDetails,
+					senderMessageDataContactDetails,
 					retryTimes,
 					15000); // delay in milliseconds
-				new Thread(startTrackLocationService).start();
-				Log.i(CommonConst.LOG_TAG, "{" +className + "}: AFTER starting of startTrackLocationService");
+				try {
+					new Thread(startTrackLocationService).start();
+				} catch (IllegalThreadStateException e) {
+					logMessage = "LOOP: CMD START TrackLocationService was started already";
+					LogManager.LogErrorMsg(className, methodName, logMessage);
+					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+				}
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> FINISH of LOOP: CMD START TrackLocationService");
+				LogManager.LogInfoMsg(className, methodName, "FINISH of LOOP: CMD START TrackLocationService");
 			}
 		}
 		isShowAllMarkersEnabled = true;
