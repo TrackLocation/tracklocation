@@ -72,7 +72,11 @@ public class CommonDialog extends DialogFragment {
         this.show(fm, "tag");
     }
 
-	@Override
+    public void closeDialog() {
+        this.closeDialog();
+    }
+
+    @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
 
     	// Use the Builder class for convenient dialog construction

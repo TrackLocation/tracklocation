@@ -66,6 +66,7 @@ public class TrackLocationService extends Service {
         super.onCreate();
         methodName = "onCreate";
         className = this.getClass().getName();
+        timer = null;
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
         
@@ -161,9 +162,11 @@ public class TrackLocationService extends Service {
         	Log.i(CommonConst.LOG_TAG, "{" + className + "} Start TrackLocationService TimerJob with repeat period = " + 
         		repeatPeriod/1000/60 + " min");
             try {
-				timer.schedule(timerJob, 0, repeatPeriod);
+            	if(timer != null){
+            		timer.schedule(timerJob, 0, repeatPeriod);
+            	}
 			} catch (IllegalStateException e) {
-				String ecxeptionMessage = "Timer task is scheduled already";
+				String ecxeptionMessage = "TimerTask is scheduled already";
 				logMessage = "[EXCEPTION] {" + className + "} Failed to Start TrackLocationService TimerJob";
 				if(!ecxeptionMessage.equals(e.getMessage())){
 					LogManager.LogException(e, className, methodName);

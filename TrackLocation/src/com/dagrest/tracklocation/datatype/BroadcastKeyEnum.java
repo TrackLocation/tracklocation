@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum BroadcastKeyEnum {
+	starting_status("starting_status"), 
+	start_status("start_status"),
 	location_updated("location_updated"), 
 	gcm_status("gcm_status"),
 	join_number("join_number"),

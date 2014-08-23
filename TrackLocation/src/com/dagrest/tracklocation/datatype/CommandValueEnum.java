@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum CommandValueEnum {
-	success("success"), error("error");
+	success("success"), error("error"), wait("wait");
 	
 	private final String name;       
 	private static Map<String, CommandValueEnum> valueMap;

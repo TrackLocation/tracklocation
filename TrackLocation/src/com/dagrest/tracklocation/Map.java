@@ -10,12 +10,17 @@ import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.BroadcastData;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
+import com.dagrest.tracklocation.datatype.CommandEnum;
+import com.dagrest.tracklocation.datatype.CommandTagEnum;
+import com.dagrest.tracklocation.datatype.CommandValueEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
+import com.dagrest.tracklocation.dialog.CommonDialog;
+import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -71,6 +76,8 @@ public class Map extends Activity implements LocationListener{
 	private ProgressDialog waitingDialog;
 	private Gson gson;
 	private Context context;
+	private Thread startTrackLocationServerThread;
+	private Runnable startTrackLocationService;
 	
 	private TextView notificationView;
 	
@@ -111,7 +118,8 @@ public class Map extends Activity implements LocationListener{
 		setContentView(R.layout.map);	
 		
 		notificationView = (TextView) findViewById(R.id.textViewMap);
-		notificationView.setVisibility(4); // 0 - visible / 4 - invisible
+		notificationView.setVisibility(0); // 0 - visible / 4 - invisible
+		notificationView.setText("Tracking for contacts\nPlease wait...");
 		
 		context = getApplicationContext();
 
@@ -150,14 +158,18 @@ public class Map extends Activity implements LocationListener{
 				final int retryTimes = 5;
 				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> BEGIN of LOOP: CMD START TrackLocationService");
 				LogManager.LogInfoMsg(className, methodName, "BEGIN of LOOP: CMD START TrackLocationService");
-				Runnable startTrackLocationService = new StartTrackLocationService(
+				startTrackLocationService = new StartTrackLocationService(
 					context,
 					selectedContactDeviceDataList,
 					senderMessageDataContactDetails,
 					retryTimes,
-					15000); // delay in milliseconds
+					20000); // delay in milliseconds
+				// ===========================================================================
+				// Start TrackLocation Service for all requested recipients
+				// ===========================================================================
 				try {
-					new Thread(startTrackLocationService).start();
+					startTrackLocationServerThread = new Thread(startTrackLocationService);//.start();
+					startTrackLocationServerThread.start();
 				} catch (IllegalThreadStateException e) {
 					logMessage = "LOOP: CMD START TrackLocationService was started already";
 					LogManager.LogErrorMsg(className, methodName, logMessage);
@@ -274,6 +286,8 @@ public class Map extends Activity implements LocationListener{
 	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
 	    notificationBroadcastReceiver = new BroadcastReceiver() {
 
+		    CommonDialog notificationDialog = null;
+
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Bundle bundle = intent.getExtras();
@@ -287,13 +301,32 @@ public class Map extends Activity implements LocationListener{
 	    				return;
 	    			}
 	    			
-	    			Toast.makeText(Map.this, broadcastData.getMessage(), Toast.LENGTH_LONG).show();
+	    			String key  = broadcastData.getKey();
+	    			String value = broadcastData.getValue();
+	    			
+    				// Notification about command: Start TrackLocation Service
+    				// PLEASE WAIT - some recipients are not responding
+	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
+	    					CommandValueEnum.wait.toString().equals(value)){
+	    				displayNotification(bundle);
+	    				notificationView.setVisibility(0);
+	    				notificationView.setText(broadcastData.getMessage());
+	    			}
+	    			
+    				// Notification about command: Start TrackLocation Service 
+    				// FAILED for some recipients
+	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
+	    					CommandValueEnum.error.toString().equals(value)){
+	    				showNotificationDialog(broadcastData.getMessage());
+	    				notificationView.setText(broadcastData.getMessage());
+	    				notificationView.setVisibility(4);
+	    			}
 	    		}
 			}
 	    };
 	    
 	    registerReceiver(notificationBroadcastReceiver, intentFilter);
-
+	    
 		LogManager.LogFunctionExit(className, methodName);
 	}
 	
@@ -491,8 +524,65 @@ public class Map extends Activity implements LocationListener{
     	if(notificationBroadcastReceiver != null){
     		unregisterReceiver(notificationBroadcastReceiver);
     	}
+    	if(startTrackLocationServerThread != null){
+    		startTrackLocationServerThread.interrupt();
+    	}
     }
-    
+
+	IDialogOnClickAction notificationDialogOnClickAction = new IDialogOnClickAction() {
+
+		@Override
+		public void doOnPositiveButton() {
+		}
+		@Override
+		public void doOnNegativeButton() {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setActivity(Activity activity) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setContext(Context context) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void setParams(Object[]... objects) {
+			// TODO Auto-generated method stub
+		}
+		@Override
+		public void doOnChooseItem(int which) {
+			// TODO Auto-generated method stub
+		}
+	};
+	
+    //private void showGoogleServiceNotAvailable(String errorMessage) {
+	private CommonDialog showNotificationDialog(String errorMessage) {
+    	//String dialogMessage = "\nGoogle Cloud Service is not available right now.\n\nPlease try later.\n";
+    	String dialogMessage = errorMessage;
+    	
+		CommonDialog aboutDialog = new CommonDialog(this, notificationDialogOnClickAction);
+		aboutDialog.setDialogMessage(dialogMessage);
+		aboutDialog.setDialogTitle("Warning");
+		aboutDialog.setPositiveButtonText("OK");
+		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+		aboutDialog.showDialog();
+		aboutDialog.setCancelable(true);
+		return aboutDialog;
+    }
+
+	private void displayNotification(Bundle bundle){
+		String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
+		if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
+			return;
+		}
+		NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
+		if(broadcastData == null){
+			return;
+		}
+		
+		Toast.makeText(Map.this, broadcastData.getMessage(), Toast.LENGTH_LONG).show();
+	}
 //    @Override
 //    public boolean dispatchTouchEvent(MotionEvent motionEvent) {
 //        // TODO Auto-generated method stub

@@ -15,10 +15,15 @@
     <TextView
         android:id="@+id/textViewMap"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="#80555555"
-        android:paddingBottom="@dimen/activity_horizontal_margin"
+        android:background="#80008080"
+        android:textColor="#ffffffff"
+        android:textSize="18sp"
+        android:paddingTop="25sp"
+        android:paddingLeft="25sp"
+        android:paddingRight="25sp"
+        android:paddingBottom="25sp"
         android:text="TextView" />
 
 </FrameLayout>
