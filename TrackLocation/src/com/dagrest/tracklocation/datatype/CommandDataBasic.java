@@ -162,7 +162,7 @@ public class CommandDataBasic {
 			LogManager.LogInfoMsg(className, "[sendCommand:" + command.toString() + "]", 
 				"Sending command [" + command.toString() + "] as asynchonous task... ");
 			
-			Runnable sendMessageAsync = new SendMessageAsync(jsonMessage);
+			Runnable sendMessageAsync = new SendMessageAsync(jsonMessage, context);
 			new Thread(sendMessageAsync).start();
 			Log.i(CommonConst.LOG_TAG, "[" + command.toString() + "] is sending asynchronously ...");
 			

@@ -473,7 +473,7 @@ public class GcmIntentService extends IntentService {
 		);
 		commandDataBasic.sendCommand();
 		
-		LogManager.LogFunctionExit(className, methodName);
+        LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	

@@ -2,6 +2,7 @@ package com.dagrest.tracklocation.http;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -16,11 +17,16 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.dagrest.tracklocation.Controller;
+import com.dagrest.tracklocation.R;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.Preferences;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 public class HttpUtils {
 
@@ -28,6 +34,7 @@ public class HttpUtils {
 	private static HttpClient httpClient;
 	private static HttpEntity entity;
 	private static HttpResponse httpResponse;
+	private final static String CLASS_NAME = "com.dagrest.tracklocation.HttpUtils";
 	
     public static String postGCM(String url, String serverKey, String messageJson){
     	
@@ -90,7 +97,9 @@ public class HttpUtils {
 //		return jsonMessage;
 //    }
 
-    public static String sendMessageToBackend(String jsonMessage) {
+    public static String sendMessageToBackend(String jsonMessage, Context context) {
+    	String methodName = "sendMessageToBackend";
+    	String logMessage;
         LogManager.LogFunctionCall("HttpUtils", "sendMessageToBackend");
 //        //PostToGCM.post(apiKey, content);
 //        new Date().toString();
@@ -106,7 +115,19 @@ public class HttpUtils {
         if(result != null && !result.isEmpty() && result.contains("error")){
         	LogManager.LogErrorMsg("HttpUtils", "sendMessageToBackend", result);
         	Log.e(CommonConst.LOG_TAG, result);
-        	// TODO: Broadcast clear error 
+
+        	logMessage = "Performing a new registration against Google Cloud Messaging";
+    		LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
+    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + logMessage);
+        	// Performing a new registration against Google Cloud Messaging
+        	GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(context);
+            // registerInBackground
+        	HashMap<String, Object> map = new HashMap<String, Object>();
+        	map.put("GoogleCloudMessaging", gcm);
+        	map.put("GoogleProjectNumber", 
+        		context.getResources().getString(R.string.google_project_number));
+        	map.put("Context", context);
+        	Controller.registerInBackground(map);
         }
         
         LogManager.LogFunctionExit("HttpUtils", "sendMessageToBackend");

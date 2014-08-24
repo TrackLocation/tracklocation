@@ -91,14 +91,16 @@ public class Map extends Activity implements LocationListener{
         //progressDialog.setProgress(0);
         //progressDialog.setMax(contactsQuantity);
         //waitingDialog.setCancelable(false);
-        //waitingDialog.setIndeterminate(true);
+        waitingDialog.setIndeterminate(true);
         waitingDialog.show();
+        waitingDialog.setCanceledOnTouchOutside(false);
         
         new Thread(new Runnable() {
             @Override
             public void run() {
             	if(markerMap != null && markerMap.size() >= contactsQuantity) {
             		waitingDialog.dismiss();
+            		notificationView.setVisibility(4);
             	}
             	try {
 					Thread.sleep(MAX_SHOW_TIME_WAITING_DIALOG); 
@@ -321,6 +323,14 @@ public class Map extends Activity implements LocationListener{
 	    				notificationView.setText(broadcastData.getMessage());
 	    				notificationView.setVisibility(4);
 	    			}
+	    			
+    				// Notification about command: Start TrackLocation Service 
+    				// FAILED for some recipients
+	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
+	    					CommandValueEnum.success.toString().equals(value)){
+	    				notificationView.setText(broadcastData.getMessage());
+	    				notificationView.setVisibility(4);
+	    			}
 	    		}
 			}
 	    };
@@ -349,80 +359,7 @@ public class Map extends Activity implements LocationListener{
 	    		// ===========================================
 	    		// broadcast key = location_updated
 	    		// ===========================================
-/*
-	    		if(bundle != null && bundle.containsKey(broadcastKeyLocationUpdated)){
-		    		String locationUpdatedDetails = bundle.getString(broadcastKeyLocationUpdated);
-		    		
-		    		if(locationUpdatedDetails != null && !locationUpdatedDetails.isEmpty()){
-			    		List<String> resultList = Utils.splitLine(locationUpdatedDetails, CommonConst.DELIMITER_STRING);
-			    		
-			    		if(resultList != null && resultList.size() >= 2){
-				    		String lanLngUpdated = resultList.get(1);
-				    		
-				    		if( lanLngUpdated != null && !lanLngUpdated.isEmpty() ){
-					    		String[] locationDetails = lanLngUpdated.split(CommonConst.DELIMITER_COMMA);
-					    		
-					    		if(markerMap == null){
-					    			markerMap = new LinkedHashMap<String, Marker>();
-					    		}
-					    		if(locationCircleMap == null){
-					    			locationCircleMap = new LinkedHashMap<String, Circle>();
-					    		}
-					    		
-					    		// Check locationDetails length to avoid crash in case less then 6 parameters
-					    		if(locationDetails.length >= 6) {
-						    		// Get account(contact) that sent its updated location on the map
-						    		String updatingAccount = locationDetails[5];
-						    		// Show on map only requested accounts(contacts) from Locate screen
-						    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
-						    			// Set marker on the map
-						    			Controller.setMapMarker(map, locationDetails, markerMap, locationCircleMap);
-						    		}
-					    		} else {
-					    			// A way to try to set marker on the map if something went wrong...
-					    			Controller.setMapMarker(map, locationDetails, markerMap, locationCircleMap);
-					    		}
-					    		
-					    		if(markerMap != null && markerMap.size() > 1 && isShowAllMarkersEnabled == true) {
-					    			// put camera to show all markers
-					    			CameraUpdate cu = Controller.createCameraUpdateLatLngBounds(markerMap);
-						    		map.animateCamera(cu); // or map.moveCamera(cu); 
-						    		if(markerMap.size() >= contactsQuantity){
-						    			// put camera to show all markers
-						    			cu = Controller.createCameraUpdateLatLngBounds(markerMap);
-							    		map.animateCamera(cu); // or map.moveCamera(cu); 
-						    			isShowAllMarkersEnabled = false;
-						    		}
-					    		} else if(markerMap != null && markerMap.size() == 1 && isShowAllMarkersEnabled == true) {
-					    			
-						    		// Check locationDetails length to avoid crash in case less then 6 parameters
-						    		if(locationDetails.length >= 6) {
-							    		// Get account(contact) that sent its updated location on the map
-							    		String updatingAccount = locationDetails[5];
-							    		// Update map's camera only for requested accounts(contacts) from Locate screen
-							    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
 
-							    			if(locationDetails != null) {
-							    	    		double lat = Double.parseDouble(locationDetails[0]);
-							    	    		double lng = Double.parseDouble(locationDetails[1]);
-								    			latLngChanging = new LatLng(lat, lng);
-								    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngChanging, zoom));
-								    			if(markerMap.size() >= contactsQuantity){
-								    				isShowAllMarkersEnabled = false;
-								    			}
-							    			}
-							    		}
-						    		}
-					    		}
-					    		if(markerMap != null && markerMap.size() == contactsQuantity){
-					    			waitingDialog.dismiss();
-					    		}
-				    		}
-			    		}
-		    		}
-	    		} // if(bundle != null && bundle.containsKey(broadcastKeyLocationUpdated))
-	    		else 
-*/	    			
 	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
 	    			String jsonLocationUpdatedData = bundle.getString(BroadcastConstEnum.data.toString());
 	    			if(jsonLocationUpdatedData == null || jsonLocationUpdatedData.isEmpty()){
@@ -486,6 +423,7 @@ public class Map extends Activity implements LocationListener{
 		    		}
 		    		if(markerMap != null && markerMap.size() == contactsQuantity){
 		    			waitingDialog.dismiss();
+		    			notificationView.setVisibility(4);
 		    		}
 
 		    		

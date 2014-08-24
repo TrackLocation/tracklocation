@@ -18,12 +18,13 @@ import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
+import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.service.GcmIntentService;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.google.gson.Gson;
 
-public class StartTrackLocationService  implements Runnable {
+public class StartTrackLocationService implements Runnable {
 
 	private Context context;
 	private ContactDeviceDataList selectedContactDeviceDataList;
@@ -32,6 +33,9 @@ public class StartTrackLocationService  implements Runnable {
 	private int delay;
 	private String className;
 	private List<String> tempListAccounts;
+	private volatile boolean exitNow;
+	private String methodName;
+	private String logMessage;
 
 	public StartTrackLocationService(
         	Context context,
@@ -39,6 +43,7 @@ public class StartTrackLocationService  implements Runnable {
         	MessageDataContactDetails senderMessageDataContactDetails,
         	int retryTimes,
         	int delay) {
+		exitNow = false;
 		this.context = context;
 		this.selectedContactDeviceDataList = selectedContactDeviceDataList;
 		this.senderMessageDataContactDetails = senderMessageDataContactDetails;
@@ -47,8 +52,26 @@ public class StartTrackLocationService  implements Runnable {
 		className = this.getClass().getName();
 	}
 	
+	public boolean isExitNow() {
+		return exitNow;
+	}
+
+	public void setExitNow(boolean exitNow) {
+		this.exitNow = exitNow;
+	}
+
 	@Override
 	public void run() {
+		
+		methodName = "run";
+		
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+		logMessage = "Started the thread with loop for starting of TrackLocation Service. ThreadID = " + 
+			Thread.currentThread().getId();
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		
 		CommandDataBasic commandDataBasic = new CommandData(
 				context, 
 				selectedContactDeviceDataList, 
@@ -76,12 +99,12 @@ public class StartTrackLocationService  implements Runnable {
         // Set list of recipients' accounts list 
         Preferences.setPreferencesString(context, 
         		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
-        Log.i(CommonConst.LOG_TAG, "Saved destinations: " + jsonListAccounts);
+        Log.i(CommonConst.LOG_TAG, "Saved recipients: " + jsonListAccounts);
         List<String> listAccounts = null;
 		for (int i = 0; i < retryTimes; i++) {
 			jsonListAccounts = Preferences.getPreferencesString(context, 
 	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-	        Log.i(CommonConst.LOG_TAG, "Inside loop destinations: " + jsonListAccounts);
+	        Log.i(CommonConst.LOG_TAG, "Inside loop for recipients: " + jsonListAccounts);
 
 			if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
 				break;
@@ -101,8 +124,13 @@ public class StartTrackLocationService  implements Runnable {
 				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + delay / 1000 + " sec");
 				Thread.sleep(delay);
 			} catch (InterruptedException e) {
-				// Do nothing
-				// TODO: To log - info about crash
+				//if(exitNow == true){
+				logMessage = "Finish the thread with loop for starting of TrackLocation Service. ThreadID = " + 
+					Thread.currentThread().getId();
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+				return;
+				//}
 			}
 			
 			jsonListAccounts = Preferences.getPreferencesString(context, 
@@ -133,8 +161,13 @@ public class StartTrackLocationService  implements Runnable {
         	broadcastMessage = broadcastMessage + currentAccount + "\n";
 		}
         broadcastMessage += "\n";
-        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), 
-        	CommandValueEnum.error.toString());
+        if(tempListAccounts != null && !tempListAccounts.isEmpty()){
+	        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), 
+	        	CommandValueEnum.error.toString());
+        } else {
+	        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), 
+		        CommandValueEnum.success.toString());
+        }
 	}
 
 	private void broadcsatMessage(Context context, String message, String key, String value){

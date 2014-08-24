@@ -81,7 +81,7 @@ import com.google.gson.Gson;
 
 public class Controller {
 
-	private final static String CLASS_NAME = "Controller";
+	private final static String CLASS_NAME = "com.dagrest.tracklocation.Controller";
 	
 	private Timer timer;
 	private MapKeepAliveTimerJob mapKeepAliveTimerJob;
