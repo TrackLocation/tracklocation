@@ -3,6 +3,7 @@ package com.dagrest.tracklocation.utils;
 public class CommonConst {
 	
 	public static final String 	LOG_TAG = "TrackLocation";
+	public static final String 	TRACK_LOCATION_PROJECT_PREFIX = "com.dagrest.tracklocation";
 	public static final String 	PROPERTY_APP_VERSION = "AppVersion";
 	public static final int 	PROPERTY_APP_VERSION_VALUE = 1;
 

@@ -667,71 +667,101 @@ public class GcmIntentService extends IntentService {
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	private void handleCommandJoinApproval(Bundle extras){
+//	time=21:17:23 24/08/2014, collapse_key=do_not_collapse, 
+//	appInfo={"versionName":"0.0.1","versionNumber":2}, 
+//	regIDToReturnMessageTo=APA91bEBpGwPmyVlQ08ab9WNsza8XeRywpXVyTcy6NCZckAiq53rMDcqxfhO1meQEhEzcB7C7KKiVtvTBngal_obixquq5jZkfUE4AiYCEmhQ735B8guHLTBf4tmqwGoelXWLQHp7jrBvPdowFBpk6Je-LTALHaXBpANT7GqL6ToBvmKceGJ0BI, 
+//	command=join_approval, android.support.content.wakelockid=1, 
+//	contactDetails={"phoneNumber":"","account":"agrest2000@gmail.com","macAddress":"10:68:3f:44:7a:98","batteryPercentage":-1.0,"regId":"APA91bEBpGwPmyVlQ08ab9WNsza8XeRywpXVyTcy6NCZckAiq53rMDcqxfhO1meQEhEzcB7C7KKiVtvTBngal_obixquq5jZkfUE4AiYCEmhQ735B8guHLTBf4tmqwGoelXWLQHp7jrBvPdowFBpk6Je-LTALHaXBpANT7GqL6ToBvmKceGJ0BI"}, 
+//	from=943276333483}]
+	
+	private void handleCommandJoinApproval(Bundle extras) {
 		
 		String methodName = "handleCommandJoinApproval";
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 		
-		String message = extras.getString("message"); // email, regId, phoneNumber
+		String jsonContactDetailsSentFrom = extras.getString(CommandTagEnum.contactDetails.toString());
 		
-		String messageArray[] = message.split(CommonConst.DELIMITER_COMMA);
-		String email = null;
+		MessageDataContactDetails contactDetailsSentFrom = 
+			gson.fromJson(jsonContactDetailsSentFrom, MessageDataContactDetails.class);
+		if(contactDetailsSentFrom == null){
+			logMessage = "Join approval request failed. No SentFrom contact details.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+            return;
+		}
+		
+		String accountCommandSentFrom = null;
+		accountCommandSentFrom = contactDetailsSentFrom.getAccount();
+		if(accountCommandSentFrom == null){
+			logMessage = "Join approval request failed. No account/email.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+            return;
+		}
+
 		String registrationIdJoinApproval = null;
-		String phoneNumber = null;
-		String macAddress = null;
-		if(messageArray.length == 4){
-			email = messageArray[0];
-			registrationIdJoinApproval = messageArray[1];
-			phoneNumber = messageArray[2];
-			macAddress = messageArray[3];
-		} else {
-			// Join approval request failed
-			logMessage = "Join approval request failed - not all contact details were provided.";
-            Log.e(CommonConst.LOG_TAG, logMessage);
-            LogManager.LogErrorMsg(className, "GcmIntentService->OnHandleEvent->[COMMAND:join_approval]", logMessage);
-			}
+		registrationIdJoinApproval = contactDetailsSentFrom.getRegId();
+		if(registrationIdJoinApproval == null){
+			logMessage = "Join approval request failed. No registrationID.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+            return;
+		}
+		
+		String phoneNumber = contactDetailsSentFrom.getPhoneNumber();
+		String macAddress = contactDetailsSentFrom.getMacAddress();
+
 		String key = extras.getString(CommandTagEnum.key.toString());
-		String mutualId = extras.getString(CommandTagEnum.value.toString()); // mutualId
+		String mutualId = null;
+		if(CommandKeyEnum.mutualId.toString().equals(key)){
+			mutualId = extras.getString(CommandTagEnum.value.toString()); // mutualId
+		}
 		String currentDateTime = Controller.getCurrentDate();
 		
 //		// Insert into TABLE_PERMISSIONS account(email) according to mutualId
 //		long countAdded = DBLayer.addPermissions(email, 0, 0, 0);
 //		PermissionsData permissionData = DBLayer.getPermissions(email);
 		
-		SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
-		if( sentJoinRequestData == null ){
-			logMessage = "Failed to get sent join request data";
-			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-		}else {
-			// TODO: Check which data id possible to show in log - from sentJoinRequestData
-			logMessage = "ReceivedJoinRequestData = " +  "check which data is possible to log"; // sentJoinRequestData;
-			LogManager.LogInfoMsg(className, methodName, logMessage);
-			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-		}
-		
-		// Remove join request from TABLE_SEND_JOIN_REQUEST according to "mutualId"
-		int count = DBLayer.deleteSentJoinRequest(mutualId);
-		if( count < 1) {
-			logMessage = "Failed to delete sent join request with mutual id: " + mutualId + " count = " + count;
-			LogManager.LogInfoMsg(className, methodName, logMessage);
-			Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		if(mutualId != null){
+			SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
+			if( sentJoinRequestData == null ){
+				logMessage = "Failed to get sent join request data";
+				LogManager.LogErrorMsg(className, methodName, logMessage);
+				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			}else {
+				// TODO: Check which data id possible to show in log - from sentJoinRequestData
+				logMessage = "ReceivedJoinRequestData = " +  "check which data is possible to log"; // sentJoinRequestData;
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			}
+
+			// Remove join request from TABLE_SEND_JOIN_REQUEST according to "mutualId"
+			int count = DBLayer.deleteSentJoinRequest(mutualId);
+			if( count < 1) {
+				logMessage = "Failed to delete sent join request with mutual id: " + mutualId + " count = " + count;
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			} else {
+				logMessage = "Deleted sent join request with mutual id: " + mutualId + " count = " + count;
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			}
+			
+			sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
+			if( sentJoinRequestData != null){
+				logMessage = "Failed to delete sent join request with mutual id: " + mutualId;
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			}
 		} else {
-			logMessage = "Deleted sent join request with mutual id: " + mutualId + " count = " + count;
-			LogManager.LogInfoMsg(className, methodName, logMessage);
-			Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-		}
-		
-		sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
-		if( sentJoinRequestData != null){
-			logMessage = "Failed to delete sent join request with mutual id: " + mutualId + " count = " + count;
+			logMessage = "Failed to delete sent join request with mutual id: " + mutualId;
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		}
 		
 		// Add contact details to CondtactDeviceData table
-		DBLayer.addContactDeviceDataList(new ContactDeviceDataList(email,
+		DBLayer.addContactDeviceDataList(new ContactDeviceDataList(accountCommandSentFrom,
 				macAddress, phoneNumber, registrationIdJoinApproval, null));
 		
 		LogManager.LogFunctionExit(className, methodName);

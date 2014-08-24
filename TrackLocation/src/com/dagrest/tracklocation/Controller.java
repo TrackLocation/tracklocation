@@ -45,6 +45,7 @@ import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.CommandData;
 import com.dagrest.tracklocation.datatype.CommandDataBasic;
 import com.dagrest.tracklocation.datatype.CommandEnum;
+import com.dagrest.tracklocation.datatype.CommandKeyEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
@@ -366,12 +367,21 @@ public class Controller {
 	}
 	
 	public static AppInfo getAppInfo(Context context){
-		AppInfo appInfo = null;
-	
-		int versionNumber = Preferences.getPreferencesInt(context, CommonConst.PREFERENCES_VERSION_NUMBER);
-		String versionName = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_VERSION_NAME);
-		appInfo = new AppInfo(versionNumber, versionName);
 		
+		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX + ".Controller";
+		String methodName = "getAppInfo";
+		
+		AppInfo appInfo = null;
+		
+		if(context != null){
+			int versionNumber = Preferences.getPreferencesInt(context, CommonConst.PREFERENCES_VERSION_NUMBER);
+			String versionName = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_VERSION_NAME);
+			appInfo = new AppInfo(versionNumber, versionName);
+		} else {
+			String logMessage = "Unable to get AppInfo. Context parameter is null.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+		}
 		return appInfo;
 	}
 
@@ -754,9 +764,10 @@ public class Controller {
             String ownerPhoneNumber;
             String message = null, key = null, value = null;
             float batteryPercentage = -1;
-            AppInfo appInfo = Controller.getAppInfo(context);
+            AppInfo appInfo = null;
 
             ContactDeviceDataList contactDeviceDataList = null;
+            ReceivedJoinRequestData receivedJoinRequestData = null;
 			MessageDataContactDetails senderMessageDataContactDetails = null; 
 			MessageDataLocation location = null;
          
@@ -775,21 +786,21 @@ public class Controller {
         			message,					// null
         			senderMessageDataContactDetails,
         			location, 					// null
-        			key, 						// null
-        			value, 						// null
+        			CommandKeyEnum.mutualId.toString(),
+        			mutualId, 
         			appInfo
 				);
 				commandDataBasic.sendCommand(/*true*/);
 				
 				// Remove from RECEIVED_JOIN_REQUEST
-				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
-				if( receivedJoinRequestData == null ){
-		        	String errMsg = "Failed to get received join request data";
-		            Log.e(CommonConst .LOG_TAG, errMsg);
-		            LogManager.LogErrorMsg(CLASS_NAME, "showApproveJoinRequestDialog", errMsg);
-				}else {
-					Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + receivedJoinRequestData.toString());
-				}
+//				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
+//				if( receivedJoinRequestData == null ){
+//		        	String errMsg = "Failed to get received join request data";
+//		            Log.e(CommonConst .LOG_TAG, errMsg);
+//		            LogManager.LogErrorMsg(CLASS_NAME, "showApproveJoinRequestDialog", errMsg);
+//				}else {
+//					Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + receivedJoinRequestData.toString());
+//				}
 				
 				// Add information to DB about contact, requesting join operation 
 				ContactDeviceDataList contactDeviceDataListOwner = 
@@ -797,7 +808,7 @@ public class Controller {
 						new ContactDeviceDataList(	receivedJoinRequestData.getAccount(),
 													receivedJoinRequestData.getMacAddress(), 
 													receivedJoinRequestData.getPhoneNumber(), 
-													regId, 
+													receivedJoinRequestData.getRegId(), 
 													null));
 				if( contactDeviceDataListOwner == null ){
 		        	String errMsg = "Failed to save to DB details of the contcat requesting join operation";
@@ -853,10 +864,25 @@ public class Controller {
 	            ownerMacAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
 	            ownerRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 	            ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
-				contactDeviceDataList = 
-						new ContactDeviceDataList(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, mutualId);
+				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
+				if( receivedJoinRequestData == null ){
+		        	String errMsg = "Failed to get received join request data";
+		            Log.e(CommonConst .LOG_TAG, errMsg);
+		            LogManager.LogErrorMsg(CLASS_NAME, "showApproveJoinRequestDialog", errMsg);
+		            return;
+				}else {
+					contactDeviceDataList = 
+							new ContactDeviceDataList(
+									receivedJoinRequestData.getAccount(), 
+									receivedJoinRequestData.getMacAddress(), 
+									receivedJoinRequestData.getPhoneNumber(), 
+									receivedJoinRequestData.getRegId(), 
+									null);
+					Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + receivedJoinRequestData.toString());
+				}
 				senderMessageDataContactDetails = 
 						new MessageDataContactDetails(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, batteryPercentage);
+				appInfo = Controller.getAppInfo(context);
 			}
 			
 			@Override
@@ -875,13 +901,13 @@ public class Controller {
 			
 		};
 		
-		approveJoinRequestDialogOnClickAction.setContext(context);
 		Object[] objects = new Object[2];
 		objects[0] = mutualId;
 		objects[1] = regId;
+		approveJoinRequestDialogOnClickAction.setParams(objects);
+		approveJoinRequestDialogOnClickAction.setContext(context);
 //		objects[2] = account;
 //		objects[3] = macAddress;
-		approveJoinRequestDialogOnClickAction.setParams(objects);
     	
  		CommonDialog aboutDialog = new CommonDialog(activity, approveJoinRequestDialogOnClickAction);
 		

@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum CommandKeyEnum {
-	starting_status("starting_status"), start_status("start_status");
+	starting_status("starting_status"), start_status("start_status"),
+	mutualId("mutualId");
 	
 	private final String name;       
 	private static Map<String, CommandKeyEnum> valueMap;
