@@ -33,7 +33,14 @@ public class MapKeepAliveTimerJob extends TimerTask {
 	public void run() {
 		if(context != null && selectedContactDeviceDataList != null){
 			
-			MessageDataContactDetails senderMessageDataContactDetails = null;
+			String ownerEmail = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+			String ownerMacAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+			String ownerRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+			String ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+			float batteryPercentage = Controller.getBatteryLevel(context);
+
+			MessageDataContactDetails senderMessageDataContactDetails = 
+				new MessageDataContactDetails(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, batteryPercentage);
 			MessageDataLocation location = null;
 			AppInfo appInfo = Controller.getAppInfo(context);
 			

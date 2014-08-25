@@ -1,18 +1,25 @@
 package com.dagrest.tracklocation.service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
+import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.CommandData;
 import com.dagrest.tracklocation.datatype.CommandDataBasic;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandKeyEnum;
+import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.CommandValueEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
+import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.TimerJob;
@@ -425,42 +432,78 @@ public class TrackLocationService extends Service {
     
     private void initBroadcastReceiver(final String action, final String actionDescription)
     {
-    	LogManager.LogFunctionCall(actionDescription, "initBroadcastReceiver");
+    	methodName = "initBroadcastReceiver";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+		
+		logMessage = "Broadcast action: " + action + ". Broadcast action description: " + actionDescription;
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		
 	    IntentFilter intentFilter = new IntentFilter();
 	    intentFilter.addAction(action);
 	    gcmKeepAliveBroadcastReceiver = new BroadcastReceiver() 
 	    {
 	    	@Override
     		public void onReceive(Context context, Intent intent) {
-	    		LogManager.LogInfoMsg(actionDescription, "initBroadcastReceiver->onReceive", "WORK");
-
-	    		// TODO: refactor with JSON to JAVA and back instead of string with delimiters
+	    		methodName = "BroadcastReceiver->onReceive";
+	    		LogManager.LogFunctionCall(className, methodName);
+	    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 	    		
+	    		Gson gson = new Gson();
 	    		Bundle bundle = intent.getExtras();
-	    		String broadcastKepAlive = BroadcastActionEnum.KEEP_ALIVE.toString();
 	    		// ===========================================
 	    		// broadcast key = keep_alive
 	    		// ===========================================
-	    		if(bundle != null){
-	    			String result = null;
-	    			if(bundle.containsKey(broadcastKepAlive)){
-	    				result = bundle.getString(broadcastKepAlive);
+	    		if(bundle != null  && bundle.containsKey(BroadcastConstEnum.data.toString())){
+	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
+	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
+	    				return;
 	    			}
-		    		if(result != null && !result.isEmpty()){
-		    			if(result.contains(BroadcastActionEnum.KEEP_ALIVE.toString())){
-		    				//mStatus.setText(PushNotificationServiceStatusEnum.available.toString());
-		    				String[] inputArray = result.split(CommonConst.DELIMITER_STRING); // key, value, current_time
-		    				String currentTime = inputArray[1];
-		    				trackLocationServiceStartTime = Long.parseLong(currentTime, 10);       
-		    			}
-		    		} else {
-//		    			mNotification.setText(result);
-		    		}
+	    			NotificationBroadcastData broadcastData = 
+	    				gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
+	    			if(broadcastData == null){
+	    				return;
+	    			}
+	    			
+	    			String key = broadcastData.getKey();
+	    			
+	    			String currentTime = broadcastData.getValue();
+	    			if(currentTime == null || currentTime.isEmpty()){
+	    				logMessage = "Keep alive delay is empty.";
+	    				LogManager.LogErrorMsg(className, methodName, logMessage);
+	    				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+	    				return;
+	    			}
+	    			MessageDataContactDetails messageDataContactDetails = broadcastData.getContactDetails();
+	    			String accountRequestedKeepAlive = messageDataContactDetails.getAccount();
+
+	    			logMessage = "Broadcast action key: " + key + " in: " + 
+		    			(Long.parseLong(currentTime, 10) - System.currentTimeMillis()) + " sec. " +
+		    			"Requested by [" + accountRequestedKeepAlive + "]";
+		    		LogManager.LogInfoMsg(className, methodName, logMessage);
+		    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
+	    			if(BroadcastKeyEnum.keep_alive.toString().equals(key)){
+		    			logMessage = "Broadcast action key: " + key +
+				    		"Requested by [" + accountRequestedKeepAlive + "]";
+		    			LogManager.LogInfoMsg(className, methodName, logMessage);
+		    			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		    			trackLocationServiceStartTime = Long.parseLong(currentTime, 10);       
+		   			}
 	    		}
+	    		LogManager.LogFunctionExit(className, methodName);
+	    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	    	}
 	    };
 	    registerReceiver(gcmKeepAliveBroadcastReceiver, intentFilter);
-	    LogManager.LogFunctionExit(actionDescription, "initBroadcastReceiver");
+	    
+		logMessage = "Broadcast action: " + action + ". Broadcast action description: " + actionDescription;
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+	    
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
     }
 
     public void prepareTrackLocationServiceStopTimer(){

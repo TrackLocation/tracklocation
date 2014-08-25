@@ -22,6 +22,7 @@ public class CommandDataWithReturnToContactMap extends CommandDataBasic {
 				message, senderMessageDataContactDetails,
 				location, key, value, appInfo);
 		returnToContactMap = Preferences.getPreferencesReturnToContactMap(context);
+		initialValuesCheck();
 		listAccounts = new ArrayList<String>();
 		listRegIDs = new ArrayList<String>();
 		prepareAccountAndRegIdLists(listAccounts, listRegIDs);
@@ -36,9 +37,7 @@ public class CommandDataWithReturnToContactMap extends CommandDataBasic {
 		this.returnToContactMap = returnToContactMap;
 	}
 
-	@Override
-	protected void initialValuesCheck() {
-		super.initialValuesCheck();
+	private void initialValuesCheck() {
 		if(returnToContactMap == null){
 			notificationMessage = "There is no recipient map defined";
 			LogManager.LogErrorMsg(className, "[sendCommand:" + command.toString() + "]", notificationMessage);

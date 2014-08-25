@@ -20,14 +20,13 @@ public class CommandData extends CommandDataBasic {
 				message, senderMessageDataContactDetails,
 				location, key, value, appInfo);
 		this.contactDeviceDataList = contactDeviceDataList;
+		initialValuesCheck();
 		listAccounts = new ArrayList<String>();
 		listRegIDs = new ArrayList<String>();
 		prepareAccountAndRegIdLists(listAccounts, listRegIDs);
 	}
 		
-	@Override
-	protected void initialValuesCheck() {
-		super.initialValuesCheck();
+	private void initialValuesCheck() {
 		if(contactDeviceDataList == null){
 			notificationMessage = "There is no recipient list defined";
 			LogManager.LogErrorMsg(className, "[sendCommand:" + command.toString() + "]", notificationMessage);

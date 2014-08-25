@@ -100,7 +100,7 @@ public class CommandDataBasic {
 		this.senderMessageDataContactDetails = senderMessageDataContactDetails;
 	}
 
-	protected void initialValuesCheck(){
+	private void initialValuesCheck(){
 		if(command == null){
 			notificationMessage = "Command is undefined";
 			LogManager.LogErrorMsg(className, "[sendCommand:UNDEFINED_COMMAND]", notificationMessage);

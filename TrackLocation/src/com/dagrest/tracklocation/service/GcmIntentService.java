@@ -777,12 +777,23 @@ public class GcmIntentService extends IntentService {
 		String key = extras.getString(CommandTagEnum.key.toString());
 		String value = extras.getString(CommandTagEnum.value.toString());
 		
+		String jsonContactDetails = extras.getString(CommandTagEnum.contactDetails.toString());
+		MessageDataContactDetails contactDetails = 
+				gson.fromJson(jsonContactDetails, MessageDataContactDetails.class);
+		MessageDataLocation location = null;
+		BroadcastData broadcastData = new BroadcastData();
+		broadcastData.setContactDetails(contactDetails);
+		broadcastData.setLocation(location);
+		broadcastData.setKey(BroadcastKeyEnum.keep_alive.toString());
+		broadcastData.setValue(value);
+		String jsonBroadcastData = gson.toJson(broadcastData);
+
 		Controller.broadcastMessage(GcmIntentService.this, 
 			BroadcastActionEnum.BROADCAST_LOCATION_KEEP_ALIVE.toString(),
 			"GcmIntentService",
-			null, 
+			jsonBroadcastData, 
 			BroadcastKeyEnum.keep_alive.toString(),  
-			key + CommonConst.DELIMITER_STRING + value);
+			value);
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
