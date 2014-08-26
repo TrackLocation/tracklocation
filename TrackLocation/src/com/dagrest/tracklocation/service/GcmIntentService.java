@@ -794,7 +794,11 @@ public class GcmIntentService extends IntentService {
 			jsonBroadcastData, 
 			BroadcastKeyEnum.keep_alive.toString(),  
 			value);
-		
+
+    	logMessage = "TrackLocation service got keep alive request from [" + contactDetails.getAccount() + "]";
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}

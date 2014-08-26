@@ -49,6 +49,7 @@ public class TrackLocationService extends Service {
 	private Timer timer;
 	private long repeatPeriod;
 	private long trackLocationServiceStartTime;
+	private String trackLocationKeepAliveRequester;
 	private BroadcastReceiver gcmKeepAliveBroadcastReceiver;
 	
 	private String clientAccount;
@@ -77,6 +78,7 @@ public class TrackLocationService extends Service {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
         
+		
 		initBroadcastReceiver(BroadcastActionEnum.BROADCAST_LOCATION_KEEP_ALIVE.toString(), "ContactConfiguration");
         
         try{
@@ -121,7 +123,6 @@ public class TrackLocationService extends Service {
         	timerJob.cancel();
         	Log.i(CommonConst.LOG_TAG, "[INFO]  {" + className + "} -> Timer with TimerJob that stops TrackLocationService - stopped");
 
-        	
             if(locationManager != null){
             	if( locationListenerGPS != null){
 	                locationManager.removeUpdates(locationListenerGPS);
@@ -151,20 +152,27 @@ public class TrackLocationService extends Service {
     @Override          
 	public void onStart(Intent intent, int startId)           
 	{                  
+    	methodName = "onStart";
 		try{
 			LogManager.LogFunctionCall(className, "onStart");
             Log.i(CommonConst.LOG_TAG, "{" + className + "} onStart - Start");
             
             Gson gson = new Gson();
             Bundle extras = intent.getExtras();
-            String jsonSenderMessageDataContactDetails = extras.getString(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS);
-            MessageDataContactDetails senderMessageDataContactDetails = 
-            	gson.fromJson(jsonSenderMessageDataContactDetails, MessageDataContactDetails.class);
-            if(senderMessageDataContactDetails == null){
-            	// TODO: !!!
-            }
-
-
+            String jsonSenderMessageDataContactDetails = null;
+            MessageDataContactDetails senderMessageDataContactDetails = null;
+    		if(extras.containsKey(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS)){
+    			jsonSenderMessageDataContactDetails = extras.getString(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS);
+	            senderMessageDataContactDetails = 
+	            	gson.fromJson(jsonSenderMessageDataContactDetails, MessageDataContactDetails.class);
+	            if(senderMessageDataContactDetails != null){
+	            	trackLocationKeepAliveRequester = senderMessageDataContactDetails.getAccount();
+	            	logMessage = "TrackLocation service has been started by [" + trackLocationKeepAliveRequester + "]";
+	        		LogManager.LogInfoMsg(className, methodName, logMessage);
+	        		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+	            }
+    		}
+            
             // Start TrackLocationServiceStopTimer
         	Log.i(CommonConst.LOG_TAG, "{" + className + "} Start TrackLocationService TimerJob with repeat period = " + 
         		repeatPeriod/1000/60 + " min");
@@ -489,7 +497,8 @@ public class TrackLocationService extends Service {
 				    		"Requested by [" + accountRequestedKeepAlive + "]";
 		    			LogManager.LogInfoMsg(className, methodName, logMessage);
 		    			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-		    			trackLocationServiceStartTime = Long.parseLong(currentTime, 10);       
+		    			trackLocationServiceStartTime = Long.parseLong(currentTime, 10);   
+		    			trackLocationKeepAliveRequester = accountRequestedKeepAlive;
 		   			}
 	    		}
 	    		LogManager.LogFunctionExit(className, methodName);
