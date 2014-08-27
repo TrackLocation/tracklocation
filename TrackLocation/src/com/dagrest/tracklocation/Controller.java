@@ -41,6 +41,7 @@ import android.util.Patterns;
 import android.util.SparseArray;
 
 import com.dagrest.tracklocation.datatype.AppInfo;
+import com.dagrest.tracklocation.datatype.AppInstDetails;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.CommandData;
@@ -651,12 +652,15 @@ public class Controller {
     	if(handledSmsList == null){
     		return false;
     	}
+    	if(smsMessage == null){
+    		return false;
+    	}
     	List<SMSMessage> list = handledSmsList.getSmsMessageList();
     	if(list != null){
         	for (SMSMessage smsMessageEntity : list) {
     			if( smsMessageEntity != null &&
     				smsMessageEntity.getMessageDate().equals(smsMessage.getMessageDate()) &&
-					smsMessageEntity.getMessageId().equals(smsMessage.getMessageId())){
+    				smsMessageEntity.getMessageId().equals(smsMessage.getMessageId())){
 					return true;
     			}
     		}
@@ -667,12 +671,25 @@ public class Controller {
     public static boolean isHandledSmsDetails(Context ctx, SMSMessage smsMessage){
     	Gson gson = new Gson();
 	    SMSMessageList handledSmsList = null;
+	    if(smsMessage == null){
+	    	return false;
+	    }
 	    String jsonHandledSmsList = 
 	    	Preferences.getPreferencesString(ctx, CommonConst.PREFERENCES_HANDLED_SMS_LIST);
 	    if(jsonHandledSmsList != null && !jsonHandledSmsList.isEmpty()){
 	    	handledSmsList = gson.fromJson(jsonHandledSmsList, SMSMessageList.class);
 	    	if(handledSmsList != null && Controller.isContain(handledSmsList, smsMessage)){
 	    		return true;
+	    	} else {
+	    		AppInstDetails appInstDetails = new AppInstDetails(ctx);
+	    		long appInstTimestamp = appInstDetails.getTimestamp();
+	    		String smsMessageDate = smsMessage.getMessageDate();
+	    		if(smsMessageDate != null && !smsMessageDate.isEmpty()){
+	    			long longSmsMessageTimestamp = Long.parseLong(smsMessageDate);
+	    			if(appInstTimestamp > longSmsMessageTimestamp){
+	    				return true;
+	    			}
+	    		}
 	    	}
 	    }
     	return false;
