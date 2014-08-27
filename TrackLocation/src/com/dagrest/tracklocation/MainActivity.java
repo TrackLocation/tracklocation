@@ -2,7 +2,10 @@ package com.dagrest.tracklocation;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
+import com.dagrest.tracklocation.datatype.AppInfo;
+import com.dagrest.tracklocation.datatype.AppInstDetails;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.db.DBHelper;
@@ -46,13 +49,23 @@ public class MainActivity extends Activity {
     private String macAddress;
     private List<String> accountList;
     private String account;
+    private AppInstDetails appInstDetails;
     
     @SuppressLint("ResourceAsColor")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		className = this.getClass().getName();
-				
+		
+		context = getApplicationContext();
+		// Create application details during first installation 
+		// if was created already just returns the details:
+		//    - First installation's timestamp 
+		//    - ApInfo: version number and version name
+		appInstDetails = new AppInstDetails(context); 
+		
+		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_HANDLED_SMS_LIST, "");
+
 		// ======================================================================
 		// Checking for all possible Internet providers
 		// ======================================================================
@@ -64,9 +77,7 @@ public class MainActivity extends Activity {
 		}
 		
 		setContentView(R.layout.activity_main);
-		
-		context = getApplicationContext();
-		
+				
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
 		try {
 			Controller.checkPlayServices(context);
@@ -230,6 +241,9 @@ public class MainActivity extends Activity {
 		// PHONE NUMBER
 		phoneNumber = Controller.getPhoneNumber(context);
 		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
+		if(phoneNumber == null || phoneNumber.isEmpty()){
+			phoneNumber = UUID.randomUUID().toString().replace("-", "");
+		}
 		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
 		
 		// MAC ADDRESS

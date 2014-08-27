@@ -11,6 +11,7 @@ import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.BroadcastData;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.CommandEnum;
+import com.dagrest.tracklocation.datatype.CommandKeyEnum;
 import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.CommandValueEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
@@ -59,6 +60,7 @@ public class Map extends Activity implements LocationListener{
 	private String methodName;
 	private String logMessage;
 	
+	private Activity mapActivity;
 	private LocationManager locationManager;
 	private LatLng lastKnownLocation;
 	private LatLng latLngChanging;
@@ -78,6 +80,7 @@ public class Map extends Activity implements LocationListener{
 	private Context context;
 	private Thread startTrackLocationServerThread;
 	private Runnable startTrackLocationService;
+	private boolean isPermissionDialogShown;
 	
 	private TextView notificationView;
 	
@@ -117,6 +120,8 @@ public class Map extends Activity implements LocationListener{
 		super.onCreate(savedInstanceState);
 		className = this.getClass().getName();
 		methodName = "onCreate";
+		mapActivity = this;
+    	isPermissionDialogShown = false;
 		setContentView(R.layout.map);	
 		
 		notificationView = (TextView) findViewById(R.id.textViewMap);
@@ -288,8 +293,6 @@ public class Map extends Activity implements LocationListener{
 	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
 	    notificationBroadcastReceiver = new BroadcastReceiver() {
 
-		    CommonDialog notificationDialog = null;
-
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				Bundle bundle = intent.getExtras();
@@ -319,7 +322,8 @@ public class Map extends Activity implements LocationListener{
     				// FAILED for some recipients
 	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
 	    					CommandValueEnum.error.toString().equals(value)){
-	    				showNotificationDialog(broadcastData.getMessage());
+	    				//showNotificationDialog(broadcastData.getMessage());
+	    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
 	    				notificationView.setText(broadcastData.getMessage());
 	    				notificationView.setVisibility(4);
 	    			}
@@ -330,6 +334,32 @@ public class Map extends Activity implements LocationListener{
 	    					CommandValueEnum.success.toString().equals(value)){
 	    				notificationView.setText(broadcastData.getMessage());
 	    				notificationView.setVisibility(4);
+	    			}
+	    			
+	    			if(CommandKeyEnum.permissions.toString().equals(key) && 
+	    					CommandValueEnum.not_defined.toString().equals(value)){
+	    				if(isPermissionDialogShown == false){
+		    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
+		    				isPermissionDialogShown = true;
+	    				}
+	    				waitingDialog.dismiss();
+//	    				notificationView.setVisibility(4);
+//	    		    	if(startTrackLocationServerThread != null){
+//	    		    		startTrackLocationServerThread.interrupt();
+//	    		    	}
+	    			}
+
+	    			if(CommandKeyEnum.permissions.toString().equals(key) && 
+	    					CommandValueEnum.not_permitted.toString().equals(value)){
+	    				if(isPermissionDialogShown == false){
+		    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
+		    				isPermissionDialogShown = true;
+	    				}
+	    				waitingDialog.dismiss();
+//	    				notificationView.setVisibility(4);
+//	    		    	if(startTrackLocationServerThread != null){
+//	    		    		startTrackLocationServerThread.interrupt();
+//	    		    	}
 	    			}
 	    		}
 			}
@@ -465,48 +495,8 @@ public class Map extends Activity implements LocationListener{
     	if(startTrackLocationServerThread != null){
     		startTrackLocationServerThread.interrupt();
     	}
-    }
-
-	IDialogOnClickAction notificationDialogOnClickAction = new IDialogOnClickAction() {
-
-		@Override
-		public void doOnPositiveButton() {
-		}
-		@Override
-		public void doOnNegativeButton() {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setActivity(Activity activity) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setContext(Context context) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setParams(Object[]... objects) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void doOnChooseItem(int which) {
-			// TODO Auto-generated method stub
-		}
-	};
-	
-    //private void showGoogleServiceNotAvailable(String errorMessage) {
-	private CommonDialog showNotificationDialog(String errorMessage) {
-    	//String dialogMessage = "\nGoogle Cloud Service is not available right now.\n\nPlease try later.\n";
-    	String dialogMessage = errorMessage;
     	
-		CommonDialog aboutDialog = new CommonDialog(this, notificationDialogOnClickAction);
-		aboutDialog.setDialogMessage(dialogMessage);
-		aboutDialog.setDialogTitle("Warning");
-		aboutDialog.setPositiveButtonText("OK");
-		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		aboutDialog.showDialog();
-		aboutDialog.setCancelable(true);
-		return aboutDialog;
+    	isPermissionDialogShown = false;
     }
 
 	private void displayNotification(Bundle bundle){
@@ -536,4 +526,46 @@ public class Map extends Activity implements LocationListener{
 //        return true; //detector.onTouchEvent(motionEvent);     
 //    }
 }
+
+//IDialogOnClickAction notificationDialogOnClickAction = new IDialogOnClickAction() {
+//
+//	@Override
+//	public void doOnPositiveButton() {
+//	}
+//	@Override
+//	public void doOnNegativeButton() {
+//		// TODO Auto-generated method stub
+//	}
+//	@Override
+//	public void setActivity(Activity activity) {
+//		// TODO Auto-generated method stub
+//	}
+//	@Override
+//	public void setContext(Context context) {
+//		// TODO Auto-generated method stub
+//	}
+//	@Override
+//	public void setParams(Object[]... objects) {
+//		// TODO Auto-generated method stub
+//	}
+//	@Override
+//	public void doOnChooseItem(int which) {
+//		// TODO Auto-generated method stub
+//	}
+//};
+//
+////private void showGoogleServiceNotAvailable(String errorMessage) {
+//private CommonDialog showNotificationDialog(String errorMessage) {
+//	//String dialogMessage = "\nGoogle Cloud Service is not available right now.\n\nPlease try later.\n";
+//	String dialogMessage = errorMessage;
+//	
+//	CommonDialog aboutDialog = new CommonDialog(this, notificationDialogOnClickAction);
+//	aboutDialog.setDialogMessage(dialogMessage);
+//	aboutDialog.setDialogTitle("Warning");
+//	aboutDialog.setPositiveButtonText("OK");
+//	aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+//	aboutDialog.showDialog();
+//	aboutDialog.setCancelable(true);
+//	return aboutDialog;
+//}
 

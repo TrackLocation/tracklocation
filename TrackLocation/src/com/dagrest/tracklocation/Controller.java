@@ -41,6 +41,7 @@ import android.util.Patterns;
 import android.util.SparseArray;
 
 import com.dagrest.tracklocation.datatype.AppInfo;
+import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.CommandData;
 import com.dagrest.tracklocation.datatype.CommandDataBasic;
@@ -55,9 +56,11 @@ import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
+import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.datatype.ReceivedJoinRequestData;
 import com.dagrest.tracklocation.datatype.SMSMessage;
+import com.dagrest.tracklocation.datatype.SMSMessageList;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
@@ -431,8 +434,8 @@ public class Controller {
 	        return null;
 	}
 	
-	public static ArrayList<SMSMessage> fetchInboxSms(Activity activity, int type) {
-        ArrayList<SMSMessage> smsInbox = new ArrayList<SMSMessage>();
+	public static SMSMessageList fetchInboxSms(Activity activity, int type) {
+        SMSMessageList smsInbox = new SMSMessageList();
 
         Uri uriSms = Uri.parse(CommonConst.SMS_URI);
 
@@ -445,17 +448,18 @@ public class Controller {
             if (cursor.getCount() > 0) {
 
                 do {
-                    String date =  cursor.getString(cursor.getColumnIndex("date"));
-                    Long timestamp = Long.parseLong(date);    
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.setTimeInMillis(timestamp);
-                    DateFormat formatter = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss.SSS");
+//                    String date =  cursor.getString(cursor.getColumnIndex("date"));
+//                    Long timestamp = Long.parseLong(date);    
+//                    Calendar calendar = Calendar.getInstance();
+//                    calendar.setTimeInMillis(timestamp);
+//                    DateFormat formatter = new SimpleDateFormat("yyyy/MM/dd hh:mm:ss.SSS");
                     SMSMessage message = new SMSMessage();
                     message.setMessageId(cursor.getString(cursor.getColumnIndex("_id")));
                     message.setMessageNumber(cursor.getString(cursor.getColumnIndex("address")));
                     message.setMessageContent(cursor.getString(cursor.getColumnIndex("body")));
-                    message.setMessageDate(formatter.format(calendar.getTime()));
-                    smsInbox.add(message);
+//                  message.setMessageDate(formatter.format(calendar.getTime()));
+                    message.setMessageDate(cursor.getString(cursor.getColumnIndex("date")));
+                    smsInbox.getSmsMessageList().add(message);
                 } while (cursor.moveToPrevious());
                 
             }
@@ -625,6 +629,55 @@ public class Controller {
         return contactDetailsGroups;
     }
 
+    public static void saveHandledSmsDetails(Context ctx, SMSMessage smsMessage){
+    	Gson gson = new Gson();
+	    SMSMessageList handledSmsList = null;
+	    String jsonHandledSmsList = 
+	    	Preferences.getPreferencesString(ctx, CommonConst.PREFERENCES_HANDLED_SMS_LIST);
+	    if(jsonHandledSmsList == null || jsonHandledSmsList.isEmpty()){
+	    	handledSmsList = new SMSMessageList();
+	    } else {
+	    	handledSmsList = gson.fromJson(jsonHandledSmsList, SMSMessageList.class);
+	    }
+    	if(handledSmsList != null && !Controller.isContain(handledSmsList,smsMessage)){
+    		handledSmsList.getSmsMessageList().add(smsMessage);
+    		String jsonHandledSmsListNew = gson.toJson(handledSmsList);
+    		Preferences.setPreferencesString(ctx, 
+    			CommonConst.PREFERENCES_HANDLED_SMS_LIST, jsonHandledSmsListNew);
+    	}
+    }
+    
+    private static boolean isContain(SMSMessageList handledSmsList, SMSMessage smsMessage){
+    	if(handledSmsList == null){
+    		return false;
+    	}
+    	List<SMSMessage> list = handledSmsList.getSmsMessageList();
+    	if(list != null){
+        	for (SMSMessage smsMessageEntity : list) {
+    			if( smsMessageEntity != null &&
+    				smsMessageEntity.getMessageDate().equals(smsMessage.getMessageDate()) &&
+					smsMessageEntity.getMessageId().equals(smsMessage.getMessageId())){
+					return true;
+    			}
+    		}
+    	}
+    	return false;
+    }
+    
+    public static boolean isHandledSmsDetails(Context ctx, SMSMessage smsMessage){
+    	Gson gson = new Gson();
+	    SMSMessageList handledSmsList = null;
+	    String jsonHandledSmsList = 
+	    	Preferences.getPreferencesString(ctx, CommonConst.PREFERENCES_HANDLED_SMS_LIST);
+	    if(jsonHandledSmsList != null && !jsonHandledSmsList.isEmpty()){
+	    	handledSmsList = gson.fromJson(jsonHandledSmsList, SMSMessageList.class);
+	    	if(handledSmsList != null && Controller.isContain(handledSmsList, smsMessage)){
+	    		return true;
+	    	}
+	    }
+    	return false;
+    }
+    
     /*
      * Check if received SMS with JOIN REQUEST
      * 
@@ -643,6 +696,7 @@ public class Controller {
    	
 	    	@Override
 	        protected String doInBackground(Object[]... objects) {
+	    		Gson gson = new Gson();
 	    	    // Read SMS messages from inbox
 	    		Context ctx = null;
 	    		if(objects[0][0] != null){
@@ -659,15 +713,20 @@ public class Controller {
 	    		}
 	    		
 	    		// Fetch all SMS 
-	    	    List<SMSMessage> smsList = fetchInboxSms(activity, 1);
-	    	    if(smsList != null){
-	    	    	for (SMSMessage smsMessage : smsList) {
+	    	    SMSMessageList smsList = fetchInboxSms(activity, 1);
+	    	    if(smsList != null && smsList.getSmsMessageList() != null){
+	    	    	for (SMSMessage smsMessage : smsList.getSmsMessageList()) {
 	    	    		//String n = smsMessage.getMessageNumber();
 	    	    		// Check if there SMS with JOIN REQUEST from TrackLocation application
 						if(smsMessage != null && smsMessage.getMessageContent().contains(CommonConst.JOIN_FLAG_SMS)){
 				    	    String smsMsg = smsMessage.getMessageContent();
 				    	    String smsId = smsMessage.getMessageId();
 				    	    String smsPhoneNumber = smsMessage.getMessageNumber();
+				    	    String smsDate = smsMessage.getMessageDate();
+				    	    
+				    	    if(Controller.isHandledSmsDetails(ctx, smsMessage)){
+				    	    	continue;
+				    	    }
 				    	    
 				    	    String[] smsParams = smsMsg.split(CommonConst.DELIMITER_COMMA);
 				    	    
@@ -695,12 +754,31 @@ public class Controller {
 					    			} else {
 					    				// TODO: delete SMS that was handled
 					    				String uriSms = Uri.parse(CommonConst.SMS_URI) + "/" + smsId;
-					    				int count = activity.getContentResolver().delete(Uri.parse(uriSms), null, null);
+					    				//int count = activity.getContentResolver().delete(Uri.parse(uriSms), 
+					    				//	"date=?", new String[] { smsDate });
+					    				int count = 0;
 					    				if(count != 1){
 					    					// Log that join SMS request has not been removed
 						    	        	String errMsg = "Failed to delete join request SMS";
 						    	            Log.e(CommonConst.LOG_TAG, errMsg);
 						    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
+						    	            
+						    	            Controller.saveHandledSmsDetails(ctx, smsMessage);
+						    	            
+//						    	            List handledSmsList = null;
+//						    	            String jsonHandledSmsList = 
+//						    	            	Preferences.getPreferencesString(ctx, CommonConst.PREFERENCES_HANDLED_SMS_LIST);
+//						    	            if(jsonHandledSmsList == null || jsonHandledSmsList.isEmpty()){
+//						    	            	handledSmsList = new ArrayList();
+//						    	            } else {
+//						    	            	handledSmsList = gson.fromJson(jsonHandledSmsList, List.class);
+//						    	            	if(handledSmsList != null && !handledSmsList.contains(smsId)){
+//						    	            		handledSmsList.add(smsId);
+//						    	            		String jsonHandledSmsListNew = gson.toJson(handledSmsList);
+//						    	            		Preferences.setPreferencesString(ctx, 
+//						    	            			CommonConst.PREFERENCES_HANDLED_SMS_LIST, jsonHandledSmsListNew);
+//						    	            	}
+//						    	            }
 					    				}
 					    	    	    // Check that join request approved and send back by
 					    	    	    // push notification (GCM) owner contact details
@@ -793,14 +871,14 @@ public class Controller {
 				commandDataBasic.sendCommand(/*true*/);
 				
 				// Remove from RECEIVED_JOIN_REQUEST
-//				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
-//				if( receivedJoinRequestData == null ){
-//		        	String errMsg = "Failed to get received join request data";
-//		            Log.e(CommonConst .LOG_TAG, errMsg);
-//		            LogManager.LogErrorMsg(CLASS_NAME, "showApproveJoinRequestDialog", errMsg);
-//				}else {
-//					Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + receivedJoinRequestData.toString());
-//				}
+				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
+				if( receivedJoinRequestData == null ){
+		        	String errMsg = "Failed to get received join request data";
+		            Log.e(CommonConst .LOG_TAG, errMsg);
+		            LogManager.LogErrorMsg(CLASS_NAME, "showApproveJoinRequestDialog", errMsg);
+				}else {
+					Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + receivedJoinRequestData.toString());
+				}
 				
 				// Add information to DB about contact, requesting join operation 
 				ContactDeviceDataList contactDeviceDataListOwner = 
@@ -1208,6 +1286,56 @@ public class Controller {
 		}
 		return contactDeviceDataToSendNotificationTo;
 	}
+	
+	public static void broadcsatMessage(Context context, String message, String key, String value){
+		NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
+		notificationBroadcastData.setMessage(message);
+		notificationBroadcastData.setKey(key);
+		notificationBroadcastData.setValue(value);
+		Gson gson = new Gson();
+		String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
+		
+		// Broadcast corresponding message
+		Controller.broadcastMessage(context, 
+			BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+			"GcmIntentService",
+			jsonNotificationBroadcastData, 
+			key, // BroadcastKeyEnum.message.toString(),  
+			value
+		);
+	}
+
+	public static void showNotificationDialog(Activity activity, String errorMessage) {
+		IDialogOnClickAction dialogOnClickAction = null;
+		CommonDialog aboutDialog = new CommonDialog(activity, dialogOnClickAction);
+		aboutDialog.setDialogMessage(errorMessage);
+		aboutDialog.setDialogTitle("Warning");
+		aboutDialog.setPositiveButtonText("OK");
+		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+		aboutDialog.showDialog();
+		aboutDialog.setCancelable(true);
+    }
+	
+	public static void removeSenderAccountFromSendCommandList(Context context, 
+			String jsonListAccounts, String senderAccount){
+        String methodName = "showNotificationDialog";
+        Gson gson = new Gson();
+        @SuppressWarnings("unchecked")
+		List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+        if(listAccounts != null && listAccounts.contains(senderAccount)){
+        	listAccounts.remove(senderAccount);
+        	jsonListAccounts = gson.toJson(listAccounts);
+        	if(jsonListAccounts == null){
+        		jsonListAccounts = "";
+        	}	        
+        	Preferences.setPreferencesString(context, 
+	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
+        	String logMessage = "Updated recipients accounts list: [" + jsonListAccounts + "]";
+    		LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
+    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + methodName + ": "+ logMessage);
+        }
+	}
+
 }
 	
 //    public static void checkGcmStatus(Context context, ContactData contactData, ContactDeviceData contactDeviceData){

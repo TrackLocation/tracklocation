@@ -120,17 +120,19 @@ public class StartTrackLocationService implements Runnable {
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> LOOP: " + (i+1) + 
 				" [START] command sent to recipients: " + jsonListAccounts);
 			
-			try {
-				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + delay / 1000 + " sec");
-				Thread.sleep(delay);
-			} catch (InterruptedException e) {
-				//if(exitNow == true){
-				logMessage = "Finish the thread with loop for starting of TrackLocation Service. ThreadID = " + 
-					Thread.currentThread().getId();
-				LogManager.LogInfoMsg(className, methodName, logMessage);
-				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-				return;
-				//}
+			for(int j = 0; j < (delay / 1000); j++){
+				try {
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + delay / 1000 + " sec");
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					//if(exitNow == true){
+					logMessage = "Finish the thread with loop for starting of TrackLocation Service. ThreadID = " + 
+						Thread.currentThread().getId();
+					LogManager.LogInfoMsg(className, methodName, logMessage);
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+					return;
+					//}
+				}
 			}
 			
 			jsonListAccounts = Preferences.getPreferencesString(context, 

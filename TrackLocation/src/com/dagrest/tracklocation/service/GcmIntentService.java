@@ -26,6 +26,8 @@ import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.db.DBManager;
+import com.dagrest.tracklocation.dialog.CommonDialog;
+import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.exception.CheckPlayServicesException;
 import com.dagrest.tracklocation.exception.NoSentContactFromAccountException;
 import com.dagrest.tracklocation.exception.NoSentContactFromException;
@@ -35,6 +37,7 @@ import com.dagrest.tracklocation.utils.Preferences;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.gson.Gson;
 
+import android.app.Activity;
 import android.app.IntentService;
 import android.content.ComponentName;
 import android.content.Context;
@@ -848,35 +851,22 @@ public class GcmIntentService extends IntentService {
 		LogManager.LogInfoMsg(className, methodName, "");
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 
+		String jsonListAccounts = Preferences.getPreferencesString(clientContext, 
+        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+		logMessage = "Recipients accounts list: [" + jsonListAccounts + "]";
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 		// ============================================================
 		// TrackLocation Service started - notification received
 		// ============================================================
 		if(CommandKeyEnum.start_status.toString().equals(key) && 
 				CommandValueEnum.success.toString().equals(value)){
 			
-			String jsonListAccounts = Preferences.getPreferencesString(clientContext, 
-	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-			logMessage = "Recipients accounts list: [" + jsonListAccounts + "]";
-			LogManager.LogInfoMsg(className, methodName, logMessage);
-			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			Controller.removeSenderAccountFromSendCommandList(context, 
+				jsonListAccounts, senderAccount);
 
-	        Gson gson = new Gson();
-	        @SuppressWarnings("unchecked")
-			List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
-	        if(listAccounts != null && listAccounts.contains(senderAccount)){
-	        	listAccounts.remove(senderAccount);
-	        	jsonListAccounts = gson.toJson(listAccounts);
-	        	if(jsonListAccounts == null){
-	        		jsonListAccounts = "";
-	        	}	        
-	        	Preferences.setPreferencesString(context, 
-		        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
-	        	logMessage = "Updated recipients accounts list: [" + jsonListAccounts + "]";
-	    		LogManager.LogInfoMsg(className, methodName, logMessage);
-	    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-	        }
-	        
-	        // TODO: For test only:
+			// TODO: For test only:
 			jsonListAccounts = Preferences.getPreferencesString(clientContext, 
 	        	CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
 			
@@ -885,7 +875,22 @@ public class GcmIntentService extends IntentService {
 //				String broadcastMessage = "The following recipients are unavailable: " + jsonListAccounts;
 //				broadcsatMessage(broadcastMessage, key, value);
 //			}
+			
+		// ============================================================
+		//  - notification received
+		// ============================================================
+		} else if (CommandKeyEnum.permissions.toString().equals(key) && 
+				CommandValueEnum.not_defined.toString().equals(value)){
+			Controller.removeSenderAccountFromSendCommandList(context, 
+					jsonListAccounts, senderAccount);
+			Controller.broadcsatMessage(context, msg + " by " + senderAccount, key, value);
+		} else if (CommandKeyEnum.permissions.toString().equals(key) && 
+				CommandValueEnum.not_permitted.toString().equals(value)){
+			Controller.removeSenderAccountFromSendCommandList(context, 
+					jsonListAccounts, senderAccount);
+			Controller.broadcsatMessage(context, msg + " by " + senderAccount, key, value);
 		}
+
 
 // TODO: Delete from here - not needed - ONLY as example of BROADCAST:
 //		
@@ -935,12 +940,12 @@ public class GcmIntentService extends IntentService {
     			logMessage, 
     			messageDataContactDetails, 
     			null, // location
-    			null, // key
-    			null, // value
+    			CommandKeyEnum.permissions.toString(), // key
+    			CommandValueEnum.not_defined.toString(), // value
     			appInfo
     		);
             commandDataBasic.sendCommand();
-    		
+            
     		return false;
     	}
     	
@@ -962,8 +967,8 @@ public class GcmIntentService extends IntentService {
     			logMessage, 
     			messageDataContactDetails, 
     			null, // location
-    			null, // key
-    			null, // value
+    			CommandKeyEnum.permissions.toString(), // key
+    			CommandValueEnum.not_permitted.toString(), // value
     			appInfo
     		);
             commandDataBasic.sendCommand();
@@ -973,23 +978,24 @@ public class GcmIntentService extends IntentService {
     	return true;
 	}
 	
-	private void broadcsatMessage(String message, String key, String value){
-		NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
-		notificationBroadcastData.setMessage(message);
-		notificationBroadcastData.setKey(key);
-		notificationBroadcastData.setValue(value);
-		String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
-		
-//		MessageDataContactDetails mdcd = 
-//			gson.fromJson(extras.getString(CommandTagEnum.contactDetails.toString()), MessageDataContactDetails.class);
-
-		// Broadcast corresponding message
-		Controller.broadcastMessage(GcmIntentService.this, 
-			BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
-			"GcmIntentService",
-			jsonNotificationBroadcastData, 
-			key, // BroadcastKeyEnum.message.toString(),  
-			value
-		);
-	}
+//	private static void broadcsatMessage(Context context, String message, String key, String value){
+//		NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
+//		notificationBroadcastData.setMessage(message);
+//		notificationBroadcastData.setKey(key);
+//		notificationBroadcastData.setValue(value);
+//		Gson gson = new Gson();
+//		String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
+//		
+////		MessageDataContactDetails mdcd = 
+////			gson.fromJson(extras.getString(CommandTagEnum.contactDetails.toString()), MessageDataContactDetails.class);
+//
+//		// Broadcast corresponding message
+//		Controller.broadcastMessage(context, 
+//			BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+//			"GcmIntentService",
+//			jsonNotificationBroadcastData, 
+//			key, // BroadcastKeyEnum.message.toString(),  
+//			value
+//		);
+//	}
 }

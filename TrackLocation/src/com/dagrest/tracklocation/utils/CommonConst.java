@@ -12,6 +12,8 @@ public class CommonConst {
 	public static final String 	PREFERENCES_PHONE_ACCOUNT 		= "PhoneAccount";
 	public static final String 	PREFERENCES_OWNER_GUID 			= "OwnerGuid";
 	
+	public static final String 	PREFERENCES_HANDLED_SMS_LIST 	= "HandledSMSList";
+	
 	// checkPlayServices
 	public static final String PLAYSERVICES_ERROR	 			= "ERROR";
 	public static final String PLAYSERVICES_DEVICE_NOT_SUPPORTED= "DEVICE_NOT_SUPPORTED";

@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.FragmentManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 
@@ -20,6 +21,7 @@ public class CommonDialog extends DialogFragment {
 	private IDialogOnClickAction onClickAction;
 	private FragmentManager fm;
 	private String[] itemsList;
+	private IDialogOnClickAction notificationDialogOnClickActionDefault;
 	
 	public CommonDialog() {};
 			
@@ -40,7 +42,11 @@ public class CommonDialog extends DialogFragment {
 	}
 
 	public CommonDialog(Activity activity, IDialogOnClickAction onClickAction) {
-		this.onClickAction = onClickAction;
+		if(onClickAction != null){
+			this.onClickAction = onClickAction;
+		} else {
+			this.onClickAction = getDialogOnClickActionDefault();
+		}
 		fm = activity.getFragmentManager();
 	}
 
@@ -107,5 +113,29 @@ public class CommonDialog extends DialogFragment {
         	
         // Create the AlertDialog object and return it 
         return builder.create();
+    }
+    
+    private IDialogOnClickAction getDialogOnClickActionDefault(){
+		notificationDialogOnClickActionDefault = new IDialogOnClickAction() {
+			@Override
+			public void doOnPositiveButton() {
+			}
+			@Override
+			public void doOnNegativeButton() {
+			}
+			@Override
+			public void setActivity(Activity activity) {
+			}
+			@Override
+			public void setContext(Context context) {
+			}
+			@Override
+			public void setParams(Object[]... objects) {
+			}
+			@Override
+			public void doOnChooseItem(int which) {
+			}
+		};
+		return notificationDialogOnClickActionDefault;
     }
 }

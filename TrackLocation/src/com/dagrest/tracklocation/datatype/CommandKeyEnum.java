@@ -5,7 +5,7 @@ import java.util.Map;
 
 public enum CommandKeyEnum {
 	starting_status("starting_status"), start_status("start_status"),
-	mutualId("mutualId");
+	mutualId("mutualId"), permissions("permissions");
 	
 	private final String name;       
 	private static Map<String, CommandKeyEnum> valueMap;
