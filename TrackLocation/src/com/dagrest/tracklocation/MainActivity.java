@@ -64,8 +64,6 @@ public class MainActivity extends Activity {
 		//    - ApInfo: version number and version name
 		appInstDetails = new AppInstDetails(context); 
 		
-		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_HANDLED_SMS_LIST, "");
-
 		// ======================================================================
 		// Checking for all possible Internet providers
 		// ======================================================================
