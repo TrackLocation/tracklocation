@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.R;
+import com.dagrest.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastData;
@@ -60,6 +61,7 @@ public class GcmIntentService extends IntentService {
 	private int clientBatteryLevel;
 	private GoogleCloudMessaging gcm;
 	private String className;
+	private String googleProjectNumber;
 	
 	private Context context;
 	
@@ -81,13 +83,15 @@ public class GcmIntentService extends IntentService {
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
 		checkDeviceForGooglePlayServices();
 		
+		DBManager.initDBManagerInstance(new DBHelper(getApplicationContext()));
+		googleProjectNumber = this.getResources().getString(R.string.google_project_number);
+		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
+		
 		getClientRegistartionId();
 
     	// Collect client details
         initClientDetails();
 
-		DBManager.initDBManagerInstance(new DBHelper(getApplicationContext()));
-		
         Bundle extras = intent.getExtras();
         // The getMessageType() intent parameter must be the intent you received
         // in your BroadcastReceiver.
@@ -332,6 +336,8 @@ public class GcmIntentService extends IntentService {
 		String methodName = "getClientRegistartionId";
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+    	Thread registerToGCMInBackgroundThread;
+    	Runnable registerToGCMInBackground;
 
 		gcm = GoogleCloudMessaging.getInstance(this);
         registrationId = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_REG_ID);
@@ -341,7 +347,21 @@ public class GcmIntentService extends IntentService {
         	map.put("GoogleCloudMessaging", gcm);
         	map.put("GoogleProjectNumber", getResources().getString(R.string.google_project_number));
         	map.put("Context", clientContext);
-        	Controller.registerInBackground(map);
+        	
+        	// Controller.registerInBackground(map);
+        	String googleProjectNumber = Preferences.getPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER);
+        	registerToGCMInBackground = new RegisterToGCMInBackground(context, gcm, googleProjectNumber);
+			try {
+				registerToGCMInBackgroundThread = new Thread(registerToGCMInBackground);
+				registerToGCMInBackgroundThread.start();
+				// Launch waiting dialog - till registration process will be completed or failed
+				// launchWaitingDialog();
+			} catch (IllegalThreadStateException e) {
+				logMessage = "Register to GCM in background thread was started already";
+				LogManager.LogErrorMsg(className, methodName, logMessage);
+				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+			}
+
         }
         
 		LogManager.LogFunctionExit(className, methodName);

@@ -1,10 +1,10 @@
 package com.dagrest.tracklocation;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import com.dagrest.tracklocation.datatype.AppInfo;
+import com.dagrest.tracklocation.concurrent.CheckJoinRequestBySMS;
+import com.dagrest.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.dagrest.tracklocation.datatype.AppInstDetails;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
@@ -27,6 +27,7 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -38,26 +39,40 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    private final static int SLEEP_TIME = 500; // 0.5 sec
     private final static int JOIN_REQUEST = 1;  
     private BroadcastReceiver locationChangeWatcher;
+    String googleProjectNumber;
     private String className;
     private String registrationId;
     private GoogleCloudMessaging gcm;
     private Context context;
+	private Thread registerToGCMInBackgroundThread;
+	private Runnable registerToGCMInBackground;
+	private Thread checkJoinRequestBySMSInBackgroundThread;
+	private Runnable checkJoinRequestBySMSInBackground;
     private ContactDeviceDataList contactDeviceDataList;
     private String phoneNumber;
     private String macAddress;
     private List<String> accountList;
     private String account;
     private AppInstDetails appInstDetails;
+    private String logMessage;
+    private String methodName;
+    private ProgressDialog waitingDialog;
     
     @SuppressLint("ResourceAsColor")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		className = this.getClass().getName();
+		methodName = "onCreate";
 		
 		context = getApplicationContext();
+		DBManager.initDBManagerInstance(new DBHelper(context));
+		googleProjectNumber = this.getResources().getString(R.string.google_project_number);
+		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
+		
 		// Create application details during first installation 
 		// if was created already just returns the details:
 		//    - First installation's timestamp 
@@ -89,7 +104,7 @@ public class MainActivity extends Activity {
 				showNotificationDialog("\nGoogle Play Services not supported with this device.\nProgram will be closed.\n", "FINISH");
 			}
             Log.e(CommonConst.LOG_TAG, "No valid Google Play Services APK found.");
-    		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", 
+    		LogManager.LogInfoMsg(className, methodName, 
     			"No valid Google Play Services APK found.");
 			//finish();
 		}
@@ -97,23 +112,39 @@ public class MainActivity extends Activity {
         gcm = GoogleCloudMessaging.getInstance(this);
         registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
         if (registrationId == null || registrationId.isEmpty()) {
+        	logMessage = "Register to Google Cloud Message.";
+        	LogManager.LogInfoMsg(className, methodName, logMessage);
+    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
             // registerInBackground();
-        	HashMap<String, Object> map = new HashMap<String, Object>();
-        	map.put("GoogleCloudMessaging", gcm);
-        	map.put("GoogleProjectNumber", getResources().getString(R.string.google_project_number));
-        	map.put("Context", context);
-        	Controller.registerInBackground(map);
-        }
-        
-        account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-        if( account == null || account.isEmpty() ){
-        	getCurrentAccount();
-        	if( account != null && !account.isEmpty() ){
-        		init();
-        	} 
+//        	HashMap<String, Object> map = new HashMap<String, Object>();
+//        	map.put("GoogleCloudMessaging", gcm);
+//        	map.put("GoogleProjectNumber", googleProjectNumber);
+//        	map.put("Context", context);
+//        	Controller.registerInBackground(map);
+        	
+        	googleProjectNumber = Preferences.getPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER);
+        	if(googleProjectNumber == null || googleProjectNumber.isEmpty()){
+				logMessage = "Google Project Number is NULL or EMPTY";
+				LogManager.LogErrorMsg(className, methodName, logMessage);
+				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+        	}
+        	registerToGCMInBackground = new RegisterToGCMInBackground(context, gcm, googleProjectNumber);
+			try {
+				registerToGCMInBackgroundThread = new Thread(registerToGCMInBackground);
+				registerToGCMInBackgroundThread.start();
+				// Launch waiting dialog - till registration process will be completed or failed
+				launchWaitingDialog();
+			} catch (IllegalThreadStateException e) {
+				logMessage = "Register to GCM in background thread was started already";
+				LogManager.LogErrorMsg(className, methodName, logMessage);
+				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+			}
+						
         } else {
-        	init();
+        	init(registrationId);
         }
+       
     }
 
 	@Override
@@ -125,7 +156,28 @@ public class MainActivity extends Activity {
 
 	@Override
 	protected void onStart() {
-		Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
+
+//        account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+//        if( account == null || account.isEmpty() ){
+//        	getCurrentAccount();
+//        	if( account != null && !account.isEmpty() ){
+//        		init();
+//        	} 
+//        } else {
+//        	init();
+//        }
+		
+		// Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
+		checkJoinRequestBySMSInBackground = new CheckJoinRequestBySMS(context, MainActivity.this);
+		try {
+			checkJoinRequestBySMSInBackgroundThread = new Thread(checkJoinRequestBySMSInBackground);
+			checkJoinRequestBySMSInBackgroundThread.start();
+		} catch (IllegalThreadStateException e) {
+			logMessage = "Check Join request by SMS in background thread was started already";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+		}
+
 		super.onResume();
 	}
 		
@@ -170,7 +222,7 @@ public class MainActivity extends Activity {
     	// LOCATE button (CONTACT_LIST)
     	// ========================================
         } else if (view == findViewById(R.id.btnLocate)) {
-    		LogManager.LogInfoMsg(this.getClass().getName(), "onClick -> Locate button", 
+    		LogManager.LogInfoMsg(className, "onClick -> Locate button", 
     			"ContactList activity started.");
     		
     		if(contactDeviceDataList != null){
@@ -191,7 +243,7 @@ public class MainActivity extends Activity {
     	// LOCATION SHARING MANAGEMNT button
     	// ========================================
         } else if (view == findViewById(R.id.btnLocationSharing)) {
-    		LogManager.LogInfoMsg(this.getClass().getName(), "onClick -> Location Sharing Management button", 
+    		LogManager.LogInfoMsg(className, "onClick -> Location Sharing Management button", 
     			"ContactList activity started.");
     		
     		if(contactDeviceDataList != null){
@@ -214,6 +266,9 @@ public class MainActivity extends Activity {
         if(locationChangeWatcher != null){
         	unregisterReceiver(locationChangeWatcher);
         }
+        if(registerToGCMInBackgroundThread != null){
+        	registerToGCMInBackgroundThread.interrupt();
+        }
     }
 
 	private void getCurrentAccount(){
@@ -232,9 +287,13 @@ public class MainActivity extends Activity {
 		}
 	}
 	
-	private void init(){
+	private void init(String registrationId){
+		account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		if( account == null || account.isEmpty() ){
+			getCurrentAccount();
+		}
 		
-		Controller.setAppInfo(context);
+		Controller.saveAppInfoToPreferences(context);
 		
 		// PHONE NUMBER
 		phoneNumber = Controller.getPhoneNumber(context);
@@ -248,8 +307,6 @@ public class MainActivity extends Activity {
 		macAddress = Controller.getMacAddress(MainActivity.this);
 		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
 		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
-		
-		DBManager.initDBManagerInstance(new DBHelper(context));
 		
 		// ===============================================================
 		// READ CONTACT AND DEVICE DATA FROM JSON FILE AND INSERT IT TO DB
@@ -280,7 +337,7 @@ public class MainActivity extends Activity {
 		} else {
 			tempRegId = "EMPTY";
 		}
-		LogManager.LogInfoMsg(CommonConst.LOG_TAG, "SAVE OWNER INFO", 
+		LogManager.LogInfoMsg(className, "SAVE OWNER INFO", 
 				account + CommonConst.DELIMITER_COLON + macAddress + CommonConst.DELIMITER_COLON + 
 				phoneNumber + CommonConst.DELIMITER_COLON + tempRegId);
 		
@@ -300,13 +357,13 @@ public class MainActivity extends Activity {
 		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
 		
         registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-        if (registrationId.isEmpty()) {
+        if (registrationId == null || registrationId.isEmpty()) {
         	String errorMessage = "\nFailed to register your application\nwith Google Cloud Message\n\n" + 
         		"Application will be closed\n\nPlease try later...\n\n";
         	// Show dialog with errorMessage and exit from application
-        	showNotificationDialog(errorMessage, "FINISH");
+        	// showNotificationDialog(errorMessage, "FINISH");
             Log.e(CommonConst.LOG_TAG, errorMessage);
-    		LogManager.LogInfoMsg(this.getClass().getName(), "onCreate", 
+    		LogManager.LogInfoMsg(className, "onCreate", 
     			errorMessage);
         }
 	}
@@ -359,7 +416,7 @@ public class MainActivity extends Activity {
 		public void doOnChooseItem(int which) {
 			account = accountList.get(which);
 			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-			init();
+			//init();
 		}
 	};
 
@@ -439,4 +496,57 @@ public class MainActivity extends Activity {
 		aboutDialog.setCancelable(true);
     }
     
+	private void launchWaitingDialog() {
+		final int MAX_RETRY_TIMES = 5;
+		
+        waitingDialog = new ProgressDialog(this);
+        waitingDialog.setTitle("Tracking location");
+        waitingDialog.setMessage("Please wait ...");
+        waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        //progressDialog.setProgress(0);
+        //progressDialog.setMax(contactsQuantity);
+        waitingDialog.setCancelable(false);
+        waitingDialog.setIndeterminate(true);
+        waitingDialog.show();
+        waitingDialog.setCanceledOnTouchOutside(false);
+        
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+            	String regID = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+            	logMessage = "MainActivity BEFORE while in wainting dialog... regId = [" + Controller.hideRealRegID(regID) + "]";
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+				int retryTimes = 0;
+            	while((regID == null || regID.isEmpty()) && retryTimes < MAX_RETRY_TIMES){
+                	try {
+    					Thread.sleep(SLEEP_TIME); 
+    				} catch (InterruptedException e) {
+    					waitingDialog.dismiss();
+    					break;
+    				}
+                	regID = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+                	logMessage = "MainActivity INSIDE while in wainting dialog... regId = [" + Controller.hideRealRegID(regID) + "]";
+    				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+    				if(regID != null && !regID.isEmpty()){
+    					waitingDialog.dismiss();
+    					break;
+    				}
+    				retryTimes++;
+            	}
+
+            	registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+            	if(registrationId != null & !registrationId.isEmpty()){
+                	init(regID);
+            	} else {
+            		if(registrationId == null || !registrationId.isEmpty()){
+            			String errorMessage = "\nGoogle Cloud Service is not available right now.\n\n"
+            				+ "Application will be closed.\n\nPlease try later.\n";
+            			showNotificationDialog(errorMessage, "FINISH");
+            		}
+            	}
+            }
+        }).start();
+        
+	}
+
 }

@@ -23,6 +23,7 @@ import android.util.Log;
 
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.R;
+import com.dagrest.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -100,6 +101,8 @@ public class HttpUtils {
     public static String sendMessageToBackend(String jsonMessage, Context context) {
     	String methodName = "sendMessageToBackend";
     	String logMessage;
+    	Thread registerToGCMInBackgroundThread;
+    	Runnable registerToGCMInBackground;
         LogManager.LogFunctionCall("HttpUtils", "sendMessageToBackend");
 //        //PostToGCM.post(apiKey, content);
 //        new Date().toString();
@@ -127,7 +130,21 @@ public class HttpUtils {
         	map.put("GoogleProjectNumber", 
         		context.getResources().getString(R.string.google_project_number));
         	map.put("Context", context);
-        	Controller.registerInBackground(map);
+        	
+        	// Controller.registerInBackground(map);
+        	String googleProjectNumber = Preferences.getPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER);
+        	registerToGCMInBackground = new RegisterToGCMInBackground(context, gcm, googleProjectNumber);
+			try {
+				registerToGCMInBackgroundThread = new Thread(registerToGCMInBackground);
+				registerToGCMInBackgroundThread.start();
+				// Launch waiting dialog - till registration process will be completed or failed
+				// launchWaitingDialog();
+			} catch (IllegalThreadStateException e) {
+				logMessage = "Register to GCM in background thread was started already";
+				LogManager.LogErrorMsg(CLASS_NAME, methodName, logMessage);
+				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + CLASS_NAME + "} -> " + logMessage);
+			}
+
         }
         
         LogManager.LogFunctionExit("HttpUtils", "sendMessageToBackend");

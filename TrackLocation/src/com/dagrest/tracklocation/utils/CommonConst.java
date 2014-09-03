@@ -4,8 +4,9 @@ public class CommonConst {
 	
 	public static final String 	LOG_TAG = "TrackLocation";
 	public static final String 	TRACK_LOCATION_PROJECT_PREFIX = "com.dagrest.tracklocation";
-	public static final String 	PROPERTY_APP_VERSION = "AppVersion";
-	public static final int 	PROPERTY_APP_VERSION_VALUE = 1;
+	public static final String 	GOOGLE_PROJECT_NUMBER = "GoogleProjectNumber";
+//	public static final String 	PROPERTY_APP_VERSION = "AppVersion";
+//	public static final int 	PROPERTY_APP_VERSION_VALUE = 1;
 
 	public static final String 	PREFERENCES_PHONE_NUMBER 		= "PhoneNumber";
 	public static final String 	PREFERENCES_PHONE_MAC_ADDRESS 	= "PhoneMacAddress";
@@ -15,8 +16,8 @@ public class CommonConst {
 	public static final String 	PREFERENCES_HANDLED_SMS_LIST 	= "HandledSMSList";
 	
 	// checkPlayServices
-	public static final String PLAYSERVICES_ERROR	 			= "ERROR";
-	public static final String PLAYSERVICES_DEVICE_NOT_SUPPORTED= "DEVICE_NOT_SUPPORTED";
+	public static final String 	PLAYSERVICES_ERROR	 			= "ERROR";
+	public static final String 	PLAYSERVICES_DEVICE_NOT_SUPPORTED= "DEVICE_NOT_SUPPORTED";
 	
 	public static final String 	SHARED_PREFERENCES_NAME = "TRACK_LOCATION";
 	// public static final String 	LOCATION_PROVIDER_NAME = "LOCATION_PROVIDER_NAME";

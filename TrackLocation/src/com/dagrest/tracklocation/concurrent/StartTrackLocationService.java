@@ -1,4 +1,4 @@
-package com.dagrest.tracklocation;
+package com.dagrest.tracklocation.concurrent;
 
 import java.util.List;
 
@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 
+import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.CommandData;

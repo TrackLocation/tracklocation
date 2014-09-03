@@ -1,4 +1,4 @@
-package com.dagrest.tracklocation;
+package com.dagrest.tracklocation.concurrent;
 
 import android.content.Context;
 import android.util.Log;

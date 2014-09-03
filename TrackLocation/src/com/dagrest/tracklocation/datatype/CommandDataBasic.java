@@ -3,7 +3,7 @@ package com.dagrest.tracklocation.datatype;
 import java.util.List;
 
 import com.dagrest.tracklocation.Controller;
-import com.dagrest.tracklocation.SendMessageAsync;
+import com.dagrest.tracklocation.concurrent.SendMessageAsync;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.google.gson.Gson;

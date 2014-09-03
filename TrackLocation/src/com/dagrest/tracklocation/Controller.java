@@ -118,7 +118,7 @@ public class Controller {
      * shared preferences.
      */
     @SuppressWarnings({"unchecked" })
-	public static void registerInBackground(HashMap<String, Object> params) {
+	public static void OLDregisterInBackground(HashMap<String, Object> params) {
         new AsyncTask<HashMap<String, Object>, Void, String>() {
             @Override
             protected String doInBackground(HashMap<String, Object>... params) {
@@ -155,9 +155,6 @@ public class Controller {
                     registrationId = gcm.register(googleProjectNumber);
                     msg = "Device registered, registration ID=" + registrationId;
 
-                    // Persist the version ID 
-                    Preferences.setPreferencesInt(context, CommonConst.PROPERTY_APP_VERSION, 
-                    	CommonConst.PROPERTY_APP_VERSION_VALUE);
                     // Persist the registration ID - no need to register again.
                     Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, registrationId);
                 } catch (IOException ex) {
@@ -331,14 +328,14 @@ public class Controller {
 	    // Check if app was updated; if so, it must clear the registration ID
 	    // since the existing regID is not guaranteed to work with the new
 	    // app version.
-	    int registeredVersion = prefs.getInt(CommonConst.PROPERTY_APP_VERSION, Integer.MIN_VALUE);
-	    int currentVersion = getAppVersion(context);
-	    if (registeredVersion != currentVersion) {
-	        Log.i(CommonConst.LOG_TAG, "App version changed.");
-	        LogManager.LogErrorMsg(CLASS_NAME, "getRegistrationId", "App version changed.");
-	        // TODO: To check if REG ID should be renewed - HOW? WHEN?
-	        // return "";
-	    }
+	    //int registeredVersion = prefs.getInt(CommonConst.PROPERTY_APP_VERSION, Integer.MIN_VALUE);
+	    //int currentVersion = getAppVersion(context);
+	    //if (registeredVersion != currentVersion) {
+	    //    Log.i(CommonConst.LOG_TAG, "App version changed.");
+	    //    LogManager.LogErrorMsg(CLASS_NAME, "getRegistrationId", "App version changed.");
+	    //    // TODO: To check if REG ID should be renewed - HOW? WHEN?
+	    //    // return "";
+	    //}
 	    return registrationId;
 	}
 
@@ -356,7 +353,7 @@ public class Controller {
         }
     }
 
-	public static void setAppInfo(Context context){
+	public static void saveAppInfoToPreferences(Context context){
 		PackageInfo pinfo;
 		try {
 			pinfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
@@ -672,176 +669,33 @@ public class Controller {
     	Gson gson = new Gson();
 	    SMSMessageList handledSmsList = null;
 	    if(smsMessage == null){
-	    	return false;
+	    	return true;
 	    }
+	    
+	    // If installation date(timestamp) of application id greater 
+	    // then SMS date(timestamp) - consider SMS as handled
+		AppInstDetails appInstDetails = new AppInstDetails(ctx);
+		long appInstTimestamp = appInstDetails.getTimestamp();
+		String smsMessageDate = smsMessage.getMessageDate();
+		if(smsMessageDate != null && !smsMessageDate.isEmpty()){
+			long longSmsMessageTimestamp = Long.parseLong(smsMessageDate);
+			if(appInstTimestamp > longSmsMessageTimestamp){
+				return true;
+			}
+		}
+
 	    String jsonHandledSmsList = 
 	    	Preferences.getPreferencesString(ctx, CommonConst.PREFERENCES_HANDLED_SMS_LIST);
 	    if(jsonHandledSmsList != null && !jsonHandledSmsList.isEmpty()){
 	    	handledSmsList = gson.fromJson(jsonHandledSmsList, SMSMessageList.class);
 	    	if(handledSmsList != null && Controller.isContain(handledSmsList, smsMessage)){
 	    		return true;
-	    	} else {
-	    		AppInstDetails appInstDetails = new AppInstDetails(ctx);
-	    		long appInstTimestamp = appInstDetails.getTimestamp();
-	    		String smsMessageDate = smsMessage.getMessageDate();
-	    		if(smsMessageDate != null && !smsMessageDate.isEmpty()){
-	    			long longSmsMessageTimestamp = Long.parseLong(smsMessageDate);
-	    			if(appInstTimestamp > longSmsMessageTimestamp){
-	    				return true;
-	    			}
-	    		}
 	    	}
 	    }
     	return false;
     }
     
-    /*
-     * Check if received SMS with JOIN REQUEST
-     * 
-     * If join request approved:
-     *  1 - Save "requester" contact details into DB (CONTACT_DATA, DEVICE_DATA, CONTACT_DEVICE_DATA tables)
-     *  2 - Send approve command to "requester" contact by GCM (Google Cloud Message - push notifictation)
-     *      with owner contact details
-     *      
-     * Input parematers:
-     * 		Object array {Activity, Context}
-     */
-    public static void checkJoinRequestBySMS(Object[] objects) { 
-    	// AsyncTask <TypeOfVarArgParams , ProgressValue , ResultValue>
-    	
-	    new AsyncTask<Object[], Void, String>() {
-   	
-	    	@Override
-	        protected String doInBackground(Object[]... objects) {
-	    		Gson gson = new Gson();
-	    	    // Read SMS messages from inbox
-	    		Context ctx = null;
-	    		if(objects[0][0] != null){
-	    			ctx = (Context)objects[0][0];
-	    		} else {
-	    			// TODO: handle case if input is invalid - expected Context type
-	    		}
-	    		
-	    		Activity activity = null;
-	    		if(objects[0][1] != null){
-	    			activity = (Activity)objects[0][1];
-	    		} else {
-	    			// TODO: handle case if input is invalid - expected Context type
-	    		}
-	    		
-	    		// Fetch all SMS 
-	    	    SMSMessageList smsList = fetchInboxSms(activity, 1);
-	    	    if(smsList != null && smsList.getSmsMessageList() != null){
-	    	    	for (SMSMessage smsMessage : smsList.getSmsMessageList()) {
-	    	    		//String n = smsMessage.getMessageNumber();
-	    	    		// Check if there SMS with JOIN REQUEST from TrackLocation application
-						if(smsMessage != null && smsMessage.getMessageContent().contains(CommonConst.JOIN_FLAG_SMS)){
-				    	    String smsMsg = smsMessage.getMessageContent();
-				    	    String smsId = smsMessage.getMessageId();
-				    	    String smsPhoneNumber = smsMessage.getMessageNumber();
-				    	    String smsDate = smsMessage.getMessageDate();
-				    	    
-				    	    if(Controller.isHandledSmsDetails(ctx, smsMessage)){
-				    	    	continue;
-				    	    }
-				    	    
-				    	    String[] smsParams = smsMsg.split(CommonConst.DELIMITER_COMMA);
-				    	    
-				    	    if(smsParams.length >= 4){
-				    	    	
-					    	    String phoneNumberFromSMS = smsParams[3];
-					    	    if(phoneNumberFromSMS == null || phoneNumberFromSMS.isEmpty()){
-					    	    	phoneNumberFromSMS = smsPhoneNumber;
-					    	    }
-					    	    String mutualIdFromSMS = smsParams[2];
-					    	    String regIdFromSMS = smsParams[1];
-					    	    String accountFromSMS = smsParams[4];
-					    	    String macAddressFromSMS = smsParams[5];
-					    	    
-					    	    if(phoneNumberFromSMS != null && !phoneNumberFromSMS.isEmpty() &&
-					    	    	mutualIdFromSMS != null && macAddressFromSMS != null && !mutualIdFromSMS.isEmpty() &&
-					    	    	regIdFromSMS != null && !regIdFromSMS.isEmpty() && !macAddressFromSMS.isEmpty()){
-					    	    	
-					    	    	// Save contact details received by join requests to RECEIVED_JOIN_REQUEST table
-					    			long res = DBLayer.addReceivedJoinRequest(phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, accountFromSMS, macAddressFromSMS);
-					    			if(res != 1){
-					    	        	String errMsg = "Add received join request FAILED for phoneNumber = " + phoneNumberFromSMS;
-					    	            Log.e(CommonConst.LOG_TAG, errMsg);
-					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
-					    			} else {
-					    				// TODO: delete SMS that was handled
-					    				String uriSms = Uri.parse(CommonConst.SMS_URI) + "/" + smsId;
-					    				//int count = activity.getContentResolver().delete(Uri.parse(uriSms), 
-					    				//	"date=?", new String[] { smsDate });
-					    				int count = 0;
-					    				if(count != 1){
-					    					// Log that join SMS request has not been removed
-						    	        	String errMsg = "Failed to delete join request SMS";
-						    	            Log.e(CommonConst.LOG_TAG, errMsg);
-						    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
-						    	            
-						    	            Controller.saveHandledSmsDetails(ctx, smsMessage);
-						    	            
-//						    	            List handledSmsList = null;
-//						    	            String jsonHandledSmsList = 
-//						    	            	Preferences.getPreferencesString(ctx, CommonConst.PREFERENCES_HANDLED_SMS_LIST);
-//						    	            if(jsonHandledSmsList == null || jsonHandledSmsList.isEmpty()){
-//						    	            	handledSmsList = new ArrayList();
-//						    	            } else {
-//						    	            	handledSmsList = gson.fromJson(jsonHandledSmsList, List.class);
-//						    	            	if(handledSmsList != null && !handledSmsList.contains(smsId)){
-//						    	            		handledSmsList.add(smsId);
-//						    	            		String jsonHandledSmsListNew = gson.toJson(handledSmsList);
-//						    	            		Preferences.setPreferencesString(ctx, 
-//						    	            			CommonConst.PREFERENCES_HANDLED_SMS_LIST, jsonHandledSmsListNew);
-//						    	            	}
-//						    	            }
-					    				}
-					    	    	    // Check that join request approved and send back by
-					    	    	    // push notification (GCM) owner contact details
-					    				showApproveJoinRequestDialog(activity, ctx, accountFromSMS, phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, macAddressFromSMS);
-					    			}
-					    	    } else {
-				    	        	String errMsg = "No NULL or empty parameters accepted for mutualId , regId, " + 
-						    	    	"macAddress and phoneNumber.";
-				    	            Log.e(CommonConst.LOG_TAG, errMsg);
-				    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
-					    	    	if(phoneNumberFromSMS != null && !phoneNumberFromSMS.isEmpty()){
-					    	        	errMsg = "phoneNumber is null or empty";
-					    	            Log.e(CommonConst.LOG_TAG, errMsg);
-					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
-					    	    	}
-					    	    	if(mutualIdFromSMS != null && !mutualIdFromSMS.isEmpty()){
-					    	        	errMsg = "mutualId is null or empty";
-					    	            Log.e(CommonConst.LOG_TAG, errMsg);
-					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
-					    	    	}
-					    	    	if(regIdFromSMS != null && !regIdFromSMS.isEmpty()){
-					    	        	errMsg = "regId is null or empty";
-					    	            Log.e(CommonConst.LOG_TAG, errMsg);
-					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
-					    	    	}
-					    	    	if(macAddressFromSMS != null && !macAddressFromSMS.isEmpty()){
-					    	        	errMsg = "macAddress is null or empty";
-					    	            Log.e(CommonConst.LOG_TAG, errMsg);
-					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
-					    	    	}
-					    	    }
-				    	    }
-						}
-					}
-	    	    }
-	    	    return "";
-	        }
-	
-	        @Override
-	        protected void onPostExecute(String msg) {
-	        	// TODO: fix return value
-	        }
-	    }.execute(objects);
-    }
-
-	private static void showApproveJoinRequestDialog(Activity activity, Context context,
+	public static void showApproveJoinRequestDialog(Activity activity, Context context,
 			String account, String phoneNumber, String mutualId, String regId, String macAddress) {
     	String dialogMessage = "Approve join request from " +
 			account + "\n[" + phoneNumber + "]";
@@ -1351,6 +1205,9 @@ public class Controller {
     		LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
     		Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + methodName + ": "+ logMessage);
         }
+	}
+	public static String hideRealRegID(String regID){
+		return (regID == null || regID.isEmpty()) ? "EMPTY" : "NON-EMPTY";
 	}
 
 }
@@ -2039,5 +1896,151 @@ public static void sendApproveOnJoinRequest(Context context, String regId, Strin
 //
 //    values = fillContactListWithContactDeviceDataFromJSON(contactDeviceDataCollection, checkBoxesShareLocation);
 //    return values;
+//}
+
+///*
+// * Check if received SMS with JOIN REQUEST
+// * 
+// * If join request approved:
+// *  1 - Save "requester" contact details into DB (CONTACT_DATA, DEVICE_DATA, CONTACT_DEVICE_DATA tables)
+// *  2 - Send approve command to "requester" contact by GCM (Google Cloud Message - push notifictation)
+// *      with owner contact details
+// *      
+// * Input parematers:
+// * 		Object array {Activity, Context}
+// */
+//public static void checkJoinRequestBySMS(Object[] objects) { 
+//	// AsyncTask <TypeOfVarArgParams , ProgressValue , ResultValue>
+//	
+//    new AsyncTask<Object[], Void, String>() {
+//	
+//    	@Override
+//        protected String doInBackground(Object[]... objects) {
+//    		Gson gson = new Gson();
+//    	    // Read SMS messages from inbox
+//    		Context ctx = null;
+//    		if(objects[0][0] != null){
+//    			ctx = (Context)objects[0][0];
+//    		} else {
+//    			// TODO: handle case if input is invalid - expected Context type
+//    		}
+//    		
+//    		Activity activity = null;
+//    		if(objects[0][1] != null){
+//    			activity = (Activity)objects[0][1];
+//    		} else {
+//    			// TODO: handle case if input is invalid - expected Context type
+//    		}
+//    		
+//    		// Fetch all SMS 
+//    	    SMSMessageList smsList = fetchInboxSms(activity, 1);
+//    	    if(smsList != null && smsList.getSmsMessageList() != null){
+//    	    	for (SMSMessage smsMessage : smsList.getSmsMessageList()) {
+//    	    		//String n = smsMessage.getMessageNumber();
+//    	    		// Check if there SMS with JOIN REQUEST from TrackLocation application
+//					if(smsMessage != null && smsMessage.getMessageContent().contains(CommonConst.JOIN_FLAG_SMS)){
+//			    	    String smsMsg = smsMessage.getMessageContent();
+//			    	    String smsId = smsMessage.getMessageId();
+//			    	    String smsPhoneNumber = smsMessage.getMessageNumber();
+//			    	    String smsDate = smsMessage.getMessageDate();
+//			    	    
+//			    	    if(Controller.isHandledSmsDetails(ctx, smsMessage)){
+//			    	    	continue;
+//			    	    }
+//			    	    
+//			    	    String[] smsParams = smsMsg.split(CommonConst.DELIMITER_COMMA);
+//			    	    
+//			    	    if(smsParams.length >= 4){
+//			    	    	
+//				    	    String phoneNumberFromSMS = smsParams[3];
+//				    	    if(phoneNumberFromSMS == null || phoneNumberFromSMS.isEmpty()){
+//				    	    	phoneNumberFromSMS = smsPhoneNumber;
+//				    	    }
+//				    	    String mutualIdFromSMS = smsParams[2];
+//				    	    String regIdFromSMS = smsParams[1];
+//				    	    String accountFromSMS = smsParams[4];
+//				    	    String macAddressFromSMS = smsParams[5];
+//				    	    
+//				    	    if(phoneNumberFromSMS != null && !phoneNumberFromSMS.isEmpty() &&
+//				    	    	mutualIdFromSMS != null && macAddressFromSMS != null && !mutualIdFromSMS.isEmpty() &&
+//				    	    	regIdFromSMS != null && !regIdFromSMS.isEmpty() && !macAddressFromSMS.isEmpty()){
+//				    	    	
+//				    	    	// Save contact details received by join requests to RECEIVED_JOIN_REQUEST table
+//				    			long res = DBLayer.addReceivedJoinRequest(phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, accountFromSMS, macAddressFromSMS);
+//				    			if(res != 1){
+//				    	        	String errMsg = "Add received join request FAILED for phoneNumber = " + phoneNumberFromSMS;
+//				    	            Log.e(CommonConst.LOG_TAG, errMsg);
+//				    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
+//				    			} else {
+//				    				// TODO: delete SMS that was handled
+//				    				String uriSms = Uri.parse(CommonConst.SMS_URI) + "/" + smsId;
+//				    				//int count = activity.getContentResolver().delete(Uri.parse(uriSms), 
+//				    				//	"date=?", new String[] { smsDate });
+//				    				int count = 0;
+//				    				if(count != 1){
+//				    					// Log that join SMS request has not been removed
+//					    	        	String errMsg = "Failed to delete join request SMS";
+//					    	            Log.e(CommonConst.LOG_TAG, errMsg);
+//					    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
+//					    	            
+//					    	            Controller.saveHandledSmsDetails(ctx, smsMessage);
+//					    	            
+////					    	            List handledSmsList = null;
+////					    	            String jsonHandledSmsList = 
+////					    	            	Preferences.getPreferencesString(ctx, CommonConst.PREFERENCES_HANDLED_SMS_LIST);
+////					    	            if(jsonHandledSmsList == null || jsonHandledSmsList.isEmpty()){
+////					    	            	handledSmsList = new ArrayList();
+////					    	            } else {
+////					    	            	handledSmsList = gson.fromJson(jsonHandledSmsList, List.class);
+////					    	            	if(handledSmsList != null && !handledSmsList.contains(smsId)){
+////					    	            		handledSmsList.add(smsId);
+////					    	            		String jsonHandledSmsListNew = gson.toJson(handledSmsList);
+////					    	            		Preferences.setPreferencesString(ctx, 
+////					    	            			CommonConst.PREFERENCES_HANDLED_SMS_LIST, jsonHandledSmsListNew);
+////					    	            	}
+////					    	            }
+//				    				}
+//				    	    	    // Check that join request approved and send back by
+//				    	    	    // push notification (GCM) owner contact details
+//				    				showApproveJoinRequestDialog(activity, ctx, accountFromSMS, phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, macAddressFromSMS);
+//				    			}
+//				    	    } else {
+//			    	        	String errMsg = "No NULL or empty parameters accepted for mutualId , regId, " + 
+//					    	    	"macAddress and phoneNumber.";
+//			    	            Log.e(CommonConst.LOG_TAG, errMsg);
+//			    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
+//				    	    	if(phoneNumberFromSMS != null && !phoneNumberFromSMS.isEmpty()){
+//				    	        	errMsg = "phoneNumber is null or empty";
+//				    	            Log.e(CommonConst.LOG_TAG, errMsg);
+//				    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
+//				    	    	}
+//				    	    	if(mutualIdFromSMS != null && !mutualIdFromSMS.isEmpty()){
+//				    	        	errMsg = "mutualId is null or empty";
+//				    	            Log.e(CommonConst.LOG_TAG, errMsg);
+//				    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
+//				    	    	}
+//				    	    	if(regIdFromSMS != null && !regIdFromSMS.isEmpty()){
+//				    	        	errMsg = "regId is null or empty";
+//				    	            Log.e(CommonConst.LOG_TAG, errMsg);
+//				    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
+//				    	    	}
+//				    	    	if(macAddressFromSMS != null && !macAddressFromSMS.isEmpty()){
+//				    	        	errMsg = "macAddress is null or empty";
+//				    	            Log.e(CommonConst.LOG_TAG, errMsg);
+//				    	            LogManager.LogErrorMsg(CLASS_NAME, "checkJoinRequestBySMS", errMsg);
+//				    	    	}
+//				    	    }
+//			    	    }
+//					}
+//				}
+//    	    }
+//    	    return "";
+//        }
+//
+//        @Override
+//        protected void onPostExecute(String msg) {
+//        	// TODO: fix return value
+//        }
+//    }.execute(objects);
 //}
 
