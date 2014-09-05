@@ -7,7 +7,7 @@ import com.google.gson.Gson;
 import android.content.Context;
 
 public class AppInstDetails {
-	public static final String 	APP_INST_DEATILS 	= "AppInstDetails";
+	public static final String 	APP_INST_DETAILS 	= "AppInstDetails";
 
 	private long timestamp;
 	private AppInfo appInfo;
@@ -32,13 +32,16 @@ public class AppInstDetails {
 	private void saveAppInstDetails(Context context){
 		Gson gson = new Gson();
 		AppInstDetails appInstDetails = getAppInstDetails(context);
-		if(appInstDetails == null){
+		if(appInstDetails == null || 
+			(appInstDetails != null && appInstDetails.getAppInfo() != null && 
+			 (appInstDetails.getAppInfo().getVersionName() == null || 
+			  appInstDetails.getAppInfo().getVersionName().isEmpty()))){
 			// Create 
 			this.appInfo = Controller.getAppInfo(context);
 			this.timestamp = System.currentTimeMillis();
 			String jsonAppInstDetailsNew = gson.toJson(this);
 			if(jsonAppInstDetailsNew != null && !jsonAppInstDetailsNew.isEmpty()){
-				Preferences.setPreferencesString(context, APP_INST_DEATILS, jsonAppInstDetailsNew);
+				Preferences.setPreferencesString(context, APP_INST_DETAILS, jsonAppInstDetailsNew);
 			}
 		} else {
 			this.appInfo = appInstDetails.getAppInfo();
@@ -49,7 +52,7 @@ public class AppInstDetails {
 	private AppInstDetails getAppInstDetails(Context context){
 		Gson gson = new Gson();
 		AppInstDetails appInstDetails = null;
-		String jsonAppInstDetails = Preferences.getPreferencesString(context, APP_INST_DEATILS);
+		String jsonAppInstDetails = Preferences.getPreferencesString(context, APP_INST_DETAILS);
 		if(jsonAppInstDetails != null && !jsonAppInstDetails.isEmpty()){
 			appInstDetails = gson.fromJson(jsonAppInstDetails, AppInstDetails.class);
 		}

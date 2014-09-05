@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.dagrest.tracklocation.concurrent.CheckJoinRequestBySMS;
 import com.dagrest.tracklocation.concurrent.RegisterToGCMInBackground;
+import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.AppInstDetails;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
@@ -97,6 +98,7 @@ public class MainActivity extends Activity {
 		googleProjectNumber = this.getResources().getString(R.string.google_project_number);
 		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
 		
+		AppInfo appInfo = Controller.getAppInfo(context);
 		// Create application details during first installation 
 		// if was created already just returns the details:
 		//    - First installation's timestamp 
