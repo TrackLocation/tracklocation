@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dagrest.tracklocation"
-    android:versionCode="3"
-    android:versionName="0.0.2" >
+    android:versionCode="4"
+    android:versionName="0.0.4" >
 
     <uses-sdk
         android:maxSdkVersion="18"
@@ -11,6 +11,7 @@
     <!-- permission so the Android application can send the registration ID to 
     	the 3rd party server -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.WRITE_SMS" />
@@ -68,9 +69,16 @@
                 <category android:name="com.dagrest.tracklocation" />
             </intent-filter>
         </receiver>
+        
+        <receiver android:name="com.dagrest.tracklocation.service.SMSReceiver">
+            <intent-filter>
+                <action android:name="android.provider.Telephony.SMS_RECEIVED" />
+            </intent-filter>
+        </receiver>
 
         <service android:name="com.dagrest.tracklocation.service.GcmIntentService" >
         </service>
+        
         <service android:name="com.dagrest.tracklocation.service.TrackLocationService" >
         </service>
 

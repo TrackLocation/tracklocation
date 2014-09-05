@@ -67,10 +67,25 @@ public class GcmIntentService extends IntentService {
 	
 	public GcmIntentService() {
 		super("GcmIntentService");
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" +this.getClass().getName() + "} -> " + "GcmIntentService()");
+		LogManager.LogFunctionCall(className, "GcmIntentService()");
+	}
+
+	
+	
+	@Override
+	public void onCreate() {
+		// TODO Auto-generated method stub
+		super.onCreate();
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" +this.getClass().getName() + "} -> " + "onCreate()");
+		LogManager.LogFunctionCall(className, "onCreate()");
 	}
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
+		
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" +this.getClass().getName() + "} -> " + "onHandleIntent(Intent intent)");
+		LogManager.LogFunctionCall(className, "onHandleIntent(Intent intent)");
 		
 		className = this.getClass().getName();
 		LogManager.LogFunctionCall(className, "onHandleIntent");
@@ -262,7 +277,21 @@ public class GcmIntentService extends IntentService {
 
         			handleCommandTrackLocationKeepAlive(extras);
 					
-	            // ============================================
+    	        // ============================================
+    	        // ====  COMMAND: UPDATE_REGISTARTION_ID  =====
+        		// ============================================
+                } else if (extras.containsKey(CommandTagEnum.command.toString()) &&
+                    		extras.getString(CommandTagEnum.command.toString()).
+                    		equals(CommandEnum.update_reg_id.toString())){ // COMMAND UPDATE_REGISTARTION_ID
+                		
+                	logMessage = "Catched push notification message (GCM): [UPDATE_REGISTARTION_ID]";
+            		LogManager.LogInfoMsg(className, "Update registration ID", logMessage);
+            		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+            		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
+
+            		handleCommandUpdateRegistartionID(extras);
+
+            	// ============================================
 	            // ====  COMMAND: NOTIFICATION  ===============
         		// ============================================
             	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
@@ -911,7 +940,6 @@ public class GcmIntentService extends IntentService {
 			Controller.broadcsatMessage(context, msg + " by " + senderAccount, key, value);
 		}
 
-
 // TODO: Delete from here - not needed - ONLY as example of BROADCAST:
 //		
 //		NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
@@ -933,6 +961,57 @@ public class GcmIntentService extends IntentService {
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	}
+	
+	private void handleCommandUpdateRegistartionID(Bundle extras){
+		String methodName = "handleCommandUpdateRegistartionID";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+		
+		String msg = extras.getString(CommandTagEnum.message.toString());
+		if(msg != null && !msg.isEmpty()){
+			logMessage = "message: " + msg;
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		}
+		
+		String key = extras.getString(CommandTagEnum.key.toString());
+		logMessage = "[KEY]: " + key;
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
+		String value = extras.getString(CommandTagEnum.value.toString());
+		logMessage = "[VALUE]: " + value;
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		
+		String jsonContactDetails = extras.getString(CommandTagEnum.contactDetails.toString());
+		MessageDataContactDetails contactDetails = gson.fromJson(jsonContactDetails, MessageDataContactDetails.class);
+		String senderAccount = null;
+		if(contactDetails == null){
+			logMessage = "[contactDetails]: not defined";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			return;
+		} else {
+			senderAccount = contactDetails.getAccount();
+		}
+		if(senderAccount == null || senderAccount.isEmpty()){
+			logMessage = "[senderAccount]: not defined";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			return;
+		}		
+		
+		logMessage = "Sent by [" + senderAccount + "]";
+		LogManager.LogInfoMsg(className, methodName, "");
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+
+		String jsonListAccounts = Preferences.getPreferencesString(clientContext, 
+        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+		logMessage = "Recipients accounts list: [" + jsonListAccounts + "]";
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 	}
 	
 	private boolean isPermissionToGetLocation(String senderAccount, 

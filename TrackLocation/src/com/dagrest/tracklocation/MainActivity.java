@@ -6,8 +6,12 @@ import java.util.UUID;
 import com.dagrest.tracklocation.concurrent.CheckJoinRequestBySMS;
 import com.dagrest.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.dagrest.tracklocation.datatype.AppInstDetails;
+import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
+import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
+import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.db.DBManager;
@@ -31,6 +35,7 @@ import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -60,6 +65,9 @@ public class MainActivity extends Activity {
     private String logMessage;
     private String methodName;
     private ProgressDialog waitingDialog;
+    private BroadcastReceiver notificationBroadcastReceiver;
+    public static boolean isTrackLocationRunning;
+    private boolean isBringToTopRequested = false;
     
     @SuppressLint("ResourceAsColor")
 	@Override
@@ -68,6 +76,22 @@ public class MainActivity extends Activity {
 		className = this.getClass().getName();
 		methodName = "onCreate";
 		
+		
+		Intent i = getIntent();
+		isBringToTopRequested = false;
+		Bundle b = null;
+		if(i != null){
+			b = i.getExtras();
+		}
+		if(b != null){
+			isBringToTopRequested = b.getBoolean(CommonConst.IS_BRING_TO_TOP);
+		}
+		
+		// Ensure that only one instance of TrackLocation is running
+		if(isTrackLocationRunning == true && isBringToTopRequested == false){
+			return;
+		}
+		 
 		context = getApplicationContext();
 		DBManager.initDBManagerInstance(new DBHelper(context));
 		googleProjectNumber = this.getResources().getString(R.string.google_project_number);
@@ -108,6 +132,8 @@ public class MainActivity extends Activity {
     			"No valid Google Play Services APK found.");
 			//finish();
 		}
+		
+		initNotificationBroadcastReceiver();
 		
         gcm = GoogleCloudMessaging.getInstance(this);
         registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
@@ -155,17 +181,9 @@ public class MainActivity extends Activity {
 	}
 
 	@Override
-	protected void onStart() {
+	protected void onStart() {		
 
-//        account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-//        if( account == null || account.isEmpty() ){
-//        	getCurrentAccount();
-//        	if( account != null && !account.isEmpty() ){
-//        		init();
-//        	} 
-//        } else {
-//        	init();
-//        }
+		isTrackLocationRunning = true;
 		
 		// Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
 		checkJoinRequestBySMSInBackground = new CheckJoinRequestBySMS(context, MainActivity.this);
@@ -263,12 +281,20 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         
+		isTrackLocationRunning = false;
+		
         if(locationChangeWatcher != null){
         	unregisterReceiver(locationChangeWatcher);
         }
+        
         if(registerToGCMInBackgroundThread != null){
         	registerToGCMInBackgroundThread.interrupt();
         }
+        
+    	if(notificationBroadcastReceiver != null){
+    		unregisterReceiver(notificationBroadcastReceiver);
+    	}
+    	
     }
 
 	private void getCurrentAccount(){
@@ -548,5 +574,51 @@ public class MainActivity extends Activity {
         }).start();
         
 	}
+	
+	// Initialize BROADCAST_MESSAGE broadcast receiver
+	private void initNotificationBroadcastReceiver() {
+		String methodName = "initNotificationBroadcastReceiver";
+		LogManager.LogFunctionCall(className, methodName);
+	    IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
+	    notificationBroadcastReceiver = new BroadcastReceiver() {
 
+	    	Gson gson = new Gson();
+	    	
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				// String methodName = "onReceive";
+				Bundle bundle = intent.getExtras();
+	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
+	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
+	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
+	    				return;
+	    			}
+	    			NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
+	    			if(broadcastData == null){
+	    				return;
+	    			}
+	    			
+	    			String key  = broadcastData.getKey();
+	    			
+    				// Notification about command: bring to top - to foreground
+	    			// bring MainActivity to foreground
+	    			if(BroadcastKeyEnum.join_sms.toString().equals(key)) {
+	    				bringToTop(); // bring to foreground
+	    			}
+	    		}
+			}
+	    };
+	    
+	    registerReceiver(notificationBroadcastReceiver, intentFilter);
+	    
+		LogManager.LogFunctionExit(className, methodName);
+	}
+
+	private void bringToTop(){
+		Intent a = new Intent(this, MainActivity.class);
+		a.putExtra(CommonConst.IS_BRING_TO_TOP, true);
+        a.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(a);
+	}
 }

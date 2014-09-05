@@ -87,7 +87,7 @@ public class Preferences {
 		return value;
 	}
 	  
-	public static void setPreferencesBooolean(Context context,
+	public static void setPreferencesBoolean(Context context,
 			String valueName, boolean value) {
 		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX
 				+ ".Preferences";

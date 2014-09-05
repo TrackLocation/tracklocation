@@ -12,7 +12,8 @@ public enum BroadcastKeyEnum {
 	fetch_contacts_completed("fetch_contacts_completed"),
 	resend_join_request("resend_join_request"),
 	keep_alive("keep_alive"),
-	message("message");
+	message("message"),
+	join_sms("join_sms");
 	
 	private final String name;       
 	private static Map<String, BroadcastKeyEnum> valueMap;

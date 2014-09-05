@@ -2,11 +2,11 @@ package com.dagrest.tracklocation.utils;
 
 public class CommonConst {
 	
-	public static final String 	LOG_TAG = "TrackLocation";
-	public static final String 	TRACK_LOCATION_PROJECT_PREFIX = "com.dagrest.tracklocation";
-	public static final String 	GOOGLE_PROJECT_NUMBER = "GoogleProjectNumber";
-//	public static final String 	PROPERTY_APP_VERSION = "AppVersion";
-//	public static final int 	PROPERTY_APP_VERSION_VALUE = 1;
+	public static final String 	LOG_TAG 						= "TrackLocation";
+	public static final String 	TRACK_LOCATION_PROJECT_PREFIX 	= "com.dagrest.tracklocation";
+	public static final String 	GOOGLE_PROJECT_NUMBER 			= "GoogleProjectNumber";
+	public static final String 	IS_TRACK_LOCATION_RUNNING 		= "IsTrackLocationRunning";
+	public static final String	IS_BRING_TO_TOP					= "IsBringToTop"; 
 
 	public static final String 	PREFERENCES_PHONE_NUMBER 		= "PhoneNumber";
 	public static final String 	PREFERENCES_PHONE_MAC_ADDRESS 	= "PhoneMacAddress";
