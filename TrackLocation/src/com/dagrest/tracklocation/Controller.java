@@ -656,6 +656,7 @@ public class Controller {
     	if(smsMessage == null){
     		return false;
     	}
+    	long smsMessageDateLong = Long.parseLong(smsMessage.getMessageDate());
     	List<SMSMessage> list = handledSmsList.getSmsMessageList();
     	if(list != null){
         	for (SMSMessage smsMessageEntity : list) {
@@ -663,6 +664,12 @@ public class Controller {
     				smsMessageEntity.getMessageDate().equals(smsMessage.getMessageDate()) &&
     				smsMessageEntity.getMessageId().equals(smsMessage.getMessageId())){
 					return true;
+    			}
+    			long smsMessageEntityDateLongFromList = Long.parseLong(smsMessageEntity.getMessageDate());
+    			// Check that smsMessage from list (handled one) has greater timestamp than smsMessage
+    			// that currently checking (if handled) - consider such smsMessage as handled
+    			if(smsMessageDateLong < smsMessageEntityDateLongFromList){
+    				return true;
     			}
     		}
     	}
