@@ -1,13 +1,13 @@
 package com.dagrest.tracklocation.datatype;
 
 import com.dagrest.tracklocation.Controller;
+import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.google.gson.Gson;
 
 import android.content.Context;
 
 public class AppInstDetails {
-	public static final String 	APP_INST_DETAILS 	= "AppInstDetails";
 
 	private long timestamp;
 	private AppInfo appInfo;
@@ -41,7 +41,7 @@ public class AppInstDetails {
 			this.timestamp = System.currentTimeMillis();
 			String jsonAppInstDetailsNew = gson.toJson(this);
 			if(jsonAppInstDetailsNew != null && !jsonAppInstDetailsNew.isEmpty()){
-				Preferences.setPreferencesString(context, APP_INST_DETAILS, jsonAppInstDetailsNew);
+				Preferences.setPreferencesString(context, CommonConst.APP_INST_DETAILS, jsonAppInstDetailsNew);
 			}
 		} else {
 			this.appInfo = appInstDetails.getAppInfo();
@@ -52,7 +52,7 @@ public class AppInstDetails {
 	private AppInstDetails getAppInstDetails(Context context){
 		Gson gson = new Gson();
 		AppInstDetails appInstDetails = null;
-		String jsonAppInstDetails = Preferences.getPreferencesString(context, APP_INST_DETAILS);
+		String jsonAppInstDetails = Preferences.getPreferencesString(context, CommonConst.APP_INST_DETAILS);
 		if(jsonAppInstDetails != null && !jsonAppInstDetails.isEmpty()){
 			appInstDetails = gson.fromJson(jsonAppInstDetails, AppInstDetails.class);
 		}

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.dagrest.tracklocation.Controller;
+import com.dagrest.tracklocation.MainActivity;
 import com.dagrest.tracklocation.datatype.AppInstDetails;
 import com.dagrest.tracklocation.datatype.CommandData;
 import com.dagrest.tracklocation.datatype.CommandDataBasic;
@@ -89,6 +90,10 @@ public class RegisterToGCMInBackground implements Runnable {
 	    							Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 	    							continue;
 	    						}
+	    						if(sendToAccount.equals(clientAccount)){
+	    							continue;
+	    						}
+	    						
 	    						if(cdd != null && cdd.getDeviceData() != null){
 	    							sendToMacAddress = cdd.getDeviceData().getDeviceMac();
 	    						} else {
@@ -110,7 +115,7 @@ public class RegisterToGCMInBackground implements Runnable {
 	    						
 	    	    	    		clientBatteryLevel = Controller.getBatteryLevel(context);
 	    	    	            MessageDataContactDetails messageDataContactDetails = new MessageDataContactDetails(clientAccount, 
-	    	    	                clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
+	    	    	                clientMacAddress, clientPhoneNumber, registrationId, clientBatteryLevel);
 	    	    	            ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
 	    	    	            	new ContactDeviceDataList (
 	    	    	            		sendToAccount, 
@@ -182,7 +187,5 @@ public class RegisterToGCMInBackground implements Runnable {
 	private void initClientDetails(){
 		clientAccount = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		clientMacAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
-		clientPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
-		clientRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 	}
 }

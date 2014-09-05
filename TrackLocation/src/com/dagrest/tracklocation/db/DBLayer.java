@@ -673,7 +673,67 @@ public class DBLayer {
         return contactDeviceData;
     }
     
-    public static ContactDeviceDataList addContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
+	public static long updateRegistrationID(String email, String macAddress, String registrationID){
+		
+		if(email == null || email.isEmpty()){
+        	String errMsg = "Update RegistrationID failed - no email account was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "updateRegistrationID", errMsg);
+			return -1;
+		}
+		
+		if(macAddress == null || macAddress.isEmpty()){
+        	String errMsg = "Update RegistrationID failed - no macAddress was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "updateRegistrationID", errMsg);
+			return -1;
+		}
+
+		if(registrationID == null || registrationID.isEmpty()){
+        	String errMsg = "Update RegistrationID failed - no registrationID was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, "updateRegistrationID", errMsg);
+			return -1;
+		}
+
+		SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			 
+			ContentValues cVal = new ContentValues();
+			cVal.put(DBConst.CONTACT_DEVICE_REG_ID, registrationID);
+			
+			if(isEmailMacAddressInContactDeviceTable(email, macAddress)){
+				return db.update(DBConst.TABLE_CONTACT_DEVICE, cVal, 
+					DBConst.CONTACT_DEVICE_EMAIL + " = ? and " + DBConst.CONTACT_DEVICE_MAC + " = ?", 
+					new String[] { email, macAddress });
+			} else {
+	        	String errMsg = "Update RegistrationID failed - no email and registrationID were found in ContactDeviceTable";
+	        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+	            LogManager.LogErrorMsg(CLASS_NAME, "updateRegistrationID", errMsg);
+	            return -1;
+			}
+		} catch (Throwable t) {
+        	String errMsg = "Exception caught: " + t.getMessage();
+        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+            LogManager.LogErrorMsg(CLASS_NAME, "updateRegistrationID", errMsg);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+		return -1;
+	}
+
+    public static boolean isEmailMacAddressInContactDeviceTable(String email, String macAddress){
+		String selectQuery = "select " + DBConst.CONTACT_DEVICE_EMAIL + "," + DBConst.CONTACT_DEVICE_MAC + 
+				" from " + DBConst.TABLE_CONTACT_DEVICE +
+				" where " + DBConst.CONTACT_DEVICE_EMAIL + " = ? and " +
+				DBConst.CONTACT_DEVICE_MAC + " = ?";
+    	return isFieldExist(selectQuery, new String[] { email, macAddress });
+    }
+    
+	public static ContactDeviceDataList addContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
     	
     	ContactDeviceDataList contactDeviceDataListInserted = null;
     	

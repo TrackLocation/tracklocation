@@ -98,22 +98,23 @@ public class MainActivity extends Activity {
 		googleProjectNumber = this.getResources().getString(R.string.google_project_number);
 		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
 		
-		AppInfo appInfo = Controller.getAppInfo(context);
+		// Version check
+		AppInfo preinstalledAppInfo = Controller.getAppInfo(context);
+		// Inside init() - application version is updated
+		init();		
+		AppInfo installedAppInfo = Controller.getAppInfo(context);
+				
+		if(preinstalledAppInfo.getVersionNumber() < installedAppInfo.getVersionNumber()){
+			// reset resistrationID
+			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, "");
+			Preferences.setPreferencesString(context, CommonConst.APP_INST_DETAILS, "");
+		}
+		
 		// Create application details during first installation 
 		// if was created already just returns the details:
 		//    - First installation's timestamp 
 		//    - ApInfo: version number and version name
 		appInstDetails = new AppInstDetails(context); 
-		
-		// ======================================================================
-		// Checking for all possible Internet providers
-		// ======================================================================
-		if(Controller.isConnectingToInternet(
-				(ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE)) == false){
-			String message = "\nYour device is not connected to internet\n\n" + 
-				"The application will be closed\n\n";
-			showNotificationDialog(message, "FINISH");
-		}
 		
 		setContentView(R.layout.activity_main);
 				
@@ -136,6 +137,18 @@ public class MainActivity extends Activity {
 		}
 		
 		initNotificationBroadcastReceiver();
+
+		// ===============================================================
+		// READ CONTACT AND DEVICE DATA FROM JSON FILE AND INSERT IT TO DB
+		// ===============================================================
+		// Read contact and device data from json file and insert it to DB
+		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
+		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
+			ContactDeviceDataList contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
+			if(contactDeviceDataList != null){
+				DBLayer.addContactDeviceDataList(contactDeviceDataList);
+			}
+		}
 		
         gcm = GoogleCloudMessaging.getInstance(this);
         registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
@@ -170,7 +183,7 @@ public class MainActivity extends Activity {
 			}
 						
         } else {
-        	init(registrationId);
+        	initWithRegID(registrationId);
         }
        
     }
@@ -315,7 +328,7 @@ public class MainActivity extends Activity {
 		}
 	}
 	
-	private void init(String registrationId){
+	private void init(){
 		account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		if( account == null || account.isEmpty() ){
 			getCurrentAccount();
@@ -347,6 +360,9 @@ public class MainActivity extends Activity {
 				DBLayer.addContactDeviceDataList(contactDeviceDataList);
 			}
 		}
+	}
+	
+	private void initWithRegID(String registrationId){
 		
 		// Insert into DB: owner information if doesn't exist
 		ContactDeviceDataList contDevDataList = DBLayer.getContactDeviceDataList(account);
@@ -359,30 +375,24 @@ public class MainActivity extends Activity {
 			Log.i(CommonConst.LOG_TAG, "Owner information already exists");
 		}
 		
-		String tempRegId;
-		if(registrationId != null && !registrationId.isEmpty()){
-			tempRegId = "***";
-		} else {
-			tempRegId = "EMPTY";
-		}
 		LogManager.LogInfoMsg(className, "SAVE OWNER INFO", 
 				account + CommonConst.DELIMITER_COLON + macAddress + CommonConst.DELIMITER_COLON + 
-				phoneNumber + CommonConst.DELIMITER_COLON + tempRegId);
+				phoneNumber + CommonConst.DELIMITER_COLON + Controller.hideRealRegID(registrationId));
 		
-		contDevDataList = DBLayer.getContactDeviceDataList(account);
-		if(contDevDataList != null){
-			// get owner information from DB and save GUID to Preferences
-			for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
-				// Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
-				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
-			}
-		} else {
-        	String errMsg = "Failed to save PREFERENCES_OWNER_GUID - no owner details were created";
-        	Log.e(CommonConst.LOG_TAG, errMsg);
-            LogManager.LogErrorMsg(className, "init", errMsg);
-		}
-		
-		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
+//		contDevDataList = DBLayer.getContactDeviceDataList(account);
+//		if(contDevDataList != null){
+//			// get owner information from DB and save GUID to Preferences
+//			for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
+//				// Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
+//				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_OWNER_GUID, cdd.getGuid());
+//			}
+//		} else {
+//        	String errMsg = "Failed to save PREFERENCES_OWNER_GUID - no owner details were created";
+//        	Log.e(CommonConst.LOG_TAG, errMsg);
+//            LogManager.LogErrorMsg(className, "init", errMsg);
+//		}
+//		
+// 		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
 		
         registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
         if (registrationId == null || registrationId.isEmpty()) {
@@ -533,7 +543,7 @@ public class MainActivity extends Activity {
         waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         //progressDialog.setProgress(0);
         //progressDialog.setMax(contactsQuantity);
-        waitingDialog.setCancelable(false);
+        //waitingDialog.setCancelable(false);
         waitingDialog.setIndeterminate(true);
         waitingDialog.show();
         waitingDialog.setCanceledOnTouchOutside(false);
@@ -564,7 +574,7 @@ public class MainActivity extends Activity {
 
             	registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
             	if(registrationId != null & !registrationId.isEmpty()){
-                	init(regID);
+            		initWithRegID(regID);
             	} else {
             		if(registrationId == null || !registrationId.isEmpty()){
             			String errorMessage = "\nGoogle Cloud Service is not available right now.\n\n"

@@ -7,11 +7,13 @@ public class CommonConst {
 	public static final String 	GOOGLE_PROJECT_NUMBER 			= "GoogleProjectNumber";
 	public static final String 	IS_TRACK_LOCATION_RUNNING 		= "IsTrackLocationRunning";
 	public static final String	IS_BRING_TO_TOP					= "IsBringToTop"; 
+	public static final String 	APP_INST_DETAILS 				= "AppInstDetails";
+
 
 	public static final String 	PREFERENCES_PHONE_NUMBER 		= "PhoneNumber";
 	public static final String 	PREFERENCES_PHONE_MAC_ADDRESS 	= "PhoneMacAddress";
 	public static final String 	PREFERENCES_PHONE_ACCOUNT 		= "PhoneAccount";
-	public static final String 	PREFERENCES_OWNER_GUID 			= "OwnerGuid";
+	// public static final String 	PREFERENCES_OWNER_GUID 			= "OwnerGuid";
 	
 	public static final String 	PREFERENCES_HANDLED_SMS_LIST 	= "HandledSMSList";
 	

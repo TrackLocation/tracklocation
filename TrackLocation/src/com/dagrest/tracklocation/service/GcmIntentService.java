@@ -981,23 +981,31 @@ public class GcmIntentService extends IntentService {
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
 		String value = extras.getString(CommandTagEnum.value.toString());
-		logMessage = "[VALUE]: " + value;
+		logMessage = "[VALUE]: " + "RegistrationID = " + Controller.hideRealRegID(value);
 		LogManager.LogInfoMsg(className, methodName, logMessage);
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		
 		String jsonContactDetails = extras.getString(CommandTagEnum.contactDetails.toString());
 		MessageDataContactDetails contactDetails = gson.fromJson(jsonContactDetails, MessageDataContactDetails.class);
 		String senderAccount = null;
+		String senderMacAddress = null;
 		if(contactDetails == null){
-			logMessage = "[contactDetails]: not defined";
+			logMessage = "Failed to update RegistartionID - [contactDetails]: not defined";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 			return;
 		} else {
 			senderAccount = contactDetails.getAccount();
+			senderMacAddress = contactDetails.getMacAddress();
 		}
 		if(senderAccount == null || senderAccount.isEmpty()){
-			logMessage = "[senderAccount]: not defined";
+			logMessage = "Failed to update RegistartionID - [senderAccount]: not defined";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			return;
+		}		
+		if(senderMacAddress == null || senderMacAddress.isEmpty()){
+			logMessage = "Failed to update RegistartionID - [senderMacAddress]: not defined";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 			return;
@@ -1007,11 +1015,15 @@ public class GcmIntentService extends IntentService {
 		LogManager.LogInfoMsg(className, methodName, "");
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 
-		String jsonListAccounts = Preferences.getPreferencesString(clientContext, 
-        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-		logMessage = "Recipients accounts list: [" + jsonListAccounts + "]";
-		LogManager.LogInfoMsg(className, methodName, logMessage);
-		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		// Update registrationID - sent by contact,
+		// that registered its application against Google Cloud Message
+		// Input parameters: value(as RegistrationID), senderAccount, senderMacAddress
+		long result = DBLayer.updateRegistrationID(senderAccount, senderMacAddress, value);
+		if(result == -1){
+			logMessage = "Failed to update RegistartionID";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+		}
 	}
 	
 	private boolean isPermissionToGetLocation(String senderAccount, 
