@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.dagrest.tracklocation"
-    android:versionCode="5"
-    android:versionName="0.0.5" >
+    android:versionCode="6"
+    android:versionName="0.0.6" >
 
     <uses-sdk
         android:maxSdkVersion="18"
         android:minSdkVersion="16"
         android:targetSdkVersion="16" />
-    <!-- permission so the Android application can send the registration ID to 
-    	the 3rd party server -->
+    <!--
+         permission so the Android application can send the registration ID to 
+    	the 3rd party server
+    -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
@@ -18,19 +20,26 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
-    <!--  permission as GCM requires a Google account (necessary only if if the 
-    	device is running a version lower than Android 4.0.4) -->
+    <!--
+          permission as GCM requires a Google account (necessary only if if the 
+    	device is running a version lower than Android 4.0.4)
+    -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
-	<uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS"></uses-permission>
-    <!-- permission so the application can keep the processor from sleeping 
+    <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" >
+    </uses-permission>
+    <!--
+         permission so the application can keep the processor from sleeping 
     	when a message is received. Optional—use only if the app wants to keep 
-    	the device from sleeping. -->
+    	the device from sleeping.
+    -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- permission so the Android application can register and receive messages -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-	<uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
-	<permission android:name="your.application.package.permission.MAPS_RECEIVE" android:protectionLevel="signature"/>
-			
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES" />
+
+    <permission
+        android:name="your.application.package.permission.MAPS_RECEIVE"
+        android:protectionLevel="signature" />
     <permission
         android:name="com.dagrest.tracklocation.permission.C2D_MESSAGE"
         android:protectionLevel="signature" />
@@ -39,29 +48,28 @@
     <!-- permission so the Android application can write to SDCARD -->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <!-- 
+    <!--
     http://developer.android.com/guide/topics/location/strategies.html
     Note: If you are using both NETWORK_PROVIDER and GPS_PROVIDER, then you need 
     to request only the ACCESS_FINE_LOCATION permission, because it includes permission 
     for both providers. (Permission for ACCESS_COARSE_LOCATION includes permission only for NETWORK_PROVIDER.)
- 	 -->
-	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
- 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
- 	<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-	<uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
-	
-	<uses-feature
-    	android:glEsVersion="0x00020000"
+    -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_UPDATES" />
+
+    <uses-feature
+        android:glEsVersion="0x00020000"
         android:required="true" />
-	
-    
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <receiver
-            android:name="com.dagrest.tracklocation.service.GcmBroadcastReceiver"
+            android:name=".service.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
@@ -69,82 +77,71 @@
                 <category android:name="com.dagrest.tracklocation" />
             </intent-filter>
         </receiver>
-        
-        <receiver android:name="com.dagrest.tracklocation.service.SMSReceiver">
+        <receiver android:name=".service.SMSReceiver" >
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
 
-        <service android:name="com.dagrest.tracklocation.service.GcmIntentService" >
+        <service android:name=".service.GcmIntentService" >
         </service>
-        
-        <service android:name="com.dagrest.tracklocation.service.TrackLocationService" >
+        <service android:name=".service.TrackLocationService" >
         </service>
 
         <activity
-            android:name="com.dagrest.tracklocation.MainActivity"
-            android:label="@string/app_name" 
+            android:name=".MainActivity"
+            android:label="@string/app_name"
             android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
-            android:name="com.dagrest.tracklocation.ContactList"
-            android:label="@string/title_activity_contact_list" 
+            android:name=".ContactList"
+            android:label="@string/title_activity_contact_list"
             android:screenOrientation="portrait" >
         </activity>
-        
         <activity
-            android:name="com.dagrest.tracklocation.LocationSharingList"
-            android:label="@string/title_activity_location_sharing_list" 
+            android:name=".LocationSharingList"
+            android:label="@string/title_activity_location_sharing_list"
             android:screenOrientation="portrait" >
         </activity>
-        
         <activity
-            android:name="com.dagrest.tracklocation.Map"
-            android:label="@string/title_activity_googlemap" 
+            android:name=".Map"
+            android:label="@string/title_activity_googlemap"
             android:screenOrientation="portrait" >
         </activity>
-
         <activity
-            android:name="com.dagrest.tracklocation.Z_NOT_IN_USE_FragmentExample"
-            android:label="WWWWWW" 
+            android:name=".JoinContactList"
+            android:label="@string/title_activity_join_contact_list"
             android:screenOrientation="portrait" >
         </activity>
-        
         <activity
-            android:name="com.dagrest.tracklocation.JoinContactList"
-            android:label="@string/title_activity_join_contact_list" 
+            android:name=".grid.ContactDataGridView"
+            android:label="Contact Data Grid View"
             android:screenOrientation="portrait" >
         </activity>
-        
         <activity
-            android:name="com.dagrest.tracklocation.grid.ContactDataGridView"
-            android:label="Contact Data Grid View" 
-            android:screenOrientation="portrait" >
+            android:name="SettingsActivity"
+            android:label="Settings" >
         </activity>
-        
         <meta-data
-		    android:name="com.google.android.gms.version"
-		    android:value="@integer/google_play_services_version" />
-
-		<meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30"/>
-            
-	</application>
+            android:value="AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30" />
+        
+    </application>
 
 </manifest>
-
-<!--         <meta-data
+<!--
+             <meta-data
             android:name="com.google.android.gms.version"
-            android:value="4323000" />  -->
-        <!-- android:value="4132500"/> -->
-        <!-- android:value="4323000 -->
-
-
+            android:value="4323000" />
+-->
+<!-- android:value="4132500"/> -->
+<!-- android:value="4323000 -->
 

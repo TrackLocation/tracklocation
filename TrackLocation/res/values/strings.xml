@@ -17,6 +17,15 @@
 
 	<string name="about_dialog_text">\n\"Track Location\" application\n\n\nVersion %s\nWritten by David Agrest\n\n\nEmail: dagrest@gmail.com\n</string>
 	<string name="about_dialog_ok_btn">OK</string>
-		
+	<string-array name="log_level_entries">
+	    <item>&quot;Error&quot;</item>
+	    <item>&quot;Info&quot;</item>
+	    <item>&quot;Full&quot;</item>
+	</string-array>	
+	<string-array name="log_level_values">
+	    <item>&quot;error&quot;</item>
+	    <item>&quot;info&quot;</item>
+	    <item>&quot;full&quot;</item>
+	</string-array>	
 </resources>
 

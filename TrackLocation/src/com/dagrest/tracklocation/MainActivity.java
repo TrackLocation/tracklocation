@@ -248,8 +248,10 @@ public class MainActivity extends Activity {
         } else if (view == findViewById(R.id.btnSettings)) {
 
 		
-        	Intent contactDataGridViewIntent = new Intent(this, ContactDataGridView.class);
-    		startActivity(contactDataGridViewIntent);
+    		Intent settingsIntent = new Intent(this, SettingsActivity.class);
+    		startActivity(settingsIntent);
+//        	Intent contactDataGridViewIntent = new Intent(this, ContactDataGridView.class);
+//    		startActivity(contactDataGridViewIntent);
 
     	// ========================================
     	// LOCATE button (CONTACT_LIST)
