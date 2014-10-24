@@ -5,6 +5,11 @@ import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.utils.CommonConst;
 
 import android.app.Activity;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +26,6 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 	private SparseArray<ContactDetails> contactDetailsGroupsOriginal = null;
 	private LayoutInflater inflater;
 	private Activity activity;
-	private String className = this.getClass().getName();
 	private int groupPositionCurrent = -1;
 
 	public ContactDeatilsExpandableListAdapter(Activity act,
@@ -113,6 +117,15 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 		}
 		ContactDetails group = (ContactDetails) getGroup(groupPosition);
 		((CheckedTextView) convertView).setText(group.getContactName());
+		//Add person image into the Join List 
+		Bitmap bmp = group.getContactPhoto();
+		if (bmp == null){
+			bmp = BitmapFactory.decodeResource(convertView.getResources(), R.drawable.ic_launcher);
+		}
+		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), bmp);
+		contactPhoto.setBounds( 0, 0, 120, 120 );
+		((CheckedTextView) convertView).setCompoundDrawables(null,null,contactPhoto, null);
+		
 		((CheckedTextView) convertView).setChecked(isExpanded);
 		return convertView;
 	}
@@ -138,8 +151,7 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 			int j = 0;
 			for (int i = 0; i < contactDetailsGroupsOriginal.size(); i++) {
 
-				if (contactDetailsGroupsOriginal.get(i).getContactName()
-						.toLowerCase().contains(contcatNameLowerCase)) {
+				if (contactDetailsGroupsOriginal.get(i).getContactName().toLowerCase().contains(contcatNameLowerCase)) {
 					contactDetailsGroupsNew.append(j,
 							contactDetailsGroupsOriginal.get(i));
 					j++;

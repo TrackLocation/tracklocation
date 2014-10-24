@@ -1,6 +1,7 @@
 package com.dagrest.tracklocation;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,6 +21,7 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -27,6 +29,8 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -564,10 +568,16 @@ public class Controller {
 		return cursor.getCount();
 	}
 	
+	public static Bitmap getContactPhoto(ContentResolver contentResolver, Long contactId) {
+	    Uri contactPhotoUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
+	    InputStream photoDataStream = ContactsContract.Contacts.openContactPhotoInputStream(contentResolver,contactPhotoUri); // <-- always null
+	    Bitmap photo = BitmapFactory.decodeStream(photoDataStream);
+	    return photo;
+	}
+	
 	public static SparseArray<ContactDetails> fetchContacts(Context context, SparseArray<ContactDetails> contactDetailsGroups,
 			ProgressDialog barProgressDialog) {
         String phoneNumber = null;
-        ContactDetails contactDetails = null;
         //SparseArray<ContactDetails> contactDetailsGroups = null;
         contactDetailsGroups.clear();
         // String email = null;
@@ -591,22 +601,23 @@ public class Controller {
         
         // Loop for every contact in the phone
         if (cursor.getCount() > 0) {
-//        	contactDetailsGroups = new SparseArray<ContactDetails>();
         	int i = 0;
             while (cursor.moveToNext()) {
             	//barProgressDialog.incrementProgressBy(2);
                 barProgressDialog.incrementProgressBy(1);
 
             	//System.out.println("Element: " + (i + 1));
-            	contactDetails = new ContactDetails();
-                String contact_id = cursor.getString(cursor.getColumnIndex( _ID ));
+                
+                Long contact_id = cursor.getLong(cursor.getColumnIndex( _ID ));
                 String contactName = cursor.getString(cursor.getColumnIndex( DISPLAY_NAME ));
                 if( contactName != null && !contactName.isEmpty()) {
 	                int hasPhoneNumber = Integer.parseInt(cursor.getString(cursor.getColumnIndex( HAS_PHONE_NUMBER )));
 	                if (hasPhoneNumber > 0) {
+	                	ContactDetails contactDetails = new ContactDetails();
 	                	contactDetails.setContactName(contactName);
+	                	contactDetails.setContactPhoto(getContactPhoto(contentResolver, contact_id));
 	                    // Query and loop for every phone number of the contact
-	                    Cursor phoneCursor = contentResolver.query(PhoneCONTENT_URI, null, Phone_CONTACT_ID + " = ?", new String[] { contact_id }, null);
+	                    Cursor phoneCursor = contentResolver.query(PhoneCONTENT_URI, null, Phone_CONTACT_ID + " = ?", new String[] { Long.toString(contact_id) }, null);
 	                    while (phoneCursor.moveToNext()) {
 	                        phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex(NUMBER));
 	                        contactDetails.getPhoneNumbersList().add(phoneNumber);
@@ -614,13 +625,6 @@ public class Controller {
 	                    phoneCursor.close();
 	                    contactDetailsGroups.append(i, contactDetails);
 	                    i++;
-	//                    // Query and loop for every email of the contact
-	//                    Cursor emailCursor = contentResolver.query(EmailCONTENT_URI,    null, EmailCONTACT_ID+ " = ?", new String[] { contact_id }, null);
-	//                    while (emailCursor.moveToNext()) {
-	//                        email = emailCursor.getString(emailCursor.getColumnIndex(DATA));
-	//                        output.append("\nEmail:" + email);
-	//                    }
-	//                    emailCursor.close();
 	                }
                 }
             }

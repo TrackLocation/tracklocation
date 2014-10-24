@@ -3,9 +3,12 @@ package com.dagrest.tracklocation;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.graphics.Bitmap;
+
 public class ContactDetails {
 
 	private String contactName;
+	private Bitmap contactPhoto;
 	private final List<String> phoneNumbersList = new ArrayList<String>();
 	
 	public ContactDetails() {}
@@ -24,6 +27,14 @@ public class ContactDetails {
 
 	public List<String> getPhoneNumbersList() {
 		return phoneNumbersList;
+	}
+
+	public Bitmap getContactPhoto() {
+		return contactPhoto;
+	}
+
+	public void setContactPhoto(Bitmap contactPhoto) {
+		this.contactPhoto = contactPhoto;
 	}
 
 } 
