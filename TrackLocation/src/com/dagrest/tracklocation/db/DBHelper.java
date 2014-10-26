@@ -1,8 +1,10 @@
 package com.dagrest.tracklocation.db;
 
+import com.dagrest.tracklocation.datatype.BackupDataOperations;
 import com.dagrest.tracklocation.log.LogManager;
 
 import android.content.Context;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -11,6 +13,7 @@ public class DBHelper extends SQLiteOpenHelper{
 
 	private String className;
 	private String methodName;
+	private String logMessage;
 	
 	// http://blog.lemberg.co.uk/concurrent-database-access
     public DBHelper(Context context) {
@@ -21,8 +24,11 @@ public class DBHelper extends SQLiteOpenHelper{
     @Override
     public void onCreate(SQLiteDatabase db) {
     	methodName = "onCreate";
-        if (DBConst.IS_DEBUG_LOG_ENABLED)
-            Log.i(DBConst.LOG_TAG_DB, "new create");
+        if (DBConst.IS_DEBUG_LOG_ENABLED){
+        	logMessage = "Creating an application tables if not exist";
+    		LogManager.LogInfoMsg(className, methodName, logMessage);
+    		Log.i(DBConst.LOG_TAG_DB, "[INFO] {" + className + "} -> " + logMessage);
+        }
         try {
             db.execSQL(DBConst.TABLE_CONTACT_CREATE);
             db.execSQL(DBConst.TABLE_DEVICE_CREATE);
@@ -32,22 +38,45 @@ public class DBHelper extends SQLiteOpenHelper{
             db.execSQL(DBConst.TABLE_PERMISSIONS_CREATE);
 
         } catch (Exception exception) {
-            if (DBConst.IS_DEBUG_LOG_ENABLED){
-            	Log.e(DBConst.LOG_TAG_DB, "[EXCEPTION] {" + className + "} -> Exception DBHelper.onCreate()", exception);
-            	LogManager.LogException(exception, className, methodName);
-            }
+        	Log.e(DBConst.LOG_TAG_DB, "[EXCEPTION] {" + className + "} -> Exception DBHelper.onCreate()", exception);
+        	LogManager.LogException(exception, className, methodName);
         }
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (DBConst.IS_DEBUG_LOG_ENABLED)
-            Log.w(DBConst.LOG_TAG_DB, "Upgrading database from version" + oldVersion
-                    + "to" + newVersion + "...");
-
-        for (String table : DBConst.TABLES_LIST) {
-            db.execSQL("DROP TABLE IF EXISTS " + table);
+    	methodName = "onUpgrade";
+        if (DBConst.IS_DEBUG_LOG_ENABLED) {
+        	logMessage = "Upgrading database version from [" + oldVersion
+        			+ "] to [" + newVersion +"]";
+    		LogManager.LogInfoMsg(className, methodName, logMessage);
+    		Log.i(DBConst.LOG_TAG_DB, "[INFO] {" + className + "} -> " + logMessage);
         }
+
+		BackupDataOperations backupData = new BackupDataOperations();
+		boolean isBackUpDataSuccess = backupData.backUp();
+		if(isBackUpDataSuccess != true){
+			logMessage = methodName + " -> Backp process failed.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(DBConst.LOG_TAG_DB, "[ERROR] {" + className + "} -> " + logMessage);
+		}
+
+        try {
+			for (String table : DBConst.TABLES_LIST) {
+			    db.execSQL("DROP TABLE IF EXISTS " + table);
+			}
+		} catch (SQLException e) {
+        	Log.e(DBConst.LOG_TAG_DB, "[EXCEPTION] {" + className + "} -> Exception DBHelper.onCreate()", e);
+        	LogManager.LogException(e, className, methodName);
+		}
+        
+        boolean isBackUpDataRestoreSuccess = backupData.restore();
+		if(isBackUpDataRestoreSuccess != true){
+			logMessage = methodName + " -> Backup restore process failed.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(DBConst.LOG_TAG_DB, "[ERROR] {" + className + "} -> " + logMessage);
+		}
+
         onCreate(db);
     }
 }

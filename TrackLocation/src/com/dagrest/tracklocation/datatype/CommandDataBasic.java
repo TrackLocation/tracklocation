@@ -128,14 +128,15 @@ public class CommandDataBasic {
 	
 	public void sendCommand(){
 		
-		LogManager.LogFunctionCall(className, "[sendCommand]");
-		Log.i(CommonConst.LOG_TAG, "[sendCommand]");
-		
+		String methodName = "sendCommand";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+
 		Gson gson = new Gson();
 		notificationMessage = 	"Sending command [" + command.toString() + "] to the following recipients: " +
 						gson.toJson(listAccounts);
-		LogManager.LogInfoMsg(className, "[sendCommand:" + command.toString() + "]", notificationMessage);
-		Log.i(CommonConst.LOG_TAG, "[sendCommand:" + command.toString() + "]");
+		LogManager.LogInfoMsg(className, methodName, notificationMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + notificationMessage);
 		
 		JsonMessageData jsonMessageData = new JsonMessageData(
 				listRegIDs, 				// registration_IDs of the contacts that command will be send to
@@ -155,23 +156,31 @@ public class CommandDataBasic {
 			
 			if(jsonMessage == null){
 				notificationMessage = "Failed to create JSON Message to send to recipient";
-				LogManager.LogErrorMsg(className, "[sendCommand:" + command.toString() + "]", notificationMessage);
+				LogManager.LogErrorMsg(className, methodName, notificationMessage);
+				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + notificationMessage);
 				return;
 			}
 			
-			LogManager.LogInfoMsg(className, "[sendCommand:" + command.toString() + "]", 
-				"Sending command [" + command.toString() + "] as asynchonous task... ");
+			String logMessage = "Sending command [" + command.toString() + "] as asynchonous task... ";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 			
 			Runnable sendMessageAsync = new SendMessageAsync(jsonMessage, context);
 			new Thread(sendMessageAsync).start();
-			Log.i(CommonConst.LOG_TAG, "[" + command.toString() + "] is sending asynchronously ...");
+			
+			logMessage = "[" + command.toString() + "] is sending asynchronously ...";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 			
 		} else {
+			String logMessage = "Unable to send command: [" + command.toString() + "] - there is no any recipient.";
 			LogManager.LogErrorMsg(className, "[sendCommand:" + command.toString() + "]", 
-				"Unable to send command: [" + command.toString() + "] - there is no any recipient.");
+				logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 		}
 		
-		LogManager.LogFunctionExit(className, "[sendCommand:" + command.toString() + "]");
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 
 }

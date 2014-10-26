@@ -1,8 +1,5 @@
 package com.dagrest.tracklocation.service;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.Timer;
 
@@ -15,7 +12,6 @@ import com.dagrest.tracklocation.datatype.CommandData;
 import com.dagrest.tracklocation.datatype.CommandDataBasic;
 import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandKeyEnum;
-import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.CommandValueEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
@@ -37,34 +33,18 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
-public class TrackLocationService extends Service {
+public class TrackLocationService extends TrackLocationServiceBasic {
 
-	private static String className;
-	private static Context context;
-	private LocationManager locationManager;
-	private List<String> locationProviders;
-	private LocationListener locationListenerGPS = null;
-	private LocationListener locationListenerNetwork = null;
-	private TimerJob timerJob;
-	private Timer timer;
-	private long repeatPeriod;
-	private long trackLocationServiceStartTime;
-	private String trackLocationKeepAliveRequester;
-	private BroadcastReceiver gcmKeepAliveBroadcastReceiver;
-	
-	private String clientAccount;
-	private String clientMacAddress;
-	private String clientPhoneNumber;
-	private String clientRegId;
-	private int clientBatteryLevel;
-	private String logMessage;
-	private AppInfo appInfo;
-	private String methodName;
+	protected TimerJob timerJob;
+	protected Timer timer;
+	protected long repeatPeriod;
+	protected long trackLocationServiceStartTime;
+	protected String trackLocationKeepAliveRequester;
+	protected BroadcastReceiver gcmKeepAliveBroadcastReceiver;
 
 	@Override
 	public IBinder onBind(Intent intent) {
-        LogManager.LogFunctionCall(className, "onBind");
-        LogManager.LogFunctionExit(className, "onBind");
+		super.onBind(intent);
 		return null;
 	}
 	
@@ -72,16 +52,16 @@ public class TrackLocationService extends Service {
     public void onCreate()          
     {             
         super.onCreate();
-        methodName = "onCreate";
-        className = this.getClass().getName();
+//        methodName = "onCreate";
+//        className = this.getClass().getName();
         timer = null;
-		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+//		LogManager.LogFunctionCall(className, methodName);
+//		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
         
 		
 		initBroadcastReceiver(BroadcastActionEnum.BROADCAST_LOCATION_KEEP_ALIVE.toString(), "ContactConfiguration");
         
-        try{
+/*        try{
             LogManager.LogFunctionCall(className, "onCreate");
             if(context == null){
             	context = getApplicationContext();
@@ -91,9 +71,9 @@ public class TrackLocationService extends Service {
             }
            
             appInfo = Controller.getAppInfo(context);
-
+*/
             prepareTrackLocationServiceStopTimer();
-            
+/*            
         	// Collect client details
     		context = getApplicationContext();
     		clientAccount = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
@@ -108,22 +88,23 @@ public class TrackLocationService extends Service {
         	LogManager.LogException(e, className, methodName);
         	Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + methodName, e);
         }
+*/
 	}   
     
     @Override          
     public void onDestroy()           
     {                  
         super.onDestroy();
-        try{
+/*        try{
         	LogManager.LogFunctionCall(className, "onDestroy");
         	Log.i(CommonConst.LOG_TAG, "[INFO]  {" + className + "} -> onDestroy - Start");
-        	
+*/        	
         	// Stop TrackLocationServiceStopTimer
         	Log.i(CommonConst.LOG_TAG, "[INFO]  {" + className + "} -> Stop TrackLocationService TimerJob");
         	timerJob.cancel();
         	Log.i(CommonConst.LOG_TAG, "[INFO]  {" + className + "} -> Timer with TimerJob that stops TrackLocationService - stopped");
 
-            if(locationManager != null){
+/*            if(locationManager != null){
             	if( locationListenerGPS != null){
 	                locationManager.removeUpdates(locationListenerGPS);
 	                LogManager.LogInfoMsg(className, "onDestroy", "locationListenerGPS - Updates removed");
@@ -147,11 +128,13 @@ public class TrackLocationService extends Service {
             LogManager.LogException(e, className, "onDestroy");
             Log.e(CommonConst.LOG_TAG, "onDestroy", e);
         }
+*/        
     }  
 
     @Override          
 	public void onStart(Intent intent, int startId)           
-	{                  
+	{             
+    	super.onStart(intent, startId);
     	methodName = "onStart";
 		try{
 			LogManager.LogFunctionCall(className, "onStart");
@@ -197,45 +180,9 @@ public class TrackLocationService extends Service {
 			}
     		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Timer with TimerJob that stops TrackLocationService - started");
 
-//	        // Get list of recipients' accounts list 
-//	        String jsonListAccounts = Preferences.getPreferencesString(context, 
-//	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);	
-//	        Log.i(CommonConst.LOG_TAG, "Inside TrackLocation destinations: " + jsonListAccounts);
-
-//	        Gson gson = new Gson();
-//	        List listAccounts = gson.fromJson(jsonListAccounts, List.class);
-//	        if(listAccounts != null && listAccounts.contains(clientAccount)){
-//	        	listAccounts.remove(clientAccount);
-//		        Preferences.setPreferencesString(context, 
-//		        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
-//		        Log.i(CommonConst.LOG_TAG, "Update inside TrackLocation destinations: " + jsonListAccounts);
-//	        }
-	        
-//              String locProvName = null; 
-//              locProvName = Preferences.getPreferencesString(context, CommonConst.LOCATION_PROVIDER_NAME);
-//              LogManager.LogInfoMsg(className, "onStart", "Location provider name: " + locProvName);
-
             requestLocation(true);
-            // isLocationProviderAvailable = Preferences.getPreferencesBoolean(context, CommonConst.IS_LOCATION_PROVIDER_AVAILABLE);
-            
-            // TODO: The following bock is OPTIONAL :
-//            if(isLocationProviderAvailable){
-//            	String locationStringGPS = Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_GPS);
-//            	String locationStringNETWORK = Preferences.getPreferencesString(context, CommonConst.LOCATION_INFO_NETWORK);
-//      
-//                if(!locationStringGPS.equals("initial")){
-//                	LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "locationGPS: " + locationStringGPS);
-//                    //sendLocationByMail(locationStringGPS, locationProvider);
-//                    // TODO: send notification
-//                } else if(!locationStringNETWORK.equals("initial")){
-//                    LogManager.LogInfoMsg("LocationNotifierService", "onStart()", "locationNETWORK: " + locationStringNETWORK);
-//                    //sendLocationByMail(locationStringNETWORK, locationProvider);
-//                    // TODO: send notification
-//                }
-//            }
-              
-//            sendTrackLocationServiceStarted();
-            // Notify to caller by GCM (push notification)
+
+            // Notify to caller by GCM (push notification) - TrackLocationServiceStarted
     		clientBatteryLevel = Controller.getBatteryLevel(context);
             MessageDataContactDetails messageDataContactDetails = new MessageDataContactDetails(clientAccount, 
                 clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
@@ -246,7 +193,6 @@ public class TrackLocationService extends Service {
             		senderMessageDataContactDetails.getPhoneNumber(), 
             		senderMessageDataContactDetails.getRegId(), 
             		null);
-            // Notify caller by GCM (push notification)
             
             String msgServiceStarted = "{" + className + "} TrackLocationService was started by [" + senderMessageDataContactDetails.getAccount() + "]";
             String notificationKey = CommandKeyEnum.start_status.toString();
@@ -303,35 +249,36 @@ public class TrackLocationService extends Service {
                 if (containsGPS && forceGps) {
                 	LogManager.LogInfoMsg(className, "requestLocation", "GPS_PROVIDER selected.");
                 
-	            	locationListenerGPS = new LocationListenerBasic(context, this, "LocationListenerGPS", CommonConst.GPS);
-	            	locationListenerNetwork = new LocationListenerBasic(context, this, "LocationListenerNetwork", CommonConst.NETWORK);
+	            	locationListenerGPS = new LocationListenerBasic(context, this, command, "LocationListenerGPS", CommonConst.GPS, objectName);
+	            	locationListenerNetwork = new LocationListenerBasic(context, this, command, "LocationListenerNetwork", CommonConst.NETWORK, objectName);
 
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerGPS);
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
                 } else if (containsNetwork) {
                 	LogManager.LogInfoMsg(className, "requestLocation", "NETWORK_PROVIDER selected.");
                 	
-            		locationListenerNetwork = new LocationListenerBasic(context, this, "LocationListenerNetwork", CommonConst.NETWORK);
+            		locationListenerNetwork = new LocationListenerBasic(context, this, command, "LocationListenerNetwork", CommonConst.NETWORK, objectName);
 
             		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
                 }
 	        } else {
 		        LogManager.LogInfoMsg(className, "requestLocation", "No location providers available.");
 	        }
+	        
         LogManager.LogFunctionExit(className, "requestLocation");
         } catch (Exception e) {
         	LogManager.LogException(e, className, "requestLocation");
         }
     }
     
-    private boolean providerAvailable(List<String> providers) {
+    protected boolean providerAvailable(List<String> providers) {
         if (providers.size() < 1) {
         	return false;
         }
         return true;
     }
 
-//    private void sendTrackLocationServiceStopped(){
+//    protected void sendTrackLocationServiceStopped(){
 //        // ==========================================
 //        // send GCM (push notification) to requester (Master)
 //        // that TrackLocationService is stopped
@@ -379,7 +326,7 @@ public class TrackLocationService extends Service {
 //        // ==============================
 //    }
     
-//    private void sendTrackLocationServiceStarted(){
+//    protected void sendTrackLocationServiceStarted(){
 //        // ==========================================
 //        // send GCM (push notification) to requester (Master)
 //        // that TrackLocationService is started
@@ -438,7 +385,7 @@ public class TrackLocationService extends Service {
 		this.trackLocationServiceStartTime = trackLocationServiceStartTime;
 	}
     
-    private void initBroadcastReceiver(final String action, final String actionDescription)
+    protected void initBroadcastReceiver(final String action, final String actionDescription)
     {
     	methodName = "initBroadcastReceiver";
 		LogManager.LogFunctionCall(className, methodName);

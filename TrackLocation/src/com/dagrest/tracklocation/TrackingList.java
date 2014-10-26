@@ -11,18 +11,19 @@ import com.google.gson.Gson;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.SparseBooleanArray;
+import android.preference.PreferenceFragment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListView;
-import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.Toast;
+import android.widget.ToggleButton;
 
-public class LocationSharingList extends Activity {
-
+public class TrackingList extends Activity {
 	private String jsonStringContactDeviceDataList = null;
 	private ListView lv;
 	private ArrayAdapter<String> adapter;
@@ -35,7 +36,7 @@ public class LocationSharingList extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.location_sharing_list);
+		setContentView(R.layout.tracking_contact_list);
 
 		Intent intent = getIntent();
 		gson = new Gson();
@@ -60,9 +61,9 @@ public class LocationSharingList extends Activity {
 	    		isSelected.add(false);
 	    	}
 	    	
-			lv = (ListView) findViewById(R.id.location_sharing_list_view);
+			lv = (ListView) findViewById(R.id.tracking_contact_list_view);
 			
-	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, 
+	        adapter = new ContactListArrayAdapter(this, R.layout.tracking_contact_list_item, 
 	        	R.id.contact, values, checkBoxesShareLocation, emailList, macAddressList);
 	    	lv.setAdapter(adapter);
 	    	
@@ -114,14 +115,22 @@ public class LocationSharingList extends Activity {
 	        }
 	    });
 	    
+//	    ToggleButton toggle = (ToggleButton) findViewById(R.id.tracking_toggle_button);
+//	    toggle.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+//
+//	    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//	                    Toast.makeText(getApplicationContext(), buttonView.isChecked()+"", Toast.LENGTH_SHORT).show();
+//	                }
+//	            });
+	
 	}
 
-    @Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.contact_list, menu);
-		return true;
-	}
+//    @Override
+//	public boolean onCreateOptionsMenu(Menu menu) {
+//		// Inflate the menu; this adds items to the action bar if it is present.
+//		getMenuInflater().inflate(R.menu.contact_list, menu);
+//		return true;
+//	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -204,5 +213,4 @@ public class LocationSharingList extends Activity {
     protected void onDestroy() {
     	super.onDestroy();
     }
-	 
 }

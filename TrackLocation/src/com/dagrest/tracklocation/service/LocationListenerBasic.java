@@ -9,6 +9,8 @@ import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
+
+import android.app.Service;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Location;
@@ -18,24 +20,27 @@ import android.util.Log;
 
 public class LocationListenerBasic implements LocationListener{
 
-	private String methodName;
-	private String logMessage;
-	private String className; // LocationListenerBasic
-	private String locationProviderType; // CommonConst.GPS = GPS, CommonConst.NETWORK = NETWORK...
-	private Context context;
-	private TrackLocationService trackLocationService;
-	private final SharedPreferences prefs;
-	private String account;
-	private String macAddress;
-	private String phoneNumber;
-	private String regId;
-	private int batteryLevel;
+	protected String methodName;
+	protected String logMessage;
+	protected String className; // LocationListenerBasic
+	protected String locationProviderType; // CommonConst.GPS = GPS, CommonConst.NETWORK = NETWORK...
+	protected Context context;
+	protected TrackLocationServiceBasic service;
+	protected SharedPreferences prefs;
+	protected String account;
+	protected String macAddress;
+	protected String phoneNumber;
+	protected String regId;
+	protected int batteryLevel;
+//	object that created this certain listener - 
+//	TrackLocationService - service that notifies location while tracking on map ("Locate" button)
+//	TrackingService - service that notifies location automatically once in certain period of time ("Tracking" button)
+	protected String objectName; 
+	protected CommandEnum command;
 	
-	public LocationListenerBasic(Context context, TrackLocationService trackLocationService, String className, String locationProviderType) {
-		this.className = className;
+	protected void init(Context context, String locationProviderType){
 		this.locationProviderType = locationProviderType;
 		this.context = context;
-		this.trackLocationService = trackLocationService;
 	    this.prefs = Preferences.getGCMPreferences(context);
 		this.account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		this.macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
@@ -43,12 +48,26 @@ public class LocationListenerBasic implements LocationListener{
 		this.regId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 		this.batteryLevel = Controller.getBatteryLevel(context);
 	}
+	
+	public LocationListenerBasic(
+			Context context, 
+			TrackLocationServiceBasic service, 
+			CommandEnum command,
+			String className, 
+			String locationProviderType, 
+			String objectName) {
+		this.className = className;
+		this.service = service;
+		this.command = command;
+		this.objectName = objectName;
+		init(context, locationProviderType);
+	}
 
 	@Override
 	public void onLocationChanged(Location location) {
         try{
         	
-        	methodName = "onLocationChanged";
+        	methodName = "onLocationChanged" + " by " + objectName;
     		LogManager.LogFunctionCall(className, methodName);
     		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
             
@@ -78,6 +97,13 @@ public class LocationListenerBasic implements LocationListener{
 			MessageDataLocation locationDetails = 
 				new MessageDataLocation(latitude, longitude, accuracy, speed, locationProviderName);
 			
+//        	if(trackLocationService != null){
+//        		command = CommandEnum.location;
+//        	}
+//        	if (trackingService != null) {
+//        		command = CommandEnum.tracking_location;
+//        	}
+        	
 //    		ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
 //        			Controller.getPreferencesContactDeviceDataListToSendCommandTo(context);
 //			// ==========================================
@@ -86,7 +112,7 @@ public class LocationListenerBasic implements LocationListener{
 //			CommandDataBasic commandData = new CommandData(
 //					context, 
 //					contactDeviceDataToSendNotificationTo,
-//        			CommandEnum.location,
+//        			command,
 //        			null, // message,
 //        			senderMessageDataContactDetails, 
 //        			locationDetails,			
@@ -95,10 +121,10 @@ public class LocationListenerBasic implements LocationListener{
 //        			Controller.getAppInfo(context)
 //			);
 //			commandData.sendCommand();
-            
+            			
 			CommandDataBasic commandData = new CommandDataWithReturnToContactMap(
 					context, 
-        			CommandEnum.location,
+        			command,
         			null, // message,
         			senderMessageDataContactDetails, 
         			locationDetails,			
@@ -124,28 +150,47 @@ public class LocationListenerBasic implements LocationListener{
 
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
-		LogManager.LogFunctionCall("LocationListenerBasic", "onStatusChanged");
+		methodName = "onStatusChanged" + " by " + objectName;
+		LogManager.LogFunctionCall(className, methodName);
 		
-		LogManager.LogInfoMsg(provider, "LocationListenerBasic", "onStatusChanged");
-		trackLocationService.requestLocation(true);
+		LogManager.LogInfoMsg(provider, className, methodName);
+		service.requestLocation(true);
+//		if(trackLocationService != null){
+//			trackLocationService.requestLocation(true);
+//		} 
+//		if(trackingService != null) {
+//			trackingService.requestLocation(true);
+//		}
 		
-		LogManager.LogFunctionExit("LocationListenerBasic", "onStatusChanged");
+		LogManager.LogFunctionExit(className, methodName);
 	}
 
 	@Override
 	public void onProviderEnabled(String provider) {
-		// TODO Auto-generated method stub
-		trackLocationService.requestLocation(true);
-		Log.i(CommonConst.LOG_TAG, "onProviderEnabled");
-		LogManager.LogInfoMsg(provider, "LocationListenerBasic", "onProviderEnabled");
+		methodName = "onProviderEnabled" + " by " + objectName;
+		service.requestLocation(true);
+//		if(trackLocationService != null){
+//			trackLocationService.requestLocation(true);
+//		}
+//		if(trackingService != null) {
+//			trackingService.requestLocation(true);
+//		}
+		Log.i(CommonConst.LOG_TAG, methodName);
+		LogManager.LogInfoMsg(provider, className, methodName);
 	}
 
 	@Override
 	public void onProviderDisabled(String provider) {
-		// TODO Auto-generated method stub
-		trackLocationService.requestLocation(true);
-		Log.i(CommonConst.LOG_TAG, "onProviderDisabled");
-		LogManager.LogInfoMsg(provider, "LocationListenerBasic", "onProviderDisabled");
+		methodName = "onProviderDisabled" + " by " + objectName;
+		service.requestLocation(true);
+//		if(trackLocationService != null){
+//			trackLocationService.requestLocation(true);
+//		}
+//		if(trackingService != null){
+//			trackLocationService.requestLocation(true);
+//		}
+		Log.i(CommonConst.LOG_TAG, methodName);
+		LogManager.LogInfoMsg(provider, className, methodName);
 	}
 
 }

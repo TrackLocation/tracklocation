@@ -48,7 +48,7 @@ public class ReceivedJoinRequestData {
 	public String toString() {
 		String newRegId;
 		if(this.regId != null && !this.regId.isEmpty()){
-			newRegId = "***";
+			newRegId = "NON-EMPTY";
 		} else {
 			newRegId = "EMPTY";
 		}

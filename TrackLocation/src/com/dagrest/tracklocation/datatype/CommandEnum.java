@@ -9,7 +9,8 @@ public enum CommandEnum {
 	status_response("status_response"), join_approval("join_approval"),
 	join_rejected("join_rejected"),
 	track_location_service_keep_alive("track_location_service_keep_alive"),
-	notification("notification"), update_reg_id("update_reg_id");
+	notification("notification"), update_reg_id("update_reg_id"), 
+	tracking("tracking"), tracking_location("tracking_location");
 	
 	private final String name;       
 	private static Map<String, CommandEnum> valueMap;

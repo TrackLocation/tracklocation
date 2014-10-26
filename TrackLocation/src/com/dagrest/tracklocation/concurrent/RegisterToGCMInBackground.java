@@ -60,8 +60,17 @@ public class RegisterToGCMInBackground implements Runnable {
 	            }
 	             	registrationId = gcm.register(googleProjectNumber);
 	            	if(registrationId != null && !registrationId.isEmpty()){
+	    				initClientDetails();
 	                    // Persist the registration ID - no need to register again.
 	                    Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, registrationId);
+	                    // Update the registration ID in DB
+	            		long result = DBLayer.updateRegistrationID(clientAccount, clientMacAddress, registrationId);
+	            		if(result == -1){
+	            			logMessage = "Failed to update RegistartionID";
+	            			LogManager.LogErrorMsg(className, methodName, logMessage);
+	            			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+	            		}
+	            		
 						logMessage = "Retry " + (i+1) + ". Successfully finished a Google Cloud Message Registration. ThreadID = " + 
 	    					Thread.currentThread().getId();
 	    				LogManager.LogInfoMsg(className, methodName, logMessage);
@@ -76,7 +85,6 @@ public class RegisterToGCMInBackground implements Runnable {
 	    				String sendToPhoneNumber = null;
 	    				String sendToRegId = null;
 	    				
-	    				initClientDetails();
 	    				ContactDeviceDataList contDevDataList = DBLayer.getContactDeviceDataList(null);
 	    				if(contDevDataList != null){
 	    					// get owner information from DB and save GUID to Preferences
@@ -126,6 +134,9 @@ public class RegisterToGCMInBackground implements Runnable {
 	    	    	            // Notify caller by GCM (push notification)
 	    	    	            
 	    	    	            String commandMessage = "Update registartionID of [" + clientAccount + "]";
+	    	    	    		LogManager.LogInfoMsg(className, methodName, commandMessage);
+	    	    	    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + commandMessage);
+	    	    	    		
 	    	    	            String notificationKey = CommandKeyEnum.updated_reg_id.toString();
 	    	    	            String notificationValue = registrationId;		
 

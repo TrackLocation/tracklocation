@@ -9,6 +9,8 @@ public class ContactDeviceData {
 	private String imei;
 	private String registration_id;
 	private String guid;
+	private int locationSharing;
+	private int tracking;
 	
 	public ContactDeviceData() {}
 	
@@ -57,5 +59,17 @@ public class ContactDeviceData {
 	}
 	public void setGuid(String guid) {
 		this.guid = guid;
+	}
+	public int getLocationSharing() {
+		return locationSharing;
+	}
+	public void setLocationSharing(int locationSharing) {
+		this.locationSharing = locationSharing;
+	}
+	public int getTracking() {
+		return tracking;
+	}
+	public void setTracking(int tracking) {
+		this.tracking = tracking;
 	}
 }

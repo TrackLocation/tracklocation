@@ -1,18 +1,26 @@
 package com.dagrest.tracklocation;
+import java.util.HashMap;
 import java.util.List;
 
 import com.dagrest.tracklocation.datatype.PermissionsData;
+import com.dagrest.tracklocation.db.DBConst;
 import com.dagrest.tracklocation.db.DBLayer;
+import com.dagrest.tracklocation.log.LogManager;
+import com.dagrest.tracklocation.utils.CommonConst;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 
 public class ContactListArrayAdapter extends ArrayAdapter<String> {
@@ -20,20 +28,27 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 	private final List<String> values;
 	private final List<String> emailList;
 	private final List<Boolean> checkBoxValues;
+	private final List<String> macAddressList;
 	private final int res;
+	private String className;
+	private String methodName;
+	private String logMessage;
 	
 	public ContactListArrayAdapter(Context context, int resource, List<String> values, 
-			List<Boolean> checkBoxValues, List<String> emailList) {
+			List<Boolean> checkBoxValues, List<String> emailList, List<String> macAddressList) {
 		super(context, resource, values);
 		this.context = context;
 		this.values = values;
 		this.res = resource;
 		this.checkBoxValues = checkBoxValues;
 		this.emailList = emailList;
+		this.macAddressList = macAddressList;
+		className = this.getClass().getName();
 	}
  
 	public ContactListArrayAdapter(Context context, int resource, int textViewResourceId, 
-			List<String> values, List<Boolean> checkBoxValues, List<String> emailList) {
+			List<String> values, List<Boolean> checkBoxValues, List<String> emailList,
+			List<String> macAddressList) {
 		super(context, resource, textViewResourceId, values);
 		
 		this.context = context;
@@ -41,6 +56,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 		this.res = resource;
 		this.checkBoxValues = checkBoxValues;
 		this.emailList = emailList;
+		this.macAddressList = macAddressList;
 	}
 
 	@Override
@@ -55,8 +71,32 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 		TextView textView = (TextView) rowView.findViewById(R.id.contact);
 		ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
 		CheckBox checkBox = (CheckBox) rowView.findViewById(R.id.check_share_location);
+		ToggleButton toggleButton = (ToggleButton) rowView.findViewById(R.id.tracking_toggle_button);
 		textView.setText(values.get(position));
 		
+		OnCheckedChangeListener toggleButtonListener = new OnCheckedChangeListener() {
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				methodName = "onCheckedChanged";
+				if(isChecked){
+					logMessage = "ToggleButton is checked by " + emailList.get(position);
+					LogManager.LogInfoMsg(className, methodName, logMessage);
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+				} else {
+					logMessage = "ToggleButton is unchecked " + emailList.get(position);
+					LogManager.LogInfoMsg(className, methodName, logMessage);
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+				}
+			}
+		};
+
+		// 
+		if(toggleButton != null){
+			toggleButton.setOnCheckedChangeListener(toggleButtonListener);
+		}
+		
+		
+		// Action on Row click 
 		if (checkBox != null) {
 			rowView.setOnClickListener(new View.OnClickListener() {
 				@Override
@@ -68,7 +108,9 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 						if (p != null) {
 							DBLayer.updatePermissions(p.getEmail(), isChecked,
 									p.getCommand(), p.getAdminCommand());
-							System.out.println("Saved as " + isChecked);
+							java.util.Map<String, Object> m = new HashMap<String, Object>();
+							m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
+							DBLayer.updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
 							checkBox.setChecked(checkBox.isChecked() == true ? false : true);
 						}
 					}
@@ -76,6 +118,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 			});
 		}
 		
+		// Action on CheckBox click
 		if (checkBox != null) {
 			checkBox.setOnClickListener(new View.OnClickListener() {
 				public void onClick(View v) {
@@ -86,12 +129,15 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 					if (p != null) {
 						DBLayer.updatePermissions(p.getEmail(), isChecked,
 								p.getCommand(), p.getAdminCommand());
+						java.util.Map<String, Object> m = new HashMap<String, Object>();
+						m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
+						DBLayer.updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
 					}
 				}
 			});
 		}
 		
-		// Case if list with check boxes
+		// Case if list with check boxes - set CheckBox marked/unmarked
 		if (checkBox != null){
 			//CheckBox checkBoxShareLocation = (CheckBox) rowView.findViewById(R.id.check_share_location);
 			if(emailList != null){

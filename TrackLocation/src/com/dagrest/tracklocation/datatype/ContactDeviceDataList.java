@@ -48,7 +48,7 @@ public class ContactDeviceDataList {
 				if(regId == null || regId.isEmpty()){
 					tempRegId = "EMPTY";
 				} else {
-					tempRegId = "***";
+					tempRegId = "NON-EMPTY";
 				}
 				output += tempRegId + ";";
 			}

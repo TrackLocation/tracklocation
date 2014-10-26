@@ -27,6 +27,8 @@ import com.google.gson.Gson;
 
 public class StartTrackLocationService implements Runnable {
 
+	private final static int DELAY_IN_MS = 1000;
+	
 	private Context context;
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private MessageDataContactDetails senderMessageDataContactDetails;
@@ -123,8 +125,8 @@ public class StartTrackLocationService implements Runnable {
 			
 			for(int j = 0; j < (delay / 1000); j++){
 				try {
-					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + delay / 1000 + " sec");
-					Thread.sleep(1000);
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + DELAY_IN_MS / 1000 + " sec");
+					Thread.sleep(DELAY_IN_MS);
 				} catch (InterruptedException e) {
 					//if(exitNow == true){
 					logMessage = "Finish the thread with loop for starting of TrackLocation Service. ThreadID = " + 

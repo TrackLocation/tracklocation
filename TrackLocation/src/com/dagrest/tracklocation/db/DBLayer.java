@@ -1,5 +1,9 @@
 package com.dagrest.tracklocation.db;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
@@ -27,39 +31,6 @@ public class DBLayer {
 	protected DBLayer() {
     }
 	
-//	public static int deleteJoinRequest(String phoneNumber){
-//		
-//		if(phoneNumber == null || phoneNumber.isEmpty()){
-//        	String errMsg = "Delete join request failed - no phone number was provided";
-//        	Log.e(DBConst.LOG_TAG_DB, errMsg);
-//            LogManager.LogErrorMsg(CLASS_NAME, "deleteJoinRequest", errMsg);
-//			return -1;
-//		}
-//		
-//		SQLiteDatabase db = null;
-//		try{
-//			db = DBManager.getDBManagerInstance().open();
-//			 
-//			String whereClause = DBConst.PHONE_NUMBER + " = ?";
-//			String[] whereArgs = new String[] { phoneNumber };
-//			
-//			if(!isPhoneInJoinRequestTable(phoneNumber)){
-//				return db.delete(DBConst.TABLE_SEND_JOIN_REQUEST, whereClause, whereArgs);
-//			}
-//		} catch (Throwable t) {
-//            if (DBConst.IS_DEBUG_LOG_ENABLED){
-//            	String errMsg = "Exception caught: " + t.getMessage();
-//            	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-//                LogManager.LogErrorMsg(CLASS_NAME, "deleteJoinRequest", errMsg);
-//            }
-//		} finally {
-//			if(db != null){
-//				DBManager.getDBManagerInstance().close();
-//			}
-//		}
-//		return -1;
-//	}
-
 	public static long addSentJoinRequest(String phoneNumber, String mutualId, JoinRequestStatusEnum status){
 		
 		String methodName = "addSentJoinRequest";
@@ -674,25 +645,28 @@ public class DBLayer {
     }
     
 	public static long updateRegistrationID(String email, String macAddress, String registrationID){
-		
+		String methodName = "updateRegistrationID";
+		LogManager.LogFunctionCall(CLASS_NAME, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + CLASS_NAME + "} -> " + methodName);
+
 		if(email == null || email.isEmpty()){
         	String errMsg = "Update RegistrationID failed - no email account was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "updateRegistrationID", errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
 			return -1;
 		}
 		
 		if(macAddress == null || macAddress.isEmpty()){
         	String errMsg = "Update RegistrationID failed - no macAddress was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "updateRegistrationID", errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
 			return -1;
 		}
 
 		if(registrationID == null || registrationID.isEmpty()){
         	String errMsg = "Update RegistrationID failed - no registrationID was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "updateRegistrationID", errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
 			return -1;
 		}
 
@@ -704,19 +678,33 @@ public class DBLayer {
 			cVal.put(DBConst.CONTACT_DEVICE_REG_ID, registrationID);
 			
 			if(isEmailMacAddressInContactDeviceTable(email, macAddress)){
-				return db.update(DBConst.TABLE_CONTACT_DEVICE, cVal, 
+				int result = db.update(DBConst.TABLE_CONTACT_DEVICE, cVal, 
 					DBConst.CONTACT_DEVICE_EMAIL + " = ? and " + DBConst.CONTACT_DEVICE_MAC + " = ?", 
 					new String[] { email, macAddress });
+				
+				if(result == 0){
+					String logMessage = "Update RegistrationID failed.";
+					LogManager.LogErrorMsg(CLASS_NAME, methodName, logMessage);
+					Log.e(CommonConst.LOG_TAG, "[ERROR] {" + CLASS_NAME + "} -> " + logMessage);
+				} else {
+					String logMessage = result + " columns updated.";
+					LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + logMessage);
+				}
+
+				LogManager.LogFunctionExit(CLASS_NAME, methodName);
+				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + CLASS_NAME + "} -> " + methodName);
+				return result;
 			} else {
 	        	String errMsg = "Update RegistrationID failed - no email and registrationID were found in ContactDeviceTable";
 	        	Log.e(DBConst.LOG_TAG_DB, errMsg);
-	            LogManager.LogErrorMsg(CLASS_NAME, "updateRegistrationID", errMsg);
+	            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
 	            return -1;
 			}
 		} catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "updateRegistrationID", errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -725,7 +713,103 @@ public class DBLayer {
 		return -1;
 	}
 
-    public static boolean isEmailMacAddressInContactDeviceTable(String email, String macAddress){
+	public static long updateTableContactDevice(String email, String macAddress, Map<String, Object> mapKeyValue){
+		String methodName = "updateTableContactDevice";
+		LogManager.LogFunctionCall(CLASS_NAME, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + CLASS_NAME + "} -> " + methodName);
+
+		if(email == null || email.isEmpty()){
+        	String errMsg = methodName + " failed - no email account was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+			return -1;
+		}
+		
+		if(macAddress == null || macAddress.isEmpty()){
+        	String errMsg = methodName + " failed - no macAddress was provided";
+        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+			return -1;
+		}
+
+		// Loop - for each key,value
+		for (Entry<String, Object> entry : mapKeyValue.entrySet()) {
+			
+			String key = entry.getKey();
+			Object objValue = entry.getValue();
+			ContentValues cVal = new ContentValues();
+			if(objValue instanceof String){
+				if((String)objValue == null || ((String)objValue).isEmpty()){
+		        	String errMsg = "Update " + key + " failed - no " + key + " was provided";
+		        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+		            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+					return -1;
+				}
+				cVal.put(key, (String)objValue);
+			} else
+			if(objValue instanceof Integer){
+				cVal.put(key, (Integer)objValue);
+			} else
+			if(objValue instanceof Double){
+				cVal.put(key, (Double)objValue);
+			} else
+			if(objValue instanceof Float){
+				cVal.put(key, (Float)objValue);
+			} else
+			if(objValue instanceof Boolean){
+				cVal.put(key, (Boolean)objValue);
+			} else {
+				String logMessage = "Unsupported type of " + key + "with value: " + objValue.toString();
+				LogManager.LogErrorMsg(CLASS_NAME, methodName, logMessage);
+				Log.e(DBConst.LOG_TAG_DB, "[ERROR] {" + CLASS_NAME + "} -> " + logMessage);
+				return -1;
+			}
+			
+	
+			SQLiteDatabase db = null;
+			try{
+				db = DBManager.getDBManagerInstance().open();
+				
+				if(isEmailMacAddressInContactDeviceTable(email, macAddress)){
+					int result = db.update(DBConst.TABLE_CONTACT_DEVICE, cVal, 
+						DBConst.CONTACT_DEVICE_EMAIL + " = ? and " + DBConst.CONTACT_DEVICE_MAC + " = ?", 
+						new String[] { email, macAddress });
+					
+					if(result == 0){
+						String logMessage = methodName + " failed.";
+						LogManager.LogErrorMsg(CLASS_NAME, methodName, logMessage);
+						Log.e(CommonConst.LOG_TAG, "[ERROR] {" + CLASS_NAME + "} -> " + logMessage);
+					} else {
+						String logMessage = result + " columns updated.";
+						LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
+						Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + logMessage);
+					}
+	
+					LogManager.LogFunctionExit(CLASS_NAME, methodName);
+					Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + CLASS_NAME + "} -> " + methodName);
+					return result;
+				} else {
+		        	String errMsg = methodName + " failed - no email:[" + email + 
+		        		"] and macAddress:[" + macAddress + "]" + 
+		        		" were found in ContactDeviceTable";
+		        	Log.e(DBConst.LOG_TAG_DB, errMsg);
+		            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+		            return -1;
+				}
+			} catch (Throwable t) {
+	        	String errMsg = "Exception caught: " + t.getMessage();
+	        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+	            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+			} finally {
+				if(db != null){
+					DBManager.getDBManagerInstance().close();
+				}
+			}
+		}
+		return -1;
+	}
+
+	public static boolean isEmailMacAddressInContactDeviceTable(String email, String macAddress){
 		String selectQuery = "select " + DBConst.CONTACT_DEVICE_EMAIL + "," + DBConst.CONTACT_DEVICE_MAC + 
 				" from " + DBConst.TABLE_CONTACT_DEVICE +
 				" where " + DBConst.CONTACT_DEVICE_EMAIL + " = ? and " +
@@ -735,6 +819,9 @@ public class DBLayer {
     
 	public static ContactDeviceDataList addContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
     	
+		String methodName = "";
+		String logMessage = "";
+		
     	ContactDeviceDataList contactDeviceDataListInserted = null;
     	
     	if(contactDeviceDataList != null){
@@ -799,6 +886,14 @@ public class DBLayer {
 							String errMsg = "Failed to add FULL permissions for the following account: " + email;
 							Log.e(CommonConst.LOG_TAG, errMsg);
 							LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
+						}
+						java.util.Map<String, Object> m = new HashMap<String, Object>();
+						m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, 1);
+						long updateResult = DBLayer.updateTableContactDevice(email, macAddress, m);
+						if(updateResult < 1){
+							logMessage = "Failed to add FULL permissions for the following account: " + email;
+							LogManager.LogErrorMsg(CLASS_NAME, methodName, logMessage);
+							Log.e(CommonConst.LOG_TAG, "[ERROR] {" + CLASS_NAME + "} -> " + methodName + ": " + logMessage);
 						}
 			    	} else {
 						String infoMsg = "Account [" + email + "] already exists in DB";
@@ -890,55 +985,55 @@ public class DBLayer {
     	return deviceData;
     }
 
-    public static ContactDeviceData getContactDeviceDataONLY(){
-    	ContactDeviceData contactDeviceData = null;
-		SQLiteDatabase db = null;
-		try{
-			db = DBManager.getDBManagerInstance().open();
-            
-	        // Select All Query
-			String selectQuery = "select * from " + DBConst.TABLE_CONTACT_DEVICE;
-	        Cursor cursor = db.rawQuery(selectQuery, null);
-	  
-	        // looping through all rows and adding to list
-	        if (cursor.moveToFirst()) {
-	            do {
-	            	contactDeviceData = new ContactDeviceData();
-	            	
-	            	String email = cursor.getString(0);
-	            	String phone = cursor.getString(1);
-	            	String mac = cursor.getString(2);
-	            	String imei = cursor.getString(3);
-	            	String regId = cursor.getString(4);
-	            	String guid = cursor.getString(5);
-	            	
-	            	ContactData contactData = new ContactData();
-	            	contactData.setEmail(email);
-	            	
-	            	DeviceData deviceData = new DeviceData();
-	            	deviceData.setDeviceMac(mac);
-	            	
-	            	contactDeviceData.setPhoneNumber(phone);
-	            	contactDeviceData.setImei(imei);
-	            	contactDeviceData.setRegistration_id(regId);
-	            	contactDeviceData.setContactData(contactData);
-	            	contactDeviceData.setDeviceData(deviceData);
-	            	contactDeviceData.setGuid(guid);
-
-	            } while (cursor.moveToNext());
-	        }
-	        cursor.close();
-        } catch (Throwable t) {
-        	String errMsg = "Exception caught: " + t.getMessage();
-        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "getContactDeviceDataONLY", errMsg);
-		} finally {
-			if(db != null){
-				DBManager.getDBManagerInstance().close();
-			}
-		}
-    	return contactDeviceData;
-    }
+//    public static ContactDeviceData getContactDeviceDataONLY(){
+//    	ContactDeviceData contactDeviceData = null;
+//		SQLiteDatabase db = null;
+//		try{
+//			db = DBManager.getDBManagerInstance().open();
+//            
+//	        // Select All Query
+//			String selectQuery = "select * from " + DBConst.TABLE_CONTACT_DEVICE;
+//	        Cursor cursor = db.rawQuery(selectQuery, null);
+//	  
+//	        // looping through all rows and adding to list
+//	        if (cursor.moveToFirst()) {
+//	            do {
+//	            	contactDeviceData = new ContactDeviceData();
+//	            	
+//	            	String email = cursor.getString(0);
+//	            	String phone = cursor.getString(1);
+//	            	String mac = cursor.getString(2);
+//	            	String imei = cursor.getString(3);
+//	            	String regId = cursor.getString(4);
+//	            	String guid = cursor.getString(5);
+//	            	
+//	            	ContactData contactData = new ContactData();
+//	            	contactData.setEmail(email);
+//	            	
+//	            	DeviceData deviceData = new DeviceData();
+//	            	deviceData.setDeviceMac(mac);
+//	            	
+//	            	contactDeviceData.setPhoneNumber(phone);
+//	            	contactDeviceData.setImei(imei);
+//	            	contactDeviceData.setRegistration_id(regId);
+//	            	contactDeviceData.setContactData(contactData);
+//	            	contactDeviceData.setDeviceData(deviceData);
+//	            	contactDeviceData.setGuid(guid);
+//
+//	            } while (cursor.moveToNext());
+//	        }
+//	        cursor.close();
+//        } catch (Throwable t) {
+//        	String errMsg = "Exception caught: " + t.getMessage();
+//        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+//            LogManager.LogErrorMsg(CLASS_NAME, "getContactDeviceDataONLY", errMsg);
+//		} finally {
+//			if(db != null){
+//				DBManager.getDBManagerInstance().close();
+//			}
+//		}
+//    	return contactDeviceData;
+//    }
 
 //    public static ContactDeviceDataList getContactDeviceDataList(){
 // 
@@ -1017,26 +1112,53 @@ public class DBLayer {
     	 
     	ContactDeviceDataList contactDeviceDataList = null;
     	ContactDeviceData contactDeviceData = null;
+    	String selectQuery = null;
+    	
+    	// According to columns quantity in SQL query that was in use until
+    	// DB version 1 and application version 5/0.0.5
+    	int columnIndex = 10; 
+    	// Are LocationSharing and Tracking columns exist
+    	int locationSharingIndex = -1;
+    	int trackingIndex = -1;
 		
     	SQLiteDatabase db = null;
 		try{
 			db = DBManager.getDBManagerInstance().open();
             
+	        String selectClause = "select " +		
+	        DBConst.CONTACT_FIRST_NAME + ", " + 
+	        DBConst.CONTACT_LAST_NAME + ", " + 
+	        DBConst.CONTACT_NICK + ", " + 
+	        DBConst.CONTACT_EMAIL + ", " + 
+	        DBConst.DEVICE_MAC + ", " + 
+	        DBConst.DEVICE_NAME + ", " + 
+	        DBConst.DEVICE_TYPE + ", " + 
+	        DBConst.CONTACT_DEVICE_IMEI + ", " + 
+	        DBConst.CONTACT_DEVICE_PHONE_NUMBER + ", " + 
+	        DBConst.CONTACT_DEVICE_REG_ID + ", " + 
+	        DBConst.CONTACT_DEVICE_GUID;
+	        if(isColumnExistsInTable(DBConst.TABLE_CONTACT_DEVICE, DBConst.CONTACT_DEVICE_LOCATION_SHARING)){
+	        	selectClause = selectClause + ", " + DBConst.CONTACT_DEVICE_LOCATION_SHARING;
+	        	locationSharingIndex = ++columnIndex;
+	        }
+	        if(isColumnExistsInTable(DBConst.TABLE_CONTACT_DEVICE, DBConst.CONTACT_DEVICE_TRACKING)){
+	        	selectClause = selectClause + ", " + DBConst.CONTACT_DEVICE_TRACKING;
+	        	trackingIndex = ++columnIndex;
+	        }
+	        
+	        String fromClause = " from " + DBConst.TABLE_CONTACT_DEVICE + " as CD " +
+	        " join " + DBConst.TABLE_CONTACT + " as C " +
+	        " on CD." + DBConst.CONTACT_DEVICE_EMAIL + " = C." + DBConst.CONTACT_EMAIL + 
+	        " join " + DBConst.TABLE_DEVICE + " as D " +
+	        " on CD." + DBConst.CONTACT_DEVICE_MAC + " = D." + DBConst.DEVICE_MAC;
+
 	        // Select All Query
-	        String selectQuery = 
-	        "select " +		
-	        "contact_first_name, contact_last_name, contact_nick, contact_email, device_mac, " +
-	        "device_name, device_type, contact_device_imei, contact_device_phone_number, " +
-	        "registration_id, contact_device_guid " +
-	        "from TABLE_CONTACT_DEVICE as CD " +
-	        "join TABLE_CONTACT as C " +
-	        "on CD.contact_device_email = C.contact_email " +
-	        "join TABLE_DEVICE as D " +
-	        "on CD.contact_device_mac = D.device_mac ";
+	        selectQuery = selectClause + fromClause;
 	        
 	        String[] val = null;
+	        // where clause
 	        if(email !=  null && !email.isEmpty()){
-	        	selectQuery = selectQuery + "where CD.contact_device_email = ?";
+	        	selectQuery = selectQuery + " where CD.contact_device_email = ? ";
 	        	val = new String[] { email };
 	        }
 	        
@@ -1059,6 +1181,14 @@ public class DBLayer {
 	            	String contact_device_phone_number = cursor.getString(8);
 	            	String registration_id = cursor.getString(9);
 	            	String guid = cursor.getString(10);
+	            	int locationSharing = -1;
+	            	int tracking = -1;
+	    	        if(locationSharingIndex > 0){
+	    	        	locationSharing = cursor.getInt(locationSharingIndex);
+	    	        }
+	    	        if(trackingIndex > 0){
+	    	        	tracking = cursor.getInt(trackingIndex);
+	    	        }
 	            	
 	            	ContactData contactData = new ContactData();
 	            	contactData.setEmail(contact_email);
@@ -1077,6 +1207,12 @@ public class DBLayer {
 	            	contactDeviceData.setContactData(contactData);
 	            	contactDeviceData.setDeviceData(deviceData);
 	            	contactDeviceData.setGuid(guid);
+	    	        if(locationSharingIndex > 0){
+		            	contactDeviceData.setLocationSharing(locationSharing);
+	    	        }
+	    	        if(trackingIndex > 0){
+		            	contactDeviceData.setTracking(tracking);
+	    	        }
 
 	            	contactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
 	            	
@@ -1084,7 +1220,8 @@ public class DBLayer {
 	        }
 	        cursor.close();
         } catch (Throwable t) {
-        	String errMsg = "Exception caught: " + t.getMessage();
+        	String errMsg = "Exception caught: " + t.getMessage() + 
+        		"\nSelect query:\n" + selectQuery;
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
             LogManager.LogErrorMsg(CLASS_NAME, "getContactDeviceDataList", errMsg);
 		} finally {
@@ -1150,10 +1287,43 @@ public class DBLayer {
     public static boolean isPhoneInReceivedJoinRequestTable(String phoneNumber){
 		String selectQuery = "select " + DBConst.PHONE_NUMBER + " from " + DBConst.TABLE_RECEIVED_JOIN_REQUEST +
 				" where " + DBConst.PHONE_NUMBER + " = ?";
-		// TODO: check that macAddress is valid value to avoid SQL injection
+		// TODO: check that phoneNumber is valid value to avoid SQL injection
 		return isFieldExist(selectQuery, new String[] { phoneNumber });
     }
 
+    private static boolean isColumnExistsInTable(String tableName, String columnName){
+    	String pragmaQuery = "PRAGMA table_info('" + tableName + "')";
+    	boolean isColumnNameExistsInTable = false;
+    	
+    	SQLiteDatabase db = null;
+		try{
+			db = DBManager.getDBManagerInstance().open();
+			Cursor cursor = db.rawQuery(pragmaQuery, null);
+			
+	        // looping through all rows and adding to list
+	        if (cursor.moveToFirst()) {
+	            do {	            	
+	            	// get second column - it is column name
+	            	String tableColumnName = cursor.getString(1);
+	            	if(tableColumnName.equals(columnName)){
+	            		isColumnNameExistsInTable = true;
+	            		break;
+	            	}
+	            } while (cursor.moveToNext());
+	        }
+	        cursor.close();
+	    } catch (Throwable t) {
+	    	String errMsg = "Exception caught: " + t.getMessage();
+	    	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
+	        LogManager.LogErrorMsg(CLASS_NAME, "isColumnExistsInTable", errMsg);
+		} finally {
+			if(db != null){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+		return isColumnNameExistsInTable;
+    }
+    
     private static boolean isFieldExist(String selectQuery, String[] val){
     	boolean result = false;
 		SQLiteDatabase db = null;

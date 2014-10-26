@@ -82,7 +82,7 @@
 		    android:visibility="invisible" />
 
 		<Button
-            android:id="@+id/button4"
+            android:id="@+id/btnTracking"
             android:layout_width="0.0dip" 
             android:layout_height="fill_parent"
             android:layout_weight="1"
@@ -90,7 +90,7 @@
 			android:onClick="onClick"
 			android:background="@drawable/button_shape"
 			android:textSize="25sp"
-            android:text="Location\nHistory" />
+            android:text="Tracking" />
 		    <!-- android:background="@android:drawable/bottom_bar" -->
 				
 	</LinearLayout>

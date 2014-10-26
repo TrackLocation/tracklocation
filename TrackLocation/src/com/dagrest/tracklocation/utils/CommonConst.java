@@ -34,6 +34,7 @@ public class CommonConst {
 	// public static final String 	IS_LOCATION_PROVIDER_AVAILABLE = "IS_LOCATION_PROVIDER_AVAILABLE";
 	public static final String 	TRACK_LOCATION_WAKE_LOCK = "TRACK_LOCATION_WAKE_LOCK";
 	public static final long    REPEAT_PERIOD_DEFAULT = 60000 * 2; // 2 minutes;
+	public static final long    REPEAT_PERIOD_DEFAULT_TRACKING_AUTOSTARTER = 60000; // 1 munite
 	
 	public static final String 	PREFERENCES_REG_ID = "registration_id";
 	public static final String  REGISTRATION_ID_TO_RETURN_MESSAGE_TO = "regIDToReturnMessageTo";
@@ -60,8 +61,9 @@ public class CommonConst {
  	public static final String 	DELIMITER_AT = "@";
  	public static final String 	SMS_URI = "content://sms";
  	
-	public static final String 	LOG_DIRECTORY_PATH = "TrackLocation";         
-	public static final String 	LOG_FILE_NAME = "TrackLocation.log";          
+	public static final String 	TRACK_LOCATION_DIRECTORY_PATH = "TrackLocation";         
+	public static final String 	TRACK_LOCATION_LOG_FILE_NAME = "TrackLocation.log";          
+	public static final String 	TRACK_LOCATION_BACKUP_FILE_NAME = "TrackLocationBackUp.dat";          
 	public static final String 	ENABLE_LOG_DIRECTORY = "enable_log";
 	public static final String 	CONTACT_DTAT_INPUT_FILE = "contact_device_list.dat";
 

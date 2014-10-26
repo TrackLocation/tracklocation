@@ -7,10 +7,10 @@ import com.dagrest.tracklocation.concurrent.CheckJoinRequestBySMS;
 import com.dagrest.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.AppInstDetails;
+import com.dagrest.tracklocation.datatype.BackupDataOperations;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
-import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.db.DBHelper;
@@ -19,8 +19,9 @@ import com.dagrest.tracklocation.db.DBManager;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.exception.CheckPlayServicesException;
-import com.dagrest.tracklocation.grid.ContactDataGridView;
 import com.dagrest.tracklocation.log.LogManager;
+import com.dagrest.tracklocation.service.TrackLocationService;
+import com.dagrest.tracklocation.service.TrackingAutostarter;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
@@ -28,12 +29,12 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.gson.Gson;
 
-import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -48,7 +49,7 @@ public class MainActivity extends Activity {
     private final static int SLEEP_TIME = 500; // 0.5 sec
     private final static int JOIN_REQUEST = 1;  
     private BroadcastReceiver locationChangeWatcher;
-    String googleProjectNumber;
+    private String googleProjectNumber;
     private String className;
     private String registrationId;
     private GoogleCloudMessaging gcm;
@@ -77,7 +78,6 @@ public class MainActivity extends Activity {
 		className = this.getClass().getName();
 		methodName = "onCreate";
 		
-		
 		Intent i = getIntent();
 		isBringToTopRequested = false;
 		Bundle b = null;
@@ -90,6 +90,9 @@ public class MainActivity extends Activity {
 		
 		// Ensure that only one instance of TrackLocation is running
 		if(isTrackLocationRunning == true && isBringToTopRequested == false){
+			logMessage = "Only one instance of TrackLocation can be started.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 			return;
 		}
 		 
@@ -97,6 +100,20 @@ public class MainActivity extends Activity {
 		DBManager.initDBManagerInstance(new DBHelper(context));
 		googleProjectNumber = this.getResources().getString(R.string.google_project_number);
 		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
+
+		BackupDataOperations backupData = new BackupDataOperations();
+//		boolean isBackUpSuccess = backupData.backUp();
+//		if(isBackUpSuccess != true){
+//			logMessage = methodName + " -> Backup process failed.";
+//			LogManager.LogErrorMsg(className, methodName, logMessage);
+//			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+//		}
+		boolean isBackUpRestoreSuccess = backupData.restore();
+		if(isBackUpRestoreSuccess != true){
+			logMessage = methodName + " -> Restore process failed.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+		}
 		
 		// Version check
 		AppInfo preinstalledAppInfo = Controller.getAppInfo(context);
@@ -157,13 +174,6 @@ public class MainActivity extends Activity {
         	LogManager.LogInfoMsg(className, methodName, logMessage);
     		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-            // registerInBackground();
-//        	HashMap<String, Object> map = new HashMap<String, Object>();
-//        	map.put("GoogleCloudMessaging", gcm);
-//        	map.put("GoogleProjectNumber", googleProjectNumber);
-//        	map.put("Context", context);
-//        	Controller.registerInBackground(map);
-        	
         	googleProjectNumber = Preferences.getPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER);
         	if(googleProjectNumber == null || googleProjectNumber.isEmpty()){
 				logMessage = "Google Project Number is NULL or EMPTY";
@@ -185,6 +195,18 @@ public class MainActivity extends Activity {
         } else {
         	initWithRegID(registrationId);
         }
+    
+// 		IMPORTANT: Preparation for tracking option - start tracking autostarter service        
+//		Intent trackingService = new Intent(context, TrackingAutostarter.class);
+//		ComponentName componentName = context.startService(trackingService); 
+//		if(componentName != null){
+//			logMessage = "TrackingAutostarter is STARTED";
+//			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+//		} else {
+//			logMessage = "TrackingAutostarter FAILED TO START";
+//			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+//		}
+
        
     }
 
@@ -275,7 +297,7 @@ public class MainActivity extends Activity {
     			// TODO: to log - no joined contacts
     		}
     	// ========================================
-    	// LOCATION SHARING MANAGEMNT button
+    	// LOCATION SHARING MANAGEMENT button
     	// ========================================
         } else if (view == findViewById(R.id.btnLocationSharing)) {
     		LogManager.LogInfoMsg(className, "onClick -> Location Sharing Management button", 
@@ -291,12 +313,45 @@ public class MainActivity extends Activity {
     	    		Toast.LENGTH_SHORT).show();
     			// TODO: to log - no joined contacts
     		}
+    	// ========================================
+    	// TRACKING button (TRACKING_CONTACT_LIST)
+    	// ========================================
+        } else if (view == findViewById(R.id.btnTracking)) {
+    		LogManager.LogInfoMsg(className, "onClick -> Tracking button", 
+    			"TrackingList activity started.");
+    		
+    		if(contactDeviceDataList != null){
+	    		Intent intentContactList = new Intent(this, TrackingList.class);
+	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
+	    			new Gson().toJson(contactDeviceDataList));
+	    		startActivity(intentContactList);
+    		} else {
+    	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 
+    	    		Toast.LENGTH_SHORT).show();
+    			// TODO: to log - no joined contacts
+    		}
         }
     }
-
+    
     @Override
+	protected void onPause() {
+		// TODO Auto-generated method stub
+		super.onPause();
+		methodName = "onPause";
+
+		BackupDataOperations backupData = new BackupDataOperations();
+		boolean isBackUpSuccess = backupData.backUp();
+		if(isBackUpSuccess != true){
+			logMessage = methodName + " -> Backup process failed.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
+		}
+    }
+
+	@Override
     protected void onDestroy() {
         super.onDestroy();
+        methodName = "onDestroy";
         
 		isTrackLocationRunning = false;
 		
@@ -312,6 +367,14 @@ public class MainActivity extends Activity {
     		unregisterReceiver(notificationBroadcastReceiver);
     	}
     	
+		BackupDataOperations backupData = new BackupDataOperations();
+		boolean isBackUpSuccess = backupData.backUp();
+		if(isBackUpSuccess != true){
+			logMessage = methodName + " -> Backup process failed.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+		}
+
     }
 
 	private void getCurrentAccount(){
@@ -373,8 +436,15 @@ public class MainActivity extends Activity {
 			ContactDeviceDataList contactDeviceDataListOwner = 
 				DBLayer.addContactDeviceDataList(new ContactDeviceDataList(account,
 					macAddress, phoneNumber, registrationId, null));
+			if(contactDeviceDataListOwner == null){
+				logMessage = "Failed to add owner information to application's DB";
+				LogManager.LogErrorMsg(className, methodName, logMessage);
+				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			}
 		} else {
-			Log.i(CommonConst.LOG_TAG, "Owner information already exists");
+			logMessage = "Owner information already exists in application's DB";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		}
 		
 		LogManager.LogInfoMsg(className, "SAVE OWNER INFO", 
@@ -540,7 +610,7 @@ public class MainActivity extends Activity {
 		final int MAX_RETRY_TIMES = 5;
 		
         waitingDialog = new ProgressDialog(this);
-        waitingDialog.setTitle("Tracking location");
+        waitingDialog.setTitle("Registration for Google Cloud Messaging");
         waitingDialog.setMessage("Please wait ...");
         waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         //progressDialog.setProgress(0);
@@ -635,4 +705,35 @@ public class MainActivity extends Activity {
         a.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(a);
 	}
+	
+//	private void runDataBackup(BackupDataOperations backupData){
+//		try {
+//			boolean isBackUpSuccess = backupData.backUp();
+//			if(isBackUpSuccess != true){
+//				logMessage = "Backup process failed.";
+//				LogManager.LogErrorMsg(className, methodName, logMessage);
+//				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+//			}
+//		} catch (IOException e) {
+//			logMessage = "Backup process failed.";
+//			LogManager.LogException(e, className, methodName);
+//			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
+//		}
+//	}
+//	
+//	private void runDataRestore(BackupDataOperations backupData){
+//		try {
+//			boolean isBackUpRestoreSuccess = backupData.restore();
+//			if(isBackUpRestoreSuccess != true){
+//				logMessage = "Restore process failed.";
+//				LogManager.LogErrorMsg(className, methodName, logMessage);
+//				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+//			}
+//		} catch (IOException e) {
+//			logMessage = "Restore process failed.";
+//			LogManager.LogException(e, className, methodName);
+//			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
+//		}
+//	}
+
 }

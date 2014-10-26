@@ -71,7 +71,7 @@ public class ContactList extends Activity/*ListActivity*/ {
 
 		// jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
 		//List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(jsonStringContactDeviceDataList);
-		List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(contactDeviceDataList, null, null);
+		List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(contactDeviceDataList, null, null, null);
 	    if(values != null){
 	    	// TODO: move to init isSelected list:
 	    	isSelected = new ArrayList<Boolean>(values.size());
@@ -91,7 +91,7 @@ public class ContactList extends Activity/*ListActivity*/ {
 //	    	View header = getLayoutInflater().inflate(R.layout.find_contacts_header, null);
 //	    	ListView listView = getListView();
 //	    	listView.addHeaderView(header);
-	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, values, null, null);
+	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, values, null, null, null);
 	        //adapter = new ArrayAdapter<String>(this, R.layout.contact_list_item, R.id.contact, values);
 	    	lv.setAdapter(adapter);
 	    	

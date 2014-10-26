@@ -7,7 +7,11 @@ public final class DBConst {
  	public static final String 	DATABASE_NAME = "DB_TrackLocation";
     public static final boolean IS_DEBUG_LOG_ENABLED = true;
 
-    public static final int 	DATABASE_VERSION = 1;
+    // DATABASE_VERSION = 1 until application version 5/0.0.5
+    // DATABASE_VERSION = 2 until application version ...
+    // Added a new fields to TABLE_CONTACT_DEVICE:
+    // CONTACT_DEVICE_LOCATION_SHARING and CONTACT_DEVICE_TRACKING
+    public static final int 	DATABASE_VERSION = 2;
  	public static final String 	LOG_TAG_DB = "TrackLocationDB";
  	
  	public static final String TIMESTAMP = "DATETIME";
@@ -31,6 +35,9 @@ public final class DBConst {
     public static final String CONTACT_DEVICE_IMEI = "contact_device_imei"; 				// OPTIONAL
     public static final String CONTACT_DEVICE_REG_ID = CommonConst.PREFERENCES_REG_ID;  
     public static final String CONTACT_DEVICE_GUID = "contact_device_guid";					// generated 
+    public static final String CONTACT_DEVICE_LOCATION_SHARING = "contact_device_location_sharing";
+    public static final String CONTACT_DEVICE_TRACKING = "contact_device_tracking";
+
 
     public static final String TABLE_SEND_JOIN_REQUEST = "TABLE_SEND_JOIN_REQUEST";
     public static final String PHONE_NUMBER = "phone_number";
@@ -59,7 +66,7 @@ public final class DBConst {
     //        contact_first_name text,contact_last_name text, contact_nick text, 
     //        contact_email text not null unique,PRIMARY KEY (contact_email));
     public static final String TABLE_CONTACT_CREATE = 
-      "create table " + TABLE_CONTACT + "(" +
+      "create table if not exists " + TABLE_CONTACT + " (" +
 		  //"_id integer primary key autoincrement," + 
 		  CONTACT_FIRST_NAME + " text," +
 		  CONTACT_LAST_NAME + " text," +
@@ -72,7 +79,7 @@ public final class DBConst {
     //        device_name  text, device_type  text not null, device_imei text, 
     //        PRIMARY KEY ( device_mac ));
     public static final String TABLE_DEVICE_CREATE = 
-	  "create table " + TABLE_DEVICE + "(" +
+	  "create table if not exists " + TABLE_DEVICE + " (" +
 		  //"_id integer primary key autoincrement," + 
 		  DEVICE_MAC + " text not null unique," + // PRIMARY KEY
 		  DEVICE_NAME + " text," + 
@@ -89,13 +96,15 @@ public final class DBConst {
     // create table TABLE_CONTACT_DEVICE  ( CONTACT_DEVICE_MAC text not null, CONTACT_DEVICE_PHONE_NUMBER text not null, CONTACT_DEVICE_EMAIL text not null,
     // CONTACT_DEVICE_IMEI text, CONTACT_DEVICE_REG_ID text, PRIMARY KEY (  CONTACT_DEVICE_MAC, CONTACT_DEVICE_PHONE_NUMBER, CONTACT_DEVICE_EMAIL ));
     public static final String TABLE_CONTACT_DEVICE_CREATE = 
-      "create table " + TABLE_CONTACT_DEVICE + "(" +
+      "create table if not exists " + TABLE_CONTACT_DEVICE + " (" +
 		  //"_id integer primary key autoincrement," + 
 		  CONTACT_DEVICE_MAC + " text not null," + // PRIMARY KEY
 		  CONTACT_DEVICE_PHONE_NUMBER + " text," + 
 		  CONTACT_DEVICE_EMAIL + " text not null," + 
 		  CONTACT_DEVICE_IMEI + " text," + 
 		  CONTACT_DEVICE_REG_ID + " text," +
+		  CONTACT_DEVICE_LOCATION_SHARING + " integer, " +
+		  CONTACT_DEVICE_TRACKING + " integer, " +
 		  CONTACT_DEVICE_GUID + " text not null unique," +
 		  "PRIMARY KEY (" + CONTACT_DEVICE_MAC + ", " + 
 		  CONTACT_DEVICE_EMAIL + ")" +
@@ -103,7 +112,7 @@ public final class DBConst {
 
 	//    create table if not exists TABLE_SEND_JOIN_REQUEST (phone_number text not null unique, mutual_id text not null);
     public static final String TABLE_SEND_JOIN_REQUEST_CREATE = 
-      "create table " + TABLE_SEND_JOIN_REQUEST + "(" +
+      "create table if not exists " + TABLE_SEND_JOIN_REQUEST + " (" +
     	  PHONE_NUMBER + " text not null unique, " +
     	  MUTUAL_ID + " text not null unique, " +
     	  STATUS + " text not null, " +
@@ -113,7 +122,7 @@ public final class DBConst {
 	//    create table if not exists TABLE_RECEIVED_JOIN_REQUEST (phone_number text not null unique, mutual_id text not null);
     //	  Content means that join request was received but was not approved
     public static final String TABLE_RECEIVED_JOIN_REQUEST_CREATE = 
-      "create table " + TABLE_RECEIVED_JOIN_REQUEST + "(" +
+      "create table if not exists " + TABLE_RECEIVED_JOIN_REQUEST + " (" +
     	  PHONE_NUMBER + " text not null unique, " +
     	  MUTUAL_ID + " text not null, " +
     	  REG_ID + " text not null, " +
@@ -128,7 +137,7 @@ public final class DBConst {
     // 	  COMMAND		: RESERVED
     //	  ADMIN_COMMAND	: RESERVED
     public static final String TABLE_PERMISSIONS_CREATE = 
-      "create table " + TABLE_PERMISSIONS + "(" +
+      "create table if not exists " + TABLE_PERMISSIONS + " (" +
     	  EMAIL + " text not null unique, " +	  
     	  LOCATION + " integer, " +	  
     	  COMMAND + " integer, " +	  

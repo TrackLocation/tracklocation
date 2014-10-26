@@ -198,7 +198,7 @@ public class Utils {
         }
 
 		File contactDeviceDataListInputFileName = 
-			new File(getStoragePath() + File.separator + CommonConst.LOG_DIRECTORY_PATH + 
+			new File(getStoragePath() + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + 
 				File.separator + CommonConst.CONTACT_DTAT_INPUT_FILE);                          
         ContactDeviceDataList contactDeviceDataListFromFile = null;
         //String absPath = contactDeviceDataListInputFileName.getAbsolutePath();
@@ -210,7 +210,7 @@ public class Utils {
 	
 	public static String getContactDeviceDataFromJsonFile(){
 		File contactDeviceDataListInputFileName = 
-				new File(getStoragePath() + File.separator + CommonConst.LOG_DIRECTORY_PATH + 
+				new File(getStoragePath() + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + 
 					File.separator + CommonConst.CONTACT_DTAT_INPUT_FILE);                          
         return readInputFile(contactDeviceDataListInputFileName.getAbsolutePath());
 	}

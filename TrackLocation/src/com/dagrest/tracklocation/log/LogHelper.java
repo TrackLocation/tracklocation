@@ -25,13 +25,13 @@ public class LogHelper {
     		checkIsLogEnabled();                  
     		if(isLogEnabled() == true){  
     			// create a File object for the log directory                          
-    			File logDirectory = new File(storagePath + File.separator + CommonConst.LOG_DIRECTORY_PATH);                          
+    			File logDirectory = new File(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH);                          
     			if(logDirectory.exists() == false){                                  
     				// create log directory if needed                                  
     				logDirectory.mkdirs();                          
    				}
     			
-    			File logFile = new File(storagePath + File.separator + CommonConst.LOG_DIRECTORY_PATH + File.separator + CommonConst.LOG_FILE_NAME);                          
+    			File logFile = new File(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + File.separator + CommonConst.TRACK_LOCATION_LOG_FILE_NAME);                          
     			if(logFile.exists()){                                  
     				//logFile.delete();                          
     			}                                            
@@ -86,7 +86,7 @@ public class LogHelper {
 						{                                          
 							try {                                                  
 								PrintWriter pw = new PrintWriter(                                                  
-								new FileWriter(storagePath + File.separator + CommonConst.LOG_DIRECTORY_PATH + File.separator +CommonConst.LOG_FILE_NAME, true));                                          
+								new FileWriter(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + File.separator +CommonConst.TRACK_LOCATION_LOG_FILE_NAME, true));                                          
 								//ex.printStackTrace(pw);  
 								
 								pw.println(timeStamp+CommonConst.DELIMITER+logMessage);                                          
@@ -104,7 +104,7 @@ public class LogHelper {
 		
 		private void checkIsLogEnabled()          
 		{                  
-			File enableDirectory = new File(storagePath + File.separator + CommonConst.LOG_DIRECTORY_PATH + File.separator + CommonConst.ENABLE_LOG_DIRECTORY);                  
+			File enableDirectory = new File(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + File.separator + CommonConst.ENABLE_LOG_DIRECTORY);                  
 			if(enableDirectory.exists())                  
 			{                          
 				isLogEnabled = true;                  

@@ -5,6 +5,7 @@ import java.util.Map;
 
 public enum CommandKeyEnum {
 	starting_status("starting_status"), start_status("start_status"),
+	start_tracking_status("start_tracking_status"),
 	mutualId("mutualId"), permissions("permissions"),
 	updated_reg_id("updated_reg_id");
 	

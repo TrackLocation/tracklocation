@@ -886,7 +886,7 @@ public class Controller {
 
 	public static List<String> fillContactListWithContactDeviceDataFromJSON(
 			ContactDeviceDataList contactDeviceDataCollection,
-			List<Boolean> checkBoxesShareLocation, List<String> emailList){
+			List<Boolean> checkBoxesShareLocation, List<String> emailList, List<String> macAddressList){
 		List<String> values = null;
 	    
 		if(contactDeviceDataCollection == null){
@@ -903,7 +903,8 @@ public class Controller {
 	    values = new ArrayList<String>();
 	    for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 	    	ContactData contactData = contactDeviceData.getContactData();
-	    	if(contactData != null) {
+	    	DeviceData deviceData = contactDeviceData.getDeviceData();
+	    	if(contactData != null && deviceData != null) {
 	    		String nick = contactData.getNick();
 	    		if(nick != null && !nick.isEmpty()){
 	    			values.add(contactData.getNick());
@@ -912,6 +913,9 @@ public class Controller {
 	    			}
 	    			if(emailList != null){
 	    				emailList.add(contactData.getEmail());
+	    			}
+	    			if(macAddressList != null){
+	    				macAddressList.add(deviceData.getDeviceMac());
 	    			}
 	    		} else {
 	    			String email = contactData.getEmail();
@@ -933,13 +937,26 @@ public class Controller {
 		    			}
 		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided username is null - check JSON input file, element :" + (i+1));
 	    			}
+	    			String macAddress = deviceData.getDeviceMac();
+	    			if(macAddress != null && !macAddress.isEmpty()) {
+	    				values.add(macAddress);
+		    			if(macAddressList != null){
+		    				macAddressList.add(contactData.getEmail());
+		    			}
+	    			} else {
+		    			values.add("unknown");
+		    			if(macAddressList != null){
+		    				macAddressList.add("unknown@unknown.com");
+		    			}
+		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided macAddress is null - check JSON input file, element :" + (i+1));
+	    			}
 	    		}
 	    	} else {
 	    		LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Contact Data provided incorrectly - check JSON input file, element :" + (i+1));
 	    		return null;
 	    	}
 	    	i++;
-			}
+		}
 	    
 	    return values;
 	}
@@ -1074,11 +1091,18 @@ public class Controller {
 	    		
 				Marker marker = null;
 				Circle locationCircle = null;
-								
+				
+				String snippetString = "Battery: " + String.valueOf(contactDetails.getBatteryPercentage()) + 
+			        " Location Provider: " + locationDetails.getLocationProviderType();
+				double speed = locationDetails.getSpeed();
+				if(speed > 0){
+					snippetString = snippetString + " Speed: " + String.valueOf(speed);
+				}
+				
 				//marker.
 				marker = map.addMarker(new MarkerOptions()
 		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-		        .snippet("Battery: " + String.valueOf(contactDetails.getBatteryPercentage()))
+		        .snippet(snippetString)
 		        .title(account)
 		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
 		        .position(latLngChanging));
