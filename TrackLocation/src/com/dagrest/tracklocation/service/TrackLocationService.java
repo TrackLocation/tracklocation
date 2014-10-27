@@ -249,15 +249,15 @@ public class TrackLocationService extends TrackLocationServiceBasic {
                 if (containsGPS && forceGps) {
                 	LogManager.LogInfoMsg(className, "requestLocation", "GPS_PROVIDER selected.");
                 
-	            	locationListenerGPS = new LocationListenerBasic(context, this, command, "LocationListenerGPS", CommonConst.GPS, objectName);
-	            	locationListenerNetwork = new LocationListenerBasic(context, this, command, "LocationListenerNetwork", CommonConst.NETWORK, objectName);
+	            	locationListenerGPS = new LocationListenerBasic(context, this, CommandEnum.location, "LocationListenerGPS", CommonConst.GPS, objectName);
+	            	locationListenerNetwork = new LocationListenerBasic(context, this, CommandEnum.location, "LocationListenerNetwork", CommonConst.NETWORK, objectName);
 
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerGPS);
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
                 } else if (containsNetwork) {
                 	LogManager.LogInfoMsg(className, "requestLocation", "NETWORK_PROVIDER selected.");
                 	
-            		locationListenerNetwork = new LocationListenerBasic(context, this, command, "LocationListenerNetwork", CommonConst.NETWORK, objectName);
+            		locationListenerNetwork = new LocationListenerBasic(context, this, CommandEnum.location, "LocationListenerNetwork", CommonConst.NETWORK, objectName);
 
             		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
                 }
