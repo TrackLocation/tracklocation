@@ -47,6 +47,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -419,7 +420,10 @@ public class Map extends Activity implements LocationListener{
 
 		    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
 		    			// Set marker on the map
-		    			Controller.setMapMarker(map, contactDetails, locationDetails, markerMap, locationCircleMap);
+		    			final View infoView = getLayoutInflater().inflate(R.layout.map_info_window, null);
+		    			Controller.setMapMarker(map, contactDetails, locationDetails, markerMap, locationCircleMap,infoView);
+		    			
+		    			//Controller.setMapMarker(map, contactDetails, locationDetails, markerMap, locationCircleMap,null);
 		    		}
 
 		    		

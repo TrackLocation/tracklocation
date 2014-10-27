@@ -45,6 +45,8 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Patterns;
 import android.util.SparseArray;
+import android.view.View;
+import android.widget.TextView;
 
 import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.AppInstDetails;
@@ -84,6 +86,7 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -1062,12 +1065,13 @@ public class Controller {
 	}
 
 	public static void setMapMarker(GoogleMap map, 
-			MessageDataContactDetails contactDetails, 
-			MessageDataLocation locationDetails, 
+			final MessageDataContactDetails contactDetails, 
+			final MessageDataLocation locationDetails, 
 			LinkedHashMap<String, 
 			Marker> markerMap, 
 			LinkedHashMap<String, 
-			Circle> locationCircleMap) {
+			Circle> locationCircleMap,
+			final View infoView ) {
 		if(locationDetails != null) {
     		double lat = locationDetails.getLat();
     		double lng = locationDetails.getLng();
@@ -1075,7 +1079,7 @@ public class Controller {
     		if(lat != 0 && lng != 0){
 				LatLng latLngChanging = new LatLng(lat, lng);
 
-				String account = contactDetails.getAccount();
+				final String account = contactDetails.getAccount();
 	    		if(account == null || account.isEmpty()) {
 	    			return;
 	    		}
@@ -1093,11 +1097,47 @@ public class Controller {
 				Circle locationCircle = null;
 				
 				String snippetString = "Battery: " + String.valueOf(contactDetails.getBatteryPercentage()) + 
-			        " Location Provider: " + locationDetails.getLocationProviderType();
+			        ";Location Provider: " + locationDetails.getLocationProviderType();
 				double speed = locationDetails.getSpeed();
 				if(speed > 0){
-					snippetString = snippetString + " Speed: " + String.valueOf(speed);
+					snippetString = snippetString + ";Speed: " + String.valueOf(speed);
 				}
+				
+				map.setInfoWindowAdapter(new InfoWindowAdapter() {
+		            @Override
+		            public View getInfoWindow(Marker marker) {
+		                return null;
+		            }
+
+		            @Override
+		            public View getInfoContents(Marker marker) {
+
+		            	TextView title_text = (TextView) infoView.findViewById(R.id.title_text);
+
+		            	title_text.setText(marker.getTitle());
+		                String[] snippets = marker.getSnippet().split(";");
+		                if (snippets.length>0){
+		                	TextView battery_info = (TextView) infoView.findViewById(R.id.battery_info);
+
+		                	battery_info.setText(snippets[0] );
+		                }
+		                if (snippets.length>1){
+		                	TextView provider_info = (TextView) infoView.findViewById(R.id.provider_info);
+
+		                	provider_info.setText(snippets[1]);
+		                }
+		                TextView speed_info = (TextView) infoView.findViewById(R.id.speed_info);
+		                
+		                if (snippets.length>2){
+		                	speed_info.setVisibility(View.VISIBLE);			           
+		                	speed_info.setText(snippets[2]);
+		                }
+		               
+		                // Returning the view containing InfoWindow contents
+		                return infoView;
+
+		            }
+		        });
 				
 				//marker.
 				marker = map.addMarker(new MarkerOptions()
