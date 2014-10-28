@@ -26,9 +26,12 @@ import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
+import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -41,6 +44,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -49,6 +53,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -420,15 +426,10 @@ public class Map extends Activity implements LocationListener{
 
 		    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
 		    			// Set marker on the map
-		    			final View infoView = getLayoutInflater().inflate(R.layout.map_info_window, null);
-		    			Controller.setMapMarker(map, contactDetails, locationDetails, markerMap, locationCircleMap,infoView);
-		    			
-		    			//Controller.setMapMarker(map, contactDetails, locationDetails, markerMap, locationCircleMap,null);
+		    			//final View infoView = getLayoutInflater().inflate(R.layout.map_info_window, null);
+		    			setMapMarker(map, contactDetails, locationDetails, markerMap, locationCircleMap);
 		    		}
 
-		    		
-		    		
-		    		
 		    		// TODO: Create another function ???
 		    		if(markerMap != null && markerMap.size() > 1 && isShowAllMarkersEnabled == true) {
 		    			// put camera to show all markers
@@ -460,11 +461,6 @@ public class Map extends Activity implements LocationListener{
 		    			waitingDialog.dismiss();
 		    			notificationView.setVisibility(4);
 		    		}
-
-		    		
-		    		
-		    		
-		    		
 	    			// ================================================
 		    		
 	    		}
@@ -475,6 +471,91 @@ public class Map extends Activity implements LocationListener{
 	    registerReceiver(gcmLocationUpdatedWatcher, intentFilter);
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }
+	
+	private void setMapMarker(GoogleMap map, 
+			final MessageDataContactDetails contactDetails, 
+			final MessageDataLocation locationDetails, 
+			LinkedHashMap<String, 
+			Marker> markerMap, 
+			LinkedHashMap<String, 
+			Circle> locationCircleMap) {
+		if(locationDetails != null) {
+    		double lat = locationDetails.getLat();
+    		double lng = locationDetails.getLng();
+    		
+    		if(lat != 0 && lng != 0){
+				LatLng latLngChanging = new LatLng(lat, lng);
+
+				final String account = contactDetails.getAccount();
+	    		if(account == null || account.isEmpty()) {
+	    			return;
+	    		}
+	    		
+	    		if(markerMap.containsKey(account)) {
+	    			markerMap.get(account).remove();
+	    			markerMap.remove(account);
+	    		}
+	    		if(locationCircleMap.containsKey(account)) {
+	    			locationCircleMap.get(account).remove();
+	    			locationCircleMap.remove(account);
+	    		}
+	    		
+				Marker marker = null;
+				Circle locationCircle = null;
+				
+				String snippetString = "Battery: " + String.valueOf(contactDetails.getBatteryPercentage()) + 
+			        "\nLocation Provider: " + locationDetails.getLocationProviderType();
+				double speed = locationDetails.getSpeed();
+				if(speed > 0){
+					snippetString = snippetString + "\nSpeed: " + String.valueOf(speed);
+				}
+				
+				map.setInfoWindowAdapter(new InfoWindowAdapter() {
+		            @Override
+		            public View getInfoWindow(Marker marker) {
+		                return null;
+		            }
+
+		            @Override
+		            public View getInfoContents(Marker marker) {
+
+		            	final View infoView = getLayoutInflater().inflate(R.layout.map_info_window, null);
+		            	TextView title_text = (TextView) infoView.findViewById(R.id.title_text);
+
+		            	title_text.setText(marker.getTitle());
+		                String[] snippets = marker.getSnippet().split("\n");              
+		                
+		                TextView info_preview = (TextView) infoView.findViewById(R.id.info_preview);
+		                info_preview.setLines(snippets.length);
+
+		                info_preview.setText(marker.getSnippet());
+		                
+		                // Returning the view containing InfoWindow contents
+		                return infoView;
+		            }
+		        });
+				
+				//marker.
+				marker = map.addMarker(new MarkerOptions()
+		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
+		        .snippet(snippetString)
+		        .title(account)
+		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
+		        .position(latLngChanging));
+				
+				markerMap.put(account, marker);
+				
+				double accuracy = locationDetails.getAccuracy();
+		
+				locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
+				            .radius(accuracy)
+				            .strokeColor(Color.argb(255, 0, 153, 255))
+				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
+				locationCircleMap.put(account, locationCircle);
+    		}
+    	}
+	}
+
 	
     @Override
     protected void onDestroy() {

@@ -3,8 +3,8 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:gravity="center_vertical"
-    android:orientation="vertical" >
-    
+    android:orientation="vertical"
+    android:showDividers="none" >
 
     <TextView
         android:id="@+id/title_text"
@@ -13,19 +13,9 @@
         android:textStyle="bold" />
 
     <TextView
-        android:id="@+id/battery_info"
+        android:id="@+id/info_preview"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <TextView 
-        android:id="@+id/provider_info"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-    
-     <TextView
-         android:id="@+id/speed_info"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         android:visibility="invisible" />
-
+        android:layout_height="wrap_content"
+        android:lines="5"
+        android:maxLines="5" />
 </LinearLayout>

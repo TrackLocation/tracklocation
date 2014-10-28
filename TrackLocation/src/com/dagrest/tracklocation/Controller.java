@@ -46,6 +46,8 @@ import android.util.Log;
 import android.util.Patterns;
 import android.util.SparseArray;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.dagrest.tracklocation.datatype.AppInfo;
@@ -1014,7 +1016,7 @@ public class Controller {
 		return selectedContactDeviceDataList;
 	}
 
-	public static void setMapMarker(GoogleMap map, String[] locationDetails, 
+/*	public static void setMapMarker(GoogleMap map, String[] locationDetails, 
 			LinkedHashMap<String, Marker> markerMap, LinkedHashMap<String, Circle> locationCircleMap) {
 		if(locationDetails != null) {
     		double lat = Double.parseDouble(locationDetails[0]);
@@ -1063,103 +1065,7 @@ public class Controller {
     		}
     	}
 	}
-
-	public static void setMapMarker(GoogleMap map, 
-			final MessageDataContactDetails contactDetails, 
-			final MessageDataLocation locationDetails, 
-			LinkedHashMap<String, 
-			Marker> markerMap, 
-			LinkedHashMap<String, 
-			Circle> locationCircleMap,
-			final View infoView ) {
-		if(locationDetails != null) {
-    		double lat = locationDetails.getLat();
-    		double lng = locationDetails.getLng();
-    		
-    		if(lat != 0 && lng != 0){
-				LatLng latLngChanging = new LatLng(lat, lng);
-
-				final String account = contactDetails.getAccount();
-	    		if(account == null || account.isEmpty()) {
-	    			return;
-	    		}
-	    		
-	    		if(markerMap.containsKey(account)) {
-	    			markerMap.get(account).remove();
-	    			markerMap.remove(account);
-	    		}
-	    		if(locationCircleMap.containsKey(account)) {
-	    			locationCircleMap.get(account).remove();
-	    			locationCircleMap.remove(account);
-	    		}
-	    		
-				Marker marker = null;
-				Circle locationCircle = null;
-				
-				String snippetString = "Battery: " + String.valueOf(contactDetails.getBatteryPercentage()) + 
-			        ";Location Provider: " + locationDetails.getLocationProviderType();
-				double speed = locationDetails.getSpeed();
-				if(speed > 0){
-					snippetString = snippetString + ";Speed: " + String.valueOf(speed);
-				}
-				
-				map.setInfoWindowAdapter(new InfoWindowAdapter() {
-		            @Override
-		            public View getInfoWindow(Marker marker) {
-		                return null;
-		            }
-
-		            @Override
-		            public View getInfoContents(Marker marker) {
-
-		            	TextView title_text = (TextView) infoView.findViewById(R.id.title_text);
-
-		            	title_text.setText(marker.getTitle());
-		                String[] snippets = marker.getSnippet().split(";");
-		                if (snippets.length>0){
-		                	TextView battery_info = (TextView) infoView.findViewById(R.id.battery_info);
-
-		                	battery_info.setText(snippets[0] );
-		                }
-		                if (snippets.length>1){
-		                	TextView provider_info = (TextView) infoView.findViewById(R.id.provider_info);
-
-		                	provider_info.setText(snippets[1]);
-		                }
-		                TextView speed_info = (TextView) infoView.findViewById(R.id.speed_info);
-		                
-		                if (snippets.length>2){
-		                	speed_info.setVisibility(View.VISIBLE);			           
-		                	speed_info.setText(snippets[2]);
-		                }
-		               
-		                // Returning the view containing InfoWindow contents
-		                return infoView;
-
-		            }
-		        });
-				
-				//marker.
-				marker = map.addMarker(new MarkerOptions()
-		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-		        .snippet(snippetString)
-		        .title(account)
-		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-		        .position(latLngChanging));
-				
-				markerMap.put(account, marker);
-				
-				double accuracy = locationDetails.getAccuracy();
-		
-				locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
-				            .radius(accuracy)
-				            .strokeColor(Color.argb(255, 0, 153, 255))
-				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
-				locationCircleMap.put(account, locationCircle);
-    		}
-    	}
-	}
-
+*/
 	public static CameraUpdate createCameraUpdateLatLngBounds(LinkedHashMap<String, Marker> markerMap) {
 		LatLngBounds.Builder builder = new LatLngBounds.Builder();
 		for (LinkedHashMap.Entry<String,Marker> markerEntry : markerMap.entrySet()) {
