@@ -1016,56 +1016,6 @@ public class Controller {
 		return selectedContactDeviceDataList;
 	}
 
-/*	public static void setMapMarker(GoogleMap map, String[] locationDetails, 
-			LinkedHashMap<String, Marker> markerMap, LinkedHashMap<String, Circle> locationCircleMap) {
-		if(locationDetails != null) {
-    		double lat = Double.parseDouble(locationDetails[0]);
-    		double lng = Double.parseDouble(locationDetails[1]);
-    		
-    		if(lat != 0 && lng != 0){
-				LatLng latLngChanging = new LatLng(lat, lng);
-
-	    		String account = null;
-	    		if(locationDetails.length >= 6){
-	    			account = locationDetails[5];
-	    		}
-	    		if(account == null || account.isEmpty()) {
-	    			return;
-	    		}
-	    		
-	    		if(markerMap.containsKey(account)) {
-	    			markerMap.get(account).remove();
-	    			markerMap.remove(account);
-	    		}
-	    		if(locationCircleMap.containsKey(account)) {
-	    			locationCircleMap.get(account).remove();
-	    			locationCircleMap.remove(account);
-	    		}
-	    		
-				Marker marker = null;
-				Circle locationCircle = null;
-								
-				//marker.
-				marker = map.addMarker(new MarkerOptions()
-		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-		        .snippet(account)
-		        .title(account)
-		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-		        .position(latLngChanging));
-				
-				markerMap.put(account, marker);
-				
-				double accuracy = Double.parseDouble(locationDetails[2]);
-		
-				locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
-				            .radius(accuracy)
-				            .strokeColor(Color.argb(255, 0, 153, 255))
-				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
-				locationCircleMap.put(account, locationCircle);
-    		}
-    	}
-	}
-*/
 	public static CameraUpdate createCameraUpdateLatLngBounds(LinkedHashMap<String, Marker> markerMap) {
 		LatLngBounds.Builder builder = new LatLngBounds.Builder();
 		for (LinkedHashMap.Entry<String,Marker> markerEntry : markerMap.entrySet()) {

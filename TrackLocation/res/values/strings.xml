@@ -27,6 +27,7 @@
 	    <item>&quot;error&quot;</item>
 	    <item>&quot;info&quot;</item>
 	    <item>&quot;full&quot;</item>
-	</string-array>	
+	</string-array>
+	    <string name="textview">TextView</string>	
 </resources>
 

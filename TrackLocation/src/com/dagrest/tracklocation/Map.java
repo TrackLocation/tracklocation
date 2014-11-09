@@ -1,19 +1,18 @@
 package com.dagrest.tracklocation;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 
 import com.dagrest.tracklocation.concurrent.StartTrackLocationService;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.BroadcastData;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
-import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandKeyEnum;
-import com.dagrest.tracklocation.datatype.CommandTagEnum;
 import com.dagrest.tracklocation.datatype.CommandValueEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
@@ -21,12 +20,9 @@ import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
-import com.dagrest.tracklocation.dialog.CommonDialog;
-import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
-import com.google.android.gms.maps.GoogleMap.InfoWindowAdapter;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -36,6 +32,7 @@ import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.Projection;
 import com.google.gson.Gson;
 
 import android.app.Activity;
@@ -45,24 +42,34 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.graphics.Point;
+import android.location.Address;
 import android.location.Criteria;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.AbsoluteLayout;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Map extends Activity implements LocationListener{
+public class Map extends Activity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener{
 
 	// Max time of waiting dialog displaying - 30 seconds
 	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
 	private final static float DEFAULT_CAMERA_UPDATE = 15;
+	private static final int POPUP_POSITION_REFRESH_INTERVAL = 16;
+	private static final int ANIMATION_DURATION = 500;
 	
 	private String className;
 	private String methodName;
@@ -93,6 +100,19 @@ public class Map extends Activity implements LocationListener{
 	private TextView notificationView;
 	
 	private Controller controller;
+	
+	public LatLng trackedPosition;
+	private PositionUpdaterRunnable positionUpdaterRunnable;
+	public int markerHeight = 39;
+	public int popupXOffset;
+	private int popupYOffset;
+	private AbsoluteLayout.LayoutParams overlayLayoutParams;
+	private ViewTreeObserver.OnGlobalLayoutListener infoWindowLayoutListener;
+	private Button infoButton;
+	private TextView info_preview;
+	private TextView title_text;
+	private Handler handler;
+	private View infoWindowContainer;	
 	
 	public void launchWaitingDialog() {
         waitingDialog = new ProgressDialog(Map.this);
@@ -202,7 +222,8 @@ public class Map extends Activity implements LocationListener{
 		initNotificationBroadcastReceiver();
 
 		// Get a handle to the Map Fragment
-        map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+		MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
+        map = mapFragment.getMap();
 
         setupLocation();
 
@@ -218,16 +239,29 @@ public class Map extends Activity implements LocationListener{
 	        		lastKnownLocation, zoom));
         }
         
-//        Marker marker = map.addMarker(new MarkerOptions()
-////        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-//        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-//        .position(lastKnownLocation));
+        map.setOnMapClickListener(this);
+        map.setOnMarkerClickListener(this);
+
+        map.clear();
+        
+        infoWindowContainer = findViewById(R.id.container_popup);
+        infoWindowLayoutListener = new InfoWindowLayoutListener();
+        infoWindowContainer.getViewTreeObserver().addOnGlobalLayoutListener(infoWindowLayoutListener);
+        overlayLayoutParams = (AbsoluteLayout.LayoutParams) infoWindowContainer.getLayoutParams();
+        
+    	title_text = (TextView) infoWindowContainer.findViewById(R.id.title_text);
+    	
+        info_preview = (TextView) infoWindowContainer.findViewById(R.id.info_preview);
+             
+        infoButton = (Button)infoWindowContainer.findViewById(R.id.button);
         
         controller = new Controller();
         controller.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
         	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);
         
 	}
+	
+	
 	
 	@Override
 	protected void onPause() {
@@ -427,7 +461,7 @@ public class Map extends Activity implements LocationListener{
 		    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
 		    			// Set marker on the map
 		    			//final View infoView = getLayoutInflater().inflate(R.layout.map_info_window, null);
-		    			setMapMarker(map, contactDetails, locationDetails, markerMap, locationCircleMap);
+		    			createMapMarker(map, contactDetails, locationDetails, markerMap, locationCircleMap);
 		    		}
 
 		    		// TODO: Create another function ???
@@ -472,7 +506,7 @@ public class Map extends Activity implements LocationListener{
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }
 	
-	private void setMapMarker(GoogleMap map, 
+	private void createMapMarker(GoogleMap map, 
 			final MessageDataContactDetails contactDetails, 
 			final MessageDataLocation locationDetails, 
 			LinkedHashMap<String, 
@@ -480,8 +514,8 @@ public class Map extends Activity implements LocationListener{
 			LinkedHashMap<String, 
 			Circle> locationCircleMap) {
 		if(locationDetails != null) {
-    		double lat = locationDetails.getLat();
-    		double lng = locationDetails.getLng();
+    		final double lat = locationDetails.getLat();
+    		final double lng = locationDetails.getLng();
     		
     		if(lat != 0 && lng != 0){
 				LatLng latLngChanging = new LatLng(lat, lng);
@@ -509,31 +543,31 @@ public class Map extends Activity implements LocationListener{
 				if(speed > 0){
 					snippetString = snippetString + "\nSpeed: " + String.valueOf(speed);
 				}
+				else{
+					Geocoder geocoder;
+					List<Address> addresses;
+					geocoder = new Geocoder(this.context, Locale.ENGLISH);
+					try {
+						addresses = geocoder.getFromLocation(lat, lng, 1);
+						String address = addresses.get(0).getAddressLine(0);
+						String city = addresses.get(0).getAddressLine(1);
+						//String country = addresses.get(0).getAddressLine(2);
+						snippetString = snippetString + "\nCity : " + city + "\nAddress: " + address;					
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 				
-				map.setInfoWindowAdapter(new InfoWindowAdapter() {
-		            @Override
-		            public View getInfoWindow(Marker marker) {
-		                return null;
-		            }
+				infoButton.setOnClickListener(new OnClickListener() {
 
-		            @Override
-		            public View getInfoContents(Marker marker) {
-
-		            	final View infoView = getLayoutInflater().inflate(R.layout.map_info_window, null);
-		            	TextView title_text = (TextView) infoView.findViewById(R.id.title_text);
-
-		            	title_text.setText(marker.getTitle());
-		                String[] snippets = marker.getSnippet().split("\n");              
-		                
-		                TextView info_preview = (TextView) infoView.findViewById(R.id.info_preview);
-		                info_preview.setLines(snippets.length);
-
-		                info_preview.setText(marker.getSnippet());
-		                
-		                // Returning the view containing InfoWindow contents
-		                return infoView;
-		            }
-		        });
+			        @Override
+			        public void onClick(View v) {
+		            	final String uri = String.format(Locale.getDefault(), "geo:%f,%f", lat, lng);
+		            	Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
+		            	startActivity( intent );		           
+			        }
+			    });
 				
 				//marker.
 				marker = map.addMarker(new MarkerOptions()
@@ -597,61 +631,63 @@ public class Map extends Activity implements LocationListener{
 		
 		Toast.makeText(Map.this, broadcastData.getMessage(), Toast.LENGTH_LONG).show();
 	}
-//    @Override
-//    public boolean dispatchTouchEvent(MotionEvent motionEvent) {
-//        // TODO Auto-generated method stub
-//        super.dispatchTouchEvent(motionEvent);
-//        final int action = motionEvent.getAction();       
-//        final int fingersCount = motionEvent.getPointerCount();        
-//        
-//        if ((action == MotionEvent.ACTION_POINTER_UP) && (fingersCount == 2)) {             
-//            //onTwoFingersTap(); 
-//        	System.out.println("Two fingers");
-//            return true;         
-//        } 
-//        return true; //detector.onTouchEvent(motionEvent);     
-//    }
-}
 
-//IDialogOnClickAction notificationDialogOnClickAction = new IDialogOnClickAction() {
-//
-//	@Override
-//	public void doOnPositiveButton() {
-//	}
-//	@Override
-//	public void doOnNegativeButton() {
-//		// TODO Auto-generated method stub
-//	}
-//	@Override
-//	public void setActivity(Activity activity) {
-//		// TODO Auto-generated method stub
-//	}
-//	@Override
-//	public void setContext(Context context) {
-//		// TODO Auto-generated method stub
-//	}
-//	@Override
-//	public void setParams(Object[]... objects) {
-//		// TODO Auto-generated method stub
-//	}
-//	@Override
-//	public void doOnChooseItem(int which) {
-//		// TODO Auto-generated method stub
-//	}
-//};
-//
-////private void showGoogleServiceNotAvailable(String errorMessage) {
-//private CommonDialog showNotificationDialog(String errorMessage) {
-//	//String dialogMessage = "\nGoogle Cloud Service is not available right now.\n\nPlease try later.\n";
-//	String dialogMessage = errorMessage;
-//	
-//	CommonDialog aboutDialog = new CommonDialog(this, notificationDialogOnClickAction);
-//	aboutDialog.setDialogMessage(dialogMessage);
-//	aboutDialog.setDialogTitle("Warning");
-//	aboutDialog.setPositiveButtonText("OK");
-//	aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-//	aboutDialog.showDialog();
-//	aboutDialog.setCancelable(true);
-//	return aboutDialog;
-//}
+	@Override
+	public boolean onMarkerClick(Marker marker) {    	
+        Projection projection = map.getProjection();
+        trackedPosition = marker.getPosition();
+        Point trackedPoint = projection.toScreenLocation(trackedPosition);
+        trackedPoint.y -= popupYOffset / 2;
+        LatLng newCameraLocation = projection.fromScreenLocation(trackedPoint);
+        map.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation), ANIMATION_DURATION, null);
+        
+        handler = new Handler(Looper.getMainLooper());
+        positionUpdaterRunnable = new PositionUpdaterRunnable();
+        handler.post(positionUpdaterRunnable);
+        title_text.setText(marker.getTitle());          
+        info_preview.setText(marker.getSnippet());
+        infoWindowContainer.setVisibility(android.view.View.VISIBLE);
+        
+        return true;
+	}
+
+	@Override
+	public void onMapClick(LatLng point) {
+		infoWindowContainer.setVisibility(android.view.View.INVISIBLE);		
+		infoWindowContainer.getViewTreeObserver().removeGlobalOnLayoutListener(infoWindowLayoutListener);
+        handler.removeCallbacks(positionUpdaterRunnable);
+        handler = null;
+	}
+	
+	 private class InfoWindowLayoutListener implements ViewTreeObserver.OnGlobalLayoutListener {
+        @Override
+        public void onGlobalLayout() {
+            popupXOffset = infoWindowContainer.getWidth() / 2;
+            popupYOffset = infoWindowContainer.getHeight();
+        }
+    }
+
+    private class PositionUpdaterRunnable implements Runnable {
+        private int lastXPosition = Integer.MIN_VALUE;
+        private int lastYPosition = Integer.MIN_VALUE;
+
+        @Override
+        public void run() {
+            handler.postDelayed(this, POPUP_POSITION_REFRESH_INTERVAL);
+
+            if (trackedPosition != null && infoWindowContainer.getVisibility() == android.view.View.VISIBLE) {
+                Point targetPosition = map.getProjection().toScreenLocation(trackedPosition);
+
+                if (lastXPosition != targetPosition.x || lastYPosition != targetPosition.y) {
+                    overlayLayoutParams.x = targetPosition.x - popupXOffset;
+                    overlayLayoutParams.y = targetPosition.y - popupYOffset - markerHeight -30;
+                    infoWindowContainer.setLayoutParams(overlayLayoutParams);
+
+                    lastXPosition = targetPosition.x;
+                    lastYPosition = targetPosition.y;
+                }
+            }
+        }
+    }
+}
 
