@@ -54,6 +54,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewTreeObserver;
@@ -101,7 +106,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	
 	private Controller controller;
 	
-	public LatLng trackedPosition;
+	//public LatLng trackedPosition;
 	private PositionUpdaterRunnable positionUpdaterRunnable;
 	public int markerHeight = 39;
 	public int popupXOffset;
@@ -240,7 +245,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
         }
         
         map.setOnMapClickListener(this);
-        map.setOnMarkerClickListener(this);
+        map.setOnMarkerClickListener(this);        
 
         map.clear();
         
@@ -259,9 +264,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
         controller.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
         	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);
         
-	}
-	
-	
+	}		
 	
 	@Override
 	protected void onPause() {
@@ -495,10 +498,8 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 		    			waitingDialog.dismiss();
 		    			notificationView.setVisibility(4);
 		    		}
-	    			// ================================================
-		    		
-	    		}
-	    		
+	    			// ================================================		    		
+	    		}	    		
     		}
 	    };
 	    
@@ -563,9 +564,11 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 
 			        @Override
 			        public void onClick(View v) {
-		            	final String uri = String.format(Locale.getDefault(), "geo:%f,%f", lat, lng);
+			        	registerForContextMenu(infoButton);
+                        openContextMenu(infoButton);	
+		            	/*final String uri = String.format(Locale.getDefault(), "geo:%f,%f", lat, lng);
 		            	Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
-		            	startActivity( intent );		           
+		            	startActivity( intent );*/		           
 			        }
 			    });
 				
@@ -586,6 +589,10 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 				            .strokeColor(Color.argb(255, 0, 153, 255))
 				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
 				locationCircleMap.put(account, locationCircle);
+				
+				if (infoWindowContainer.getVisibility() == android.view.View.VISIBLE){
+					this.onMarkerClick(marker);
+				}
     		}
     	}
 	}
@@ -635,28 +642,31 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	@Override
 	public boolean onMarkerClick(Marker marker) {    	
         Projection projection = map.getProjection();
-        trackedPosition = marker.getPosition();
-        Point trackedPoint = projection.toScreenLocation(trackedPosition);
+        lastKnownLocation = marker.getPosition();
+        Point trackedPoint = projection.toScreenLocation(lastKnownLocation);
         trackedPoint.y -= popupYOffset / 2;
         LatLng newCameraLocation = projection.fromScreenLocation(trackedPoint);
         map.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation), ANIMATION_DURATION, null);
-        
-        handler = new Handler(Looper.getMainLooper());
-        positionUpdaterRunnable = new PositionUpdaterRunnable();
-        handler.post(positionUpdaterRunnable);
-        title_text.setText(marker.getTitle());          
-        info_preview.setText(marker.getSnippet());
-        infoWindowContainer.setVisibility(android.view.View.VISIBLE);
+        if (infoWindowContainer.getVisibility() == android.view.View.INVISIBLE && handler == null){
+	        handler = new Handler(Looper.getMainLooper());
+	        positionUpdaterRunnable = new PositionUpdaterRunnable();
+	        handler.post(positionUpdaterRunnable);
+	        title_text.setText(marker.getTitle());          
+	        info_preview.setText(marker.getSnippet());
+	        infoWindowContainer.setVisibility(android.view.View.VISIBLE);
+        }
         
         return true;
 	}
 
 	@Override
 	public void onMapClick(LatLng point) {
-		infoWindowContainer.setVisibility(android.view.View.INVISIBLE);		
-		infoWindowContainer.getViewTreeObserver().removeGlobalOnLayoutListener(infoWindowLayoutListener);
-        handler.removeCallbacks(positionUpdaterRunnable);
-        handler = null;
+		if (infoWindowContainer.getVisibility() == android.view.View.VISIBLE && handler != null){
+			infoWindowContainer.setVisibility(android.view.View.INVISIBLE);		
+			infoWindowContainer.getViewTreeObserver().removeGlobalOnLayoutListener(infoWindowLayoutListener);
+	        handler.removeCallbacks(positionUpdaterRunnable);
+	        handler = null;
+		}
 	}
 	
 	 private class InfoWindowLayoutListener implements ViewTreeObserver.OnGlobalLayoutListener {
@@ -673,10 +683,9 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 
         @Override
         public void run() {
-            handler.postDelayed(this, POPUP_POSITION_REFRESH_INTERVAL);
-
-            if (trackedPosition != null && infoWindowContainer.getVisibility() == android.view.View.VISIBLE) {
-                Point targetPosition = map.getProjection().toScreenLocation(trackedPosition);
+            handler.postDelayed(this, POPUP_POSITION_REFRESH_INTERVAL);            
+            if (lastKnownLocation != null && infoWindowContainer.getVisibility() == android.view.View.VISIBLE) {
+                Point targetPosition = map.getProjection().toScreenLocation(lastKnownLocation);
 
                 if (lastXPosition != targetPosition.x || lastYPosition != targetPosition.y) {
                     overlayLayoutParams.x = targetPosition.x - popupXOffset;
@@ -689,5 +698,44 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
             }
         }
     }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+    	super.onCreateContextMenu(menu, v, menuInfo);       
+        getMenuInflater().inflate(R.menu.map_account_options, menu);
+        menu.setHeaderTitle(R.string.map_account_options_title);
+    }
+
+   @Override
+   public boolean onContextItemSelected(MenuItem item) {
+       switch(item.getItemId())
+       {
+	       case R.id.navigate_opt:
+	       {
+	    	   Location loc = getLastKnownLocation();
+	    	   final String uri = String.format(Locale.getDefault(), "geo:%f,%f", loc.getLatitude(), loc.getLongitude());
+	    	   Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
+	    	   startActivity( intent );
+	       }
+	       break;
+	       case R.id.call_opt:
+	       {
+	    	   Intent intent = new Intent( Intent.ACTION_CALL);
+	    	   //Intent chooser = Intent.createChooser(intent, "AAAA");
+	    	   startActivity( intent );
+	
+	       }
+	       break;
+	       case R.id.messages_opt:
+	       {
+	    	   Intent sendIntent = new Intent(Intent.ACTION_SEND);
+	    	   sendIntent.setType("text/plain");
+	    	   startActivity(Intent.createChooser(sendIntent, "Send message"));
+	       }
+	       break;
+       }
+
+       return super.onContextItemSelected(item);
+   }
 }
 

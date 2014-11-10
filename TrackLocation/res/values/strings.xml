@@ -15,6 +15,11 @@
     <string name="title_activity_contact_list">Locate Contacts</string>
     <string name="title_activity_location_sharing_list">Location Sharing</string>
 	<string name="title_activity_googlemap">Map</string>
+	<string name="navigate_title">Navigate</string>	
+	<string name="call_title">Call</string>	
+	<string name="messages_title">Send message</string>	
+	<string name="map_account_options_title">Account Options</string>	
+	
 
 	<string name="about_dialog_text">\n\"Track Location\" application\n\n\nVersion %s\nWritten by David Agrest\n\n\nEmail: dagrest@gmail.com\n</string>
 	<string name="about_dialog_ok_btn">OK</string>
@@ -27,7 +32,6 @@
 	    <item>&quot;error&quot;</item>
 	    <item>&quot;info&quot;</item>
 	    <item>&quot;full&quot;</item>
-	</string-array>
-	    <string name="textview">TextView</string>	
+	</string-array>	    
 </resources>
 
