@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -29,45 +29,91 @@
         android:paddingRight="25sp"
         android:paddingBottom="25sp"
         android:text="TextView" />
-	<AbsoluteLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            >
-        <LinearLayout 
-            android:id="@+id/container_popup"
-		    android:background="@drawable/background_popup"
-		    android:visibility="invisible"
-		    android:layout_x="0dp"
-            android:layout_y="0dp"
-            android:layout_width="265dp"
-            android:layout_height="wrap_content">		    
-			<LinearLayout
-		        android:layout_height="wrap_content"
-		        android:orientation="vertical"
-		        android:layout_width="180dp"
-		        android:layout_marginRight="5dp" >	        
-			    <TextView
-			        android:id="@+id/title_text"
-			        android:layout_width="wrap_content"
-			        android:layout_height="wrap_content"
-			        android:textStyle="bold" />
-			
-			    <TextView
-			        android:id="@+id/info_preview"
-			        android:layout_width="wrap_content"
-			        android:layout_height="wrap_content"
-			    />
-		    </LinearLayout>
-		    <Button
-		        android:id="@+id/button" 
-		        android:layout_width="wrap_content"
-		        android:layout_height="fill_parent"
-		        android:text="Button" />
-		
-		</LinearLayout>
+    <LinearLayout
+        android:id="@+id/layoutDialogProduct"
+        android:layout_height="wrap_content"
+       	android:layout_alignParentBottom="true"
+        android:layout_alignParentTop="false"
+        android:layout_centerHorizontal="true"
+        android:layout_width="match_parent"
+        android:background="@color/White"
+        android:orientation="vertical" >
 
-    </AbsoluteLayout>
-</FrameLayout>
+        <LinearLayout
+            android:id="@+id/map_popup_first"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="100" >
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="8dp"
+                android:layout_marginLeft="12dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
+                android:layout_weight="80"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/title_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="2dp"
+                    android:textColor="@color/BlueViolet"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/info_preview"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="2dp"
+                    android:textColor="@color/BlueViolet" />
+                
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/nav_btn"
+                style="@style/button_text"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                android:layout_weight="20"
+                android:baselineAlignBottom="true"
+                android:cropToPadding="false"
+                android:maxHeight="20dp"
+                android:maxWidth="20dp"
+                android:scaleType="center"
+                android:src="@drawable/navigate"
+                 />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/map_popup_second"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:weightSum="100" >
+
+            <Button
+                android:id="@+id/call_btn"
+                android:layout_width="0dp"
+                android:layout_height="fill_parent"
+                style="@style/button_text"
+                android:layout_weight="50"               
+                android:text="Call" />
+
+            <Button
+                android:id="@+id/message_btn"
+                style="@style/button_text"  
+                android:layout_height="fill_parent"  
+                android:layout_width="0dp"                       
+                android:layout_weight="50"                     
+                android:text="Send message" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</RelativeLayout>
 
 <!-- 
 <fragment 

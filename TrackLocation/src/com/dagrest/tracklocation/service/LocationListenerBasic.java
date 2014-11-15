@@ -73,7 +73,7 @@ public class LocationListenerBasic implements LocationListener{
             }
             float accuracy = location.getAccuracy();
             String locationProviderName = location.getProvider();
-            float speed = location.getSpeed();
+            float speed = location.getSpeed() * 1000/ 3600; // speed converted from m/s to km/h
             batteryLevel = Controller.getBatteryLevel(context);
 
             logMessage = "Provider name: " + locationProviderName + 
