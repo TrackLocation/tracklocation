@@ -122,7 +122,7 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 		if (bmp == null){
 			bmp = BitmapFactory.decodeResource(convertView.getResources(), R.drawable.ic_launcher);
 		}
-		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), bmp);
+		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), Controller.getRoundedCornerImage(bmp));
 		contactPhoto.setBounds( 0, 0, 120, 120 );
 		((CheckedTextView) convertView).setCompoundDrawables(null,null,contactPhoto, null);
 		

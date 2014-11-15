@@ -34,13 +34,17 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.Projection;
 import com.google.gson.Gson;
+import com.dagrest.tracklocation.R;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.location.Address;
@@ -51,24 +55,24 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewTreeObserver;
+import android.view.View.OnTouchListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.WindowManager;
-import android.widget.AbsoluteLayout;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Map extends Activity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener{
+public class Map extends Activity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, OnTouchListener{
 
 	// Max time of waiting dialog displaying - 30 seconds
 	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
@@ -106,18 +110,21 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	
 	private Controller controller;
 	
-	//public LatLng trackedPosition;
-	private PositionUpdaterRunnable positionUpdaterRunnable;
-	public int markerHeight = 39;
-	public int popupXOffset;
-	private int popupYOffset;
-	private AbsoluteLayout.LayoutParams overlayLayoutParams;
-	private ViewTreeObserver.OnGlobalLayoutListener infoWindowLayoutListener;
-	private Button infoButton;
 	private TextView info_preview;
 	private TextView title_text;
-	private Handler handler;
-	private View infoWindowContainer;	
+	
+	private float startY;
+	protected LinearLayout map_popup_first;
+	private Animation animUp;
+	private Animation animDown;
+	private LinearLayout map_popup_second;
+	private LinearLayout layoutDialogProduct;
+	
+	private DialogStatus viewStatus;
+	
+	private enum DialogStatus{
+		Opened, Closed
+	}
 	
 	public void launchWaitingDialog() {
         waitingDialog = new ProgressDialog(Map.this);
@@ -151,6 +158,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		getActionBar().hide();
 		className = this.getClass().getName();
 		methodName = "onCreate";
 		mapActivity = this;
@@ -247,19 +255,30 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
         map.setOnMapClickListener(this);
         map.setOnMarkerClickListener(this);        
 
-        map.clear();
+        map.clear();                
         
-        infoWindowContainer = findViewById(R.id.container_popup);
-        infoWindowLayoutListener = new InfoWindowLayoutListener();
-        infoWindowContainer.getViewTreeObserver().addOnGlobalLayoutListener(infoWindowLayoutListener);
-        overlayLayoutParams = (AbsoluteLayout.LayoutParams) infoWindowContainer.getLayoutParams();
-        
-    	title_text = (TextView) infoWindowContainer.findViewById(R.id.title_text);
+    	title_text = (TextView) findViewById(R.id.title_text);
     	
-        info_preview = (TextView) infoWindowContainer.findViewById(R.id.info_preview);
-             
-        infoButton = (Button)infoWindowContainer.findViewById(R.id.button);
+        info_preview = (TextView) findViewById(R.id.info_preview); 
         
+        animUp = AnimationUtils.loadAnimation(this, R.anim.anim_up);
+	    animDown = AnimationUtils.loadAnimation(this, R.anim.anim_down);
+	    viewStatus = DialogStatus.Closed;
+		
+		//layoutDialogProduct.setVisibility(View.GONE);
+		//map_popup_first.setVisibility(View.GONE);
+		layoutDialogProduct = (LinearLayout) findViewById(R.id.layoutDialogProduct);		
+		layoutDialogProduct.getLayoutParams().height = 0;
+		layoutDialogProduct.setLayoutParams(layoutDialogProduct.getLayoutParams());
+		layoutDialogProduct.setOnTouchListener(this);
+		
+		map_popup_first = (LinearLayout) findViewById(R.id.map_popup_first);
+		
+		map_popup_second = (LinearLayout) findViewById(R.id.map_popup_second);
+		
+		viewStatus = DialogStatus.Closed;
+
+		map_popup_second.setVisibility(View.GONE);
         controller = new Controller();
         controller.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
         	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);
@@ -537,19 +556,18 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	    		
 				Marker marker = null;
 				Circle locationCircle = null;
-				
-				String snippetString = "Battery: " + String.valueOf(contactDetails.getBatteryPercentage()) + 
-			        "\nLocation Provider: " + locationDetails.getLocationProviderType();
+				String accurancy = locationDetails.getLocationProviderType().equals("gps") ? "High" : "Low";
+				String snippetString = "Battery: " + String.valueOf(Math.round(contactDetails.getBatteryPercentage())) + "%" +  
+			        "\nAccurancy: " + accurancy;
 				double speed = locationDetails.getSpeed();
 				if(speed > 0){
-					snippetString = snippetString + "\nSpeed: " + String.valueOf(speed);
+					snippetString = snippetString + "\nSpeed: " + String.valueOf(Math.round(speed)) + " km/h";
 				}
 				else{
-					Geocoder geocoder;
-					List<Address> addresses;
-					geocoder = new Geocoder(this.context, Locale.ENGLISH);
+
+					Geocoder geocoder = new Geocoder(this.context, Locale.ENGLISH);
 					try {
-						addresses = geocoder.getFromLocation(lat, lng, 1);
+						List<Address>  addresses = geocoder.getFromLocation(lat, lng, 1);
 						String address = addresses.get(0).getAddressLine(0);
 						String city = addresses.get(0).getAddressLine(1);
 						//String country = addresses.get(0).getAddressLine(2);
@@ -560,18 +578,85 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 					}
 				}
 				
-				infoButton.setOnClickListener(new OnClickListener() {
+				Button callBtn = (Button) findViewById(R.id.call_btn);			
+				callBtn.setOnClickListener(new OnClickListener() {
 
 			        @Override
-			        public void onClick(View v) {
-			        	registerForContextMenu(infoButton);
-                        openContextMenu(infoButton);	
-		            	/*final String uri = String.format(Locale.getDefault(), "geo:%f,%f", lat, lng);
-		            	Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
-		            	startActivity( intent );*/		           
+			        public void onClick(View v) {		
+			        	Intent intent = new Intent(Intent.ACTION_DIAL);
+			        	//Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + "0544504619"));
+				    	startActivity( intent );			        	 
 			        }
 			    });
 				
+				Button messageBtn = (Button) findViewById(R.id.message_btn);
+				messageBtn.setOnClickListener(new OnClickListener() {
+
+			        @Override
+			        public void onClick(View v) {
+					    PackageManager pm = getPackageManager();
+					    Intent sendIntent = new Intent(Intent.ACTION_SEND);     
+					    sendIntent.setType("text/plain");
+				    
+					    List<ResolveInfo> resInfo = pm.queryIntentActivities(sendIntent, 0);
+					    List<Intent> intentList = new ArrayList<Intent>();        
+					    for (int i = 0; i < resInfo.size(); i++) {
+					        // Extract the label, append it, and repackage it in a LabeledIntent
+					        ResolveInfo ri = resInfo.get(i);
+					        String packageName = ri.activityInfo.packageName;
+
+					        Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+					        intent.setComponent(new ComponentName(packageName, ri.activityInfo.name));
+					        intent.setType("text/plain"); // put here your mime type			       
+			   				if (packageName.equals("com.whatsapp")) {			    	            
+			   					intent.setPackage(packageName);
+			   					intentList.add(intent);
+			    	        }
+			   				else if (packageName.equals("com.viber.voip")) {			    	            
+			   					intent.setPackage(packageName);
+			   					intentList.add(intent);
+			    	        }else if (packageName.equals("com.android.mms")) {			    	            
+			    	        	intent.setPackage(packageName);
+			    	        	intentList.add(intent);
+			    	        }
+			    	        else if (packageName.equals("ru.ok.android")) {			    	            
+			    	        	intent.setPackage(packageName);
+			    	        	intentList.add(intent);
+			    	        }
+			    	        else if (packageName.equals("com.skype.raider")) {			    	            
+			    	        	intent.setPackage(packageName);
+			    	        	intentList.add(intent);
+			    	        }
+			    	        else if (packageName.equals("com.google.android.gm")) {			    	            
+			    	        	intent.setPackage(packageName);
+			    	        	intentList.add(intent);
+			    	        }
+			    	        else if (packageName.equals("com.facebook.orca")) {			    	            
+			    	        	intent.setPackage(packageName);
+			    	        	intentList.add(intent);
+			    	        }   
+					    }
+
+					    // convert intentList to array
+					    Intent openInChooser = Intent.createChooser(intentList.remove(0),"Message option choose");
+					    Intent[] extraIntents = intentList.toArray( new Intent[ intentList.size() ]);
+
+					    openInChooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents);
+					    startActivity(openInChooser);	          
+			        }
+			    });
+				
+				ImageButton nav_btn = (ImageButton) findViewById(R.id.nav_btn);			
+				nav_btn.setOnClickListener(new OnClickListener() {
+					 
+			        @Override
+			        public void onClick(View v) {
+			        	Location loc = getLastKnownLocation();
+				    	   final String uri = String.format(Locale.getDefault(), "geo:%f,%f", loc.getLatitude(), loc.getLongitude());
+				    	   Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
+				    	   startActivity( intent );	
+			        }
+			    });
 				//marker.
 				marker = map.addMarker(new MarkerOptions()
 		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
@@ -590,13 +675,20 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
 				locationCircleMap.put(account, locationCircle);
 				
-				if (infoWindowContainer.getVisibility() == android.view.View.VISIBLE){
-					this.onMarkerClick(marker);
+				if (viewStatus == DialogStatus.Closed){
+
+					layoutDialogProduct.getLayoutParams().height = 0;
+					layoutDialogProduct.setLayoutParams(layoutDialogProduct.getLayoutParams());
+					layoutDialogProduct.setOnTouchListener(this);
+					
+					viewStatus = DialogStatus.Closed;
+					map_popup_second.setVisibility(View.GONE);
 				}
+				title_text.setText(marker.getTitle());          
+		        info_preview.setText(marker.getSnippet());
     		}
     	}
 	}
-
 	
     @Override
     protected void onDestroy() {
@@ -604,10 +696,6 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
     	
 		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-//    	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
-//    		Controller.sendCommand(context, selectedContactDeviceDataList, 
-//    			CommandEnum.stop, null, null);
-//    	}
     	controller.stopKeepAliveTrackLocationService();
     	String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
     	Preferences.clearPreferencesReturnToContactMap(context, account);
@@ -644,98 +732,83 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
         Projection projection = map.getProjection();
         lastKnownLocation = marker.getPosition();
         Point trackedPoint = projection.toScreenLocation(lastKnownLocation);
-        trackedPoint.y -= popupYOffset / 2;
+        
         LatLng newCameraLocation = projection.fromScreenLocation(trackedPoint);
         map.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation), ANIMATION_DURATION, null);
-        if (infoWindowContainer.getVisibility() == android.view.View.INVISIBLE && handler == null){
-	        handler = new Handler(Looper.getMainLooper());
-	        positionUpdaterRunnable = new PositionUpdaterRunnable();
-	        handler.post(positionUpdaterRunnable);
-	        title_text.setText(marker.getTitle());          
+        if (viewStatus == DialogStatus.Closed){
+	        layoutDialogProduct.getLayoutParams().height = map_popup_first.getLayoutParams().height;
+			layoutDialogProduct.setLayoutParams(layoutDialogProduct.getLayoutParams());
+			
+			title_text.setText(marker.getTitle());          
 	        info_preview.setText(marker.getSnippet());
-	        infoWindowContainer.setVisibility(android.view.View.VISIBLE);
+			viewStatus = DialogStatus.Opened;
+			
+			layoutDialogProduct.startAnimation(animUp);
         }
-        
+		        
         return true;
 	}
 
 	@Override
 	public void onMapClick(LatLng point) {
-		if (infoWindowContainer.getVisibility() == android.view.View.VISIBLE && handler != null){
-			infoWindowContainer.setVisibility(android.view.View.INVISIBLE);		
-			infoWindowContainer.getViewTreeObserver().removeGlobalOnLayoutListener(infoWindowLayoutListener);
-	        handler.removeCallbacks(positionUpdaterRunnable);
-	        handler = null;
-		}
+		closeLayouUserMenu();
 	}
-	
-	 private class InfoWindowLayoutListener implements ViewTreeObserver.OnGlobalLayoutListener {
-        @Override
-        public void onGlobalLayout() {
-            popupXOffset = infoWindowContainer.getWidth() / 2;
-            popupYOffset = infoWindowContainer.getHeight();
-        }
-    }
-
-    private class PositionUpdaterRunnable implements Runnable {
-        private int lastXPosition = Integer.MIN_VALUE;
-        private int lastYPosition = Integer.MIN_VALUE;
-
-        @Override
-        public void run() {
-            handler.postDelayed(this, POPUP_POSITION_REFRESH_INTERVAL);            
-            if (lastKnownLocation != null && infoWindowContainer.getVisibility() == android.view.View.VISIBLE) {
-                Point targetPosition = map.getProjection().toScreenLocation(lastKnownLocation);
-
-                if (lastXPosition != targetPosition.x || lastYPosition != targetPosition.y) {
-                    overlayLayoutParams.x = targetPosition.x - popupXOffset;
-                    overlayLayoutParams.y = targetPosition.y - popupYOffset - markerHeight -30;
-                    infoWindowContainer.setLayoutParams(overlayLayoutParams);
-
-                    lastXPosition = targetPosition.x;
-                    lastYPosition = targetPosition.y;
-                }
-            }
-        }
-    }
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-    	super.onCreateContextMenu(menu, v, menuInfo);       
-        getMenuInflater().inflate(R.menu.map_account_options, menu);
-        menu.setHeaderTitle(R.string.map_account_options_title);
+  
     }
 
    @Override
    public boolean onContextItemSelected(MenuItem item) {
-       switch(item.getItemId())
-       {
-	       case R.id.navigate_opt:
-	       {
-	    	   Location loc = getLastKnownLocation();
-	    	   final String uri = String.format(Locale.getDefault(), "geo:%f,%f", loc.getLatitude(), loc.getLongitude());
-	    	   Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
-	    	   startActivity( intent );
-	       }
-	       break;
-	       case R.id.call_opt:
-	       {
-	    	   Intent intent = new Intent( Intent.ACTION_CALL);
-	    	   //Intent chooser = Intent.createChooser(intent, "AAAA");
-	    	   startActivity( intent );
-	
-	       }
-	       break;
-	       case R.id.messages_opt:
-	       {
-	    	   Intent sendIntent = new Intent(Intent.ACTION_SEND);
-	    	   sendIntent.setType("text/plain");
-	    	   startActivity(Intent.createChooser(sendIntent, "Send message"));
-	       }
-	       break;
-       }
-
        return super.onContextItemSelected(item);
    }
+
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		return touchEventAnalyzing(event);
+	}
+
+	private boolean touchEventAnalyzing(MotionEvent event) {
+		switch (event.getAction()) {
+	        case MotionEvent.ACTION_DOWN : {
+	            startY = event.getY();
+	            break ;           
+	        }
+	        case MotionEvent.ACTION_UP: {
+	            float endY = event.getY();
+	             
+	            if (endY < startY) {
+	            	if (viewStatus == DialogStatus.Opened){
+		                System.out.println("Move UP");	                
+		                layoutDialogProduct.getLayoutParams().height = map_popup_first.getLayoutParams().height + map_popup_second.getLayoutParams().height;
+						layoutDialogProduct.setLayoutParams(layoutDialogProduct.getLayoutParams());
+		                map_popup_second.setVisibility(View.VISIBLE);
+		                map_popup_second.startAnimation(animUp);
+	            	}	                
+	            }
+	            else {
+	            	closeLayouUserMenu();
+	            }    
+	        }     
+		}
+		return true;
+	}
+
+	private void closeLayouUserMenu() {
+		if (layoutDialogProduct.getVisibility() == View.VISIBLE){
+			layoutDialogProduct.startAnimation(animDown);
+			map_popup_second.setVisibility(View.GONE);
+			layoutDialogProduct.getLayoutParams().height = 0;
+			layoutDialogProduct.setLayoutParams(layoutDialogProduct.getLayoutParams());
+			viewStatus =DialogStatus.Closed;
+		}
+	}
+
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		return touchEventAnalyzing(event);
+	}
+
 }
 
