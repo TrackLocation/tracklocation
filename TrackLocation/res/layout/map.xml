@@ -30,7 +30,7 @@
         android:paddingBottom="25sp"
         android:text="TextView" />
     <LinearLayout
-        android:id="@+id/layoutDialogProduct"
+        android:id="@+id/layoutAccountMenu"
         android:layout_height="wrap_content"
        	android:layout_alignParentBottom="true"
         android:layout_alignParentTop="false"
@@ -60,7 +60,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="2dp"
-                    android:textColor="@color/BlueViolet"
+                    android:textColor="@color/Black"
                     android:textStyle="bold" />
 
                 <TextView
@@ -68,7 +68,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="2dp"
-                    android:textColor="@color/BlueViolet" />
+                    android:textColor="@color/Black" />
                 
             </LinearLayout>
 

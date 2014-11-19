@@ -65,6 +65,8 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.animation.TranslateAnimation;
+import android.view.animation.Animation.AnimationListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -118,7 +120,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	private Animation animUp;
 	private Animation animDown;
 	private LinearLayout map_popup_second;
-	private LinearLayout layoutDialogProduct;
+	private LinearLayout layoutAccountMenu;
 	
 	private DialogStatus viewStatus;
 	
@@ -265,16 +267,15 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	    animDown = AnimationUtils.loadAnimation(this, R.anim.anim_down);
 	    viewStatus = DialogStatus.Closed;
 		
-		//layoutDialogProduct.setVisibility(View.GONE);
-		//map_popup_first.setVisibility(View.GONE);
-		layoutDialogProduct = (LinearLayout) findViewById(R.id.layoutDialogProduct);		
-		layoutDialogProduct.getLayoutParams().height = 0;
-		layoutDialogProduct.setLayoutParams(layoutDialogProduct.getLayoutParams());
-		layoutDialogProduct.setOnTouchListener(this);
+		layoutAccountMenu = (LinearLayout) findViewById(R.id.layoutAccountMenu);		
+		layoutAccountMenu.getLayoutParams().height = 0;
+		layoutAccountMenu.setLayoutParams(layoutAccountMenu.getLayoutParams());
+		layoutAccountMenu.setOnTouchListener(this);
 		
 		map_popup_first = (LinearLayout) findViewById(R.id.map_popup_first);
 		
 		map_popup_second = (LinearLayout) findViewById(R.id.map_popup_second);
+		map_popup_second.setVisibility(View.GONE);
 		
 		viewStatus = DialogStatus.Closed;
 
@@ -652,7 +653,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 			        @Override
 			        public void onClick(View v) {
 			        	Location loc = getLastKnownLocation();
-				    	   final String uri = String.format(Locale.getDefault(), "geo:%f,%f", loc.getLatitude(), loc.getLongitude());
+				    	   final String uri = String.format(Locale.getDefault(), "geo:%f,%f", lat, lng);
 				    	   Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
 				    	   startActivity( intent );	
 			        }
@@ -674,18 +675,6 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 				            .strokeColor(Color.argb(255, 0, 153, 255))
 				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
 				locationCircleMap.put(account, locationCircle);
-				
-				if (viewStatus == DialogStatus.Closed){
-
-					layoutDialogProduct.getLayoutParams().height = 0;
-					layoutDialogProduct.setLayoutParams(layoutDialogProduct.getLayoutParams());
-					layoutDialogProduct.setOnTouchListener(this);
-					
-					viewStatus = DialogStatus.Closed;
-					map_popup_second.setVisibility(View.GONE);
-				}
-				title_text.setText(marker.getTitle());          
-		        info_preview.setText(marker.getSnippet());
     		}
     	}
 	}
@@ -736,15 +725,14 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
         LatLng newCameraLocation = projection.fromScreenLocation(trackedPoint);
         map.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation), ANIMATION_DURATION, null);
         if (viewStatus == DialogStatus.Closed){
-	        layoutDialogProduct.getLayoutParams().height = map_popup_first.getLayoutParams().height;
-			layoutDialogProduct.setLayoutParams(layoutDialogProduct.getLayoutParams());
-			
-			title_text.setText(marker.getTitle());          
-	        info_preview.setText(marker.getSnippet());
+	        layoutAccountMenu.getLayoutParams().height = map_popup_first.getLayoutParams().height;
+			layoutAccountMenu.setLayoutParams(layoutAccountMenu.getLayoutParams());					
 			viewStatus = DialogStatus.Opened;
 			
-			layoutDialogProduct.startAnimation(animUp);
+			layoutAccountMenu.startAnimation(animUp);
         }
+        title_text.setText(marker.getTitle());          
+        info_preview.setText(marker.getSnippet());
 		        
         return true;
 	}
@@ -781,10 +769,12 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	            if (endY < startY) {
 	            	if (viewStatus == DialogStatus.Opened){
 		                System.out.println("Move UP");	                
-		                layoutDialogProduct.getLayoutParams().height = map_popup_first.getLayoutParams().height + map_popup_second.getLayoutParams().height;
-						layoutDialogProduct.setLayoutParams(layoutDialogProduct.getLayoutParams());
+		                layoutAccountMenu.getLayoutParams().height = map_popup_first.getLayoutParams().height + map_popup_second.getLayoutParams().height;
+						layoutAccountMenu.setLayoutParams(layoutAccountMenu.getLayoutParams());
+		                Animation animUpEx = new TranslateAnimation(0, 0, layoutAccountMenu.getLayoutParams().height, 0 );
+		                animUpEx.setDuration(400);		                
 		                map_popup_second.setVisibility(View.VISIBLE);
-		                map_popup_second.startAnimation(animUp);
+		                layoutAccountMenu.startAnimation(animUpEx);		                
 	            	}	                
 	            }
 	            else {
@@ -796,12 +786,24 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	}
 
 	private void closeLayouUserMenu() {
-		if (layoutDialogProduct.getVisibility() == View.VISIBLE){
-			layoutDialogProduct.startAnimation(animDown);
-			map_popup_second.setVisibility(View.GONE);
-			layoutDialogProduct.getLayoutParams().height = 0;
-			layoutDialogProduct.setLayoutParams(layoutDialogProduct.getLayoutParams());
-			viewStatus =DialogStatus.Closed;
+		if (layoutAccountMenu.getVisibility() == View.VISIBLE){
+			animDown.setAnimationListener(new AnimationListener() {
+
+                @Override
+                public void onAnimationStart(Animation animation) {}
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {}
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                	map_popup_second.setVisibility(View.GONE);
+	            	layoutAccountMenu.getLayoutParams().height = 0;
+	        		layoutAccountMenu.setLayoutParams(layoutAccountMenu.getLayoutParams());
+	        		viewStatus =DialogStatus.Closed;
+                }
+            });
+			layoutAccountMenu.startAnimation(animDown);
 		}
 	}
 
