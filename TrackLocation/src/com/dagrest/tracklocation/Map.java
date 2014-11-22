@@ -12,6 +12,9 @@ import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.BroadcastData;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
+import com.dagrest.tracklocation.datatype.CommandData;
+import com.dagrest.tracklocation.datatype.CommandDataBasic;
+import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandKeyEnum;
 import com.dagrest.tracklocation.datatype.CommandValueEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
@@ -658,6 +661,52 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 			        }
 			    });
 				
+				Button ringBtn = (Button) findViewById(R.id.ring_btn);			
+				ringBtn.setOnClickListener(new OnClickListener() {
+
+			        @Override
+			        public void onClick(View v) {		
+
+						String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+						String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+						String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+						String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+			            MessageDataContactDetails messageDataContactDetails = 
+			            	new MessageDataContactDetails(
+			            		account, 
+			            		macAddress, 
+			            		phoneNumber, 
+			            		registrationId,
+			            		0);
+			            ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
+			            	new ContactDeviceDataList (
+			            		contactDetails.getAccount(), 
+			            		contactDetails.getMacAddress(), 
+			            		contactDetails.getPhoneNumber(), 
+			            		contactDetails.getRegId(), 
+			            		null);
+			            // Notify caller by GCM (push notification)
+			            
+			            String msgServiceStarted = "{" + className + "} RingDevice was called by [" + account + "]";
+			            String notificationKey = CommandKeyEnum.start_tracking_status.toString();
+			            String notificationValue = CommandValueEnum.success.toString();		
+
+			            CommandDataBasic commandDataBasic = new CommandData(
+							getApplicationContext(), 
+							contactDeviceDataToSendNotificationTo, 
+			    			CommandEnum.ring_device, 
+			    			msgServiceStarted, 
+			    			messageDataContactDetails, 
+			    			null, 					// location
+			    			notificationKey, 		// key
+			    			notificationValue,  	// value
+			    			null
+			    		);
+			            commandDataBasic.sendCommand();
+			        
+			        }
+			    });
+
 				ImageButton nav_btn = (ImageButton) findViewById(R.id.nav_btn);			
 				nav_btn.setOnClickListener(new OnClickListener() {
 					 

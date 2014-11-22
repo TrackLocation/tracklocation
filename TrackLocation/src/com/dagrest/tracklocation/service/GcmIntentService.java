@@ -43,6 +43,10 @@ import android.app.IntentService;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -326,6 +330,19 @@ public class GcmIntentService extends IntentService {
         			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
 
         			handleCommandNotification(extras);
+            	// ============================================
+	            // ====  COMMAND: RING_DEVICE  ===============
+        		// ============================================
+            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
+                			extras.getString(CommandTagEnum.command.toString()).
+                			equals(CommandEnum.ring_device.toString())){ // COMMAND RING_DEVICE
+            		
+            		logMessage = "Catched push notification message (GCM): [RING_DEVICE]";
+        			LogManager.LogInfoMsg(className, "RingDevice", logMessage);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
+
+        			handleCommandRingDevice(extras);
             	} 
         	
             } // if (GoogleCloudMessaging
@@ -1084,6 +1101,43 @@ public class GcmIntentService extends IntentService {
 		if(isPermissionToGetLocation(senderAccount, contactDeviceDataToSendNotificationTo, 
 				messageDataContactDetails, methodName) == false){
 			return;
+		}
+	}
+	
+	private void handleCommandRingDevice(Bundle extras){
+		String methodName = "handleCommandRingDevice";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+		
+		ringDevice();
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	}
+	
+	private void ringDevice(){
+		AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+		int volume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
+		if(volume==0)
+		volume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
+		audioManager.setStreamVolume(AudioManager.STREAM_ALARM, volume,AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+		Uri alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+		Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), alert/*Uri.parse(ringTonePath)*/);
+		boolean isRinging = false;
+		if(ringtone!=null){
+		    ringtone.setStreamType(AudioManager.STREAM_ALARM);
+		    ringtone.play();
+		    isRinging = true;
+		}
+		
+		// play defined time - 3 seconds by default
+		if(isRinging == true){
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				// e.printStackTrace();
+			} 
+			ringtone.stop();
 		}
 	}
 	

@@ -99,7 +99,7 @@
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
                 style="@style/button_text"
-                android:layout_weight="50"               
+                android:layout_weight="20"               
                 android:text="Call" />
 
             <Button
@@ -107,11 +107,19 @@
                 style="@style/button_text"  
                 android:layout_height="fill_parent"  
                 android:layout_width="0dp"                       
-                android:layout_weight="50"                     
+                android:layout_weight="60"                     
                 android:text="Send message" />
 
+          	<Button
+                android:id="@+id/ring_btn"
+                style="@style/button_text"  
+                android:layout_height="fill_parent"  
+                android:layout_width="0dp"                       
+                android:layout_weight="20"                     
+                android:text="Ring..." />
+            
         </LinearLayout>
-
+        
     </LinearLayout>
 </RelativeLayout>
 
