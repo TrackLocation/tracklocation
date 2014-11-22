@@ -23,6 +23,8 @@ import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
+import com.dagrest.tracklocation.utils.Utils;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -45,8 +47,17 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Point;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -659,12 +670,31 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 			        }
 			    });
 				//marker.
+				
+				Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+				Bitmap bmp = Bitmap.createBitmap(80, 80, conf);
+				Canvas canvas1 = new Canvas(bmp);
+
+				// paint defines the text color,
+				// stroke width, size
+				Paint color = new Paint();
+				color.setTextSize(35);
+				color.setColor(Color.BLACK);
+
+				//modify canvas
+				canvas1.drawBitmap(BitmapFactory.decodeResource(getResources(),	R.drawable.wpfrk), 0,0, color);
+				canvas1.drawText("User Name!", 30, 40, color);
+				
+				
 				marker = map.addMarker(new MarkerOptions()
-		        //.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-		        .snippet(snippetString)
-		        .title(account)
-		        .anchor(0.0f, 1.0f) // Anchors the marker on the bottom left
-		        .position(latLngChanging));
+					//TODO add user profile image
+					.icon(BitmapDescriptorFactory.fromBitmap(drawMarker(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))))
+
+					.snippet(snippetString)
+					.title(account)
+					//.anchor(0.0f, 1.0f) // Anchors the marker on the bottom
+										// left
+					.position(latLngChanging));
 				
 				markerMap.put(account, marker);
 				
@@ -811,6 +841,21 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	public boolean onTouch(View v, MotionEvent event) {
 		return touchEventAnalyzing(event);
 	}
+	
+	private Bitmap drawMarker(Bitmap bitmap) {		
+		bitmap = Utils.getResizedBitmap(Utils.getRoundedCornerImage(bitmap), 50, 60);
+		Bitmap bmp = Bitmap.createBitmap(bitmap.getWidth() + 20, bitmap.getHeight() + 40, Config.ARGB_8888);
+		Canvas canvas = new Canvas(bmp);
 
+		Paint color = new Paint();
+		color.setTextSize(35);
+		color.setColor(Color.BLACK);
+
+		Bitmap bgBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.wpfrk);
+		// modify canvas
+		canvas.drawBitmap(bgBitmap, null, new Rect(0, 0, bitmap.getWidth() + 20, bitmap.getHeight() + 40), color);
+		canvas.drawBitmap(bitmap, 10, 10, color);
+		return bmp;
+	}
 }
 

@@ -3,6 +3,7 @@ package com.dagrest.tracklocation;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.Utils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -122,7 +123,7 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 		if (bmp == null){
 			bmp = BitmapFactory.decodeResource(convertView.getResources(), R.drawable.ic_launcher);
 		}
-		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), Controller.getRoundedCornerImage(bmp));
+		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), Utils.getRoundedCornerImage(bmp));
 		contactPhoto.setBounds( 0, 0, 120, 120 );
 		((CheckedTextView) convertView).setCompoundDrawables(null,null,contactPhoto, null);
 		
