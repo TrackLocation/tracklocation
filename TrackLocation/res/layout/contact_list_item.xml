@@ -33,11 +33,12 @@
 	</LinearLayout>
 
     <LinearLayout
+        android:id="@+id/status"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
 	    android:layout_alignParentRight="true">
 	    <ImageView
-	        android:id="@+id/status"
+	        android:id="@+id/status_image"
 	        android:contentDescription="ContactStatus"
 	        android:layout_width="30sp"
 	        android:layout_height="30sp"
@@ -46,7 +47,14 @@
 	        android:layout_marginTop="5sp"
 	        android:src="@drawable/ic_launcher">
 	        <!-- android:src="@drawable/windowsmobile_logo"  -->
-	    </ImageView>
+	   </ImageView>
+	    
+	    <!--  
+	    <ProgressBar
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:indeterminate="true"/>
+	    -->
     </LinearLayout>
     
 </RelativeLayout>
