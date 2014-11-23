@@ -713,7 +713,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 			        @Override
 			        public void onClick(View v) {
 			        	Location loc = getLastKnownLocation();
-				    	   final String uri = String.format(Locale.getDefault(), "geo:%f,%f", lat, lng);
+				    	   final String uri = String.format(Locale.getDefault(), "geo:%f,%f?q=%f,%f", lat, lng, lat, lng);
 				    	   Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
 				    	   startActivity( intent );	
 			        }
