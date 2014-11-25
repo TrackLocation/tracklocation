@@ -17,7 +17,9 @@ public enum CommandEnum {
 	update_reg_id("update_reg_id"), 
 	tracking("tracking"), 
 	tracking_location("tracking_location"),
-	ring_device("ring_device"); // device will ring at full volume regardless of device volume level
+	ring_device("ring_device"), // device will ring at full volume regardless of device volume level
+	start_tracking("start_tracking"),
+	stop_tracking("stop_tracking");
 	
 	private final String name;       
 	private static Map<String, CommandEnum> valueMap;

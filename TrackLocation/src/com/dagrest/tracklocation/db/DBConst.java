@@ -45,7 +45,6 @@ public final class DBConst {
     public static final String STATUS = "status";
     public static final String MAC_ADDRESS = "mac_address";
 
-    
 //    CommonConst.JOIN_FLAG_SMS + 
 //	CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
 //	mutualId + CommonConst.DELIMITER_COMMA + phoneNumber
@@ -59,6 +58,8 @@ public final class DBConst {
     public static final String LOCATION = "location"; 
     public static final String COMMAND = "command";
     public static final String ADMIN_COMMAND = "admin_command"; 
+    
+    public static final String TABLE_TRACKING = "TABLE_TRACKING";
     
     public static final String[] TABLES_LIST = { TABLE_CONTACT, TABLE_DEVICE, TABLE_CONTACT_DEVICE, TABLE_SEND_JOIN_REQUEST, TABLE_RECEIVED_JOIN_REQUEST, TABLE_PERMISSIONS };
 
@@ -143,5 +144,19 @@ public final class DBConst {
     	  COMMAND + " integer, " +	  
     	  ADMIN_COMMAND + " integer " +	  
     	  ");";
-    
+
+	// create table if not exists TABLE_TRACKING (
+    // CONTACT_DEVICE_MAC text not null, 
+    // CONTACT_DEVICE_EMAIL text not null,
+    // STATUS text, 
+    // PRIMARY KEY (  CONTACT_DEVICE_MAC, CONTACT_DEVICE_EMAIL ));
+    public static final String TABLE_TRACKING_CREATE = 
+	  "create table if not exists " + TABLE_TRACKING + " (" +
+		  CONTACT_DEVICE_MAC + " text not null," + // PRIMARY KEY
+		  CONTACT_DEVICE_EMAIL + " text not null," + // PRIMARY KEY
+		  STATUS + " text not null," + 
+		  "PRIMARY KEY (" + CONTACT_DEVICE_MAC + ", " + 
+		  		CONTACT_DEVICE_EMAIL +")" +
+		  ");";
+
 }

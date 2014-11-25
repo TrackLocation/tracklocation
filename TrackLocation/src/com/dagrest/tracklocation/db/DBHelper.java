@@ -36,6 +36,7 @@ public class DBHelper extends SQLiteOpenHelper{
             db.execSQL(DBConst.TABLE_SEND_JOIN_REQUEST_CREATE);
             db.execSQL(DBConst.TABLE_RECEIVED_JOIN_REQUEST_CREATE);
             db.execSQL(DBConst.TABLE_PERMISSIONS_CREATE);
+            db.execSQL(DBConst.TABLE_TRACKING_CREATE);
 
         } catch (Exception exception) {
         	Log.e(DBConst.LOG_TAG_DB, "[EXCEPTION] {" + className + "} -> Exception DBHelper.onCreate()", exception);
