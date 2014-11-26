@@ -1152,6 +1152,45 @@ public class Controller {
 	public static String hideRealRegID(String regID){
 		return (regID == null || regID.isEmpty()) ? "EMPTY" : "NON-EMPTY";
 	}
+	
+	public static void RingDevice(Context context, String className, MessageDataContactDetails contactDetails){
+		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+		String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+		String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+        MessageDataContactDetails messageDataContactDetails = 
+        	new MessageDataContactDetails(
+        		account, 
+        		macAddress, 
+        		phoneNumber, 
+        		registrationId,
+        		0);
+        ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
+        	new ContactDeviceDataList (
+        		contactDetails.getAccount(), 
+        		contactDetails.getMacAddress(), 
+        		contactDetails.getPhoneNumber(), 
+        		contactDetails.getRegId(), 
+        		null);
+        // Notify caller by GCM (push notification)
+        
+        String msgServiceStarted = "{" + className + "} RingDevice was called by [" + account + "]";
+        String notificationKey = CommandKeyEnum.start_tracking_status.toString();
+        String notificationValue = CommandValueEnum.success.toString();		
+
+        CommandDataBasic commandDataBasic = new CommandData(
+        	context, 
+			contactDeviceDataToSendNotificationTo, 
+			CommandEnum.ring_device, 
+			msgServiceStarted, 
+			messageDataContactDetails, 
+			null, 					// location
+			notificationKey, 		// key
+			notificationValue,  	// value
+			null
+		);
+        commandDataBasic.sendCommand();
+	}
 
 }
 	

@@ -23,6 +23,8 @@ import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
+import com.dagrest.tracklocation.dialog.CommonDialog;
+import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -121,6 +123,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	private Thread startTrackLocationServerThread;
 	private Runnable startTrackLocationService;
 	private boolean isPermissionDialogShown;
+	private MessageDataContactDetails contactDetails;
 	
 	private TextView notificationView;
 	
@@ -482,7 +485,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	    			
 	    			// TODO:  Create a new function in Controller class
 	    			// ================================================
-	    			MessageDataContactDetails contactDetails = broadcastData.getContactDetails();
+	    			contactDetails = broadcastData.getContactDetails();
 	    			// TODO: Check that contactDetails are not null
 	    			MessageDataLocation locationDetails = broadcastData.getLocation();
 	    			// TODO: Check that locationDetails are not null
@@ -667,44 +670,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 
 			        @Override
 			        public void onClick(View v) {		
-
-						String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-						String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
-						String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
-						String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-			            MessageDataContactDetails messageDataContactDetails = 
-			            	new MessageDataContactDetails(
-			            		account, 
-			            		macAddress, 
-			            		phoneNumber, 
-			            		registrationId,
-			            		0);
-			            ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
-			            	new ContactDeviceDataList (
-			            		contactDetails.getAccount(), 
-			            		contactDetails.getMacAddress(), 
-			            		contactDetails.getPhoneNumber(), 
-			            		contactDetails.getRegId(), 
-			            		null);
-			            // Notify caller by GCM (push notification)
-			            
-			            String msgServiceStarted = "{" + className + "} RingDevice was called by [" + account + "]";
-			            String notificationKey = CommandKeyEnum.start_tracking_status.toString();
-			            String notificationValue = CommandValueEnum.success.toString();		
-
-			            CommandDataBasic commandDataBasic = new CommandData(
-							getApplicationContext(), 
-							contactDeviceDataToSendNotificationTo, 
-			    			CommandEnum.ring_device, 
-			    			msgServiceStarted, 
-			    			messageDataContactDetails, 
-			    			null, 					// location
-			    			notificationKey, 		// key
-			    			notificationValue,  	// value
-			    			null
-			    		);
-			            commandDataBasic.sendCommand();
-			        
+			        	showRingConfirmationDialog(Map.this, "Are you sure?");
 			        }
 			    });
 
@@ -907,5 +873,45 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 		canvas.drawBitmap(bitmap, 10, 10, color);
 		return bmp;
 	}
+	
+	private IDialogOnClickAction dialogOnClickAction = new IDialogOnClickAction(){
+
+		@Override
+		public void doOnPositiveButton() {
+			Controller.RingDevice(context, className, contactDetails);
+		}
+
+		@Override
+		public void doOnNegativeButton() {
+		}
+
+		@Override
+		public void doOnChooseItem(int which) {
+		}
+
+		@Override
+		public void setActivity(Activity activity) {
+		}
+
+		@Override
+		public void setContext(Context context) {
+		}
+
+		@Override
+		public void setParams(Object[]... objects) {
+		}		
+	};
+	
+	private void showRingConfirmationDialog(Activity activity, String confirmationMessage) {
+		CommonDialog aboutDialog = new CommonDialog(activity, dialogOnClickAction);
+		aboutDialog.setDialogMessage(confirmationMessage);
+		aboutDialog.setDialogTitle("Ring to chosen contact.");
+		aboutDialog.setPositiveButtonText("Yes");
+		aboutDialog.setNegativeButtonText("No");
+		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+		aboutDialog.showDialog();
+		aboutDialog.setCancelable(true);
+    }
+	
 }
 
