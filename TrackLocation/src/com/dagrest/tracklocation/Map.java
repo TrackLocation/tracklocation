@@ -308,14 +308,15 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	private void setupLocation() {
 		Criteria c = new Criteria();
 		c.setAccuracy(Criteria.ACCURACY_FINE);
-		locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+		locationManager = (LocationManager) this.context.getSystemService(LOCATION_SERVICE);
 		
 		// try to get our last known location
 		Location location = getLastKnownLocation();
 		if (location != null) {
 			lastKnownLocation = new LatLng(location.getLatitude(),
 					location.getLongitude());
-		} else {
+		} 
+		else {
 			Toast.makeText(Map.this, "getString(R.string.gps_connection_lost)",
 					Toast.LENGTH_LONG).show();
 		}
