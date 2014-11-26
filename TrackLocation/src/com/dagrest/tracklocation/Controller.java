@@ -606,7 +606,7 @@ public class Controller {
         // String DATA = ContactsContract.CommonDataKinds.Email.DATA;
         ContentResolver contentResolver = context.getContentResolver();
         long startTime = System.currentTimeMillis();
-        Cursor cursor = contentResolver.query(CONTENT_URI, null,null, null, null); 
+        Cursor cursor = contentResolver.query(CONTENT_URI, null,null, null, DISPLAY_NAME + " ASC"); 
         long endTime = System.currentTimeMillis() - startTime;
         System.out.println("Retrieve all contacts query: " + endTime);
         
