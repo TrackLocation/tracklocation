@@ -3,8 +3,18 @@ package com.dagrest.tracklocation;
 import java.util.ArrayList;
 import java.util.List;
 
+
+
+
+
+
+
+
+import com.dagrest.tracklocation.datatype.ContactData;
+import com.dagrest.tracklocation.datatype.ContactDeviceData;
 //import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
+import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
@@ -12,27 +22,35 @@ import com.dagrest.tracklocation.utils.CommonConst;
 import com.google.gson.Gson;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
-public class ContactList extends Activity/*ListActivity*/ {
+public class ContactList extends Activity {
 
+	private static final int EDIT_OPTION = 0;
+	private static final int DELETE_OPTION = 1;
 	private String jsonStringContactDeviceDataList = null;
 	private ListView lv;
 	// ---------------------------------------
 	// /*private EditText inputSearch; */
 	// ---------------------------------------
-	private ArrayAdapter<String> adapter;
+	private ArrayAdapter<ContactData> adapter;
 	private List<Boolean> isSelected;
 	private ContactDeviceDataList contactDeviceDataList;
 	private ContactDeviceDataList selectedContactDeviceDataList;
@@ -40,11 +58,7 @@ public class ContactList extends Activity/*ListActivity*/ {
 	private Gson gson;
 	private String className;
 	private Context context;
-//	private String account;
-//	private String macAddress;
-//	private String phoneNumber;
-//	private String registrationId;
-//	private AppInfo appInfo;
+	List<ContactData> values;
  	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -58,20 +72,8 @@ public class ContactList extends Activity/*ListActivity*/ {
 		gson = new Gson();
 		jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
 		contactDeviceDataList = gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
-//		account = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_ACCOUNT);
-//		macAddress = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
-//		phoneNumber = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_NUMBER);
-//		registrationId = intent.getExtras().getString(CommonConst.PREFERENCES_REG_ID);
-//		appInfo = Controller.getAppInfo(context);
 
-//		if(contactDeviceDataList != null){
-//			Controller.sendCommand(context, contactDeviceDataList, 
-//	    			CommandEnum.status_request, null, null);
-//		}
-
-		// jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
-		//List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(jsonStringContactDeviceDataList);
-		List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(contactDeviceDataList, null, null, null);
+		values = Controller.fillContactListWithContactDeviceDataFromJSON(contactDeviceDataList, null, null, null);
 	    if(values != null){
 	    	// TODO: move to init isSelected list:
 	    	isSelected = new ArrayList<Boolean>(values.size());
@@ -92,7 +94,6 @@ public class ContactList extends Activity/*ListActivity*/ {
 //	    	ListView listView = getListView();
 //	    	listView.addHeaderView(header);
 	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, values, null, null, null);
-	        //adapter = new ArrayAdapter<String>(this, R.layout.contact_list_item, R.id.contact, values);
 	    	lv.setAdapter(adapter);
 	    	
 			// ---------------------------------------
@@ -132,25 +133,14 @@ public class ContactList extends Activity/*ListActivity*/ {
 	    	return;
 	    }
 
-	    //ListView list = getListView();
-	    lv.setOnItemLongClickListener(new OnItemLongClickListener() {
-			@Override
-			public boolean onItemLongClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				// String selectedValue = (String) adapter.getItem(position);
-				// Toast.makeText(ContactList.this, selectedValue + " is LONG_CLICKED", Toast.LENGTH_LONG).show();
-				// Return true to consume the click event. In this case the
-				// onListItemClick listener is not called anymore.
-				return true;
-			}
-		});
+	    registerForContextMenu(lv);
+
 	    	    
 	    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
 	        @Override
-	        public void onItemClick(AdapterView<?> parent, final View view,
-	            int position, long id) {
-	        	final String selectedValue = (String) parent.getItemAtPosition(position);
+	        public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
+	        	final ContactData selectedValue = (ContactData)adapter.getItem(position);
 	        	
 	        	if(selectedContcatList == null){
 	        		selectedContcatList = new ArrayList<String>();
@@ -162,15 +152,15 @@ public class ContactList extends Activity/*ListActivity*/ {
 	        	if(isSelected.get(position) == false){
 	        		if(lv.getChildAt(visiblePosition) != null){
 		        		lv.getChildAt(visiblePosition).setBackgroundColor(android.R.drawable.btn_default);
-		        		if(selectedContcatList.contains(selectedValue)){
-		        			selectedContcatList.remove(selectedValue);
+		        		if(selectedContcatList.contains(selectedValue.getNick())){
+		        			selectedContcatList.remove(selectedValue.getNick());
 		        		}
 	        		}
 	        	} else {
 	        		if(lv.getChildAt(visiblePosition) != null){
 		        		lv.getChildAt(visiblePosition).setBackgroundColor(getResources().getColor(R.color.LightGrey));
-		        		if(!selectedContcatList.contains(selectedValue)){
-		        			selectedContcatList.add(selectedValue);
+		        		if(!selectedContcatList.contains(selectedValue.getNick())){
+		        			selectedContcatList.add(selectedValue.getNick());
 		        		}
 	        		}
 	        	}
@@ -215,17 +205,6 @@ public class ContactList extends Activity/*ListActivity*/ {
 			}
 	    });
 	}
-	
-//	@Override
-//	protected void onListItemClick(ListView l, View v, int position, long id) {
-//		//get selected items
-//		String selectedValue = (String) adapter.getItem(position);
-//		Toast.makeText(this, selectedValue, Toast.LENGTH_SHORT).show();
-//		Intent intentContactConfig = new Intent(this, ContactConfiguration.class);
-//		intentContactConfig.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA, jsonStringContactDeviceData);
-//		intentContactConfig.putExtra(CommonConst.CONTACT_LIST_SELECTED_VALUE, selectedValue);
-//		startActivity(intentContactConfig);
-//	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -258,8 +237,7 @@ public class ContactList extends Activity/*ListActivity*/ {
             selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
         	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
         		
-        		LogManager.LogInfoMsg(className, "onClick->[BUTTON:TrackLocation]", "Track location of " + 
-        			selectedContactDeviceDataList.toString());
+        		LogManager.LogInfoMsg(className, "onClick->[BUTTON:TrackLocation]", "Track location of " + selectedContactDeviceDataList.toString());
         		
 				// Catch ecxeption - version changed, so RegID is empty
 				// Show pop up message - reinstall app/update regID.
@@ -267,8 +245,7 @@ public class ContactList extends Activity/*ListActivity*/ {
 	    		// Start Map activity to see locations of selected contacts
 	    		Intent intentMap = new Intent(context, Map.class);
 	    		// Pass to Map activity list of selected contacts to get their location
-	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
-		    			new Gson().toJson(selectedContactDeviceDataList));
+	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, new Gson().toJson(selectedContactDeviceDataList));
 	   			startActivity(intentMap);
         	} else {
         		// TODO: Inform customer that no contact was selected by pop-up dialog
@@ -330,40 +307,66 @@ public class ContactList extends Activity/*ListActivity*/ {
 			
 		}
 	};
+	
+	@Override
+	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+	    super.onCreateContextMenu(menu, v, menuInfo);	    
+	    menu.setHeaderTitle(getString(R.string.choose_operation));
+	    menu.add(0, EDIT_OPTION, 0, getString(R.string.edit_menu_operation));
+	    menu.add(0, DELETE_OPTION, 0, getString(R.string.delete_menu_operation));
+	}
+	
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+        int position = info.position;
+        switch (item.getItemId()) {
+		case EDIT_OPTION:
+			
+			break;
+		case DELETE_OPTION:
+			removeContact(position);
+			break;
+		default:
+			break;
+        }
+        
+        return true;
+	}
+	
+	private void removeContact(int deletePosition){
+		final ContactData deleteContact = adapter.getItem(deletePosition);
+		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ContactList.this); 
+		// set title
+		alertDialogBuilder.setTitle(getString(R.string.delete_menu_operation));
+ 
+			// set dialog message
+		alertDialogBuilder
+			.setMessage("The contact " + deleteContact.getNick() + " will be removed from the application")
+			.setCancelable(false)
+			.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog,int id) {
+					ContactDeviceData contactDeviceData = contactDeviceDataList.getContactDeviceDataByContactData(deleteContact);
+					if (contactDeviceData != null ){
+						if (DBLayer.removeContactDataDeviceDetail(contactDeviceData) != -1){
+							values.remove(deleteContact);
+							adapter.notifyDataSetChanged(); 
+						}
+					}
+				}
+			})
+			.setNegativeButton("No",new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog,int id) {
 
-//	public static List<String> fillContactListWithContactDeviceDataFromJSON(String jsonStringContactDeviceData){
-//		List<String> values = null;
-//	    
-//		ContactDeviceDataList contactDeviceDataCollection = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
-//	    if(contactDeviceDataCollection == null){
-//	    	return null;
-//	    }
-//
-//	    List<ContactDeviceData> contactDeviceDataList = contactDeviceDataCollection.getContactDeviceDataList();
-//	    if(contactDeviceDataList == null){
-//	    	return null;
-//	    }
-//	    
-//	    int i = 0;
-//	    values = new ArrayList<String>();
-//	    for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
-//	    	ContactData contactData = contactDeviceData.getContactData();
-//	    	if(contactData != null) {
-//	    		if(contactData.getNick() != null){
-//	    			values.add(contactData.getNick());
-//	    		} else {
-//	    			values.add("unknown");
-//	    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided username is null - check JSON input file, element :" + (i+1));
-//	    		}
-//	    	} else {
-//	    		LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Contact Data provided incorrectly - check JSON input file, element :" + (i+1));
-//	    		return null;
-//	    	}
-//	    	i++;
-// 		}
-//	    
-//	    return values;
-//	}
+						dialog.cancel();
+					}
+			});
+ 
+		AlertDialog alertDialog = alertDialogBuilder.create();
+		alertDialog.show();
+	}
+	
+	
 }
 
 	

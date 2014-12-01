@@ -896,11 +896,10 @@ public class Controller {
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
     }
-
-	public static List<String> fillContactListWithContactDeviceDataFromJSON(
-			ContactDeviceDataList contactDeviceDataCollection,
+	
+	public static List<ContactData> fillContactListWithContactDeviceDataFromJSON(ContactDeviceDataList contactDeviceDataCollection,
 			List<Boolean> checkBoxesShareLocation, List<String> emailList, List<String> macAddressList){
-		List<String> values = null;
+		List<ContactData> values = null;
 	    
 		if(contactDeviceDataCollection == null){
 			// TODO: error message to log
@@ -913,14 +912,14 @@ public class Controller {
 	    }
 	    
 	    int i = 0;
-	    values = new ArrayList<String>();
+	    values = new ArrayList<ContactData>();
 	    for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 	    	ContactData contactData = contactDeviceData.getContactData();
 	    	DeviceData deviceData = contactDeviceData.getDeviceData();
 	    	if(contactData != null && deviceData != null) {
 	    		String nick = contactData.getNick();
 	    		if(nick != null && !nick.isEmpty()){
-	    			values.add(contactData.getNick());
+	    			values.add(contactData);
 	    			if(checkBoxesShareLocation != null){
 	    				checkBoxesShareLocation.add(isLocationSharingEnabled(contactData));
 	    			}
@@ -930,10 +929,11 @@ public class Controller {
 	    			if(macAddressList != null){
 	    				macAddressList.add(deviceData.getDeviceMac());
 	    			}
-	    		} else {
+	    		} 
+	    		else{
 	    			String email = contactData.getEmail();
 	    			if(email != null && !email.isEmpty()) {
-	    				values.add(email);
+	    				values.add(contactData);
 		    			if(checkBoxesShareLocation != null){
 		    				checkBoxesShareLocation.add(isLocationSharingEnabled(contactData));
 		    			}
@@ -941,7 +941,7 @@ public class Controller {
 		    				emailList.add(contactData.getEmail());
 		    			}
 	    			} else {
-		    			values.add("unknown");
+		    			values.add(new ContactData());
 		    			if(checkBoxesShareLocation != null){
 		    				checkBoxesShareLocation.add(false);
 		    			}
@@ -952,18 +952,19 @@ public class Controller {
 	    			}
 	    			String macAddress = deviceData.getDeviceMac();
 	    			if(macAddress != null && !macAddress.isEmpty()) {
-	    				values.add(macAddress);
+	    				values.add(new ContactData(macAddress));
 		    			if(macAddressList != null){
 		    				macAddressList.add(contactData.getEmail());
 		    			}
 	    			} else {
-		    			values.add("unknown");
+		    			values.add(new ContactData());
 		    			if(macAddressList != null){
-		    				macAddressList.add("unknown@unknown.com");
+		    				macAddressList.add(contactData.getEmail());
 		    			}
 		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided macAddress is null - check JSON input file, element :" + (i+1));
 	    			}
 	    		}
+
 	    	} else {
 	    		LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Contact Data provided incorrectly - check JSON input file, element :" + (i+1));
 	    		return null;
@@ -1085,8 +1086,7 @@ public class Controller {
 		java.util.Map<String, String> sendToMap = Preferences.getPreferencesReturnToContactMap(context);
 		if(sendToMap != null && !sendToMap.isEmpty()){
 		    contactDeviceDataToSendNotificationTo = new ContactDeviceDataList();
-		    List<ContactDeviceData> contactDeviceDataList = 
-		    	contactDeviceDataToSendNotificationTo.getContactDeviceDataList();
+		    List<ContactDeviceData> contactDeviceDataList = contactDeviceDataToSendNotificationTo.getContactDeviceDataList();
 		    for (java.util.Map.Entry<String,String> entry : sendToMap.entrySet()) {
 		    	entry.getKey();
 		    	entry.getValue();

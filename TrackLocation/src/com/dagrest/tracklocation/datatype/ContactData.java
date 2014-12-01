@@ -1,5 +1,7 @@
 package com.dagrest.tracklocation.datatype;
 
+import com.dagrest.tracklocation.Controller;
+
 public class ContactData {
 	private String nick; // free text
 	private String email;
@@ -14,6 +16,15 @@ public class ContactData {
 	}
 	
 	public String getNick() {
+		if (nick == null || nick.isEmpty()){
+			if (email == null || email.isEmpty()){
+				nick = "unknown";
+				email = "unknown@unknown.com";
+			}
+			else{
+				nick = Controller.getNickNameFromEmail(email);	
+			}
+		}
 		return nick;
 	}
 	public void setNick(String nick) {

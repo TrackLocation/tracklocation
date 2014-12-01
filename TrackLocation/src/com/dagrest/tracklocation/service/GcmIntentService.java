@@ -800,8 +800,7 @@ public class GcmIntentService extends IntentService {
 		
 		String jsonContactDetailsSentFrom = extras.getString(CommandTagEnum.contactDetails.toString());
 		
-		MessageDataContactDetails contactDetailsSentFrom = 
-			gson.fromJson(jsonContactDetailsSentFrom, MessageDataContactDetails.class);
+		MessageDataContactDetails contactDetailsSentFrom = gson.fromJson(jsonContactDetailsSentFrom, MessageDataContactDetails.class);
 		if(contactDetailsSentFrom == null){
 			logMessage = "Join approval request failed. No SentFrom contact details.";
             Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);

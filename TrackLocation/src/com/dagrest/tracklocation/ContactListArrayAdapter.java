@@ -2,6 +2,7 @@ package com.dagrest.tracklocation;
 import java.util.HashMap;
 import java.util.List;
 
+import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.PermissionsData;
 import com.dagrest.tracklocation.db.DBConst;
 import com.dagrest.tracklocation.db.DBLayer;
@@ -23,9 +24,9 @@ import android.widget.TextView;
 import android.widget.ToggleButton;
 
 
-public class ContactListArrayAdapter extends ArrayAdapter<String> {
+public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 	private final Context context;
-	private final List<String> values;
+	private final List<ContactData> values;
 	private final List<String> emailList;
 	private final List<Boolean> checkBoxValues;
 	private final List<String> macAddressList;
@@ -34,7 +35,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 	private String methodName;
 	private String logMessage;
 	
-	public ContactListArrayAdapter(Context context, int resource, List<String> values, 
+	public ContactListArrayAdapter(Context context, int resource, List<ContactData> values, 
 			List<Boolean> checkBoxValues, List<String> emailList, List<String> macAddressList) {
 		super(context, resource, values);
 		this.context = context;
@@ -47,7 +48,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 	}
  
 	public ContactListArrayAdapter(Context context, int resource, int textViewResourceId, 
-			List<String> values, List<Boolean> checkBoxValues, List<String> emailList,
+			List<ContactData> values, List<Boolean> checkBoxValues, List<String> emailList,
 			List<String> macAddressList) {
 		super(context, resource, textViewResourceId, values);
 		
@@ -58,52 +59,70 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 		this.emailList = emailList;
 		this.macAddressList = macAddressList;
 	}
-
+	
+	// View lookup cache
+    private static class ViewHolder {
+        TextView textView;
+        ImageView imageView;
+        CheckBox checkBox;
+        ToggleButton toggleButton; 
+    }
+    
 	@Override
 	public View getView(final int position, View convertView, ViewGroup parent) {
-		// TODO Auto-generated method stub
-		
-		LayoutInflater inflater = (LayoutInflater) context
-			.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	
-		//View rowView = inflater.inflate(R.layout.contact_list_item, parent, false);
-		View rowView = inflater.inflate(res, parent, false);
-		TextView textView = (TextView) rowView.findViewById(R.id.contact);
-		ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
-		CheckBox checkBox = (CheckBox) rowView.findViewById(R.id.check_share_location);
-		ToggleButton toggleButton = (ToggleButton) rowView.findViewById(R.id.tracking_toggle_button);
-		textView.setText(values.get(position));
-		
-		OnCheckedChangeListener toggleButtonListener = new OnCheckedChangeListener() {
-			@Override
-			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-				methodName = "onCheckedChanged";
-				if(isChecked){
-					logMessage = "ToggleButton is checked by " + emailList.get(position);
-					LogManager.LogInfoMsg(className, methodName, logMessage);
-					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-				} else {
-					logMessage = "ToggleButton is unchecked " + emailList.get(position);
-					LogManager.LogInfoMsg(className, methodName, logMessage);
-					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-				}
-			}
-		};
-
-		// 
-		if(toggleButton != null){
-			toggleButton.setOnCheckedChangeListener(toggleButtonListener);
-		}
-		
-		
-		// Action on Row click 
-		if (checkBox != null) {
-			rowView.setOnClickListener(new View.OnClickListener() {
-				@Override
-				public void onClick(View v) {
-					CheckBox checkBox = (CheckBox) v.findViewById(R.id.check_share_location);
-					if (checkBox != null) {
-						int isChecked = checkBox.isChecked() == true ? 0 : 1;
+		// Get the data item for this position
+		ContactData contactData = getItem(position);    
+	       // Check if an existing view is being reused, otherwise inflate the view
+		final ViewHolder viewHolder; // view lookup cache stored in tag
+		if (convertView == null) {
+			viewHolder = new ViewHolder();
+			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);	      	
+			convertView = inflater.inflate(res, parent, false);
+      		viewHolder.textView = (TextView) convertView.findViewById(R.id.contact);
+      		viewHolder.imageView = (ImageView) convertView.findViewById(R.id.icon);
+      		viewHolder.checkBox = (CheckBox) convertView.findViewById(R.id.check_share_location);
+      		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);
+      		if (viewHolder.toggleButton != null){
+	      		viewHolder.toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+	    			@Override
+	    			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+	    				methodName = "onCheckedChanged";
+	    				if(isChecked){
+	    					logMessage = "ToggleButton is checked by " + emailList.get(position);
+	    					LogManager.LogInfoMsg(className, methodName, logMessage);
+	    					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+	    				} else {
+	    					logMessage = "ToggleButton is unchecked " + emailList.get(position);
+	    					LogManager.LogInfoMsg(className, methodName, logMessage);
+	    					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+	    				}
+	    			}
+	    		});
+      		}
+      		if (viewHolder.checkBox != null){
+	      		convertView.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View v) {						
+						if (viewHolder.checkBox != null) {
+							int isChecked = viewHolder.checkBox.isChecked() == true ? 0 : 1;
+							PermissionsData p = DBLayer.getPermissions(emailList.get(position));
+							if (p != null) {
+								DBLayer.updatePermissions(p.getEmail(), isChecked,
+										p.getCommand(), p.getAdminCommand());
+								java.util.Map<String, Object> m = new HashMap<String, Object>();
+								m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
+								DBLayer.updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
+								viewHolder.checkBox.setChecked(viewHolder.checkBox.isChecked() == true ? false : true);
+							}
+						}
+					}
+				});
+      		
+				viewHolder.checkBox.setOnClickListener(new View.OnClickListener() {
+					public void onClick(View v) {
+						CheckBox cb = (CheckBox) v;
+						String t = cb.getText().toString();
+						int isChecked = cb.isChecked() == true ? 1 : 0;
 						PermissionsData p = DBLayer.getPermissions(emailList.get(position));
 						if (p != null) {
 							DBLayer.updatePermissions(p.getEmail(), isChecked,
@@ -111,80 +130,32 @@ public class ContactListArrayAdapter extends ArrayAdapter<String> {
 							java.util.Map<String, Object> m = new HashMap<String, Object>();
 							m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
 							DBLayer.updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
-							checkBox.setChecked(checkBox.isChecked() == true ? false : true);
 						}
 					}
-				}
-			});
+				});
+      		}
+			
+			convertView.setTag(viewHolder);
+		} 
+		else {
+			viewHolder = (ViewHolder) convertView.getTag();
 		}
-		
-		// Action on CheckBox click
-		if (checkBox != null) {
-			checkBox.setOnClickListener(new View.OnClickListener() {
-				public void onClick(View v) {
-					CheckBox cb = (CheckBox) v;
-					String t = cb.getText().toString();
-					int isChecked = cb.isChecked() == true ? 1 : 0;
-					PermissionsData p = DBLayer.getPermissions(emailList.get(position));
-					if (p != null) {
-						DBLayer.updatePermissions(p.getEmail(), isChecked,
-								p.getCommand(), p.getAdminCommand());
-						java.util.Map<String, Object> m = new HashMap<String, Object>();
-						m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
-						DBLayer.updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
-					}
-				}
-			});
-		}
-		
-		// Case if list with check boxes - set CheckBox marked/unmarked
-		if (checkBox != null){
-			//CheckBox checkBoxShareLocation = (CheckBox) rowView.findViewById(R.id.check_share_location);
+	
+		viewHolder.textView.setText(contactData.getNick());
+				// Action on Row click 
+		if (viewHolder.checkBox != null) {								
 			if(emailList != null){
 				PermissionsData p = DBLayer.getPermissions(emailList.get(position));
 				if(p != null){
 					boolean isChecked = p.getIsLocationSharePermitted() == 1 ? true : false;
-					checkBox.setChecked(isChecked);
+					viewHolder.checkBox.setChecked(isChecked);
 				} else {
-					checkBox.setChecked(false);
+					viewHolder.checkBox.setChecked(false);
 				}
 			} else {
-				checkBox.setChecked(false);
+				viewHolder.checkBox.setChecked(false);
 			}
 		}
-	
-		// Change icon based on name
-		String s = values.get(position);
-	
-		if (s.equals("dagrest")) {
-			imageView.setImageResource(R.drawable.ic_launcher);
-		} else if (s.equals("agrest2000")) {
-			imageView.setImageResource(R.drawable.ic_launcher);
-		} 
-	
-		return super.getView(position, rowView, parent);
+		return convertView;
 	}
-		
-//	@Override
-//	public View getView(int position, View convertView, ViewGroup parent) {
-//		LayoutInflater inflater = (LayoutInflater) context
-//			.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-// 
-//		View rowView = inflater.inflate(R.layout.contact_list_item, parent, false);
-//		TextView textView = (TextView) rowView.findViewById(R.id.contact);
-//		ImageView imageView = (ImageView) rowView.findViewById(R.id.icon);
-//		textView.setText(values.get(position));
-// 
-//		// Change icon based on name
-//		String s = values.get(position);
-// 
-//		System.out.println(s);
-// 
-//		if (s.equals("dagrest")) {
-//			imageView.setImageResource(R.drawable.ic_launcher);
-//		} else if (s.equals("agrest2000")) {
-//			imageView.setImageResource(R.drawable.ic_launcher);
-//		} 
-//		return rowView;
-//	}
 }

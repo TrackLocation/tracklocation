@@ -12,9 +12,6 @@ import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.BroadcastData;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
-import com.dagrest.tracklocation.datatype.CommandData;
-import com.dagrest.tracklocation.datatype.CommandDataBasic;
-import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.CommandKeyEnum;
 import com.dagrest.tracklocation.datatype.CommandValueEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
@@ -52,7 +49,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
@@ -60,8 +56,6 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
-import android.graphics.PorterDuff.Mode;
-import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.location.Address;
 import android.location.Criteria;
@@ -320,7 +314,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 					location.getLongitude());
 		} 
 		else {
-			Toast.makeText(Map.this, "getString(R.string.gps_connection_lost)",
+			Toast.makeText(Map.this, "getString(R.string.err_load_location)",
 					Toast.LENGTH_LONG).show();
 		}
 

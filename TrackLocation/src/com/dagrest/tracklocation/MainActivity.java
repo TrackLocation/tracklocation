@@ -20,8 +20,7 @@ import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.exception.CheckPlayServicesException;
 import com.dagrest.tracklocation.log.LogManager;
-import com.dagrest.tracklocation.service.TrackLocationService;
-import com.dagrest.tracklocation.service.TrackingAutostarter;
+import com.dagrest.tracklocation.service.GcmIntentService;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
@@ -34,7 +33,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -237,21 +235,20 @@ public class MainActivity extends Activity {
 	}
 		
     public void onClick(final View view) {
-
-    	contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
+    	if (view == findViewById(R.id.btnLocate) || view == findViewById(R.id.btnLocationSharing) || view == findViewById(R.id.btnTracking) ){
+    		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
+    	}
     	
     	// ========================================
     	// ABOUT button
     	// ========================================
-        if (view == findViewById(R.id.btnAbout)) {
-        	
+        if (view == findViewById(R.id.btnAbout)) {        	
         	showAboutDialog();
         	
     	// ========================================
     	// JOIN button
     	// ========================================
         } else if (view == findViewById(R.id.btnJoin)) {
-
     		Intent joinContactListIntent = new Intent(this, JoinContactList.class);
     		startActivityForResult(joinContactListIntent, JOIN_REQUEST);
 
@@ -267,13 +264,9 @@ public class MainActivity extends Activity {
     	// ========================================
     	// SETTINGS button
     	// ========================================
-        } else if (view == findViewById(R.id.btnSettings)) {
-
-		
+        } else if (view == findViewById(R.id.btnSettings)) {	
     		Intent settingsIntent = new Intent(this, SettingsActivity.class);
     		startActivity(settingsIntent);
-//        	Intent contactDataGridViewIntent = new Intent(this, ContactDataGridView.class);
-//    		startActivity(contactDataGridViewIntent);
 
     	// ========================================
     	// LOCATE button (CONTACT_LIST)
@@ -284,8 +277,7 @@ public class MainActivity extends Activity {
     		
     		if(contactDeviceDataList != null){
 	    		Intent intentContactList = new Intent(this, ContactList.class);
-	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
-	    			new Gson().toJson(contactDeviceDataList));
+	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, new Gson().toJson(contactDeviceDataList));
 	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
 	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);

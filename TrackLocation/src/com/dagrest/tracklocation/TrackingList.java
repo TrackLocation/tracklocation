@@ -3,6 +3,7 @@ package com.dagrest.tracklocation;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
@@ -26,7 +27,7 @@ import android.widget.ToggleButton;
 public class TrackingList extends Activity {
 	private String jsonStringContactDeviceDataList = null;
 	private ListView lv;
-	private ArrayAdapter<String> adapter;
+	private ArrayAdapter<ContactData> adapter;
 	private List<Boolean> isSelected;
 	private Gson gson;
 	private ContactDeviceDataList contactDeviceDataList;
@@ -49,10 +50,7 @@ public class TrackingList extends Activity {
 		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
 		List<String> emailList = new ArrayList<String>();
 		List<String> macAddressList = new ArrayList<String>();
-		List<String> values = 
-			Controller.fillContactListWithContactDeviceDataFromJSON(
-				contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
-//			Controller.fillShareLocationListWithContactDeviceDataFromJSON(contactDeviceDataList, values);
+		List<ContactData> values = Controller.fillContactListWithContactDeviceDataFromJSON(	contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
 		
 	    if(values != null){
 	    	// TODO: move to init isSelected list:

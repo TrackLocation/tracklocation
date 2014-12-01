@@ -18,7 +18,13 @@
 	<string name="navigate_title">Navigate</string>	
 	<string name="call_title">Call</string>	
 	<string name="messages_title">Send message</string>	
-	<string name="map_account_options_title">Account Options</string>	
+	<string name="map_account_options_title">Account Options</string>
+	<string name="choose_operation">Choose Contact Operation</string>	
+	<string name="edit_menu_operation">Edit contact details</string>
+	<string name="delete_menu_operation">Remove contact from list</string>
+	<string name="err_load_location">Location not found</string>
+		
+	
 	
 
 	<string name="about_dialog_text">\n\"Track Location\" application\n\n\nVersion %s\nWritten by David Agrest\n\n\nEmail: dagrest@gmail.com\n</string>

@@ -3,17 +3,15 @@ package com.dagrest.tracklocation.datatype;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContactDeviceDataList {
+public class ContactDeviceDataList{
 	private List<ContactDeviceData> contactDeviceDataList;
 	
 	public ContactDeviceDataList() {}
 	
-	public ContactDeviceDataList(String email, String deviceMac, String phoneNumber, 
-			String regId, String guidId) {
+	public ContactDeviceDataList(String email, String deviceMac, String phoneNumber, String regId, String guidId) {
 		ContactData contactData = new ContactData(email);
 		DeviceData deviceData = new DeviceData(deviceMac);
-		ContactDeviceData contactDeviceData = new ContactDeviceData(phoneNumber, 
-			regId, guidId);
+		ContactDeviceData contactDeviceData = new ContactDeviceData(phoneNumber, regId, guidId);
 		contactDeviceData.setContactData(contactData);
 		contactDeviceData.setDeviceData(deviceData);
 		getContactDeviceDataList().add(contactDeviceData);
@@ -56,5 +54,26 @@ public class ContactDeviceDataList {
 		return output;
 	}
 	
+	public ContactDeviceData getContactDeviceDataByContactData(ContactData data){
+		
+		for(ContactDeviceData cdData : getContactDeviceDataList()){
+			if (cdData.getContactData().getEmail().equals(data.getEmail()))
+				return cdData;
+		}
+		 
+		return null;
+	}
+
+	public void remove(ContactDeviceData contactDeviceData) {
+		int iCount = 0;
+		for(ContactDeviceData cdData : getContactDeviceDataList()){
+			if (cdData.getContactData().getEmail().equals(contactDeviceData.getContactData().getEmail())){
+				getContactDeviceDataList().remove(iCount);
+				return;
+			}
+			iCount++;
+		}
+		
+	}
 	
 }
