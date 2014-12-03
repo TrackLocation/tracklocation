@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.dagrest.tracklocation.Controller;
+import com.dagrest.tracklocation.NotificationReceiver;
 import com.dagrest.tracklocation.R;
 import com.dagrest.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.dagrest.tracklocation.datatype.AppInfo;
@@ -40,6 +41,9 @@ import com.google.gson.Gson;
 
 import android.app.Activity;
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -1134,6 +1138,44 @@ public class GcmIntentService extends IntentService {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 		
+/* TODO: continue development - DAVID		
+		String jsonContactDetailsSentFrom = extras.getString(CommandTagEnum.contactDetails.toString());
+		
+		MessageDataContactDetails contactDetailsSentFrom = 
+			gson.fromJson(jsonContactDetailsSentFrom, MessageDataContactDetails.class);
+		if(contactDetailsSentFrom == null){
+			logMessage = "No SentFrom contact details. Cannot start TrackLocation Service.";
+            Log.e(CommonConst.LOG_TAG, logMessage);
+            LogManager.LogErrorMsg(className, "GcmIntentService->onHandleIntent->[COMMAND:start]", logMessage);
+		}
+		
+		String accountCommandSentFrom = null;
+		accountCommandSentFrom = contactDetailsSentFrom.getAccount();
+
+		
+		
+		
+		
+		Intent intent = new Intent(this, NotificationReceiver.class);
+		PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
+
+		// build notification
+		// the addAction re-use the same intent to keep the example short
+		Notification n  = new Notification.Builder(this)
+		        .setContentTitle("Ring from " + accountCommandSentFrom)
+		        .setContentText("Subject")
+		        .setSmallIcon(R.drawable.main_icon_96)
+		        .setContentIntent(pIntent)
+		        .setAutoCancel(true)
+		        .addAction(R.drawable.main_icon_96, "Call", pIntent)
+		        .build();
+		    
+		  
+		NotificationManager notificationManager = 
+		  (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+		notificationManager.notify(0, n); 
+*/		
 		ringDevice();
 		
 		LogManager.LogFunctionExit(className, methodName);
@@ -1295,7 +1337,7 @@ public class GcmIntentService extends IntentService {
 		// play defined time - 3 seconds by default
 		if(isRinging == true){
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(20000);
 			} catch (InterruptedException e) {
 				// e.printStackTrace();
 			} 
