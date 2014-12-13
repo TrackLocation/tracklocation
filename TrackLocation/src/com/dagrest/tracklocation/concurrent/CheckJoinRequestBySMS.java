@@ -78,7 +78,7 @@ public class CheckJoinRequestBySMS implements Runnable {
 			    	    	regIdFromSMS != null && !regIdFromSMS.isEmpty() && !macAddressFromSMS.isEmpty()){
 			    	    	
 			    	    	// Save contact details received by join requests to RECEIVED_JOIN_REQUEST table
-			    			long res = DBLayer.addReceivedJoinRequest(phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, accountFromSMS, macAddressFromSMS);
+			    			long res = DBLayer.getInstance().addReceivedJoinRequest(phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, accountFromSMS, macAddressFromSMS);
 			    			if(res != 1){
 			    	        	logMessage = "Add received join request FAILED for phoneNumber = " + phoneNumberFromSMS;
 			    	            Log.e(CommonConst.LOG_TAG, logMessage);

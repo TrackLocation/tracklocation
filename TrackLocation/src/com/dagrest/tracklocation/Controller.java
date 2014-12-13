@@ -770,7 +770,7 @@ public class Controller {
 				commandDataBasic.sendCommand(/*true*/);
 				
 				// Remove from RECEIVED_JOIN_REQUEST
-				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
+				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getInstance().getReceivedJoinRequest(mutualId);
 				if( receivedJoinRequestData == null ){
 		        	String errMsg = "Failed to get received join request data";
 		            Log.e(CommonConst .LOG_TAG, errMsg);
@@ -781,7 +781,7 @@ public class Controller {
 				
 				// Add information to DB about contact, requesting join operation 
 				ContactDeviceDataList contactDeviceDataListOwner = 
-					DBLayer.addContactDeviceDataList(
+						DBLayer.getInstance().addContactDeviceDataList(
 						new ContactDeviceDataList(	receivedJoinRequestData.getAccount(),
 													receivedJoinRequestData.getMacAddress(), 
 													receivedJoinRequestData.getPhoneNumber(), 
@@ -794,7 +794,7 @@ public class Controller {
 				}
 				
 				// Delete join request that was handled 
-				int count = DBLayer.deleteReceivedJoinRequest(mutualId);
+				int count = DBLayer.getInstance().deleteReceivedJoinRequest(mutualId);
 				if( count < 1) {
 					Log.i(CommonConst.LOG_TAG, "Failed to delete recived join request with mutual id: " + mutualId + " count = " + count);
 				} else {
@@ -823,7 +823,7 @@ public class Controller {
 				commandDataBasic.sendCommand(/*true*/);
 				
 				// Remove from RECEIVED_JOIN_REQUEST
-				int count = DBLayer.deleteReceivedJoinRequest(mutualId);
+				int count = DBLayer.getInstance().deleteReceivedJoinRequest(mutualId);
 				if(count == 0){
 					String errorMsg = "Failed to delete received join request from " + ownerEmail;
 					LogManager.LogErrorMsg(CLASS_NAME, "doOnNegativeButton->deleteReceivedJoinRequest", errorMsg);
@@ -841,7 +841,7 @@ public class Controller {
 	            ownerMacAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
 	            ownerRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 	            ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
-				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getReceivedJoinRequest(mutualId);
+				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getInstance().getReceivedJoinRequest(mutualId);
 				if( receivedJoinRequestData == null ){
 		        	String errMsg = "Failed to get received join request data";
 		            Log.e(CommonConst .LOG_TAG, errMsg);
@@ -979,7 +979,7 @@ public class Controller {
     	if(contactData != null) {
 			String email = contactData.getEmail();
 			if(email != null && !email.isEmpty()) {
-				PermissionsData p = DBLayer.getPermissions(email);
+				PermissionsData p = DBLayer.getInstance().getPermissions(email);
 				return p.getIsLocationSharePermitted() == 1 ? true : false;
 			} else {
 				return false;

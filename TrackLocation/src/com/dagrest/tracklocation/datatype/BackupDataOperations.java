@@ -47,7 +47,7 @@ public class BackupDataOperations {
 		BackupData backupData = null;
 		methodName = "getDataForBackup";
 		if(contactDeviceDataList == null){
-			contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
+			contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
 		}
 		if(contactDeviceDataList == null){
 			logMessage = "Contact Device Data list is empty - nothing to backup.";
@@ -183,7 +183,7 @@ public class BackupDataOperations {
 			if(contactDeviceDataList != null){
 				// Set ContactDeviceDataList according to retrieved data
 				ContactDeviceDataList insertedContactDeviceDataList = 
-					DBLayer.addContactDeviceDataList(contactDeviceDataList);
+						DBLayer.getInstance().addContactDeviceDataList(contactDeviceDataList);
 				if(insertedContactDeviceDataList == null){
 					logMessage = "Backup restore failed.";
 					LogManager.LogErrorMsg(className, methodName, logMessage);

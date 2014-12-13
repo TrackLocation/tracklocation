@@ -146,8 +146,7 @@ public class MainActivity extends Activity {
 				showNotificationDialog("\nGoogle Play Services not supported with this device.\nProgram will be closed.\n", "FINISH");
 			}
             Log.e(CommonConst.LOG_TAG, "No valid Google Play Services APK found.");
-    		LogManager.LogInfoMsg(className, methodName, 
-    			"No valid Google Play Services APK found.");
+    		LogManager.LogInfoMsg(className, methodName, "No valid Google Play Services APK found.");
 			//finish();
 		}
 		
@@ -161,7 +160,7 @@ public class MainActivity extends Activity {
 		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
 			ContactDeviceDataList contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
 			if(contactDeviceDataList != null){
-				DBLayer.addContactDeviceDataList(contactDeviceDataList);
+				DBLayer.getInstance().addContactDeviceDataList(contactDeviceDataList);
 			}
 		}
 		
@@ -236,7 +235,7 @@ public class MainActivity extends Activity {
 		
     public void onClick(final View view) {
     	if (view == findViewById(R.id.btnLocate) || view == findViewById(R.id.btnLocationSharing) || view == findViewById(R.id.btnTracking) ){
-    		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
+    		contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
     	}
     	
     	// ========================================
@@ -414,7 +413,7 @@ public class MainActivity extends Activity {
 		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
 			ContactDeviceDataList contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
 			if(contactDeviceDataList != null){
-				DBLayer.addContactDeviceDataList(contactDeviceDataList);
+				DBLayer.getInstance().addContactDeviceDataList(contactDeviceDataList);
 			}
 		}
 	}
@@ -422,11 +421,11 @@ public class MainActivity extends Activity {
 	private void initWithRegID(String registrationId){
 		
 		// Insert into DB: owner information if doesn't exist
-		ContactDeviceDataList contDevDataList = DBLayer.getContactDeviceDataList(account);
+		ContactDeviceDataList contDevDataList = DBLayer.getInstance().getContactDeviceDataList(account);
 		if( contDevDataList == null || contDevDataList.getContactDeviceDataList().size() == 0){
 			// add information about owner to DB 
 			ContactDeviceDataList contactDeviceDataListOwner = 
-				DBLayer.addContactDeviceDataList(new ContactDeviceDataList(account,
+				DBLayer.getInstance().addContactDeviceDataList(new ContactDeviceDataList(account,
 					macAddress, phoneNumber, registrationId, null));
 			if(contactDeviceDataListOwner == null){
 				logMessage = "Failed to add owner information to application's DB";
@@ -443,7 +442,7 @@ public class MainActivity extends Activity {
 				account + CommonConst.DELIMITER_COLON + macAddress + CommonConst.DELIMITER_COLON + 
 				phoneNumber + CommonConst.DELIMITER_COLON + Controller.hideRealRegID(registrationId));
 		
-//		contDevDataList = DBLayer.getContactDeviceDataList(account);
+//		contDevDataList = DBLayer.getInstance().getContactDeviceDataList(account);
 //		if(contDevDataList != null){
 //			// get owner information from DB and save GUID to Preferences
 //			for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
@@ -456,7 +455,7 @@ public class MainActivity extends Activity {
 //            LogManager.LogErrorMsg(className, "init", errMsg);
 //		}
 //		
-// 		contactDeviceDataList = DBLayer.getContactDeviceDataList(null);
+// 		contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
 		
         registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
         if (registrationId == null || registrationId.isEmpty()) {

@@ -28,7 +28,7 @@ public class ContactDataAdapter extends BaseAdapter {
         mContext=context;
         mInflater = LayoutInflater.from(context);
         
-		ContactDeviceDataList contDevDataList = DBLayer.getContactDeviceDataList(null);
+		ContactDeviceDataList contDevDataList = DBLayer.getInstance().getContactDeviceDataList(null);
 		List<ContactDeviceData> conatctDevDataList = contDevDataList.getContactDeviceDataList();
 		int contactDeviceQuantity = conatctDevDataList.size();
 		if( contactDeviceQuantity > 0){

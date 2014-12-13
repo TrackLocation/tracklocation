@@ -10,6 +10,10 @@ import java.util.List;
 
 
 
+
+
+
+
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 //import com.dagrest.tracklocation.datatype.AppInfo;
@@ -322,7 +326,7 @@ public class ContactList extends Activity {
         int position = info.position;
         switch (item.getItemId()) {
 		case EDIT_OPTION:
-			
+			editContact(position);
 			break;
 		case DELETE_OPTION:
 			removeContact(position);
@@ -334,13 +338,42 @@ public class ContactList extends Activity {
         return true;
 	}
 	
+	private void editContact(int position) {
+		final ContactData editContact = adapter.getItem(position);
+		Intent contactEditIntent = new Intent(this, ContactEdit.class);		
+		contactEditIntent.putExtra(CommonConst.JSON_STRING_CONTACT_DATA, new Gson().toJson(editContact));
+		contactEditIntent.putExtra(CommonConst.CONTACT_LIST_SELECTED_VALUE, position);
+		startActivity(contactEditIntent);	
+		startActivityForResult(contactEditIntent,2);		
+	}
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+	    // Check which request we're responding to
+	        
+		 if(requestCode==2){
+			// Make sure the request was successful
+	        if (resultCode == RESULT_OK) {	        	
+	        	String jsonStringContactData = data.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DATA);   			        	
+	    		ContactData contactData = gson.fromJson(jsonStringContactData, ContactData.class);
+	    		
+	    		int contactPosition = data.getExtras().getInt(CommonConst.CONTACT_LIST_SELECTED_VALUE);
+	    		adapter.remove(adapter.getItem(contactPosition));
+	    		adapter.insert(contactData, contactPosition);
+	    		adapter.notifyDataSetChanged(); 	
+	    		LogManager.LogInfoMsg(className, "onActivityResult", "ContactData of " + contactData.getNick() + " was updated");
+	    		Toast.makeText(ContactList.this, "The contact " + contactData.getNick() + " was updated", Toast.LENGTH_SHORT).show();    		
+	        }
+		}
+	}
+
 	private void removeContact(int deletePosition){
 		final ContactData deleteContact = adapter.getItem(deletePosition);
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ContactList.this); 
 		// set title
 		alertDialogBuilder.setTitle(getString(R.string.delete_menu_operation));
  
-			// set dialog message
+		// set dialog message
 		alertDialogBuilder
 			.setMessage("The contact " + deleteContact.getNick() + " will be removed from the application")
 			.setCancelable(false)
@@ -348,18 +381,18 @@ public class ContactList extends Activity {
 				public void onClick(DialogInterface dialog,int id) {
 					ContactDeviceData contactDeviceData = contactDeviceDataList.getContactDeviceDataByContactData(deleteContact);
 					if (contactDeviceData != null ){
-						if (DBLayer.removeContactDataDeviceDetail(contactDeviceData) != -1){
+						if (DBLayer.getInstance().removeContactDataDeviceDetail(contactDeviceData) != -1){
 							values.remove(deleteContact);
 							adapter.notifyDataSetChanged(); 
+							Toast.makeText(ContactList.this, "The contact " + deleteContact.getNick() + " was removed", Toast.LENGTH_SHORT).show();
 						}
 					}
 				}
 			})
 			.setNegativeButton("No",new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog,int id) {
-
-						dialog.cancel();
-					}
+					dialog.cancel();
+				}
 			});
  
 		AlertDialog alertDialog = alertDialogBuilder.create();

@@ -841,7 +841,7 @@ public class GcmIntentService extends IntentService {
 //		PermissionsData permissionData = DBLayer.getPermissions(email);
 		
 		if(mutualId != null){
-			SentJoinRequestData sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
+			SentJoinRequestData sentJoinRequestData = DBLayer.getInstance().getSentJoinRequestByMutualId(mutualId);
 			if( sentJoinRequestData == null ){
 				logMessage = "Failed to get sent join request data";
 				LogManager.LogErrorMsg(className, methodName, logMessage);
@@ -854,7 +854,7 @@ public class GcmIntentService extends IntentService {
 			}
 
 			// Remove join request from TABLE_SEND_JOIN_REQUEST according to "mutualId"
-			int count = DBLayer.deleteSentJoinRequest(mutualId);
+			int count = DBLayer.getInstance().deleteSentJoinRequest(mutualId);
 			if( count < 1) {
 				logMessage = "Failed to delete sent join request with mutual id: " + mutualId + " count = " + count;
 				LogManager.LogInfoMsg(className, methodName, logMessage);
@@ -865,7 +865,7 @@ public class GcmIntentService extends IntentService {
 				Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 			}
 			
-			sentJoinRequestData = DBLayer.getSentJoinRequestByMutualId(mutualId);
+			sentJoinRequestData = DBLayer.getInstance().getSentJoinRequestByMutualId(mutualId);
 			if( sentJoinRequestData != null){
 				logMessage = "Failed to delete sent join request with mutual id: " + mutualId;
 				LogManager.LogInfoMsg(className, methodName, logMessage);
@@ -878,7 +878,7 @@ public class GcmIntentService extends IntentService {
 		}
 		
 		// Add contact details to CondtactDeviceData table
-		DBLayer.addContactDeviceDataList(new ContactDeviceDataList(accountCommandSentFrom,
+		DBLayer.getInstance().addContactDeviceDataList(new ContactDeviceDataList(accountCommandSentFrom,
 				macAddress, phoneNumber, registrationIdJoinApproval, null));
 		
 		LogManager.LogFunctionExit(className, methodName);
@@ -1083,7 +1083,7 @@ public class GcmIntentService extends IntentService {
 		// Update registrationID - sent by contact,
 		// that registered its application against Google Cloud Message
 		// Input parameters: value(as RegistrationID), senderAccount, senderMacAddress
-		long result = DBLayer.updateRegistrationID(senderAccount, senderMacAddress, value);
+		long result = DBLayer.getInstance().updateRegistrationID(senderAccount, senderMacAddress, value);
 		if(result == -1){
 			logMessage = "Failed to update RegistartionID";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
@@ -1307,7 +1307,7 @@ public class GcmIntentService extends IntentService {
 			ContactDeviceDataList contactDeviceDataToSendNotificationTo, 
 			MessageDataContactDetails messageDataContactDetails,
 			String methodName){
-		PermissionsData permissionsData = DBLayer.getPermissions(senderAccount);
+		PermissionsData permissionsData = DBLayer.getInstance().getPermissions(senderAccount);
     	if( permissionsData == null){
     		// Show error - no permission for "account" to invoke TrackLocation
         	logMessage = "No permissions defind for account: " + senderAccount + 

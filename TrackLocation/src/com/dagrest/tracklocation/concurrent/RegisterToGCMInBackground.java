@@ -64,7 +64,7 @@ public class RegisterToGCMInBackground implements Runnable {
 	                    // Persist the registration ID - no need to register again.
 	                    Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, registrationId);
 	                    // Update the registration ID in DB
-	            		long result = DBLayer.updateRegistrationID(clientAccount, clientMacAddress, registrationId);
+	            		long result = DBLayer.getInstance().updateRegistrationID(clientAccount, clientMacAddress, registrationId);
 	            		if(result == -1){
 	            			logMessage = "Failed to update RegistartionID";
 	            			LogManager.LogErrorMsg(className, methodName, logMessage);
@@ -85,7 +85,7 @@ public class RegisterToGCMInBackground implements Runnable {
 	    				String sendToPhoneNumber = null;
 	    				String sendToRegId = null;
 	    				
-	    				ContactDeviceDataList contDevDataList = DBLayer.getContactDeviceDataList(null);
+	    				ContactDeviceDataList contDevDataList = DBLayer.getInstance().getContactDeviceDataList(null);
 	    				if(contDevDataList != null){
 	    					// get owner information from DB and save GUID to Preferences
 	    					for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {

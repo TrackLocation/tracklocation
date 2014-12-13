@@ -105,13 +105,13 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 					public void onClick(View v) {						
 						if (viewHolder.checkBox != null) {
 							int isChecked = viewHolder.checkBox.isChecked() == true ? 0 : 1;
-							PermissionsData p = DBLayer.getPermissions(emailList.get(position));
+							PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
 							if (p != null) {
-								DBLayer.updatePermissions(p.getEmail(), isChecked,
+								DBLayer.getInstance().updatePermissions(p.getEmail(), isChecked,
 										p.getCommand(), p.getAdminCommand());
 								java.util.Map<String, Object> m = new HashMap<String, Object>();
 								m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
-								DBLayer.updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
+								DBLayer.getInstance().updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
 								viewHolder.checkBox.setChecked(viewHolder.checkBox.isChecked() == true ? false : true);
 							}
 						}
@@ -123,13 +123,13 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 						CheckBox cb = (CheckBox) v;
 						String t = cb.getText().toString();
 						int isChecked = cb.isChecked() == true ? 1 : 0;
-						PermissionsData p = DBLayer.getPermissions(emailList.get(position));
+						PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
 						if (p != null) {
-							DBLayer.updatePermissions(p.getEmail(), isChecked,
+							DBLayer.getInstance().updatePermissions(p.getEmail(), isChecked,
 									p.getCommand(), p.getAdminCommand());
 							java.util.Map<String, Object> m = new HashMap<String, Object>();
 							m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
-							DBLayer.updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
+							DBLayer.getInstance().updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
 						}
 					}
 				});
@@ -145,7 +145,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 				// Action on Row click 
 		if (viewHolder.checkBox != null) {								
 			if(emailList != null){
-				PermissionsData p = DBLayer.getPermissions(emailList.get(position));
+				PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
 				if(p != null){
 					boolean isChecked = p.getIsLocationSharePermitted() == 1 ? true : false;
 					viewHolder.checkBox.setChecked(isChecked);

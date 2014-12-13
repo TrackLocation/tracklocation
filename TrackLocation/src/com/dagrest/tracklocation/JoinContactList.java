@@ -157,7 +157,7 @@ public class JoinContactList extends Activity {
 		    			
 		    			// send join SMS command
 		    			long res = -1;
-		    			SentJoinRequestData joinRequestData = DBLayer.getSentJoinRequestByPhone(phoneNumber);
+		    			SentJoinRequestData joinRequestData = DBLayer.getInstance().getSentJoinRequestByPhone(phoneNumber);
 		    			if( joinRequestData == null ) { 
 		    				toSendAddJoinRequest = true;
 		    			} else { // join request with <phoneNumber> already exists, check the status
@@ -216,7 +216,7 @@ public class JoinContactList extends Activity {
     
     public void sendJoinRequest(Context context, String contactName, String phoneNumber){
     	String mutualId = Controller.generateUUID();
-    	long res = DBLayer.addSentJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
+    	long res = DBLayer.getInstance().addSentJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
 		if(res != 1){
 			// TODO: Notify that add to DB failed...
 		}

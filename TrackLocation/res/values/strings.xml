@@ -18,14 +18,19 @@
 	<string name="navigate_title">Navigate</string>	
 	<string name="call_title">Call</string>	
 	<string name="messages_title">Send message</string>	
-	<string name="map_account_options_title">Account Options</string>
+	<string name="n">Account Options</string>
 	<string name="choose_operation">Choose Contact Operation</string>	
 	<string name="edit_menu_operation">Edit contact details</string>
 	<string name="delete_menu_operation">Remove contact from list</string>
 	<string name="err_load_location">Location not found</string>
+	
 		
-	
-	
+	<string name="nick_name">Nick name:</string>	
+	<string name="lbl_email">Email:</string>
+	<string name="lbl_devicename">Device name :</string>	
+	<string name="lbl_devicetype">Device type :</string>
+	<string name="lbl_last_name">Last name :</string>
+	<string name="lbl_first_name">First name :</string>
 
 	<string name="about_dialog_text">\n\"Track Location\" application\n\n\nVersion %s\nWritten by David Agrest\n\n\nEmail: dagrest@gmail.com\n</string>
 	<string name="about_dialog_ok_btn">OK</string>
@@ -38,6 +43,6 @@
 	    <item>&quot;error&quot;</item>
 	    <item>&quot;info&quot;</item>
 	    <item>&quot;full&quot;</item>
-	</string-array>	    
+	</string-array>	    	
 </resources>
 
