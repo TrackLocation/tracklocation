@@ -1,10 +1,9 @@
 package com.dagrest.tracklocation.service;
 
 import java.util.HashMap;
-import java.util.List;
 
 import com.dagrest.tracklocation.Controller;
-import com.dagrest.tracklocation.NotificationReceiver;
+
 import com.dagrest.tracklocation.R;
 import com.dagrest.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.dagrest.tracklocation.datatype.AppInfo;
@@ -1176,6 +1175,7 @@ public class GcmIntentService extends IntentService {
 
 		notificationManager.notify(0, n); 
 */		
+
 		ringDevice();
 		
 		LogManager.LogFunctionExit(className, methodName);
@@ -1319,29 +1319,54 @@ public class GcmIntentService extends IntentService {
 	}
 
 	private void ringDevice(){
+		String methodName = "ringDevice";
 		AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-		int volume = audioManager.getStreamVolume(AudioManager.STREAM_ALARM);
-		if(volume==0){
-			volume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
+		// Get max volume for device
+		int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+		// Get current volume for device
+		int originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+		if(originalVolume == 0){
+			audioManager.setStreamVolume(AudioManager.STREAM_RING, 1, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 		}
-		audioManager.setStreamVolume(AudioManager.STREAM_ALARM, volume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-		Uri alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-		Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), alert/*Uri.parse(ringTonePath)*/);
+		
+		// Get URI of default ringtone
+		Uri ringUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE);
+		//Get system default ring tone
+		Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), ringUri /*Uri.parse(ringTonePath)*/);
+		
 		boolean isRinging = false;
-		if(ringtone!=null){
-		    ringtone.setStreamType(AudioManager.STREAM_ALARM);
+		if(ringtone != null){
+		    ringtone.setStreamType(AudioManager.STREAM_RING);
 		    ringtone.play();
 		    isRinging = true;
 		}
 		
-		// play defined time - 3 seconds by default
+		int currVoulme = 0;
 		if(isRinging == true){
 			try {
-				Thread.sleep(20000);
+				// play 5 seconds and increase volume until max volume achieved
+				currVoulme = originalVolume;
+				while(currVoulme < maxVolume){
+					Thread.sleep(5000);
+					// Increase ring volume
+					audioManager.adjustStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_RAISE, 
+						AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+					currVoulme = audioManager.getStreamVolume(AudioManager.STREAM_RING);
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + methodName + 
+						" MaxVolume = " + maxVolume + "; CurrVoulme = " + currVoulme);
+				}
 			} catch (InterruptedException e) {
-				// e.printStackTrace();
+				ringtone.stop();
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + methodName + 
+						" Ringtone stopped.");			
+				isRinging = false;
 			} 
 			ringtone.stop();
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + methodName + 
+					" Ringtone stopped.");			
+			isRinging = false;
+			// Set original volume
+			audioManager.setStreamVolume(AudioManager.STREAM_RING, originalVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 		}
 	}
 	

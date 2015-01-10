@@ -25,6 +25,7 @@ import android.os.Handler;
 import android.telephony.SmsManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.widget.EditText;
@@ -44,6 +45,7 @@ public class JoinContactList extends Activity {
 	private boolean toSendAddJoinRequest = false;
 	
 	public void launchBarDialog(View view) {
+		String methodName = "launchBarDialog";
 		barProgressDialog = new ProgressDialog(JoinContactList.this);
 		barProgressDialog.setTitle("Fetching contacts");
 		barProgressDialog.setMessage("Please wait ...");
@@ -57,6 +59,7 @@ public class JoinContactList extends Activity {
 		new Thread(new Runnable() {
 		    @Override
 		    public void run() {
+		    	String methodName = "launchBarDialog->Thread->Runnable->run";
 		        try {
 		        	Controller.fetchContacts(JoinContactList.this, contactDetailsGroups, barProgressDialog);
 		        	barProgressDialog.dismiss();
@@ -68,7 +71,8 @@ public class JoinContactList extends Activity {
 							BroadcastKeyEnum.fetch_contacts_completed.toString(), 
 							"Completed");
 		        } catch (Exception e) {
-		        	System.out.println("Exception IMPORTANT: " + e.getMessage());
+		    		LogManager.LogException(e, className, methodName);
+		    		Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 		        }
 		    }
 		}).start();
@@ -148,7 +152,7 @@ public class JoinContactList extends Activity {
 		    		String namePhoneNumber = bundle.getString(broadcastKeyJoinNumber);
 		    		
 		    		if(namePhoneNumber != null && !namePhoneNumber.isEmpty() && bundle.containsKey(broadcastKeyJoinNumber)){
-		    			System.out.println("Join number: " + namePhoneNumber);
+//		    			System.out.println("Join number: " + namePhoneNumber);
 		    			
 		    			String[] args = namePhoneNumber.split(CommonConst.DELIMITER_STRING);
 		    			

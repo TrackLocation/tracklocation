@@ -225,6 +225,7 @@ public class TrackLocationService extends TrackLocationServiceBasic {
 
     public void stopTrackLocationService(){
     	Log.i(CommonConst.LOG_TAG, "Stop TrackLocationService");
+	    unregisterReceiver(gcmKeepAliveBroadcastReceiver);
     	stopSelf();
     }
 

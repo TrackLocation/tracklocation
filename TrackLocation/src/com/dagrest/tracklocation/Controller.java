@@ -608,7 +608,7 @@ public class Controller {
         long startTime = System.currentTimeMillis();
         Cursor cursor = contentResolver.query(CONTENT_URI, null,null, null, DISPLAY_NAME + " COLLATE LOCALIZED ASC"); 
         long endTime = System.currentTimeMillis() - startTime;
-        System.out.println("Retrieve all contacts query: " + endTime);
+//        System.out.println("Retrieve all contacts query: " + endTime);
         
         startTime = System.currentTimeMillis();
         
@@ -644,7 +644,7 @@ public class Controller {
         }
         cursor.close();
         endTime = System.currentTimeMillis() - startTime;
-        System.out.println("Retrieve all contacts details query and save to groups: " + endTime);
+//        System.out.println("Retrieve all contacts details query and save to groups: " + endTime);
         return contactDetailsGroups;
     }
 

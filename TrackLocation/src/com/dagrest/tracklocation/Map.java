@@ -808,7 +808,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	             
 	            if (endY < startY) {
 	            	if (viewStatus == DialogStatus.Opened){
-		                System.out.println("Move UP");	                
+//		                System.out.println("Move UP");	                
 		                layoutAccountMenu.getLayoutParams().height = map_popup_first.getLayoutParams().height + map_popup_second.getLayoutParams().height;
 						layoutAccountMenu.setLayoutParams(layoutAccountMenu.getLayoutParams());
 		                Animation animUpEx = new TranslateAnimation(0, 0, layoutAccountMenu.getLayoutParams().height, 0 );

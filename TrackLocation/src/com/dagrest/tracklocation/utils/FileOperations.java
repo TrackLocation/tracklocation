@@ -66,8 +66,10 @@ public class FileOperations {
 		try {
 			fileInputStream = new FileInputStream(filePath);
 
-			System.out.println("Total file size to read (in bytes) : "
-					+ fileInputStream.available());
+			logMessage = "Total file size to read (in bytes) : " +
+				fileInputStream.available();
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
 			int content;
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -76,7 +78,7 @@ public class FileOperations {
 			while ((content = fileInputStream.read()) != -1) {
 				// convert to char and display it
 				out.write(content);
-				System.out.print((char) content);
+//				System.out.print((char) content);
 			}
 			fileContentByteArray = baos.toByteArray();
 			fileContent = new String(fileContentByteArray, "UTF-8");
