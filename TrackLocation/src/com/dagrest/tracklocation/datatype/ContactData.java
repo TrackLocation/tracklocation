@@ -18,8 +18,8 @@ public class ContactData {
 	public String getNick() {
 		if (nick == null || nick.isEmpty()){
 			if (email == null || email.isEmpty()){
-				nick = "unknown";
-				email = "unknown@unknown.com";
+//				nick = "unknown";
+//				email = "unknown@unknown.com";
 			}
 			else{
 				nick = Controller.getNickNameFromEmail(email);	
