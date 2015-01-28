@@ -153,6 +153,11 @@
             android:name="NotificationReceiver"
             android:label="Notification Receiver" >
         </activity>
+		<activity
+            android:name=".dialog.ActivityDialogRing"
+            android:label="Activity Dialog Ring" 
+            android:theme="@android:style/Theme.Dialog">
+        </activity>
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />

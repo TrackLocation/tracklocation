@@ -1101,7 +1101,7 @@ public class Controller {
 		return contactDeviceDataToSendNotificationTo;
 	}
 	
-	public static void broadcsatMessage(Context context, String message, String key, String value){
+	public static void broadcsatMessage(Context context, String broadcastMessage, String message, String key, String value){
 		NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
 		notificationBroadcastData.setMessage(message);
 		notificationBroadcastData.setKey(key);
@@ -1111,7 +1111,7 @@ public class Controller {
 		
 		// Broadcast corresponding message
 		Controller.broadcastMessage(context, 
-			BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+			broadcastMessage, 
 			"GcmIntentService",
 			jsonNotificationBroadcastData, 
 			key, // BroadcastKeyEnum.message.toString(),  

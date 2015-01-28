@@ -3,11 +3,11 @@ package com.dagrest.tracklocation.service;
 import java.util.HashMap;
 
 import com.dagrest.tracklocation.Controller;
-
 import com.dagrest.tracklocation.R;
 import com.dagrest.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.BroadcastData;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.CommandData;
@@ -27,6 +27,7 @@ import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.db.DBManager;
+import com.dagrest.tracklocation.dialog.ActivityDialogRing;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.exception.CheckPlayServicesException;
@@ -43,9 +44,11 @@ import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
@@ -72,7 +75,11 @@ public class GcmIntentService extends IntentService {
 	
 	private Context context;
 	
-	public GcmIntentService() {
+	boolean isRinging = false;
+	
+    private BroadcastReceiver notificationBroadcastReceiver = null;
+
+    public GcmIntentService() {
 		super("GcmIntentService");
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" +this.getClass().getName() + "} -> " + "GcmIntentService()");
 		LogManager.LogFunctionCall(className, "GcmIntentService()");
@@ -113,6 +120,8 @@ public class GcmIntentService extends IntentService {
 
     	// Collect client details
         initClientDetails();
+
+		initNotificationBroadcastReceiver();
 
         Bundle extras = intent.getExtras();
         // The getMessageType() intent parameter must be the intent you received
@@ -1000,12 +1009,12 @@ public class GcmIntentService extends IntentService {
 				CommandValueEnum.not_defined.toString().equals(value)){
 			Controller.removeSenderAccountFromSendCommandList(context, 
 					jsonListAccounts, senderAccount);
-			Controller.broadcsatMessage(context, msg + " by " + senderAccount, key, value);
+			Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
 		} else if (CommandKeyEnum.permissions.toString().equals(key) && 
 				CommandValueEnum.not_permitted.toString().equals(value)){
 			Controller.removeSenderAccountFromSendCommandList(context, 
 					jsonListAccounts, senderAccount);
-			Controller.broadcsatMessage(context, msg + " by " + senderAccount, key, value);
+			Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
 		}
 
 // TODO: Delete from here - not needed - ONLY as example of BROADCAST:
@@ -1137,7 +1146,6 @@ public class GcmIntentService extends IntentService {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 		
-/* TODO: continue development - DAVID		
 		String jsonContactDetailsSentFrom = extras.getString(CommandTagEnum.contactDetails.toString());
 		
 		MessageDataContactDetails contactDetailsSentFrom = 
@@ -1150,10 +1158,8 @@ public class GcmIntentService extends IntentService {
 		
 		String accountCommandSentFrom = null;
 		accountCommandSentFrom = contactDetailsSentFrom.getAccount();
-
 		
-		
-		
+		/* TODO: continue development - DAVID		
 		
 		Intent intent = new Intent(this, NotificationReceiver.class);
 		PendingIntent pIntent = PendingIntent.getActivity(this, 0, intent, 0);
@@ -1175,9 +1181,14 @@ public class GcmIntentService extends IntentService {
 
 		notificationManager.notify(0, n); 
 */		
+		
+		Intent intentRingDialog = new Intent(getBaseContext(),ActivityDialogRing.class);
+		intentRingDialog.putExtra(CommonConst.PREFERENCES_PHONE_ACCOUNT, accountCommandSentFrom);
+		intentRingDialog.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(intentRingDialog);
 
 		ringDevice();
-		
+				
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
@@ -1334,7 +1345,6 @@ public class GcmIntentService extends IntentService {
 		//Get system default ring tone
 		Ringtone ringtone = RingtoneManager.getRingtone(getApplicationContext(), ringUri /*Uri.parse(ringTonePath)*/);
 		
-		boolean isRinging = false;
 		if(ringtone != null){
 		    ringtone.setStreamType(AudioManager.STREAM_RING);
 		    ringtone.play();
@@ -1346,8 +1356,12 @@ public class GcmIntentService extends IntentService {
 			try {
 				// play 5 seconds and increase volume until max volume achieved
 				currVoulme = originalVolume;
-				while(currVoulme < maxVolume){
-					Thread.sleep(5000);
+				while(currVoulme <= maxVolume && isRinging == true){
+					int secondsCounter = 0;
+					while(secondsCounter <= 20 && isRinging == true){
+						Thread.sleep(1000);
+						secondsCounter++;
+					}
 					// Increase ring volume
 					audioManager.adjustStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_RAISE, 
 						AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
@@ -1432,7 +1446,58 @@ public class GcmIntentService extends IntentService {
     	}
     	return true;
 	}
+
+	// Initialize BROADCAST_MESSAGE broadcast receiver
+	private void initNotificationBroadcastReceiver() {
+		String methodName = "initNotificationBroadcastReceiver";
+		LogManager.LogFunctionCall(className, methodName);
+	    IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_TURN_OFF_RING.toString());
+	    if(notificationBroadcastReceiver != null){
+	    	LogManager.LogFunctionExit(className, methodName);
+	    	return;
+	    }
+	    notificationBroadcastReceiver = new BroadcastReceiver() {
+
+	    	Gson gson = new Gson();
+	    	
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				// String methodName = "onReceive";
+				Bundle bundle = intent.getExtras();
+	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
+	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
+	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
+	    				return;
+	    			}
+	    			NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
+	    			if(broadcastData == null){
+	    				return;
+	    			}
+	    			
+	    			String key  = broadcastData.getKey();
+	    			
+    				// Notification about command: turn off the Ring signal
+	    			if(BroadcastKeyEnum.turn_off.toString().equals(key)) {
+	    				isRinging = false;
+	    			}
+	    		}
+			}
+	    };
+	    
+	    registerReceiver(notificationBroadcastReceiver, intentFilter);
+	    
+		LogManager.LogFunctionExit(className, methodName);
+	}
 	
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+    	if(notificationBroadcastReceiver != null){
+    		unregisterReceiver(notificationBroadcastReceiver);
+    	}
+	}
+
 //	private static void broadcsatMessage(Context context, String message, String key, String value){
 //		NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
 //		notificationBroadcastData.setMessage(message);

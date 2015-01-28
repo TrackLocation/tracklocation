@@ -32,6 +32,12 @@
 	<string name="lbl_last_name">Last name :</string>
 	<string name="lbl_first_name">First name :</string>
 
+	
+	<string name="ring_dialog_btn_first_name">Turn Off singnal</string>
+	<string name="ring_dialog_btn_second_name">Close dialog</string>
+	<string name="ring_dialog_message">[%s] is trying to contact you.\n\nPlease contact him as soon as possible.</string>
+	
+	
 	<string name="about_dialog_text">\n\"Track Location\" application\n\n\nVersion %s\nWritten by David Agrest\n\n\nEmail: dagrest@gmail.com\n</string>
 	<string name="about_dialog_ok_btn">OK</string>
 	<string-array name="log_level_entries">

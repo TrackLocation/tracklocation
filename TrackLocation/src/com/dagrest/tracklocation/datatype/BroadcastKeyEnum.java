@@ -13,7 +13,8 @@ public enum BroadcastKeyEnum {
 	resend_join_request("resend_join_request"),
 	keep_alive("keep_alive"),
 	message("message"),
-	join_sms("join_sms");
+	join_sms("join_sms"),
+	turn_off("turn_off");
 	
 	private final String name;       
 	private static Map<String, BroadcastKeyEnum> valueMap;
