@@ -581,10 +581,14 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 					Geocoder geocoder = new Geocoder(this.context, Locale.ENGLISH);
 					try {
 						List<Address>  addresses = geocoder.getFromLocation(lat, lng, 1);
-						String address = addresses.get(0).getAddressLine(0);
-						String city = addresses.get(0).getAddressLine(1);
-						//String country = addresses.get(0).getAddressLine(2);
-						snippetString = snippetString + "\nCity : " + city + "\nAddress: " + address;					
+						String address = null;
+						String city = null;
+						if(addresses != null && addresses.size() > 0 && addresses.get(0) != null){
+							address = addresses.get(0).getAddressLine(0);
+							city = addresses.get(0).getAddressLine(1);
+							//String country = addresses.get(0).getAddressLine(2);
+							snippetString = snippetString + "\nCity : " + city + "\nAddress: " + address;					
+						}
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
