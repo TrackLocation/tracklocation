@@ -60,7 +60,7 @@ public class LogHelper {
     		// Message                  
     		buildMsg += logMessage;                                    
     		
-    		toLog(buildMsg);          
+    		toLogWrite(msgType, buildMsg);          
     	}   
  
 		private static String Wrap(String string)          
@@ -73,10 +73,21 @@ public class LogHelper {
     	//              toLog(logMessage);  
     	//      }
 
-		public void toLog(final String logMessage){      
+		public void toLogWrite(final MessageType msgType, final String logMessage){      
 			if(isLogEnabled() == true)                  
 			{                          
-				final String timeStamp = getTimestamp();                          
+				final String timeStamp = getTimestamp();     
+				String activityCreatePrefix = "";
+				String activityDestroyPostfix = "";
+	    		if(msgType.equals(MessageType.ACTIVITY_CREATE)){
+	    			activityCreatePrefix += "\n===== ACTIVITY_CREATE =====\n";
+	    		}
+	    		if(msgType.equals(MessageType.ACTIVITY_DESTROY)){
+	    			activityDestroyPostfix += "\n===== ACTIVITY_DESTROY =====\n";
+	    		}
+	    		final String prefix = activityCreatePrefix;
+	    		final String postfix = activityDestroyPostfix;
+	    		
 				Thread t = new Thread(new Runnable() {
 
 					//@Override                          
@@ -89,7 +100,7 @@ public class LogHelper {
 								new FileWriter(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + File.separator +CommonConst.TRACK_LOCATION_LOG_FILE_NAME, true));                                          
 								//ex.printStackTrace(pw);  
 								
-								pw.println(timeStamp+CommonConst.DELIMITER+logMessage);                                          
+								pw.println(prefix+timeStamp+CommonConst.DELIMITER+logMessage+postfix);                                          
 								pw.flush();                                          
 								pw.close();                                      
 							} catch (IOException e) {                                          

@@ -12,6 +12,7 @@ import com.google.gson.Gson;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,11 +33,17 @@ public class LocationSharingList extends Activity {
 	private ContactDeviceDataList contactDeviceDataList;
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private List<String> selectedContcatList;
-
+	private String className = this.getClass().getName();
+	private String methodName;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.location_sharing_list);
+		methodName = "onCreate";
+		
+		LogManager.LogActivityCreate(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
 		Intent intent = getIntent();
 		gson = new Gson();
@@ -201,6 +208,9 @@ public class LocationSharingList extends Activity {
 	 @Override
     protected void onDestroy() {
     	super.onDestroy();
+    	methodName = "onDestroy";
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
     }
 	 
 }

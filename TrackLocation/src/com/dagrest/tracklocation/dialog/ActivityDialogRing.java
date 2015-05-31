@@ -1,10 +1,13 @@
 package com.dagrest.tracklocation.dialog;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
@@ -16,7 +19,10 @@ import android.widget.TextView;
 import com.dagrest.tracklocation.Controller;
 import com.dagrest.tracklocation.R;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
+import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
+import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
+import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.google.gson.Gson;
 
@@ -31,13 +37,21 @@ public class ActivityDialogRing extends Activity {
 	private Context context;
 	
 	private String senderAccount;
+	private String className = this.getClass().getName();
+	private String methodName;
 	
-	@Override
+    private BroadcastReceiver notificationBroadcastReceiver = null;
+
+    @Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
 		context = this.getApplicationContext();
+		methodName = "onCreate";
 		
+		LogManager.LogActivityCreate(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
+
 		Intent intent = getIntent();
 		senderAccount = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_ACCOUNT);
 
@@ -46,6 +60,8 @@ public class ActivityDialogRing extends Activity {
 
 		setContentView(R.layout.activity_dialog);
 		
+		initNotificationBroadcastReceiver();
+
 		// Text Layout
 		RelativeLayout textLayout = (RelativeLayout) findViewById(R.id.text_layout);
     
@@ -124,4 +140,57 @@ public class ActivityDialogRing extends Activity {
 		// Only BTN_SECOND_ID can close the dialog/activity
 	}
 
+	// Initialize BROADCAST_FINISH_ACITIVTY_DIALOG_RING broadcast receiver
+	private void initNotificationBroadcastReceiver() {
+		String methodName = "initNotificationBroadcastReceiver";
+		LogManager.LogFunctionCall(className, methodName);
+	    IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_FINISH_ACITIVTY_DIALOG_RING.toString());
+	    if(notificationBroadcastReceiver != null){
+	    	LogManager.LogFunctionExit(className, methodName);
+	    	return;
+	    }
+	    notificationBroadcastReceiver = new BroadcastReceiver() {
+
+	    	Gson gson = new Gson();
+	    	
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				// String methodName = "onReceive";
+				Bundle bundle = intent.getExtras();
+	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
+	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
+	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
+	    				return;
+	    			}
+	    			NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
+	    			if(broadcastData == null){
+	    				return;
+	    			}
+	    			
+	    			String key  = broadcastData.getKey();
+	    			
+    				// Notification about command: turn off the Ring signal
+	    			if(BroadcastKeyEnum.finish.toString().equals(key)) {
+	    				finish();
+	    			}
+	    		}
+			}
+	    };
+	    
+	    registerReceiver(notificationBroadcastReceiver, intentFilter);
+	    
+		LogManager.LogFunctionExit(className, methodName);
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+    	if(notificationBroadcastReceiver != null){
+    		unregisterReceiver(notificationBroadcastReceiver);
+    	}
+    	methodName = "onDestroy";
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
+	}
 }

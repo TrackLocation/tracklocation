@@ -111,6 +111,7 @@ public class Controller {
 	
 	private Timer timer;
 	private MapKeepAliveTimerJob mapKeepAliveTimerJob;
+	private static final String className = "Controller";
 
 	public void keepAliveTrackLocationService(Context context, ContactDeviceDataList selectedContactDeviceDataList, long startDelay){
         timer = new Timer();
@@ -421,13 +422,18 @@ public class Controller {
 		String key, 
 		String value)
 	{
-		LogManager.LogFunctionCall(actionDescription, "broadcastMessage");
+		String methodName = "broadcastMessage";
+		LogManager.LogFunctionCall(className + " on behalf of " + actionDescription, methodName);
+		
+		LogManager.LogInfoMsg(className, methodName, "Action: " + action);
+		LogManager.LogInfoMsg(className, methodName, "Key: " + key);
+		
 		Intent intent = new Intent();
 		intent.setAction(action); //intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
 		intent.putExtra(key, value);
 		intent.putExtra(BroadcastConstEnum.data.toString(), data);
 		context.sendBroadcast(intent);
-		LogManager.LogFunctionExit(actionDescription, "broadcastMessage");
+		LogManager.LogFunctionExit(className + " on behalf of " + actionDescription, methodName);
 	}
 
 	/*

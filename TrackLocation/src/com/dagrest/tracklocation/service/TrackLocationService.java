@@ -85,6 +85,12 @@ public class TrackLocationService extends TrackLocationServiceBasic {
             Log.i(CommonConst.LOG_TAG, "{" + className + "} onStart - Start");
             
             Gson gson = new Gson();
+            if(intent == null){
+            	logMessage = "TrackLocation service failed to start.";
+        		LogManager.LogErrorMsg(className, methodName, logMessage);
+        		Log.i(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+            	return;
+            }
             Bundle extras = intent.getExtras();
             String jsonSenderMessageDataContactDetails = null;
             MessageDataContactDetails senderMessageDataContactDetails = null;
@@ -224,9 +230,13 @@ public class TrackLocationService extends TrackLocationServiceBasic {
     }
 
     public void stopTrackLocationService(){
+    	methodName = "stopTrackLocationService";
     	Log.i(CommonConst.LOG_TAG, "Stop TrackLocationService");
 	    unregisterReceiver(gcmKeepAliveBroadcastReceiver);
     	stopSelf();
+    	logMessage = "Track Location Service has been stopped.";
+    	LogManager.LogInfoMsg(className, methodName, logMessage);
+    	Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
     }
 
 	public long getTrackLocationServiceStartTime() {

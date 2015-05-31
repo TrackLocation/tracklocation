@@ -14,6 +14,8 @@ import java.util.List;
 
 
 
+
+
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 //import com.dagrest.tracklocation.datatype.AppInfo;
@@ -31,6 +33,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -61,6 +64,7 @@ public class ContactList extends Activity {
 	private List<String> selectedContcatList;
 	private Gson gson;
 	private String className;
+	private String methodName;
 	private Context context;
 	List<ContactData> values;
  	
@@ -70,7 +74,10 @@ public class ContactList extends Activity {
 		setContentView(R.layout.contact_list);
 		className = this.getClass().getName();
 		context = getApplicationContext();
+		methodName = "onCreate";
 		
+		LogManager.LogActivityCreate(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 		
 		Intent intent = getIntent();
 		gson = new Gson();
@@ -269,6 +276,9 @@ public class ContactList extends Activity {
     @Override
     protected void onDestroy() {
     	super.onDestroy();
+
+    	LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
     }
 
 	private void showNotificationDialog(String title, String errorMessage) {

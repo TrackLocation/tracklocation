@@ -10,6 +10,7 @@ import com.dagrest.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.AppInstDetails;
 import com.dagrest.tracklocation.datatype.BackupDataOperations;
+import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.dialog.CommonDialog;
@@ -412,6 +413,17 @@ public class MainActivityController {
 			logMessage = "Owner information already exists in application's DB";
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			// FIXME: Update only if registration ID in DB is differs
+			long res = DBLayer.getInstance().updateRegistrationID(account, macAddress, registrationId);
+			if(res <= 0){
+				logMessage = "Unable to update registration ID";
+				LogManager.LogErrorMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			} else {
+				logMessage = "Owner registration ID has been updated";
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			}
 		}
 		
 		LogManager.LogInfoMsg(className, "SAVE OWNER INFO", 

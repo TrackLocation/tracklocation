@@ -89,7 +89,6 @@ public class GcmIntentService extends IntentService {
 	
 	@Override
 	public void onCreate() {
-		// TODO Auto-generated method stub
 		super.onCreate();
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" +this.getClass().getName() + "} -> " + "onCreate()");
 		LogManager.LogFunctionCall(className, "onCreate()");
@@ -1188,7 +1187,37 @@ public class GcmIntentService extends IntentService {
 		startActivity(intentRingDialog);
 
 		ringDevice();
-				
+
+		// send broadcast to finish the ActivityDialogRing
+		Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_FINISH_ACITIVTY_DIALOG_RING.toString(), 
+				"Turn Off the Ring signal" + " by " + clientAccount, 
+				BroadcastKeyEnum.finish.toString(), CommonConst.NOBODY_RESPONDED);
+
+//		messageDataContactDetails = new MessageDataContactDetails(
+//				clientAccount, clientMacAddress, clientPhoneNumber,
+//				clientRegId, clientBatteryLevel);
+//		ContactDeviceDataList contactDeviceDataToSendNotificationTo = new ContactDeviceDataList(
+//				senderMessageDataContactDetails.getAccount(),
+//				senderMessageDataContactDetails.getMacAddress(),
+//				senderMessageDataContactDetails.getPhoneNumber(),
+//				senderMessageDataContactDetails.getRegId(), null);
+//		// ===========================================================
+//		// ===  NOTIFICATION: START COMMAND STATUS  ==================
+//		// ===========================================================
+//		// Notify caller by GCM (push notification)
+//		CommandDataBasic commandDataBasic = new CommandData(
+//			getApplicationContext(), 
+//			contactDeviceDataToSendNotificationTo, 
+//			CommandEnum.notification, 
+//			msgServiceStarted, 
+//			messageDataContactDetails, 
+//			null, 					// location
+//			notificationKey, 
+//			notificationValue,
+//			appInfo
+//		);
+//		commandDataBasic.sendCommand();
+
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
@@ -1356,9 +1385,10 @@ public class GcmIntentService extends IntentService {
 			try {
 				// play 5 seconds and increase volume until max volume achieved
 				currVoulme = originalVolume;
+				int ringTimeWithMaxVolume = 0;
 				while(currVoulme <= maxVolume && isRinging == true){
 					int secondsCounter = 0;
-					while(secondsCounter <= 20 && isRinging == true){
+					while(secondsCounter <= 20 && isRinging == true){ // 20 seconds - waiting loop
 						Thread.sleep(1000);
 						secondsCounter++;
 					}
@@ -1368,6 +1398,16 @@ public class GcmIntentService extends IntentService {
 					currVoulme = audioManager.getStreamVolume(AudioManager.STREAM_RING);
 					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + methodName + 
 						" MaxVolume = " + maxVolume + "; CurrVoulme = " + currVoulme);
+					if(currVoulme >= maxVolume && ringTimeWithMaxVolume >= CommonConst.MAX_RINGTIME_WITH_MAX_VOLUME/* * 3 */){
+						// send broadcast to finish the ActivityDialogRing
+						Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_FINISH_ACITIVTY_DIALOG_RING.toString(), 
+								"Turn Off the Ring signal" + " by " + clientAccount, 
+								BroadcastKeyEnum.finish.toString(), CommonConst.NOBODY_RESPONDED);
+						break; // stop Ringtone signal
+
+					} else {
+						ringTimeWithMaxVolume++;
+					}
 				}
 			} catch (InterruptedException e) {
 				ringtone.stop();
@@ -1447,7 +1487,7 @@ public class GcmIntentService extends IntentService {
     	return true;
 	}
 
-	// Initialize BROADCAST_MESSAGE broadcast receiver
+	// Initialize BROADCAST_TURN_OFF_RING broadcast receiver
 	private void initNotificationBroadcastReceiver() {
 		String methodName = "initNotificationBroadcastReceiver";
 		LogManager.LogFunctionCall(className, methodName);

@@ -5,6 +5,7 @@ import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceTypeEnum;
 import com.dagrest.tracklocation.db.DBLayer;
+import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.google.gson.Gson;
 
@@ -16,6 +17,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
@@ -39,6 +41,8 @@ public class ContactEdit extends Activity {
 	private Spinner spn_device_type;
 	protected String selectedDeviceTypeValue;
 	private int contactPosition;
+    private String className;
+    private String methodName;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +50,12 @@ public class ContactEdit extends Activity {
 		setContentView(R.layout.contact_details);	
 		final Intent intent = getIntent();
 		contactPosition = intent.getExtras().getInt(CommonConst.CONTACT_LIST_SELECTED_VALUE);
+		className = this.getClass().getName();
+		methodName = "onCreate";
 		
+		LogManager.LogActivityCreate(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
+
 		Gson gson = new Gson();
 		String jsonStringContactData = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DATA);
 		ContactData contactData = gson.fromJson(jsonStringContactData, ContactData.class);
@@ -97,7 +106,13 @@ public class ContactEdit extends Activity {
 		}
 		finish();
     }
-	
-	
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		methodName = "onDestroy";
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
+	}
 	
 }

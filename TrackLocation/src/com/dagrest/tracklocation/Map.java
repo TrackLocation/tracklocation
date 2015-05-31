@@ -92,7 +92,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	private static final int POPUP_POSITION_REFRESH_INTERVAL = 16;
 	private static final int ANIMATION_DURATION = 500;
 	
-	private String className;
+	private String className = this.getClass().getName();
 	private String methodName;
 	private String logMessage;
 	
@@ -172,12 +172,14 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		getActionBar().hide();
-		className = this.getClass().getName();
 		methodName = "onCreate";
 		mapActivity = this;
     	isPermissionDialogShown = false;
 		setContentView(R.layout.map);	
 		
+		LogManager.LogActivityCreate(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
+
 		notificationView = (TextView) findViewById(R.id.textViewMap);
 		notificationView.setVisibility(0); // 0 - visible / 4 - invisible
 		notificationView.setText("Tracking for contacts\nPlease wait...");
@@ -726,6 +728,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
     @Override
     protected void onDestroy() {
     	super.onDestroy();
+    	methodName = "onDestroy";
     	
 		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -745,6 +748,9 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
     	}
     	
     	isPermissionDialogShown = false;
+    	
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
     }
 
 	private void displayNotification(Bundle bundle){

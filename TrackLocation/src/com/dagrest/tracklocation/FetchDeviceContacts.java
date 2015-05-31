@@ -13,7 +13,6 @@ public class FetchDeviceContacts extends AsyncTask<Object, Object, SparseArray<C
 
 	@Override
 	protected SparseArray<ContactDetails> doInBackground(Object... params) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 /*	private ProgressDialog statusDialog;

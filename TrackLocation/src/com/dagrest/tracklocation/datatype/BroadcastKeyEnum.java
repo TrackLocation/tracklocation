@@ -14,7 +14,8 @@ public enum BroadcastKeyEnum {
 	keep_alive("keep_alive"),
 	message("message"),
 	join_sms("join_sms"),
-	turn_off("turn_off");
+	turn_off("turn_off"),
+	finish("finish");
 	
 	private final String name;       
 	private static Map<String, BroadcastKeyEnum> valueMap;

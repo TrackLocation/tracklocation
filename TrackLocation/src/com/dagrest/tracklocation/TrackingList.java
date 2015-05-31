@@ -13,6 +13,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.PreferenceFragment;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,11 +34,18 @@ public class TrackingList extends Activity {
 	private ContactDeviceDataList contactDeviceDataList;
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private List<String> selectedContcatList;
-
+	private String className = this.getClass().getName();
+	private String methodName;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.tracking_contact_list);
+
+		methodName = "onCreate";
+		
+		LogManager.LogActivityCreate(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
 		Intent intent = getIntent();
 		gson = new Gson();
@@ -207,8 +215,11 @@ public class TrackingList extends Activity {
 //	  
 //	  }
 	 
-	 @Override
-    protected void onDestroy() {
-    	super.onDestroy();
-    }
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		methodName = "onDestroy";
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
+	}
 }

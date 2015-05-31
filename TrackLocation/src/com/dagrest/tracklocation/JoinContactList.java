@@ -39,13 +39,14 @@ public class JoinContactList extends Activity {
 	private ContactDeatilsExpandableListAdapter adapter;
 	private BroadcastReceiver broadcastReceiver;
 	private String className = this.getClass().getName();
+	private String methodName;
 	ProgressDialog barProgressDialog;
 	Handler updateBarHandler;
 	ExpandableListView listView;
 	private boolean toSendAddJoinRequest = false;
 	
 	public void launchBarDialog(View view) {
-		String methodName = "launchBarDialog";
+		methodName = "launchBarDialog";
 		barProgressDialog = new ProgressDialog(JoinContactList.this);
 		barProgressDialog.setTitle("Fetching contacts");
 		barProgressDialog.setMessage("Please wait ...");
@@ -83,6 +84,9 @@ public class JoinContactList extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.join_contact_list);
 		
+		LogManager.LogActivityCreate(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
+
 		updateBarHandler = new Handler();
 
 		initBroadcastReceiver();
@@ -216,6 +220,9 @@ public class JoinContactList extends Activity {
     protected void onDestroy() {
     	super.onDestroy();
     	unregisterReceiver(broadcastReceiver);
+    	methodName = "onDestroy";
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
     }
     
     public void sendJoinRequest(Context context, String contactName, String phoneNumber){

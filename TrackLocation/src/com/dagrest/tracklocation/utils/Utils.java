@@ -78,14 +78,16 @@ public class Utils {
 				inputParamsList.add(splitLine(sCurrentLine, COMMA));
 			}
 		} catch (IOException e) {
-			LogManager.LogErrorMsg("Utils", "readCustomerDataFromFile", "Unable to read file: " + 
-				fileName + ". Error message: " + e.getMessage());
+//			LogManager.LogErrorMsg("Utils", "readCustomerDataFromFile", "Unable to read file: " + 
+//				fileName + ". Error message: " + e.getMessage());
+			LogManager.LogException(e, "Utils", "readCustomerDataFromFile");
 		} finally {
 			try {
 				if (br != null)br.close();
 			} catch (IOException ex) {
-				LogManager.LogErrorMsg("Utils", "readCustomerDataFromFile", "Unable to read file: " + 
-					fileName + ". Error message: " + ex.getMessage());
+//				LogManager.LogErrorMsg("Utils", "readCustomerDataFromFile", "Unable to read file: " + 
+//					fileName + ". Error message: " + ex.getMessage());
+				LogManager.LogException(ex, "Utils", "readCustomerDataFromFile");
 			}
 		}
 		return inputParamsList;
@@ -110,8 +112,9 @@ public class Utils {
 				}
 			}			
 		} catch (FileNotFoundException e) {
-			LogManager.LogErrorMsg("Utils", "readFile", "Unable to read file: " + 
-				fileName + ". Error message: " + e.getMessage());
+			LogManager.LogException(e, "Utils", "readInputFile");
+			//LogErrorMsg("Utils", "readFile", "Unable to read file: " + 
+			//	fileName + ". Error message: " + e.getMessage());
 		}
 		return fileContent;
 		

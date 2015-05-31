@@ -56,6 +56,9 @@ public class MainActivity extends Activity {
 		className = this.getClass().getName();
 		methodName = "onCreate";
 		
+		LogManager.LogActivityCreate(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
+		
 		Intent i = getIntent();
 		isBringToTopRequested = false;
 		Bundle b = null;
@@ -199,7 +202,6 @@ public class MainActivity extends Activity {
     
     @Override
 	protected void onPause() {
-		// TODO Auto-generated method stub
 		super.onPause();
 		methodName = "onPause";
 
@@ -238,7 +240,9 @@ public class MainActivity extends Activity {
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 		}
-
+		
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
     }
 
 	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {

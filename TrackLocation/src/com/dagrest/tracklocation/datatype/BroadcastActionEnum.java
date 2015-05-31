@@ -9,7 +9,8 @@ public enum BroadcastActionEnum {
  	BROADCAST_JOIN("com.dagrest.tracklocation.JoinContactList.BROADCAST_JOIN"),
  	BROADCAST_LOCATION_KEEP_ALIVE("com.dagrest.tracklocation.Map.KEEP_ALIVE"),
  	BROADCAST_MESSAGE("com.dagrest.tracklocation.MESSAGE"),
-	BROADCAST_TURN_OFF_RING("com.dagrest.tracklocation.TURN_OFF_RING");
+	BROADCAST_TURN_OFF_RING("com.dagrest.tracklocation.TURN_OFF_RING"),
+	BROADCAST_FINISH_ACITIVTY_DIALOG_RING("com.dagrest.tracklocation.FINISH_ACITIVTY_DIALOG_RING");
 	
 	private final String name;       
 	private static Map<String, BroadcastActionEnum> valueMap;

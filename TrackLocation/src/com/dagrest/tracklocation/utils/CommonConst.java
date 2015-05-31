@@ -3,6 +3,7 @@ package com.dagrest.tracklocation.utils;
 public class CommonConst {
 	
 	public static final String 	LOG_TAG 						= "TrackLocation";
+	public static final String 	STACK_TRACE						= "FALSE";
 	public static final String 	TRACK_LOCATION_PROJECT_PREFIX 	= "com.dagrest.tracklocation";
 	public static final String 	GOOGLE_PROJECT_NUMBER 			= "GoogleProjectNumber";
 	public static final String 	IS_TRACK_LOCATION_RUNNING 		= "IsTrackLocationRunning";
@@ -97,4 +98,7 @@ public class CommonConst {
  	public static final String	START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS = "SenderMessageDataContactDetails";
  	//public static final String	PREFERENCES_CONTACT_DETAILS_SENT_FROM = "contact_details_sent_from";
  	public static final String	PREFERENCES_SEND_COMMAND_TO_ACCOUNTS = "send_command_to_accounts";
+ 	
+ 	public static final int 	MAX_RINGTIME_WITH_MAX_VOLUME = 1; // [minutes]
+ 	public static final String	NOBODY_RESPONDED = "nobody_responded";
 }
