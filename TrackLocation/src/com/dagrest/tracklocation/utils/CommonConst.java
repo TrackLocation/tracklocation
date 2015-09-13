@@ -52,6 +52,7 @@ public class CommonConst {
 	
 	public static final String 	JOIN_FLAG_SMS = "JOIN_TRACK_LOCATION";
 	public static final String 	JOIN_COMPLETED = "JOIN_COMPLETED";
+	public static final int	 	JOIN_SMS_PARAMS_NUMBER = 6;
 
  	public static final String 	DELIMITER = "\t";
  	public static final String 	DELIMITER_COMMA = ",";

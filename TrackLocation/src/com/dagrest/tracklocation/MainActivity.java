@@ -32,57 +32,91 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     private final static int JOIN_REQUEST = 1;  
-    private BroadcastReceiver locationChangeWatcher;
     private String className;
-    private String registrationId;
-    private Context context;
-	private Thread registerToGCMInBackgroundThread;
-    private ContactDeviceDataList contactDeviceDataList;
-    private String phoneNumber;
-    private String macAddress;
-    private String account;
     private String logMessage;
     private String methodName;
+    private Context context;
+
+    private ContactDeviceDataList contactDeviceDataList;
     private BroadcastReceiver notificationBroadcastReceiver;
     public static boolean isTrackLocationRunning;
-    private boolean isBringToTopRequested = false;
     
-    MainActivityController mainActivityController;
+    private MainActivityController mainActivityController;
     
-    @SuppressLint("ResourceAsColor")
+    public MainActivityController getMainActivityController() {
+		return mainActivityController;
+	}
+
+	@SuppressLint("ResourceAsColor")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		className = this.getClass().getName();
 		methodName = "onCreate";
 		
+		mainActivityController = null;
+
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 		
-		Intent i = getIntent();
-		isBringToTopRequested = false;
-		Bundle b = null;
-		if(i != null){
-			b = i.getExtras();
-		}
-		if(b != null){
-			isBringToTopRequested = b.getBoolean(CommonConst.IS_BRING_TO_TOP);
-		}
-		
-		// Ensure that only one instance of TrackLocation is running
-		if(isTrackLocationRunning == true && isBringToTopRequested == false){
-			logMessage = "Only one instance of TrackLocation can be started.";
-			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-			return;
-		}
-		 
 		setContentView(R.layout.activity_main);
 		
 		initNotificationBroadcastReceiver();
 		
 		isTrackLocationRunning = true;
+    }
 
+	@Override
+	protected void onResume() {
+		super.onResume();
+		context = getApplicationContext();
+		DBManager.initDBManagerInstance(new DBHelper(context));
+		if(mainActivityController == null){
+			mainActivityController = new MainActivityController(this, context);
+		}
+	}
+
+    @Override
+	protected void onPause() {
+		super.onPause();
+		methodName = "onPause";
+
+		BackupDataOperations backupData = new BackupDataOperations();
+		boolean isBackUpSuccess = backupData.backUp();
+		if(isBackUpSuccess != true){
+			logMessage = methodName + " -> Backup process failed.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
+		}
+    }
+
+	@Override
+    protected void onDestroy() {
+        super.onDestroy();
+        methodName = "onDestroy";
+        
+		isTrackLocationRunning = false;
+		
+     	Thread registerToGCMInBackgroundThread = 
+     		mainActivityController.getRegisterToGCMInBackgroundThread();
+    	if(registerToGCMInBackgroundThread != null){
+    		registerToGCMInBackgroundThread.interrupt();
+    	}
+
+        if(notificationBroadcastReceiver != null){
+    		unregisterReceiver(notificationBroadcastReceiver);
+    	}
+    	
+		BackupDataOperations backupData = new BackupDataOperations();
+		boolean isBackUpSuccess = backupData.backUp();
+		if(isBackUpSuccess != true){
+			logMessage = methodName + " -> Backup process failed.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+		}
+		
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
     }
 
 	@Override
@@ -90,13 +124,6 @@ public class MainActivity extends Activity {
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
-	}
-
-	@Override
-	protected void onResume() {
-		super.onResume();
-		context = getApplicationContext();
-		DBManager.initDBManagerInstance(new DBHelper(context));
 	}
 	
     public void onClick(final View view) {
@@ -118,7 +145,8 @@ public class MainActivity extends Activity {
         	if(account == null || account.isEmpty()){
     	    	Toast.makeText(MainActivity.this, "Please register your application.\nPress Locate button at first.", 
         	    		Toast.LENGTH_SHORT).show();
-        			// TODO: to log - no joined contacts
+        		LogManager.LogErrorMsg(className, "onClick -> JOIN button", 
+            		"Unable to join contacts - application is not registred yet.");
         	} else {
         		Intent joinContactListIntent = new Intent(this, JoinContactList.class);
         		startActivityForResult(joinContactListIntent, JOIN_REQUEST);
@@ -147,21 +175,19 @@ public class MainActivity extends Activity {
     		LogManager.LogInfoMsg(className, "onClick -> Locate button", 
     			"ContactList activity started.");
     		
-    		MainActivityController mainActivityController = new MainActivityController(this, context);
-    		mainActivityController.start();
-    		
     		if(contactDeviceDataList != null){
 	    		Intent intentContactList = new Intent(this, ContactList.class);
-	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, new Gson().toJson(contactDeviceDataList));
-	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
-	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
-	    		intentContactList.putExtra(CommonConst.PREFERENCES_REG_ID, registrationId);
+//	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, new Gson().toJson(contactDeviceDataList));
+//	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+//	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
+//	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
+//	    		intentContactList.putExtra(CommonConst.PREFERENCES_REG_ID, mainActivityController.getRegistrationId());
 	    		startActivity(intentContactList);
     		} else {
     	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 
     	    		Toast.LENGTH_SHORT).show();
-    			// TODO: to log - no joined contacts
+        		LogManager.LogInfoMsg(className, "onClick -> LOCATE button", 
+                	"There is no any contact. Some contact must be joined at first.");
     		}
     	// ========================================
     	// LOCATION SHARING MANAGEMENT button
@@ -178,7 +204,8 @@ public class MainActivity extends Activity {
     		} else {
     	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 
     	    		Toast.LENGTH_SHORT).show();
-    			// TODO: to log - no joined contacts
+        		LogManager.LogInfoMsg(className, "onClick -> LOCATION SHARING MANAGEMENT button", 
+                    "There is no any contact. Some contact must be joined at first.");
     		}
     	// ========================================
     	// TRACKING button (TRACKING_CONTACT_LIST)
@@ -195,93 +222,10 @@ public class MainActivity extends Activity {
     		} else {
     	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 
     	    		Toast.LENGTH_SHORT).show();
-    			// TODO: to log - no joined contacts
+        		LogManager.LogInfoMsg(className, "onClick -> TRACKING button", 
+                    "There is no any contact. Some contact must be joined at first.");
     		}
         }
-    }
-    
-    @Override
-	protected void onPause() {
-		super.onPause();
-		methodName = "onPause";
-
-		BackupDataOperations backupData = new BackupDataOperations();
-		boolean isBackUpSuccess = backupData.backUp();
-		if(isBackUpSuccess != true){
-			logMessage = methodName + " -> Backup process failed.";
-			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
-		}
-    }
-
-	@Override
-    protected void onDestroy() {
-        super.onDestroy();
-        methodName = "onDestroy";
-        
-		isTrackLocationRunning = false;
-		
-        if(locationChangeWatcher != null){
-        	unregisterReceiver(locationChangeWatcher);
-        }
-        
-        if(registerToGCMInBackgroundThread != null){
-        	registerToGCMInBackgroundThread.interrupt();
-        }
-        
-    	if(notificationBroadcastReceiver != null){
-    		unregisterReceiver(notificationBroadcastReceiver);
-    	}
-    	
-		BackupDataOperations backupData = new BackupDataOperations();
-		boolean isBackUpSuccess = backupData.backUp();
-		if(isBackUpSuccess != true){
-			logMessage = methodName + " -> Backup process failed.";
-			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-		}
-		
-		LogManager.LogActivityDestroy(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
-    }
-
-	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
-		@Override
-		public void doOnPositiveButton() {
-		}
-		@Override
-		public void doOnNegativeButton() {
-		}
-		@Override
-		public void setActivity(Activity activity) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setContext(Context context) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setParams(Object[]... objects) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void doOnChooseItem(int which) {
-			// TODO Auto-generated method stub
-		}
-	};
-	
-	private void showAboutDialog() {
-    	String dialogMessage = 
-    		String.format(getResources().getString(R.string.about_dialog_text), 
-    			Preferences.getPreferencesString(context, CommonConst.PREFERENCES_VERSION_NAME));
-    	
-		CommonDialog aboutDialog = new CommonDialog(this, dialogActionsAboutDialog);
-		aboutDialog.setDialogMessage(dialogMessage);
-		aboutDialog.setDialogTitle("About");
-		aboutDialog.setPositiveButtonText("OK");
-		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		aboutDialog.showDialog();
-		aboutDialog.setCancelable(true);
     }
     
 	// Initialize BROADCAST_MESSAGE broadcast receiver
@@ -313,7 +257,7 @@ public class MainActivity extends Activity {
     				// Notification about command: bring to top - to foreground
 	    			// bring MainActivity to foreground
 	    			if(BroadcastKeyEnum.join_sms.toString().equals(key)) {
-	    				bringToTop(); // bring to foreground
+	    				showApproveJoinRequestDialog(broadcastData); // bring to foreground
 	    			}
 	    		}
 			}
@@ -324,11 +268,80 @@ public class MainActivity extends Activity {
 		LogManager.LogFunctionExit(className, methodName);
 	}
 
-	private void bringToTop(){
-		Intent a = new Intent(this, MainActivity.class);
-		a.putExtra(CommonConst.IS_BRING_TO_TOP, true);
-        a.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(a);
+	private void showApproveJoinRequestDialog(NotificationBroadcastData broadcastData){
+		methodName = "showApproveJoinRequestDialog";
+		
+		//  SMS Message values:
+		//	[0] - smsMessageKey - "JOIN_TRACK_LOCATION"
+		//	[1] - regIdFromSMS
+		//	[2] - mutualIdFromSMS
+		//	[3] - phoneNumberFromSMS
+		//	[4] - accountFromSMS
+		//	[5] - macAddressFromSMS
+		String smsMessage = broadcastData.getValue();
+		
+//		List<String> listSmsVals = new ArrayList<String>();
+//		StringTokenizer st = new StringTokenizer(smsMessage, ",");
+//		while(st.hasMoreElements()){
+//			listSmsVals.add(st.nextToken().trim());
+//		}
+		String smsVals[] = smsMessage.split(",");
+		if(smsVals.length == CommonConst.JOIN_SMS_PARAMS_NUMBER){ // should be exactly 6 values
+			//Controller.showApproveJoinRequestDialog(this, 
+			mainActivityController.showApproveJoinRequestDialog(this,
+				context, 
+				smsVals[4].trim(), 	// accountFromSMS
+				smsVals[3].trim(), 	// phoneNumberFromSMS
+				smsVals[2].trim(), 	// mutualIdFromSMS 
+				smsVals[1].trim(), 	// regIdFromSMS
+				smsVals[5].trim(),	// macAddressFromSMS
+				null
+			);
+		} else {
+			logMessage = "JOIN SMS Message has incorrect parameters number" +
+				" - supposed to be: " + CommonConst.JOIN_SMS_PARAMS_NUMBER;
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+		
+			logMessage = methodName + " -> Backup process failed.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+		}
 	}
+	
+	private void showAboutDialog() {
+    	String dialogMessage = 
+    		String.format(getResources().getString(R.string.about_dialog_text), 
+    			Preferences.getPreferencesString(context, CommonConst.PREFERENCES_VERSION_NAME));
+    	
+		CommonDialog aboutDialog = new CommonDialog(this, dialogActionsAboutDialog);
+		aboutDialog.setDialogMessage(dialogMessage);
+		aboutDialog.setDialogTitle("About");
+		aboutDialog.setPositiveButtonText("OK");
+		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+		aboutDialog.showDialog();
+		aboutDialog.setCancelable(true);
+    }
+    
+	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
+		@Override
+		public void doOnPositiveButton() {
+		}
+		@Override
+		public void doOnNegativeButton() {
+		}
+		@Override
+		public void setActivity(Activity activity) {
+		}
+		@Override
+		public void setContext(Context context) {
+		}
+		@Override
+		public void setParams(Object[]... objects) {
+		}
+		@Override
+		public void doOnChooseItem(int which) {
+		}
+	};
 	
 }

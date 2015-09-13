@@ -8,7 +8,9 @@ import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
+import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.grid.ContactDataGridView;
+import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.google.gson.Gson;
 
@@ -21,46 +23,60 @@ import android.telephony.SmsMessage;
 import android.util.Log;
 
 public class SMSReceiver extends BroadcastReceiver {
-    private final String DEBUG_TAG = getClass().getSimpleName().toString();
     private static final String ACTION_SMS_RECEIVED = "android.provider.Telephony.SMS_RECEIVED";
-    private Context context;
-    private Intent intent;
+    private String className;
+    private String logMessage;
+    private String methodName;
+    String smsPhoneNumber;
     
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		this.context = context;
-        this.intent = intent;
+        className = this.getClass().getName();
 
 		String action = intent.getAction();
 		
 		if (action.equals(ACTION_SMS_RECEIVED)) {
 
-			String address, str = "";
-			int contactId = -1;
+			String smsMessageBody = "";
 
 			SmsMessage[] msgs = getMessagesFromIntent(intent);
 			if (msgs != null) {
 				for (int i = 0; i < msgs.length; i++) {
-					address = msgs[i].getOriginatingAddress();
-//					contactId = ContactsUtils.getContactId(context, address,
-//							"address");
-					str += msgs[i].getMessageBody().toString();
-					str += "\n";
+					smsMessageBody += msgs[i].getMessageBody().toString();
+					smsMessageBody += "\n";
+					smsPhoneNumber = ((SmsMessage)msgs[i]).getOriginatingAddress();
 				}
 			}
 
-//			if (contactId != -1) {
-//				showNotification(contactId, str);
-//			}
-			
-
-			if(str.contains(CommonConst.JOIN_FLAG_SMS)){
-//				// ---send a broadcast intent to update the SMS received in the
-//				// activity---
-//				Intent broadcastIntent = new Intent();
-//				broadcastIntent.setAction("SMS_RECEIVED_ACTION");
-//				broadcastIntent.putExtra("sms", str);
-//				context.sendBroadcast(broadcastIntent);
+			if(smsMessageBody.contains(CommonConst.JOIN_FLAG_SMS)){
+				
+				String[] smsParams = smsMessageBody.split(CommonConst.DELIMITER_COMMA);
+			    if(smsParams.length == CommonConst.JOIN_SMS_PARAMS_NUMBER){
+			    	
+		    	    String phoneNumberFromSMS = smsParams[3];
+		    	    if(phoneNumberFromSMS == null || phoneNumberFromSMS.isEmpty()){
+		    	    	phoneNumberFromSMS = smsPhoneNumber;
+		    	    }
+		    	    String mutualIdFromSMS = smsParams[2];
+		    	    String regIdFromSMS = smsParams[1];
+		    	    String accountFromSMS = smsParams[4];
+		    	    String macAddressFromSMS = smsParams[5];
+				
+	    	    	// Save contact details received by join requests to RECEIVED_JOIN_REQUEST table
+	    			long res = DBLayer.getInstance().addReceivedJoinRequest(phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, accountFromSMS, macAddressFromSMS);
+	    			if(res == -1 || res == 0){
+	    	        	logMessage = "Add received join request FAILED for phoneNumber = " + phoneNumberFromSMS;
+	    	            Log.e(CommonConst.LOG_TAG, logMessage);
+	    	            LogManager.LogErrorMsg(className, methodName, logMessage);
+	    			}
+	    		} else { 
+	    			logMessage = "JOIN SMS Message has incorrect parameters number" +
+	    				" - supposed to be: " + CommonConst.JOIN_SMS_PARAMS_NUMBER;
+	    			LogManager.LogErrorMsg(className, methodName, logMessage);
+	    			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+	    		}
+    			
+			    // Send a broadcast intent to update the SMS received in the activity
 				Intent intentMainActivity = getIntent(context, MainActivity.class);
 				Log.i(CommonConst.LOG_TAG, "intentMainActivity = " + intentMainActivity);
 				if(MainActivity.isTrackLocationRunning == false){
@@ -72,7 +88,7 @@ public class SMSReceiver extends BroadcastReceiver {
 					NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
 					notificationBroadcastData.setMessage("message");
 					notificationBroadcastData.setKey(BroadcastKeyEnum.join_sms.toString());
-					notificationBroadcastData.setValue("value");
+					notificationBroadcastData.setValue(smsMessageBody);
 					String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
 					
 					MessageDataContactDetails mdcd = null;
@@ -84,14 +100,6 @@ public class SMSReceiver extends BroadcastReceiver {
 						jsonNotificationBroadcastData, 
 						BroadcastKeyEnum.join_sms.toString(), 
 						"value");
-					
-					
-//		    		//Intent i = new Intent(context, MainActivity.class);
-////					intentMainActivity.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-////		    		intentMainActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
-//					intentMainActivity.setAction(Intent.ACTION_MAIN);
-//					intentMainActivity.addCategory(Intent.CATEGORY_LAUNCHER);
-//					context.startActivity(intentMainActivity);
 				}
 			}
 		}
@@ -103,18 +111,19 @@ public class SMSReceiver extends BroadcastReceiver {
 	    return intent;
 	}
 	
-	  public boolean isRunning(Context ctx) {
-	        ActivityManager activityManager = (ActivityManager) ctx.getSystemService(Context.ACTIVITY_SERVICE);
-	        List<RunningTaskInfo> tasks = activityManager.getRunningTasks(Integer.MAX_VALUE);
+	public boolean isRunning(Context ctx) {
+		ActivityManager activityManager = (ActivityManager) ctx
+				.getSystemService(Context.ACTIVITY_SERVICE);
+		List<RunningTaskInfo> tasks = activityManager
+				.getRunningTasks(Integer.MAX_VALUE);
 
-	        for (RunningTaskInfo task : tasks) {
-	            if (ctx.getPackageName().equalsIgnoreCase(task.baseActivity.getPackageName())) 
-	                return true;                                  
-	        }
+		for (RunningTaskInfo task : tasks) {
+			if (ctx.getPackageName().equalsIgnoreCase(task.baseActivity.getPackageName()))
+			return true;
+		}
 
-	        return false;
-	    }
-
+		return false;
+	}
 	
     public static SmsMessage[] getMessagesFromIntent(Intent intent) {
         Object[] messages = (Object[]) intent.getSerializableExtra("pdus");

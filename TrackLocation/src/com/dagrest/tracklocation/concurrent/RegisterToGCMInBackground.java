@@ -17,6 +17,7 @@ import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.db.DBLayer;
+import com.dagrest.tracklocation.exception.UnableToSendCommandException;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -52,7 +53,7 @@ public class RegisterToGCMInBackground implements Runnable {
 
 	@Override
 	public void run() {
-		methodName = "run";
+		methodName = "RegisterToGCMInBackground->run";
         for(int i = 0; i < MAX_REGISTARTION_RETRY_TIMES; i++){
 	        try {
 	            if (gcm == null) {
@@ -141,18 +142,24 @@ public class RegisterToGCMInBackground implements Runnable {
 	    	    	            String notificationValue = registrationId;		
 
 	    	    	            AppInstDetails appInstDetails = new AppInstDetails(context); 
-	    	    	            CommandDataBasic commandDataBasic = new CommandData(
-	    	    					context, 
-	    	    					contactDeviceDataToSendNotificationTo, 
-	    	    	    			CommandEnum.update_reg_id, 
-	    	    	    			commandMessage, 
-	    	    	    			messageDataContactDetails, 
-	    	    	    			null, 					// location
-	    	    	    			notificationKey, 		// key
-	    	    	    			notificationValue,  	// value
-	    	    	    			appInstDetails.getAppInfo()
-	    	    	    		);
-	    	    	            commandDataBasic.sendCommand();
+	    	    	            CommandDataBasic commandDataBasic;
+								try {
+									commandDataBasic = new CommandData(
+										context, 
+										contactDeviceDataToSendNotificationTo, 
+										CommandEnum.update_reg_id, 
+										commandMessage, 
+										messageDataContactDetails, 
+										null, 					// location
+										notificationKey, 		// key
+										notificationValue,  	// value
+										appInstDetails.getAppInfo()
+									);
+		    	    	            commandDataBasic.sendCommand();
+								} catch (UnableToSendCommandException e) {
+									LogManager.LogException(e, className, methodName);
+									Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+								}
 
 	    					}
 	    				} else {

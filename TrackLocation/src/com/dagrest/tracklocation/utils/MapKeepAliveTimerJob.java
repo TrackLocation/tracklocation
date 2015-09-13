@@ -14,11 +14,15 @@ import com.dagrest.tracklocation.datatype.CommandEnum;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
+import com.dagrest.tracklocation.exception.UnableToSendCommandException;
+import com.dagrest.tracklocation.log.LogManager;
 
 public class MapKeepAliveTimerJob extends TimerTask {
 
 	private Context context;
 	private ContactDeviceDataList selectedContactDeviceDataList;
+	private String methodName = "MapKeepAliveTimerJob";
+	private String className;
 	
 	public void setContext(Context context){
 		this.context = context;
@@ -31,6 +35,9 @@ public class MapKeepAliveTimerJob extends TimerTask {
 
 	@Override
 	public void run() {
+		className = this.getClass().getName();
+		methodName = "MapKeepAliveTimerJob->run";
+		
 		if(context != null && selectedContactDeviceDataList != null){
 			
 			String ownerEmail = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
@@ -44,18 +51,24 @@ public class MapKeepAliveTimerJob extends TimerTask {
 			MessageDataLocation location = null;
 			AppInfo appInfo = Controller.getAppInfo(context);
 			
-			CommandDataBasic commandDataBasic = new CommandData(
-	   			context, 
-	   			selectedContactDeviceDataList, 
-	   			CommandEnum.track_location_service_keep_alive, 
-	   			null, // message
-	   			senderMessageDataContactDetails, 
-	   			location, 
-	   			BroadcastKeyEnum.keep_alive.toString(), 
-	   			Long.toString(System.currentTimeMillis()),
-	   			appInfo
-	   		);
-			commandDataBasic.sendCommand();
+			CommandDataBasic commandDataBasic;
+			try {
+				commandDataBasic = new CommandData(
+					context, 
+					selectedContactDeviceDataList, 
+					CommandEnum.track_location_service_keep_alive, 
+					null, // message
+					senderMessageDataContactDetails, 
+					location, 
+					BroadcastKeyEnum.keep_alive.toString(), 
+					Long.toString(System.currentTimeMillis()),
+					appInfo
+				);
+				commandDataBasic.sendCommand();
+			} catch (UnableToSendCommandException e) {
+				LogManager.LogException(e, className, methodName);
+				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+			}
 	   		
 	    	Log.i(CommonConst.LOG_TAG, "KeepAlive command sent to trackLocationService from mapKeepAliveTimerJob");
 		} else {

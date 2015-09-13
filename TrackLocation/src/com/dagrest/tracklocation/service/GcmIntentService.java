@@ -33,6 +33,7 @@ import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.exception.CheckPlayServicesException;
 import com.dagrest.tracklocation.exception.NoSentContactFromAccountException;
 import com.dagrest.tracklocation.exception.NoSentContactFromException;
+import com.dagrest.tracklocation.exception.UnableToSendCommandException;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
@@ -588,18 +589,24 @@ public class GcmIntentService extends IntentService {
 		// ===  NOTIFICATION: START COMMAND STATUS  ==================
 		// ===========================================================
 		// Notify caller by GCM (push notification)
-		CommandDataBasic commandDataBasic = new CommandData(
-			getApplicationContext(), 
-			contactDeviceDataToSendNotificationTo, 
-			CommandEnum.notification, 
-			msgServiceStarted, 
-			messageDataContactDetails, 
-			null, 					// location
-			notificationKey, 
-			notificationValue,
-			appInfo
-		);
-		commandDataBasic.sendCommand();
+		CommandDataBasic commandDataBasic;
+		try {
+			commandDataBasic = new CommandData(
+				getApplicationContext(), 
+				contactDeviceDataToSendNotificationTo, 
+				CommandEnum.notification, 
+				msgServiceStarted, 
+				messageDataContactDetails, 
+				null, 					// location
+				notificationKey, 
+				notificationValue,
+				appInfo
+			);
+			commandDataBasic.sendCommand();
+		} catch (UnableToSendCommandException e) {
+			LogManager.LogException(e, className, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+		}
 		
         LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -649,18 +656,24 @@ public class GcmIntentService extends IntentService {
         		contactDetailsSentFrom.getRegId(), 
         		null);
         // Notify caller by GCM (push notification)
-        CommandDataBasic commandDataBasic = new CommandData(
-			getApplicationContext(), 
-			contactDeviceDataToSendNotificationTo, 
-			CommandEnum.status_response, 
-			logMessage, 
-			senderMessageDataContactDetails, 
-			null, // location
-    		NotificationKeyEnum.pushNotificationServiceStatus.toString(),
-    		PushNotificationServiceStatusEnum.available.toString(),
-			appInfo
-		);
-        commandDataBasic.sendCommand();
+        CommandDataBasic commandDataBasic;
+		try {
+			commandDataBasic = new CommandData(
+				getApplicationContext(), 
+				contactDeviceDataToSendNotificationTo, 
+				CommandEnum.status_response, 
+				logMessage, 
+				senderMessageDataContactDetails, 
+				null, // location
+				NotificationKeyEnum.pushNotificationServiceStatus.toString(),
+				PushNotificationServiceStatusEnum.available.toString(),
+				appInfo
+			);
+	        commandDataBasic.sendCommand();
+		} catch (UnableToSendCommandException e) {
+			LogManager.LogException(e, className, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+		}
 
 /*		
 		List<String> listRegIDs = null; //new ArrayList<String>();
@@ -1326,18 +1339,24 @@ public class GcmIntentService extends IntentService {
 		// ===  NOTIFICATION: START COMMAND STATUS  ==================
 		// ===========================================================
 		// Notify caller by GCM (push notification)
-		CommandDataBasic commandDataBasic = new CommandData(
-			getApplicationContext(), 
-			contactDeviceDataToSendNotificationTo, 
-			CommandEnum.notification, 
-			msgServiceStarted, 
-			messageDataContactDetails, 
-			null, 					// location
-			notificationKey, 
-			notificationValue,
-			appInfo
-		);
-		commandDataBasic.sendCommand();
+		CommandDataBasic commandDataBasic;
+		try {
+			commandDataBasic = new CommandData(
+				getApplicationContext(), 
+				contactDeviceDataToSendNotificationTo, 
+				CommandEnum.notification, 
+				msgServiceStarted, 
+				messageDataContactDetails, 
+				null, 					// location
+				notificationKey, 
+				notificationValue,
+				appInfo
+			);
+			commandDataBasic.sendCommand();
+		} catch (UnableToSendCommandException e) {
+			LogManager.LogException(e, className, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+		}
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -1442,18 +1461,24 @@ public class GcmIntentService extends IntentService {
 			// ===  NOTIFICATION: NO PERMISSIONS DEFINED FOR ACCOUNT  ====
 			// ===========================================================
             // Notify caller by GCM (push notification)
-            CommandDataBasic commandDataBasic = new CommandData(
-				getApplicationContext(), 
-				contactDeviceDataToSendNotificationTo, 
-    			CommandEnum.notification, 
-    			logMessage, 
-    			messageDataContactDetails, 
-    			null, // location
-    			CommandKeyEnum.permissions.toString(), // key
-    			CommandValueEnum.not_defined.toString(), // value
-    			appInfo
-    		);
-            commandDataBasic.sendCommand();
+            CommandDataBasic commandDataBasic;
+			try {
+				commandDataBasic = new CommandData(
+					getApplicationContext(), 
+					contactDeviceDataToSendNotificationTo, 
+					CommandEnum.notification, 
+					logMessage, 
+					messageDataContactDetails, 
+					null, // location
+					CommandKeyEnum.permissions.toString(), // key
+					CommandValueEnum.not_defined.toString(), // value
+					appInfo
+				);
+	            commandDataBasic.sendCommand();
+			} catch (UnableToSendCommandException e) {
+				LogManager.LogException(e, className, methodName);
+				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+			}
             
     		return false;
     	}
@@ -1469,18 +1494,24 @@ public class GcmIntentService extends IntentService {
 			// ===  NOTIFICATION: NOT PERMITTED TO SHARE FOR ACCOUNT  ====
 			// ===========================================================
             // Notify caller by GCM (push notification)
-            CommandDataBasic commandDataBasic = new CommandData(
-				getApplicationContext(), 
-				contactDeviceDataToSendNotificationTo, 
-    			CommandEnum.notification, 
-    			logMessage, 
-    			messageDataContactDetails, 
-    			null, // location
-    			CommandKeyEnum.permissions.toString(), // key
-    			CommandValueEnum.not_permitted.toString(), // value
-    			appInfo
-    		);
-            commandDataBasic.sendCommand();
+            CommandDataBasic commandDataBasic;
+			try {
+				commandDataBasic = new CommandData(
+					getApplicationContext(), 
+					contactDeviceDataToSendNotificationTo, 
+					CommandEnum.notification, 
+					logMessage, 
+					messageDataContactDetails, 
+					null, // location
+					CommandKeyEnum.permissions.toString(), // key
+					CommandValueEnum.not_permitted.toString(), // value
+					appInfo
+				);
+				commandDataBasic.sendCommand();
+			} catch (UnableToSendCommandException e) {
+				LogManager.LogException(e, className, methodName);
+				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+			}
 
     		return false;
     	}

@@ -26,12 +26,14 @@ import android.util.Log;
 
 public class DBLayer {
 	
-	private final  String CLASS_NAME  = "com.dagrest.trackloaction.db.DBLayer"; 
-	
 	private static DBLayer _instance = null;
 	
-	protected DBLayer() {
-		
+    private String className;
+    private String logMessage;
+    private String methodName;
+
+    protected DBLayer() {
+    	className = this.getClass().getName();		
     }
 	
 	public static  DBLayer getInstance(){
@@ -47,14 +49,14 @@ public class DBLayer {
 		if(phoneNumber == null || phoneNumber.isEmpty()){
         	String errMsg = "Add sent join request failed - no phone number was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "addSentJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "addSentJoinRequest", errMsg);
 			return -1;
 		}
 		
 		if(mutualId == null || mutualId.isEmpty()){
         	String errMsg = "Add sent join request failed - no mutualId was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "addSentJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "addSentJoinRequest", errMsg);
 			return -1;
 		}
 		
@@ -76,7 +78,7 @@ public class DBLayer {
 		} catch (Throwable t) {
         	String errMsg = "EXCEPTION caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+            LogManager.LogErrorMsg(className, methodName, errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -90,7 +92,7 @@ public class DBLayer {
 		if(inMutualId == null || inMutualId.isEmpty()){
         	String errMsg = "Delete sent join request failed - no mutualId was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "deleteSentJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "deleteSentJoinRequest", errMsg);
 			return -1;
 		}
 		
@@ -108,7 +110,7 @@ public class DBLayer {
             }
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "deleteSentJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "deleteSentJoinRequest", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -148,7 +150,7 @@ public class DBLayer {
         } catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "getSentJoinRequestByMutualId", errMsg);
+            LogManager.LogErrorMsg(className, "getSentJoinRequestByMutualId", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -162,7 +164,7 @@ public class DBLayer {
 		if(email == null || email.isEmpty()){
         	String errMsg = "Add permissions failed - no email account was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "addPermissions", errMsg);
+            LogManager.LogErrorMsg(className, "addPermissions", errMsg);
 			return -1;
 		}
 		
@@ -183,7 +185,7 @@ public class DBLayer {
 		} catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "addPermissions", errMsg);
+            LogManager.LogErrorMsg(className, "addPermissions", errMsg);
 		} finally {
 			if(db != null && bNeedOpenDb){
 				DBManager.getDBManagerInstance().close();
@@ -197,7 +199,7 @@ public class DBLayer {
 		if(email == null || email.isEmpty()){
         	String errMsg = "Update permissions failed - no email account was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "updatePermissions", errMsg);
+            LogManager.LogErrorMsg(className, "updatePermissions", errMsg);
 			return -1;
 		}
 		
@@ -220,7 +222,7 @@ public class DBLayer {
 		} catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "updatePermissions", errMsg);
+            LogManager.LogErrorMsg(className, "updatePermissions", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -265,7 +267,7 @@ public class DBLayer {
         } catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-        	LogManager.LogErrorMsg(CLASS_NAME, "getPermissions", errMsg);
+        	LogManager.LogErrorMsg(className, "getPermissions", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -317,7 +319,7 @@ public class DBLayer {
         } catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-        	LogManager.LogErrorMsg(CLASS_NAME, "getPermissionsList", errMsg);
+        	LogManager.LogErrorMsg(className, "getPermissionsList", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -328,31 +330,36 @@ public class DBLayer {
 
 	public  long addReceivedJoinRequest(String phoneNumber, String mutualId, String regId, String account, String macAddress){
 		
+    	logMessage = "";
+    	methodName = "addReceivedJoinRequest";
+    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
+    	LogManager.LogFunctionCall(className, methodName);
+        
 		if(phoneNumber == null || phoneNumber.isEmpty()){
         	String errMsg = "Add received join request failed - no phone number was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "addReceivedJoinRequest", errMsg);
 			return -1;
 		}
 		
 		if(mutualId == null || mutualId.isEmpty()){
         	String errMsg = "Add received join request failed - no mutualId was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "addReceivedJoinRequest", errMsg);
 			return -1;
 		}
 		
 		if(regId == null || regId.isEmpty()){
         	String errMsg = "Add received join request failed - no registrationId was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "addReceivedJoinRequest", errMsg);
 			return -1;
 		}
 
 		if(macAddress == null || macAddress.isEmpty()){
         	String errMsg = "Add received join request failed - no macAddress was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "addReceivedJoinRequest", errMsg);
 			return -1;
 		}
 
@@ -369,19 +376,30 @@ public class DBLayer {
 			cVal.put(DBConst.RECEIVED_JOIN_REQUEST_ACCOUNT, account);
 			
 			if(!isPhoneInReceivedJoinRequestTable(phoneNumber, db)){
+				logMessage = "INSERTING JOIN REQUEST from phone: " + phoneNumber + " TO DB";
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 				return db.insert(DBConst.TABLE_RECEIVED_JOIN_REQUEST, null, cVal);
 			} else {
+				logMessage = "UPDAING JOIN REQUEST from phone: " + phoneNumber + " TO DB";
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 				return db.update(DBConst.TABLE_RECEIVED_JOIN_REQUEST, cVal, DBConst.PHONE_NUMBER + " = ? ", new String[] { phoneNumber });
 			}
 		} catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "addReceivedJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "addReceivedJoinRequest", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
 			}
 		}
+		
+		logMessage = "Failed - CAUSE UNKNOWN...";		
+		LogManager.LogErrorMsg(className, methodName, logMessage);
+		Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+
 		return -1;
 	}
 
@@ -390,7 +408,7 @@ public class DBLayer {
 		if(inMutualId == null || inMutualId.isEmpty()){
         	String errMsg = "Delete received join request failed - no mutualId was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "deleteReceivedJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "deleteReceivedJoinRequest", errMsg);
 			return -1;
 		}
 		
@@ -408,7 +426,7 @@ public class DBLayer {
             }
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "deleteReceivedJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "deleteReceivedJoinRequest", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -447,7 +465,7 @@ public class DBLayer {
         } catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "getSentJoinRequestByPhone", errMsg);
+            LogManager.LogErrorMsg(className, "getSentJoinRequestByPhone", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -492,7 +510,7 @@ public class DBLayer {
         } catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "getReceivedJoinRequest", errMsg);
+            LogManager.LogErrorMsg(className, "getReceivedJoinRequest", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -509,7 +527,7 @@ public class DBLayer {
 		if(contactData.getEmail() == null || contactData.getEmail().isEmpty()){
         	String errMsg = "Add contact data failed - no email account was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "addContactData", errMsg);
+            LogManager.LogErrorMsg(className, "addContactData", errMsg);
 			return -1;
 		}
 		
@@ -534,7 +552,7 @@ public class DBLayer {
 			contactData = null;
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "addContactData", errMsg);
+            LogManager.LogErrorMsg(className, "addContactData", errMsg);
 		} finally {
 			if(db != null && bNeedOpenDb){
 				DBManager.getDBManagerInstance().close();
@@ -551,7 +569,7 @@ public class DBLayer {
 		if(deviceData.getDeviceMac() == null || deviceData.getDeviceMac().isEmpty()){
         	String errMsg = "Add device data failed - no … was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, "addDeviceData", errMsg);
+            LogManager.LogErrorMsg(className, "addDeviceData", errMsg);
 			return -1;
 		}
 		
@@ -579,7 +597,7 @@ public class DBLayer {
         	deviceData = null;
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "addDeviceData", errMsg);
+            LogManager.LogErrorMsg(className, "addDeviceData", errMsg);
 		} finally {
 			if(db != null && bNeedOpenDb){
 				DBManager.getDBManagerInstance().close();
@@ -624,7 +642,7 @@ public class DBLayer {
         } catch (Throwable t) {
         	contactDeviceData = null;
             Log.e("Database", "Exception caught: " + t.getMessage(), t);
-            LogManager.LogErrorMsg(CLASS_NAME, "addContactDeviceData", t.getMessage());
+            LogManager.LogErrorMsg(className, "addContactDeviceData", t.getMessage());
 		} finally {
 			if(db != null && bNeedOpenDb){
 				DBManager.getDBManagerInstance().close();
@@ -635,27 +653,27 @@ public class DBLayer {
     
 	public  long updateRegistrationID(String email, String macAddress, String registrationID){
 		String methodName = "updateRegistrationID";
-		LogManager.LogFunctionCall(CLASS_NAME, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + CLASS_NAME + "} -> " + methodName);
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 
 		if(email == null || email.isEmpty()){
         	String errMsg = "Update RegistrationID failed - no email account was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+            LogManager.LogErrorMsg(className, methodName, errMsg);
 			return -1;
 		}
 		
 		if(macAddress == null || macAddress.isEmpty()){
         	String errMsg = "Update RegistrationID failed - no macAddress was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+            LogManager.LogErrorMsg(className, methodName, errMsg);
 			return -1;
 		}
 
 		if(registrationID == null || registrationID.isEmpty()){
         	String errMsg = "Update RegistrationID failed - no registrationID was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+            LogManager.LogErrorMsg(className, methodName, errMsg);
 			return -1;
 		}
 
@@ -673,27 +691,27 @@ public class DBLayer {
 				
 				if(result == 0){
 					String logMessage = "Update RegistrationID failed.";
-					LogManager.LogErrorMsg(CLASS_NAME, methodName, logMessage);
-					Log.e(CommonConst.LOG_TAG, "[ERROR] {" + CLASS_NAME + "} -> " + logMessage);
+					LogManager.LogErrorMsg(className, methodName, logMessage);
+					Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 				} else {
 					String logMessage = result + " columns updated.";
-					LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
-					Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + logMessage);
+					LogManager.LogInfoMsg(className, methodName, logMessage);
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 				}
 
-				LogManager.LogFunctionExit(CLASS_NAME, methodName);
-				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + CLASS_NAME + "} -> " + methodName);
+				LogManager.LogFunctionExit(className, methodName);
+				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 				return result;
 			} else {
 	        	String errMsg = "Update RegistrationID failed - no email and registrationID were found in ContactDeviceTable";
 	        	Log.e(DBConst.LOG_TAG_DB, errMsg);
-	            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+	            LogManager.LogErrorMsg(className, methodName, errMsg);
 	            return -1;
 			}
 		} catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+            LogManager.LogErrorMsg(className, methodName, errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -704,8 +722,8 @@ public class DBLayer {
 
 	public  long updateTableContactDevice(String email, String macAddress, Map<String, Object> mapKeyValue){
 		String methodName = "updateTableContactDevice";
-		LogManager.LogFunctionCall(CLASS_NAME, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + CLASS_NAME + "} -> " + methodName);
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 	
 		SQLiteDatabase db = null;
 		try{
@@ -715,7 +733,7 @@ public class DBLayer {
 		} catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+            LogManager.LogErrorMsg(className, methodName, errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -726,27 +744,27 @@ public class DBLayer {
 	
 	private  long updateTableContactDeviceInternal(String email, String macAddress, Map<String, Object> mapKeyValue, SQLiteDatabase db){
 		String methodName = "updateTableContactDeviceInternal";
-		LogManager.LogFunctionCall(CLASS_NAME, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + CLASS_NAME + "} -> " + methodName);
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 		
 		if (db == null){
 			String errMsg = methodName + " failed - The db is not opened";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+            LogManager.LogErrorMsg(className, methodName, errMsg);
 			return -1;
 		}
 
 		if(email == null || email.isEmpty()){
         	String errMsg = methodName + " failed - no email account was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+            LogManager.LogErrorMsg(className, methodName, errMsg);
 			return -1;
 		}
 		
 		if(macAddress == null || macAddress.isEmpty()){
         	String errMsg = methodName + " failed - no macAddress was provided";
         	Log.e(DBConst.LOG_TAG_DB, errMsg);
-            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+            LogManager.LogErrorMsg(className, methodName, errMsg);
 			return -1;
 		}
 
@@ -760,7 +778,7 @@ public class DBLayer {
 				if((String)objValue == null || ((String)objValue).isEmpty()){
 		        	String errMsg = "Update " + key + " failed - no " + key + " was provided";
 		        	Log.e(DBConst.LOG_TAG_DB, errMsg);
-		            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+		            LogManager.LogErrorMsg(className, methodName, errMsg);
 					return -1;
 				}
 				cVal.put(key, (String)objValue);
@@ -778,8 +796,8 @@ public class DBLayer {
 				cVal.put(key, (Boolean)objValue);
 			} else {
 				String logMessage = "Unsupported type of " + key + "with value: " + objValue.toString();
-				LogManager.LogErrorMsg(CLASS_NAME, methodName, logMessage);
-				Log.e(DBConst.LOG_TAG_DB, "[ERROR] {" + CLASS_NAME + "} -> " + logMessage);
+				LogManager.LogErrorMsg(className, methodName, logMessage);
+				Log.e(DBConst.LOG_TAG_DB, "[ERROR] {" + className + "} -> " + logMessage);
 				return -1;
 			}
 			
@@ -791,29 +809,29 @@ public class DBLayer {
 					
 					if(result == 0){
 						String logMessage = methodName + " failed.";
-						LogManager.LogErrorMsg(CLASS_NAME, methodName, logMessage);
-						Log.e(CommonConst.LOG_TAG, "[ERROR] {" + CLASS_NAME + "} -> " + logMessage);
+						LogManager.LogErrorMsg(className, methodName, logMessage);
+						Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 					} else {
 						String logMessage = result + " columns updated.";
-						LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
-						Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + logMessage);
+						LogManager.LogInfoMsg(className, methodName, logMessage);
+						Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 					}
 	
-					LogManager.LogFunctionExit(CLASS_NAME, methodName);
-					Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + CLASS_NAME + "} -> " + methodName);
+					LogManager.LogFunctionExit(className, methodName);
+					Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 					return result;
 				} else {
 		        	String errMsg = methodName + " failed - no email:[" + email + 
 		        		"] and macAddress:[" + macAddress + "]" + 
 		        		" were found in ContactDeviceTable";
 		        	Log.e(DBConst.LOG_TAG_DB, errMsg);
-		            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+		            LogManager.LogErrorMsg(className, methodName, errMsg);
 		            return -1;
 				}
 			} catch (Throwable t) {
 	        	String errMsg = "Exception caught: " + t.getMessage();
 	        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-	            LogManager.LogErrorMsg(CLASS_NAME, methodName, errMsg);
+	            LogManager.LogErrorMsg(className, methodName, errMsg);
 			}
 		}
 		return -1;
@@ -900,8 +918,8 @@ public class DBLayer {
 							long updateResult = updateTableContactDeviceInternal(email, macAddress, m, db);
 							if(updateResult < 1){
 								logMessage = "Failed to add FULL permissions for the following account: " + email;
-								LogManager.LogErrorMsg(CLASS_NAME, methodName, logMessage);
-								Log.e(CommonConst.LOG_TAG, "[ERROR] {" + CLASS_NAME + "} -> " + methodName + ": " + logMessage);
+								LogManager.LogErrorMsg(className, methodName, logMessage);
+								Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
 							}
 				    	} else {
 							String infoMsg = "Account [" + email + "] already exists in DB";
@@ -916,7 +934,7 @@ public class DBLayer {
 			} catch (Throwable t) {						
 	        	String errMsg = "Exception caught: " + t.getMessage();
 	        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-	            LogManager.LogErrorMsg(CLASS_NAME, "getContactData", errMsg);
+	            LogManager.LogErrorMsg(className, "getContactData", errMsg);
 			} finally {
 				if(db != null){
 					db.endTransaction();
@@ -959,7 +977,7 @@ public class DBLayer {
         } catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "getContactData", errMsg);
+            LogManager.LogErrorMsg(className, "getContactData", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -997,7 +1015,7 @@ public class DBLayer {
         } catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "getDeviceData", errMsg);
+            LogManager.LogErrorMsg(className, "getDeviceData", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -1261,7 +1279,7 @@ public class DBLayer {
         	String errMsg = "Exception caught: " + t.getMessage() + 
         		"\nSelect query:\n" + selectQuery;
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "getContactDeviceDataListInternal", errMsg);
+            LogManager.LogErrorMsg(className, "getContactDeviceDataListInternal", errMsg);
 		}
 		
     	return contactDeviceDataList;
@@ -1351,7 +1369,7 @@ public class DBLayer {
 	    } catch (Throwable t) {
 	    	String errMsg = "Exception caught: " + t.getMessage();
 	    	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-	        LogManager.LogErrorMsg(CLASS_NAME, "isColumnExistsInTable", errMsg);
+	        LogManager.LogErrorMsg(className, "isColumnExistsInTable", errMsg);
 		} finally {
 			if(db != null && needOpenDb){
 				DBManager.getDBManagerInstance().close();
@@ -1378,7 +1396,7 @@ public class DBLayer {
 	    } catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "isFieldExist", errMsg);
+            LogManager.LogErrorMsg(className, "isFieldExist", errMsg);
 		} finally {
 			if(db != null && needOpenDb){
 				DBManager.getDBManagerInstance().close();
@@ -1445,7 +1463,7 @@ public class DBLayer {
         } catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "getContactDeviceData", errMsg);
+            LogManager.LogErrorMsg(className, "getContactDeviceData", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -1507,7 +1525,7 @@ public class DBLayer {
         } catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "getContactDeviceData", errMsg);
+            LogManager.LogErrorMsg(className, "getContactDeviceData", errMsg);
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
@@ -1569,7 +1587,7 @@ public class DBLayer {
 		catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "removeContactDataDeviceDetail", errMsg);
+            LogManager.LogErrorMsg(className, "removeContactDataDeviceDetail", errMsg);
 		}
 		finally{
 			db.endTransaction();
@@ -1598,7 +1616,7 @@ public class DBLayer {
 		} catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(CLASS_NAME, "updateContactDeviceDataList", errMsg);
+            LogManager.LogErrorMsg(className, "updateContactDeviceDataList", errMsg);
 		} finally {
 			if(db != null){
 				db.endTransaction();

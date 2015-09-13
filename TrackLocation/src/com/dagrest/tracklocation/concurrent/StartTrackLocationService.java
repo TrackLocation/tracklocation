@@ -19,6 +19,7 @@ import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
+import com.dagrest.tracklocation.exception.UnableToSendCommandException;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.service.GcmIntentService;
 import com.dagrest.tracklocation.utils.CommonConst;
@@ -66,7 +67,7 @@ public class StartTrackLocationService implements Runnable {
 	@Override
 	public void run() {
 		
-		methodName = "run";
+		methodName = "StartTrackLocationService->run";
 		
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
@@ -75,17 +76,24 @@ public class StartTrackLocationService implements Runnable {
 		LogManager.LogInfoMsg(className, methodName, logMessage);
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		
-		CommandDataBasic commandDataBasic = new CommandData(
-				context, 
-				selectedContactDeviceDataList, 
-				CommandEnum.start,	// [START]	
-				null, 				// message
-				senderMessageDataContactDetails, 
-				null,				// location
-				null, 				// key
-				null, 				// value,
-				null 				// appInfo
-		);
+		CommandDataBasic commandDataBasic = null;
+		try {
+			commandDataBasic = new CommandData(
+					context, 
+					selectedContactDeviceDataList, 
+					CommandEnum.start,	// [START]	
+					null, 				// message
+					senderMessageDataContactDetails, 
+					null,				// location
+					null, 				// key
+					null, 				// value,
+					null 				// appInfo
+			);
+		} catch (UnableToSendCommandException e) {
+			LogManager.LogException(e, className, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+			return;
+		}
 			
         if(senderMessageDataContactDetails == null){
         	return;

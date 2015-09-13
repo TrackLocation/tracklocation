@@ -79,11 +79,8 @@ public class ContactList extends Activity {
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 		
-		Intent intent = getIntent();
-		gson = new Gson();
-		jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
-		contactDeviceDataList = gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
-
+		contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
+		
 		values = Controller.fillContactListWithContactDeviceDataFromJSON(contactDeviceDataList, null, null, null);
 	    if(values != null){
 	    	// TODO: move to init isSelected list:

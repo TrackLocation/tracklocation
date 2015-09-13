@@ -3,42 +3,52 @@ package com.dagrest.tracklocation.datatype;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.dagrest.tracklocation.exception.UnableToSendCommandException;
 import com.dagrest.tracklocation.log.LogManager;
+import com.dagrest.tracklocation.utils.CommonConst;
 
 import android.content.Context;
 import android.util.Log;
 
 public class CommandData extends CommandDataBasic {
 	private ContactDeviceDataList contactDeviceDataList; //listRegIDs - registration_IDs of the contacts that command will be send to
-
+	private String methodName;
+	private String logMessage;
+	
 	public CommandData(Context context,
 			ContactDeviceDataList contactDeviceDataList, CommandEnum command,
 			String message, MessageDataContactDetails senderMessageDataContactDetails,
-			MessageDataLocation location, String key, String value, AppInfo appInfo) {
+			MessageDataLocation location, String key, String value, AppInfo appInfo) throws UnableToSendCommandException {
 		super(context,
 				command,
 				message, senderMessageDataContactDetails,
 				location, key, value, appInfo);
 		this.contactDeviceDataList = contactDeviceDataList;
-		initialValuesCheck();
 		listAccounts = new ArrayList<String>();
 		listRegIDs = new ArrayList<String>();
+		initialValuesCheck();
 		prepareAccountAndRegIdLists(listAccounts, listRegIDs);
 	}
 		
-	private void initialValuesCheck() {
+	private void initialValuesCheck() throws UnableToSendCommandException {
 		if(contactDeviceDataList == null){
-			notificationMessage = "There is no recipient list defined";
-			LogManager.LogErrorMsg(className, "[sendCommand:" + command.toString() + "]", notificationMessage);
-			return;
-		}
+			notificationMessage = "Failed to send command: " + command + ". Message: " + message + ". Key: " + key + ". There is no recipient list defined";
+			throw new UnableToSendCommandException(notificationMessage);
+		} 
 	}
 	
 	@Override
 	protected void prepareAccountAndRegIdLists(List<String> listAccounts,
 			List<String> listRegIDs) {
 		super.prepareAccountAndRegIdLists(listAccounts, listRegIDs);
+		methodName = "prepareAccountAndRegIdLists";
 		// Collect registration_IDs of the contacts that command will be send to
+		if(contactDeviceDataList == null){
+			logMessage = "Contacts and devices data list is empty. Unable to prepare recipient list.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			return;
+		}
 		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
 			ContactData contactData = contactDeviceData.getContactData();
 			if(contactData != null){
