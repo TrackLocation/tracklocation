@@ -8,8 +8,13 @@ import com.dagrest.tracklocation.db.DBConst;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.Utils;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +22,7 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ImageView;
@@ -142,6 +148,15 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 		}
 	
 		viewHolder.textView.setText(contactData.getNick());
+		
+		Bitmap bmp = contactData.getContactPhoto();
+		if (bmp == null){
+			bmp = BitmapFactory.decodeResource(convertView.getResources(), R.drawable.ic_launcher);
+		}
+		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), Utils.getRoundedCornerImage(bmp));
+		contactPhoto.setBounds( 0, 0, 120, 120 );
+		viewHolder.imageView.setImageDrawable(contactPhoto);
+
 				// Action on Row click 
 		if (viewHolder.checkBox != null) {								
 			if(emailList != null){

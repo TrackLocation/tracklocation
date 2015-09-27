@@ -1,5 +1,6 @@
 package com.dagrest.tracklocation;
 
+import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.utils.CommonConst;
 
 import android.app.Activity;
@@ -9,10 +10,10 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.util.SparseArray;
 
-public class FetchDeviceContacts extends AsyncTask<Object, Object, SparseArray<ContactDetails>> {
+public class FetchDeviceContacts extends AsyncTask<Object, Object, SparseArray<ContactData>> {
 
 	@Override
-	protected SparseArray<ContactDetails> doInBackground(Object... params) {
+	protected SparseArray<ContactData> doInBackground(Object... params) {
 		return null;
 	}
 /*	private ProgressDialog statusDialog;

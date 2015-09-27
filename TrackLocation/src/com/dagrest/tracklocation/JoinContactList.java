@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
+import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.JoinRequestStatusEnum;
 import com.dagrest.tracklocation.datatype.SentJoinRequestData;
 import com.dagrest.tracklocation.db.DBLayer;
@@ -34,7 +35,7 @@ import android.widget.Toast;
 
 public class JoinContactList extends Activity {
 	
-	private SparseArray<ContactDetails> contactDetailsGroups = new SparseArray<ContactDetails>();
+	private SparseArray<ContactData> contactDetailsGroups = new SparseArray<ContactData>();
 	private EditText inputSearch;
 	private ContactDeatilsExpandableListAdapter adapter;
 	private BroadcastReceiver broadcastReceiver;

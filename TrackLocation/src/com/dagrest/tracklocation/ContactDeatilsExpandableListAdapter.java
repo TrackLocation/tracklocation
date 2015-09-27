@@ -2,6 +2,7 @@ package com.dagrest.tracklocation;
 
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
+import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Utils;
 
@@ -23,14 +24,13 @@ import android.widget.TextView;
 
 public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapter {
 
-	private SparseArray<ContactDetails> contactDetailsGroups = null;
-	private SparseArray<ContactDetails> contactDetailsGroupsOriginal = null;
+	private SparseArray<ContactData> contactDetailsGroups = null;
+	private SparseArray<ContactData> contactDetailsGroupsOriginal = null;
 	private LayoutInflater inflater;
 	private Activity activity;
 	private int groupPositionCurrent = -1;
 
-	public ContactDeatilsExpandableListAdapter(Activity act,
-			SparseArray<ContactDetails> contactDetailsGroups) {
+	public ContactDeatilsExpandableListAdapter(Activity act, SparseArray<ContactData> contactDetailsGroups) {
 		activity = act;
 		this.contactDetailsGroups = contactDetailsGroups.clone();
 		this.contactDetailsGroupsOriginal = contactDetailsGroups.clone();
@@ -63,10 +63,10 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 			@Override
 			public void onClick(View v) {
 				//Toast.makeText(activity, children, Toast.LENGTH_SHORT).show();
-				ContactDetails contactDetails = (ContactDetails) getGroup(getGroupPositionCurrent());
+				ContactData contactDetails = (ContactData) getGroup(getGroupPositionCurrent());
 				String contactName = null;
-				if(contactDetails != null && !contactDetails.getContactName().isEmpty()){
-					contactName = contactDetails.getContactName();
+				if(contactDetails != null && !contactDetails.getNick().isEmpty()){
+					contactName = contactDetails.getNick();
 				}
         		Controller.broadcastMessage(activity, 
         			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
@@ -116,8 +116,8 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 		if (convertView == null) {
 			convertView = inflater.inflate(R.layout.listrow_group, null);
 		}
-		ContactDetails group = (ContactDetails) getGroup(groupPosition);
-		((CheckedTextView) convertView).setText(group.getContactName());
+		ContactData group = (ContactData) getGroup(groupPosition);
+		((CheckedTextView) convertView).setText(group.getNick());
 		//Add person image into the Join List 
 		Bitmap bmp = group.getContactPhoto();
 		if (bmp == null){
@@ -144,7 +144,7 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 	public void filterData(final String contcatName) {
 
 		String contcatNameLowerCase = contcatName.toLowerCase();
-		SparseArray<ContactDetails> contactDetailsGroupsNew = new SparseArray<ContactDetails>();
+		SparseArray<ContactData> contactDetailsGroupsNew = new SparseArray<ContactData>();
 
 		if (contcatNameLowerCase == null || contcatNameLowerCase.isEmpty()) {
 			contactDetailsGroups = contactDetailsGroupsOriginal.clone();
@@ -152,7 +152,7 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 			int j = 0;
 			for (int i = 0; i < contactDetailsGroupsOriginal.size(); i++) {
 
-				if (contactDetailsGroupsOriginal.get(i).getContactName().toLowerCase().contains(contcatNameLowerCase)) {
+				if (contactDetailsGroupsOriginal.get(i).getNick().toLowerCase().contains(contcatNameLowerCase)) {
 					contactDetailsGroupsNew.append(j,
 							contactDetailsGroupsOriginal.get(i));
 					j++;

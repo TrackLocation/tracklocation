@@ -72,6 +72,7 @@ import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.DeviceData;
 import com.dagrest.tracklocation.datatype.JsonMessageData;
+import com.dagrest.tracklocation.datatype.MapMarkerDetails;
 import com.dagrest.tracklocation.datatype.Message;
 import com.dagrest.tracklocation.datatype.MessageData;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
@@ -595,7 +596,7 @@ public class Controller {
 	    return  Utils.getRoundedCornerImage(photo);
 	}
 	
-	public static SparseArray<ContactDetails> fetchContacts(Context context, SparseArray<ContactDetails> contactDetailsGroups,
+	public static SparseArray<ContactData> fetchContacts(Context context, SparseArray<ContactData> contactDetailsGroups,
 			ProgressDialog barProgressDialog) {
         String phoneNumber = null;
         //SparseArray<ContactDetails> contactDetailsGroups = null;
@@ -633,8 +634,8 @@ public class Controller {
                 if( contactName != null && !contactName.isEmpty()) {
 	                int hasPhoneNumber = Integer.parseInt(cursor.getString(cursor.getColumnIndex( HAS_PHONE_NUMBER )));
 	                if (hasPhoneNumber > 0) {
-	                	ContactDetails contactDetails = new ContactDetails();
-	                	contactDetails.setContactName(contactName);
+	                	ContactData contactDetails = new ContactData();
+	                	contactDetails.setNick(contactName);
 	                	contactDetails.setContactPhoto(getContactPhoto(contentResolver, contact_id));
 	                    // Query and loop for every phone number of the contact
 	                    Cursor phoneCursor = contentResolver.query(PhoneCONTENT_URI, null, Phone_CONTACT_ID + " = ?", new String[] { Long.toString(contact_id) }, null);
@@ -655,7 +656,7 @@ public class Controller {
         return contactDetailsGroups;
     }
 
-	public static List<ContactData> fillContactListWithContactDeviceDataFromJSON(ContactDeviceDataList contactDeviceDataCollection,
+	public static List<ContactData> fillContactListWithContactDeviceDataFromJSON(Context context, ContactDeviceDataList contactDeviceDataCollection,
 			List<Boolean> checkBoxesShareLocation, List<String> emailList, List<String> macAddressList){
 		List<ContactData> values = null;
 	    
@@ -673,6 +674,7 @@ public class Controller {
 	    values = new ArrayList<ContactData>();
 	    for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 	    	ContactData contactData = contactDeviceData.getContactData();
+	    	contactData.setContactPhoto(Controller.getContactPhotoByEmail(context, contactData.getEmail()));
 	    	DeviceData deviceData = contactDeviceData.getDeviceData();
 	    	if(contactData != null && deviceData != null) {
 	    		String nick = contactData.getNick();
@@ -783,10 +785,10 @@ public class Controller {
 		return selectedContactDeviceDataList;
 	}
 
-	public static CameraUpdate createCameraUpdateLatLngBounds(LinkedHashMap<String, Marker> markerMap) {
+	public static CameraUpdate createCameraUpdateLatLngBounds(LinkedHashMap<String, MapMarkerDetails> markerMap) {
 		LatLngBounds.Builder builder = new LatLngBounds.Builder();
-		for (LinkedHashMap.Entry<String,Marker> markerEntry : markerMap.entrySet()) {
-			Marker m = markerEntry.getValue();
+		for (LinkedHashMap.Entry<String, MapMarkerDetails> markerEntry : markerMap.entrySet()) {
+			Marker m = markerEntry.getValue().getMarker();
 			if(m != null){
     			builder.include(m.getPosition());
 			}
@@ -956,5 +958,32 @@ public class Controller {
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 		}
 	}
+	
+	public static Long getContactIdByEmail(Context context, String email) {
+        Uri uri = Uri.withAppendedPath(ContactsContract.CommonDataKinds.Email.CONTENT_FILTER_URI, Uri.encode(email));
+        long contactId =0;
 
+        ContentResolver contentResolver = context.getContentResolver();
+        Cursor contactLookup = contentResolver.query(uri, new String[] {ContactsContract.Data.CONTACT_ID }, null, null, null);
+
+        try {
+            if (contactLookup != null && contactLookup.getCount() > 0) {
+
+                contactLookup.moveToNext();              
+                contactId = contactLookup.getLong(contactLookup.getColumnIndex(ContactsContract.Data.CONTACT_ID));
+
+            }
+        } finally {
+            if (contactLookup != null) {
+                contactLookup.close();
+            }
+        }
+
+        return contactId;
+    }
+	
+	public static Bitmap getContactPhotoByEmail(Context context, String email) {
+		Long contactId = getContactIdByEmail(context, email);
+		return getContactPhoto(context.getContentResolver(), contactId);
+	}
 }

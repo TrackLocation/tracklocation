@@ -17,6 +17,7 @@ import com.dagrest.tracklocation.datatype.CommandValueEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
+import com.dagrest.tracklocation.datatype.MapMarkerDetails;
 import com.dagrest.tracklocation.datatype.MessageDataContactDetails;
 import com.dagrest.tracklocation.datatype.MessageDataLocation;
 import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
@@ -38,6 +39,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.Projection;
 import com.google.gson.Gson;
+import com.sun.mail.handlers.message_rfc822;
 import com.dagrest.tracklocation.R;
 
 import android.app.Activity;
@@ -85,11 +87,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class Map extends MainActivity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, OnTouchListener{
-
+	
 	// Max time of waiting dialog displaying - 30 seconds
 	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
 	private final static float DEFAULT_CAMERA_UPDATE = 15;
-	private static final int POPUP_POSITION_REFRESH_INTERVAL = 16;
+	//private static final int POPUP_POSITION_REFRESH_INTERVAL = 16;
 	private static final int ANIMATION_DURATION = 500;
 	
 	private Activity mapActivity;
@@ -99,8 +101,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	private BroadcastReceiver gcmLocationUpdatedWatcher;
 	private BroadcastReceiver notificationBroadcastReceiver;
 	private GoogleMap map;
-	private LinkedHashMap<String, Marker> markerMap = null;
-	private LinkedHashMap<String, Circle> locationCircleMap = null;
+
 	private float zoom;
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private List<String> selectedAccountList;
@@ -113,7 +114,9 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	private Thread startTrackLocationServerThread;
 	private Runnable startTrackLocationService;
 	private boolean isPermissionDialogShown;
-	private MessageDataContactDetails contactDetails;
+
+	private LinkedHashMap<String, MapMarkerDetails> mapMarkerDetailsList = new LinkedHashMap<String, MapMarkerDetails>();
+	private MapMarkerDetails selectedMarkerDetails = null;
 	
 	private TextView notificationView;
 	
@@ -150,7 +153,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
         new Thread(new Runnable() {
             @Override
             public void run() {
-            	if(markerMap != null && markerMap.size() >= contactsQuantity) {
+            	if(mapMarkerDetailsList.size() >= contactsQuantity) {
             		waitingDialog.dismiss();
             		notificationView.setVisibility(4);
             	}
@@ -299,6 +302,101 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		viewStatus = DialogStatus.Closed;
 
 		map_popup_second.setVisibility(View.GONE);
+		
+		Button callBtn = (Button) findViewById(R.id.call_btn);			
+		callBtn.setOnClickListener(new OnClickListener() {
+
+	        @Override
+	        public void onClick(View v) {		
+	        	Intent intent = new Intent(Intent.ACTION_DIAL);
+	        	//Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + "0544504619"));
+		    	startActivity( intent );			        	 
+	        }
+	    });
+		
+		Button messageBtn = (Button) findViewById(R.id.message_btn);
+		messageBtn.setOnClickListener(new OnClickListener() {
+
+	        @Override
+	        public void onClick(View v) {
+			    PackageManager pm = getPackageManager();
+			    Intent sendIntent = new Intent(Intent.ACTION_SEND);     
+			    sendIntent.setType("text/plain");
+		    
+			    List<ResolveInfo> resInfo = pm.queryIntentActivities(sendIntent, 0);
+			    List<Intent> intentList = new ArrayList<Intent>();        
+			    for (int i = 0; i < resInfo.size(); i++) {
+			        // Extract the label, append it, and repackage it in a LabeledIntent
+			        ResolveInfo ri = resInfo.get(i);
+			        String packageName = ri.activityInfo.packageName;
+
+			        Intent intent = new Intent(android.content.Intent.ACTION_SEND);
+			        intent.setComponent(new ComponentName(packageName, ri.activityInfo.name));
+			        intent.setType("text/plain"); // put here your mime type			       
+	   				if (packageName.equals("com.whatsapp")) {			    	            
+	   					intent.setPackage(packageName);
+	   					intentList.add(intent);
+	    	        }
+	   				else if (packageName.equals("com.viber.voip")) {			    	            
+	   					intent.setPackage(packageName);
+	   					intentList.add(intent);
+	    	        }else if (packageName.equals("com.android.mms")) {			    	            
+	    	        	intent.setPackage(packageName);
+	    	        	intentList.add(intent);
+	    	        }
+	    	        else if (packageName.equals("ru.ok.android")) {			    	            
+	    	        	intent.setPackage(packageName);
+	    	        	intentList.add(intent);
+	    	        }
+	    	        else if (packageName.equals("com.skype.raider")) {			    	            
+	    	        	intent.setPackage(packageName);
+	    	        	intentList.add(intent);
+	    	        }
+	    	        else if (packageName.equals("com.google.android.gm")) {			    	            
+	    	        	intent.setPackage(packageName);
+	    	        	intentList.add(intent);
+	    	        }
+	    	        else if (packageName.equals("com.facebook.orca")) {			    	            
+	    	        	intent.setPackage(packageName);
+	    	        	intentList.add(intent);
+	    	        }   
+			    }
+
+			    // convert intentList to array
+			    Intent openInChooser = Intent.createChooser(intentList.remove(0),"Message option choose");
+			    Intent[] extraIntents = intentList.toArray( new Intent[ intentList.size() ]);
+
+			    openInChooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents);
+			    startActivity(openInChooser);	          
+	        }
+	    });
+		
+		Button ringBtn = (Button) findViewById(R.id.ring_btn);			
+		ringBtn.setOnClickListener(new OnClickListener() {
+
+	        @Override
+	        public void onClick(View v) {	
+	        	if (selectedMarkerDetails != null){
+	        		showRingConfirmationDialog(Map.this, "Are you sure?", selectedMarkerDetails.getContactDetails());
+	        	}
+	        }
+	    });
+
+		ImageButton nav_btn = (ImageButton) findViewById(R.id.nav_btn);			
+		nav_btn.setOnClickListener(new OnClickListener() {
+			 
+	        @Override
+	        public void onClick(View v) {
+	        	if (selectedMarkerDetails != null){
+	        		double lat = selectedMarkerDetails.getLocationDetails().getLat();
+	        		double lng = selectedMarkerDetails.getLocationDetails().getLng();
+	        		final String uri = String.format(Locale.getDefault(), "geo:%f,%f?q=%f,%f", lat, lng, lat, lng);
+	        		Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
+	        		startActivity( intent );	
+	        	}
+	        }
+	    });
+		
         controller = new Controller();
         controller.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
         	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);
@@ -492,7 +590,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    		LogManager.LogInfoMsg("ContactConfiguration", "initGcmIntentServiceWatcher->onReceive", "WORK");
 	    		
 	    		Bundle bundle = intent.getExtras();
-	    		String broadcastKeyLocationUpdated = BroadcastKeyEnum.location_updated.toString();
+	    		//String broadcastKeyLocationUpdated = BroadcastKeyEnum.location_updated.toString();
 	    		// ===========================================
 	    		// broadcast key = location_updated
 	    		// ===========================================
@@ -509,38 +607,39 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    			
 	    			// TODO:  Create a new function in Controller class
 	    			// ================================================
-	    			contactDetails = broadcastData.getContactDetails();
+	    			MessageDataContactDetails contactDetails = broadcastData.getContactDetails();
 	    			// TODO: Check that contactDetails are not null
 	    			MessageDataLocation locationDetails = broadcastData.getLocation();
 	    			// TODO: Check that locationDetails are not null
 	    			
 	    			String updatingAccount = contactDetails.getAccount();
 	    			
-		    		if(markerMap == null){
-		    			markerMap = new LinkedHashMap<String, Marker>();
-		    		}
-		    		if(locationCircleMap == null){
-		    			locationCircleMap = new LinkedHashMap<String, Circle>();
-		    		}
-
 		    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
 		    			// Set marker on the map
 		    			//final View infoView = getLayoutInflater().inflate(R.layout.map_info_window, null);
-		    			createMapMarker(map, contactDetails, locationDetails, markerMap, locationCircleMap);
+		    			if (mapMarkerDetailsList.containsKey(updatingAccount)){
+		    				mapMarkerDetailsList.get(updatingAccount).getLocationCircle().remove();
+		    				mapMarkerDetailsList.get(updatingAccount).getMarker().remove();
+		    				mapMarkerDetailsList.remove(updatingAccount);
+		    			}
+		    			MapMarkerDetails  mapMarkerDetails = createMapMarker(map, contactDetails, locationDetails);
+		    			if (mapMarkerDetails != null){
+		    				mapMarkerDetailsList.put(updatingAccount, mapMarkerDetails);
+		    			}	    			
 		    		}
 
 		    		// TODO: Create another function ???
-		    		if(markerMap != null && markerMap.size() > 1 && isShowAllMarkersEnabled == true) {
+		    		if(mapMarkerDetailsList.size() > 1 && isShowAllMarkersEnabled == true) {
 		    			// put camera to show all markers
-		    			CameraUpdate cu = Controller.createCameraUpdateLatLngBounds(markerMap);
+		    			CameraUpdate cu = Controller.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
 			    		map.animateCamera(cu); // or map.moveCamera(cu); 
-			    		if(markerMap.size() >= contactsQuantity){
+			    		if(mapMarkerDetailsList.size() >= contactsQuantity){
 			    			// put camera to show all markers
-			    			cu = Controller.createCameraUpdateLatLngBounds(markerMap);
+			    			cu = Controller.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
 				    		map.animateCamera(cu); // or map.moveCamera(cu); 
 			    			isShowAllMarkersEnabled = false;
 			    		}
-		    		} else if(markerMap != null && markerMap.size() == 1 && isShowAllMarkersEnabled == true) {
+		    		} else if(mapMarkerDetailsList.size() == 1 && isShowAllMarkersEnabled == true) {
 		    			
 				    		// Update map's camera only for requested accounts(contacts) from Locate screen
 				    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
@@ -550,13 +649,13 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 				    	    		double lng = locationDetails.getLng();
 					    			latLngChanging = new LatLng(lat, lng);
 					    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngChanging, zoom));
-					    			if(markerMap.size() >= contactsQuantity){
+					    			if(mapMarkerDetailsList.size() >= contactsQuantity){
 					    				isShowAllMarkersEnabled = false;
 					    			}
 				    			}
 				    		}
 		    		}
-		    		if(markerMap != null && markerMap.size() == contactsQuantity){
+		    		if(mapMarkerDetailsList != null && mapMarkerDetailsList.size() == contactsQuantity){
 		    			waitingDialog.dismiss();
 		    			notificationView.setVisibility(4);
 		    		}
@@ -569,188 +668,57 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }
 	
-	private void createMapMarker(GoogleMap map, 
+	private MapMarkerDetails createMapMarker(GoogleMap map, 
 			final MessageDataContactDetails contactDetails, 
-			final MessageDataLocation locationDetails, 
-			LinkedHashMap<String, 
-			Marker> markerMap, 
-			LinkedHashMap<String, 
-			Circle> locationCircleMap) {
-		if(locationDetails != null) {
-    		final double lat = locationDetails.getLat();
-    		final double lng = locationDetails.getLng();
-    		
-    		if(lat != 0 && lng != 0){
-				LatLng latLngChanging = new LatLng(lat, lng);
-
-				final String account = contactDetails.getAccount();
-	    		if(account == null || account.isEmpty()) {
-	    			return;
-	    		}
-	    		
-	    		if(markerMap.containsKey(account)) {
-	    			markerMap.get(account).remove();
-	    			markerMap.remove(account);
-	    		}
-	    		if(locationCircleMap.containsKey(account)) {
-	    			locationCircleMap.get(account).remove();
-	    			locationCircleMap.remove(account);
-	    		}
-	    		
-				Marker marker = null;
-				Circle locationCircle = null;
-				String accurancy = locationDetails.getLocationProviderType().equals("gps") ? "High" : "Low";
-				String snippetString = "Battery: " + String.valueOf(Math.round(contactDetails.getBatteryPercentage())) + "%" +  
-			        "\nAccurancy: " + accurancy;
-				double speed = locationDetails.getSpeed();
-				if(speed > 0){
-					snippetString = snippetString + "\nSpeed: " + String.valueOf(Math.round(speed)) + " km/h";
-				}
-				else{
-
-					Geocoder geocoder = new Geocoder(this.context, Locale.ENGLISH);
-					try {
-						List<Address>  addresses = geocoder.getFromLocation(lat, lng, 1);
-						String address = null;
-						String city = null;
-						if(addresses != null && addresses.size() > 0 && addresses.get(0) != null){
-							address = addresses.get(0).getAddressLine(0);
-							city = addresses.get(0).getAddressLine(1);
-							//String country = addresses.get(0).getAddressLine(2);
-							snippetString = snippetString + "\nCity : " + city + "\nAddress: " + address;					
-						}
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
-				
-				Button callBtn = (Button) findViewById(R.id.call_btn);			
-				callBtn.setOnClickListener(new OnClickListener() {
-
-			        @Override
-			        public void onClick(View v) {		
-			        	Intent intent = new Intent(Intent.ACTION_DIAL);
-			        	//Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + "0544504619"));
-				    	startActivity( intent );			        	 
-			        }
-			    });
-				
-				Button messageBtn = (Button) findViewById(R.id.message_btn);
-				messageBtn.setOnClickListener(new OnClickListener() {
-
-			        @Override
-			        public void onClick(View v) {
-					    PackageManager pm = getPackageManager();
-					    Intent sendIntent = new Intent(Intent.ACTION_SEND);     
-					    sendIntent.setType("text/plain");
-				    
-					    List<ResolveInfo> resInfo = pm.queryIntentActivities(sendIntent, 0);
-					    List<Intent> intentList = new ArrayList<Intent>();        
-					    for (int i = 0; i < resInfo.size(); i++) {
-					        // Extract the label, append it, and repackage it in a LabeledIntent
-					        ResolveInfo ri = resInfo.get(i);
-					        String packageName = ri.activityInfo.packageName;
-
-					        Intent intent = new Intent(android.content.Intent.ACTION_SEND);
-					        intent.setComponent(new ComponentName(packageName, ri.activityInfo.name));
-					        intent.setType("text/plain"); // put here your mime type			       
-			   				if (packageName.equals("com.whatsapp")) {			    	            
-			   					intent.setPackage(packageName);
-			   					intentList.add(intent);
-			    	        }
-			   				else if (packageName.equals("com.viber.voip")) {			    	            
-			   					intent.setPackage(packageName);
-			   					intentList.add(intent);
-			    	        }else if (packageName.equals("com.android.mms")) {			    	            
-			    	        	intent.setPackage(packageName);
-			    	        	intentList.add(intent);
-			    	        }
-			    	        else if (packageName.equals("ru.ok.android")) {			    	            
-			    	        	intent.setPackage(packageName);
-			    	        	intentList.add(intent);
-			    	        }
-			    	        else if (packageName.equals("com.skype.raider")) {			    	            
-			    	        	intent.setPackage(packageName);
-			    	        	intentList.add(intent);
-			    	        }
-			    	        else if (packageName.equals("com.google.android.gm")) {			    	            
-			    	        	intent.setPackage(packageName);
-			    	        	intentList.add(intent);
-			    	        }
-			    	        else if (packageName.equals("com.facebook.orca")) {			    	            
-			    	        	intent.setPackage(packageName);
-			    	        	intentList.add(intent);
-			    	        }   
-					    }
-
-					    // convert intentList to array
-					    Intent openInChooser = Intent.createChooser(intentList.remove(0),"Message option choose");
-					    Intent[] extraIntents = intentList.toArray( new Intent[ intentList.size() ]);
-
-					    openInChooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents);
-					    startActivity(openInChooser);	          
-			        }
-			    });
-				
-				Button ringBtn = (Button) findViewById(R.id.ring_btn);			
-				ringBtn.setOnClickListener(new OnClickListener() {
-
-			        @Override
-			        public void onClick(View v) {		
-			        	showRingConfirmationDialog(Map.this, "Are you sure?");
-			        }
-			    });
-
-				ImageButton nav_btn = (ImageButton) findViewById(R.id.nav_btn);			
-				nav_btn.setOnClickListener(new OnClickListener() {
-					 
-			        @Override
-			        public void onClick(View v) {
-			        	Location loc = getLastKnownLocation();
-				    	   final String uri = String.format(Locale.getDefault(), "geo:%f,%f?q=%f,%f", lat, lng, lat, lng);
-				    	   Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
-				    	   startActivity( intent );	
-			        }
-			    });
-				//marker.
-				
-				Bitmap.Config conf = Bitmap.Config.ARGB_8888;
-				Bitmap bmp = Bitmap.createBitmap(80, 80, conf);
-				Canvas canvas1 = new Canvas(bmp);
-
-				// paint defines the text color,
-				// stroke width, size
-				Paint color = new Paint();
-				color.setTextSize(35);
-				color.setColor(Color.BLACK);
-
-				//modify canvas
-				canvas1.drawBitmap(BitmapFactory.decodeResource(getResources(),	R.drawable.wpfrk), 0,0, color);
-				canvas1.drawText("User Name!", 30, 40, color);
-				
-				
-				marker = map.addMarker(new MarkerOptions()
-					//TODO add user profile image
-					.icon(BitmapDescriptorFactory.fromBitmap(drawMarker(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))))
-
-					.snippet(snippetString)
-					.title(account)
-					//.anchor(0.0f, 1.0f) // Anchors the marker on the bottom
-										// left
-					.position(latLngChanging));
-				
-				markerMap.put(account, marker);
-				
-				double accuracy = locationDetails.getAccuracy();
+			final MessageDataLocation locationDetails) {
+		if(locationDetails == null) {
+			return null;
+		}
+		final double lat = locationDetails.getLat();
+		final double lng = locationDetails.getLng();
 		
-				locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
-				            .radius(accuracy)
-				            .strokeColor(Color.argb(255, 0, 153, 255))
-				            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
-				locationCircleMap.put(account, locationCircle);
-    		}
-    	}
+		if(lat == 0 || lng == 0){
+			return null;
+		}
+		
+		LatLng latLngChanging = new LatLng(lat, lng);
+
+		final String account = contactDetails.getAccount();
+		if(account == null || account.isEmpty()) {
+			return null;
+		}
+		
+		Bitmap.Config conf = Bitmap.Config.ARGB_8888;
+		Bitmap bmp = Bitmap.createBitmap(80, 80, conf);
+		Canvas canvas1 = new Canvas(bmp);
+
+		// paint defines the text color,
+		// stroke width, size
+		Paint color = new Paint();
+		color.setTextSize(35);
+		color.setColor(Color.BLACK);
+
+		//modify canvas
+		canvas1.drawBitmap(BitmapFactory.decodeResource(getResources(),	R.drawable.wpfrk), 0,0, color);
+		canvas1.drawText("User Name!", 30, 40, color);
+		
+		
+		Marker marker = map.addMarker(new MarkerOptions()
+			//TODO add user profile image
+			.icon(BitmapDescriptorFactory.fromBitmap(drawMarker(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))))
+			.snippet(account)
+			//.anchor(0.0f, 1.0f) // Anchors the marker on the bottom
+								// left
+			.position(latLngChanging));
+		
+		double accuracy = locationDetails.getAccuracy();
+
+		Circle locationCircle = map.addCircle(new CircleOptions().center(latLngChanging)
+		            .radius(accuracy)
+		            .strokeColor(Color.argb(255, 0, 153, 255))
+		            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
+		
+		return new MapMarkerDetails(contactDetails, locationDetails, marker, locationCircle);
 	}
 	
     @Override
@@ -801,6 +769,41 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
         Point trackedPoint = projection.toScreenLocation(lastKnownLocation);
         
         LatLng newCameraLocation = projection.fromScreenLocation(trackedPoint);
+        
+        selectedMarkerDetails = mapMarkerDetailsList.get(marker.getSnippet());
+        
+        if (selectedMarkerDetails == null){
+        	return false;
+        }
+        	    
+        String accurancy = selectedMarkerDetails.getLocationDetails().getLocationProviderType().equals("gps") ? "High" : "Low";
+		String snippetString = "Battery: " + String.valueOf(Math.round(selectedMarkerDetails.getContactDetails().getBatteryPercentage())) + "%" +  
+	        "\nAccurancy: " + accurancy;
+		double speed = selectedMarkerDetails.getLocationDetails().getSpeed();
+		if(speed > 0){
+			snippetString = snippetString + "\nSpeed: " + String.valueOf(Math.round(speed)) + " km/h";
+		}
+		else{
+
+			Geocoder geocoder = new Geocoder(this.context, Locale.ENGLISH);
+			try {
+				double lat = selectedMarkerDetails.getLocationDetails().getLat();
+        		double lng = selectedMarkerDetails.getLocationDetails().getLng();
+				List<Address>  addresses = geocoder.getFromLocation(lat, lng, 1);
+				String address = null;
+				String city = null;
+				if(addresses != null && addresses.size() > 0 && addresses.get(0) != null){
+					address = addresses.get(0).getAddressLine(0);
+					city = addresses.get(0).getAddressLine(1);
+					//String country = addresses.get(0).getAddressLine(2);
+					snippetString = snippetString + "\nCity : " + city + "\nAddress: " + address;					
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}        
+        
         map.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation), ANIMATION_DURATION, null);
         if (viewStatus == DialogStatus.Closed){
 	        layoutAccountMenu.getLayoutParams().height = map_popup_first.getLayoutParams().height;
@@ -809,8 +812,8 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 			
 			layoutAccountMenu.startAnimation(animUp);
         }
-        title_text.setText(marker.getTitle());          
-        info_preview.setText(marker.getSnippet());
+        title_text.setText(marker.getSnippet());          
+        info_preview.setText(snippetString);
 		        
         return true;
 	}
@@ -907,10 +910,13 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	}
 	
 	private IDialogOnClickAction dialogOnClickAction = new IDialogOnClickAction(){
-
+		MessageDataContactDetails contactDetails = null;
+		
 		@Override
 		public void doOnPositiveButton() {
-			Controller.RingDevice(context, className, contactDetails);
+			if (contactDetails != null){
+				Controller.RingDevice(context, className, contactDetails);
+			}
 		}
 
 		@Override
@@ -931,10 +937,15 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 
 		@Override
 		public void setParams(Object[]... objects) {
+			contactDetails = (MessageDataContactDetails) objects[0][0];
 		}		
 	};
 	
-	private void showRingConfirmationDialog(Activity activity, String confirmationMessage) {
+	private void showRingConfirmationDialog(Activity activity, String confirmationMessage, MessageDataContactDetails contactDetails) {
+		Object[] objects = new Object[1];
+		objects[0] = contactDetails;
+		
+		dialogOnClickAction.setParams(objects);
 		CommonDialog aboutDialog = new CommonDialog(activity, dialogOnClickAction);
 		aboutDialog.setDialogMessage(confirmationMessage);
 		aboutDialog.setDialogTitle("Ring to chosen contact.");

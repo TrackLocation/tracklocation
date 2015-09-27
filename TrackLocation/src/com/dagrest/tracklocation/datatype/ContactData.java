@@ -1,5 +1,10 @@
 package com.dagrest.tracklocation.datatype;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import android.graphics.Bitmap;
+
 import com.dagrest.tracklocation.Controller;
 
 public class ContactData {
@@ -8,6 +13,8 @@ public class ContactData {
 //	private String registration_id;
 	private String firstName;
 	private String lastName;
+	private Bitmap contactPhoto;
+	private final List<String> phoneNumbersList = new ArrayList<String>();
 	
 	public ContactData() {}
 	
@@ -36,12 +43,6 @@ public class ContactData {
 	public void setEmail(String email) {
 		this.email = email;
 	}
-//	public String getRegistration_id() {
-//		return registration_id;
-//	}
-//	public void setRegistration_id(String registration_id) {
-//		this.registration_id = registration_id;
-//	}
 	public String getFirstName() {
 		return firstName;
 	}
@@ -53,5 +54,17 @@ public class ContactData {
 	}
 	public void setLastName(String lastName) {
 		this.lastName = lastName;
+	}
+	
+	public List<String> getPhoneNumbersList() {
+		return phoneNumbersList;
+	}
+
+	public Bitmap getContactPhoto() {
+		return contactPhoto;
+	}
+
+	public void setContactPhoto(Bitmap contactPhoto) {
+		this.contactPhoto = contactPhoto;
 	}
 }

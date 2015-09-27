@@ -64,7 +64,7 @@ public class ContactList extends MainActivity {
 		
 		contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
 		
-		values = Controller.fillContactListWithContactDeviceDataFromJSON(contactDeviceDataList, null, null, null);
+		values = Controller.fillContactListWithContactDeviceDataFromJSON(ContactList.this, contactDeviceDataList, null, null, null);
 	    if(values != null){
 	    	// TODO: move to init isSelected list:
 	    	isSelected = new ArrayList<Boolean>(values.size());

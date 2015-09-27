@@ -58,7 +58,7 @@ public class TrackingList extends Activity {
 		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
 		List<String> emailList = new ArrayList<String>();
 		List<String> macAddressList = new ArrayList<String>();
-		List<ContactData> values = Controller.fillContactListWithContactDeviceDataFromJSON(	contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+		List<ContactData> values = Controller.fillContactListWithContactDeviceDataFromJSON(TrackingList.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
 		
 	    if(values != null){
 	    	// TODO: move to init isSelected list:
