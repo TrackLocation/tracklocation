@@ -84,17 +84,13 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Map extends Activity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, OnTouchListener{
+public class Map extends MainActivity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, OnTouchListener{
 
 	// Max time of waiting dialog displaying - 30 seconds
 	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
 	private final static float DEFAULT_CAMERA_UPDATE = 15;
 	private static final int POPUP_POSITION_REFRESH_INTERVAL = 16;
 	private static final int ANIMATION_DURATION = 500;
-	
-	private String className = this.getClass().getName();
-	private String methodName;
-	private String logMessage;
 	
 	private Activity mapActivity;
 	private LocationManager locationManager;
@@ -171,6 +167,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		className = this.getClass().getName();
 		getActionBar().hide();
 		methodName = "onCreate";
 		mapActivity = this;
@@ -255,10 +252,19 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 
         setupLocation();
 
+		String jsonListAccounts = Preferences.getPreferencesString(context, 
+        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+        Log.i(CommonConst.LOG_TAG, "Inside loop for recipients: " + jsonListAccounts);
+
         String accountsListMsg = "Waiting for:\n\n";
-        for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList.getContactDeviceDataList()) {
-        	accountsListMsg = accountsListMsg + contactDeviceData.getContactData().getEmail() + "\n";
-		}
+		if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
+			accountsListMsg = "All contacts found.";
+		} else {
+			List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+			for (String account : listAccounts) {
+				accountsListMsg = accountsListMsg + account + "\n";
+			}
+		}        
         waitingDialog.setMessage(accountsListMsg);
         
         zoom = DEFAULT_CAMERA_UPDATE;
@@ -376,6 +382,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 			public void onReceive(Context context, Intent intent) {
 				Bundle bundle = intent.getExtras();
 	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
+	    			    			
 	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
 	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
 	    				return;
@@ -388,7 +395,16 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	    			String key  = broadcastData.getKey();
 	    			String value = broadcastData.getValue();
 	    			
-    				// Notification about command: Start TrackLocation Service
+	    			// Notification about command: Start TrackLocation Service
+    				// RECEIVED - some recipient received request
+	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
+	    					CommandValueEnum.start_track_location_service_received.toString().equals(value)){
+	    				displayNotification(bundle);
+	    				notificationView.setVisibility(0);
+	    				notificationView.setText(broadcastData.getMessage());
+	    			}
+
+	    			// Notification about command: Start TrackLocation Service
     				// PLEASE WAIT - some recipients are not responding
 	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
 	    					CommandValueEnum.wait.toString().equals(value)){
@@ -408,11 +424,23 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	    			}
 	    			
     				// Notification about command: Start TrackLocation Service 
-    				// FAILED for some recipients
+    				// SUCCESS for some recipients
 	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
 	    					CommandValueEnum.success.toString().equals(value)){
 	    				notificationView.setText(broadcastData.getMessage());
 	    				notificationView.setVisibility(4);
+	    		        String accountsListMsg = "Waiting for:\n\n";
+	    				String jsonListAccounts = Preferences.getPreferencesString(context, 
+	    		        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+	    				if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
+	    					accountsListMsg = "All contacts found.";
+	    				} else {
+	    					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+	    					for (String account : listAccounts) {
+	    						accountsListMsg = accountsListMsg + account + "\n";
+	    					}
+	    				}
+	    				waitingDialog.setMessage(accountsListMsg);
 	    			}
 	    			
 	    			if(CommandKeyEnum.permissions.toString().equals(key) && 

@@ -26,6 +26,13 @@ import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.google.gson.Gson;
 
+/**
+ * 
+ * Send GCM command to start Track Location Service
+ * 
+ * @author dagrest@gmail.com
+ *
+ */
 public class StartTrackLocationService implements Runnable {
 
 	private final static int DELAY_IN_MS = 1000;
@@ -67,16 +74,28 @@ public class StartTrackLocationService implements Runnable {
 	@Override
 	public void run() {
 		
-		methodName = "StartTrackLocationService->run";
-		
+		methodName = "Create a new thread [ID = " + Thread.currentThread().getId() + 
+			"] with loop for sending of the command to start TrackLocationService -> run()";
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
-		logMessage = "Started the thread with loop for starting of TrackLocation Service. ThreadID = " + 
-			Thread.currentThread().getId();
-		LogManager.LogInfoMsg(className, methodName, logMessage);
-		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-		
-		CommandDataBasic commandDataBasic = null;
+				
+        if(senderMessageDataContactDetails == null){
+        	logMessage = "Failed to send GCM command to start Track Location Service" +
+        		" - no sender contact details provided.";
+        	LogManager.LogErrorMsg(className, methodName, logMessage);
+        	Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+        	return;
+        }
+        
+        if(selectedContactDeviceDataList == null){
+        	logMessage = "Failed to send GCM command to start Track Location Service" +
+            	" - no selected contact details provided.";
+        	LogManager.LogErrorMsg(className, methodName, logMessage);
+        	Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+        	return;
+        }
+
+        CommandDataBasic commandDataBasic = null;
 		try {
 			commandDataBasic = new CommandData(
 					context, 
@@ -94,15 +113,7 @@ public class StartTrackLocationService implements Runnable {
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 			return;
 		}
-			
-        if(senderMessageDataContactDetails == null){
-        	return;
-        }
-        
-        if(selectedContactDeviceDataList == null){
-        	return;
-        }
-        
+			        
         // String currentAccount = senderMessageDataContactDetails.getAccount();
         
         Gson gson = new Gson();

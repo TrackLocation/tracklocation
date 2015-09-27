@@ -3,22 +3,8 @@ package com.dagrest.tracklocation;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.datatype.ContactDeviceData;
-//import com.dagrest.tracklocation.datatype.AppInfo;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.dialog.CommonDialog;
@@ -43,16 +29,17 @@ import android.widget.AbsListView;
 import android.widget.AbsListView.OnScrollListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class ContactList extends Activity {
+public class ContactList extends MainActivity {
 
 	private static final int EDIT_OPTION = 0;
 	private static final int DELETE_OPTION = 1;
-	private String jsonStringContactDeviceDataList = null;
+	
+	private static Gson gson = new Gson();
+
 	private ListView lv;
 	// ---------------------------------------
 	// /*private EditText inputSearch; */
@@ -62,10 +49,7 @@ public class ContactList extends Activity {
 	private ContactDeviceDataList contactDeviceDataList;
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private List<String> selectedContcatList;
-	private Gson gson;
-	private String className;
-	private String methodName;
-	private Context context;
+
 	List<ContactData> values;
  	
 	@Override
@@ -73,7 +57,6 @@ public class ContactList extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.contact_list);
 		className = this.getClass().getName();
-		context = getApplicationContext();
 		methodName = "onCreate";
 		
 		LogManager.LogActivityCreate(className, methodName);
@@ -253,7 +236,7 @@ public class ContactList extends Activity {
 	    		// Start Map activity to see locations of selected contacts
 	    		Intent intentMap = new Intent(context, Map.class);
 	    		// Pass to Map activity list of selected contacts to get their location
-	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, new Gson().toJson(selectedContactDeviceDataList));
+	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, gson.toJson(selectedContactDeviceDataList));
 	   			startActivity(intentMap);
         	} else {
         		// TODO: Inform customer that no contact was selected by pop-up dialog
@@ -348,7 +331,7 @@ public class ContactList extends Activity {
 	private void editContact(int position) {
 		final ContactData editContact = adapter.getItem(position);
 		Intent contactEditIntent = new Intent(this, ContactEdit.class);		
-		contactEditIntent.putExtra(CommonConst.JSON_STRING_CONTACT_DATA, new Gson().toJson(editContact));
+		contactEditIntent.putExtra(CommonConst.JSON_STRING_CONTACT_DATA, gson.toJson(editContact));
 		contactEditIntent.putExtra(CommonConst.CONTACT_LIST_SELECTED_VALUE, position);
 		startActivity(contactEditIntent);	
 		startActivityForResult(contactEditIntent,2);		

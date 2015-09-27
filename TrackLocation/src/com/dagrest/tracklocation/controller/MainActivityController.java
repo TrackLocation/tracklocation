@@ -214,8 +214,8 @@ public class MainActivityController {
 		checkJoinRequestBySMSInBackground = new CheckJoinRequestBySMS(context, mainActivity);
 		try {
 			checkJoinRequestBySMSInBackgroundThread = new Thread(checkJoinRequestBySMSInBackground);
-			logMessage = "STARTED a separate thread to check Join request by SMS";
-			Log.e(CommonConst.LOG_TAG, logMessage);
+			logMessage = "Started a separate thread to check Join request by SMS";
+			Log.i(CommonConst.LOG_TAG, logMessage);
 			LogManager.LogInfoMsg(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> initCont()", logMessage);
 			checkJoinRequestBySMSInBackgroundThread.start();
 		} catch (IllegalThreadStateException e) {

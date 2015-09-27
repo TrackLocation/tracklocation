@@ -4,8 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum CommandValueEnum {
-	success("success"), error("error"), wait("wait"), 
-	not_defined("not_defined"), not_permitted("not_permitted");
+	success("success"), 
+	error("error"), 
+	wait("wait"), 
+	not_defined("not_defined"), 
+	not_permitted("not_permitted"),
+	// start Track Location Service command received on recipient
+	start_track_location_service_received("start_tls_received") // tls - Track Location Service
+	; 
 	
 	private final String name;       
 	private static Map<String, CommandValueEnum> valueMap;

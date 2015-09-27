@@ -13,6 +13,7 @@ import com.dagrest.tracklocation.db.DBManager;
 import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
+import com.dagrest.tracklocation.model.MainModel;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.google.gson.Gson;
@@ -32,16 +33,16 @@ import android.widget.Toast;
 public class MainActivity extends Activity {
 
     private final static int JOIN_REQUEST = 1;  
-    private String className;
-    private String logMessage;
-    private String methodName;
-    private Context context;
-
-    private ContactDeviceDataList contactDeviceDataList;
+    protected String className;
+    protected String logMessage;
+    protected String methodName;
+    protected Context context;
+    protected MainActivityController mainActivityController;
+    protected MainModel mainModel;
     private BroadcastReceiver notificationBroadcastReceiver;
-    public static boolean isTrackLocationRunning;
     
-    private MainActivityController mainActivityController;
+    public static volatile boolean isTrackLocationRunning; // Used in SMSReceiver.class
+
     
     public MainActivityController getMainActivityController() {
 		return mainActivityController;
@@ -54,13 +55,11 @@ public class MainActivity extends Activity {
 		className = this.getClass().getName();
 		methodName = "onCreate";
 		
-		mainActivityController = null;
-
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 		
 		setContentView(R.layout.activity_main);
-		
+				
 		initNotificationBroadcastReceiver();
 		
 		isTrackLocationRunning = true;
@@ -71,6 +70,9 @@ public class MainActivity extends Activity {
 		super.onResume();
 		context = getApplicationContext();
 		DBManager.initDBManagerInstance(new DBHelper(context));
+		if(mainModel == null){
+			mainModel = new MainModel();
+		}
 		if(mainActivityController == null){
 			mainActivityController = new MainActivityController(this, context);
 		}
@@ -95,7 +97,7 @@ public class MainActivity extends Activity {
         super.onDestroy();
         methodName = "onDestroy";
         
-		isTrackLocationRunning = false;
+        isTrackLocationRunning = false;
 		
      	Thread registerToGCMInBackgroundThread = 
      		mainActivityController.getRegisterToGCMInBackgroundThread();
@@ -128,7 +130,7 @@ public class MainActivity extends Activity {
 	
     public void onClick(final View view) {
     	if (view == findViewById(R.id.btnLocate) || view == findViewById(R.id.btnLocationSharing) || view == findViewById(R.id.btnTracking) ){
-    		contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
+    		mainModel.setContactDeviceDataList(DBLayer.getInstance().getContactDeviceDataList(null));
     	}
     	
     	// ========================================
@@ -175,7 +177,7 @@ public class MainActivity extends Activity {
     		LogManager.LogInfoMsg(className, "onClick -> Locate button", 
     			"ContactList activity started.");
     		
-    		if(contactDeviceDataList != null){
+    		if(mainModel.getContactDeviceDataList() != null){
 	    		Intent intentContactList = new Intent(this, ContactList.class);
 //	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, new Gson().toJson(contactDeviceDataList));
 //	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
@@ -196,6 +198,7 @@ public class MainActivity extends Activity {
     		LogManager.LogInfoMsg(className, "onClick -> Location Sharing Management button", 
     			"ContactList activity started.");
     		
+    		ContactDeviceDataList contactDeviceDataList = mainModel.getContactDeviceDataList();
     		if(contactDeviceDataList != null){
 	    		Intent intentContactList = new Intent(this, LocationSharingList.class);
 	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
@@ -214,6 +217,7 @@ public class MainActivity extends Activity {
     		LogManager.LogInfoMsg(className, "onClick -> Tracking button", 
     			"TrackingList activity started.");
     		
+    		ContactDeviceDataList contactDeviceDataList = mainModel.getContactDeviceDataList();
     		if(contactDeviceDataList != null){
 	    		Intent intentContactList = new Intent(this, TrackingList.class);
 	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 

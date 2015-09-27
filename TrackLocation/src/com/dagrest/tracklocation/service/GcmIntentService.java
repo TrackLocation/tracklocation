@@ -28,8 +28,6 @@ import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
 import com.dagrest.tracklocation.db.DBManager;
 import com.dagrest.tracklocation.dialog.ActivityDialogRing;
-import com.dagrest.tracklocation.dialog.CommonDialog;
-import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.exception.CheckPlayServicesException;
 import com.dagrest.tracklocation.exception.NoSentContactFromAccountException;
 import com.dagrest.tracklocation.exception.NoSentContactFromException;
@@ -40,11 +38,7 @@ import com.dagrest.tracklocation.utils.Preferences;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.gson.Gson;
 
-import android.app.Activity;
 import android.app.IntentService;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -65,11 +59,8 @@ public class GcmIntentService extends IntentService {
 	private Context clientContext;
 	private String registrationId;
 	
-	private String clientAccount;
-	private String clientMacAddress;
-	private String clientPhoneNumber;
-	private String clientRegId;
-	private int clientBatteryLevel;
+	MessageDataContactDetails messageDataContactDetails;
+	
 	private GoogleCloudMessaging gcm;
 	private String className;
 	private String googleProjectNumber;
@@ -119,7 +110,7 @@ public class GcmIntentService extends IntentService {
 		getClientRegistartionId();
 
     	// Collect client details
-        initClientDetails();
+		messageDataContactDetails = initClientDetails();
 
 		initNotificationBroadcastReceiver();
 
@@ -187,25 +178,6 @@ public class GcmIntentService extends IntentService {
             		
         			handleCommandStartTrackLocationService(extras);
     	    		
-//             	// ============================================
-//             	// ====  COMMAND: STOP  =======================
-//        		// ============================================
-//            	// CLIENT SIDE	
-//            	// command received via GCM from Master
-//            	// to Slave - in order to stop location
-//            	// service on Slave
-//            	// ============================================
-//            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
-//            			extras.getString(CommandTagEnum.command.toString()).
-//            			equals(CommandEnum.stop.toString())){ // COMMAND STOP 
-//            		
-//            		errorMsg = "Catched push notification message (GCM): [STOP ]";
-//        			LogManager.LogInfoMsg(className, "Stop ", errorMsg);
-//        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + errorMsg);
-//        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
-//
-//            		commandStopTrackLocationService(extras);
-            		
             	// ============================================
             	// ====  COMMAND: TRACKING  ===================
             	// ============================================
@@ -394,12 +366,15 @@ public class GcmIntentService extends IntentService {
         
 	} // onHandleIntent(...
 	
-	private void initClientDetails(){
-		clientAccount = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-		clientMacAddress = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
-		clientPhoneNumber = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_NUMBER);
-		clientRegId = Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_REG_ID);
-		clientBatteryLevel = Controller.getBatteryLevel(clientContext);
+	private MessageDataContactDetails initClientDetails(){
+		MessageDataContactDetails messageDataContactDetails = new MessageDataContactDetails(
+				Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_ACCOUNT), 
+				Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS), 
+				Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_PHONE_NUMBER), 
+				Preferences.getPreferencesString(clientContext, CommonConst.PREFERENCES_REG_ID), 
+				Controller.getBatteryLevel(clientContext)
+				);
+		return messageDataContactDetails;
 	}
 	
 	// The code below is taken from MainActivity function
@@ -528,16 +503,20 @@ public class GcmIntentService extends IntentService {
 			return;
 		}
 		
-		MessageDataContactDetails messageDataContactDetails = new MessageDataContactDetails(
-			clientAccount, clientMacAddress, clientPhoneNumber,
-			clientRegId, clientBatteryLevel);
-		ContactDeviceDataList contactDeviceDataToSendNotificationTo = new ContactDeviceDataList(
-			senderMessageDataContactDetails.getAccount(),
-			senderMessageDataContactDetails.getMacAddress(),
-			senderMessageDataContactDetails.getPhoneNumber(),
-			senderMessageDataContactDetails.getRegId(), null);
+		// ===========================================================
+		// ===  NOTIFICATION: RECEIVED "START" COMMAND 			  ====
+		// ===  TO START TRACK LOCATION SERVICE					  ==== 
+		// ===  FOR ACCOUNT  									  ====
+		// ===========================================================
+        // Notify caller by GCM (push notification)
+		sendNotificationCommand(
+			"Strat Track Location Service command received by '" + senderAccount + "'", 
+			CommandKeyEnum.start_status.toString(), 
+			CommandValueEnum.start_track_location_service_received.toString());
+		
+		MessageDataContactDetails messageDataContactDetails = initClientDetails();
 
-		if(isPermissionToGetLocation(senderAccount, contactDeviceDataToSendNotificationTo, 
+		if(isPermissionToGetLocation(senderAccount,
 				messageDataContactDetails, methodName) == false){
 			return;
 		}
@@ -571,14 +550,14 @@ public class GcmIntentService extends IntentService {
 		ComponentName componentName = clientContext.startService(trackLocationService); 
 		if(componentName != null){
 			// Notify that TrackLoactionService was started - by GCM (push notification)
-			msgServiceStarted = "TrackLocationService is starting by [" + clientAccount + "]";
+			msgServiceStarted = "TrackLocationService is starting by [" + messageDataContactDetails.getAccount() + "]";
 			notificationKey = CommandKeyEnum.starting_status.toString();
 			notificationValue = CommandValueEnum.success.toString();
 			LogManager.LogInfoMsg(className, methodName, msgServiceStarted);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + msgServiceStarted);
 		} else {
 			// Notify that TrackLoactionService was not started - by GCM (push notification)
-			msgServiceStarted = "Failed to start TrackLocationService on [" + clientAccount + "]";
+			msgServiceStarted = "Failed to start TrackLocationService on [" + messageDataContactDetails.getAccount() + "]";
 			notificationKey = CommandKeyEnum.starting_status.toString();
 			notificationValue = CommandValueEnum.error.toString();		
 			LogManager.LogErrorMsg(className, methodName, msgServiceStarted);
@@ -589,13 +568,39 @@ public class GcmIntentService extends IntentService {
 		// ===  NOTIFICATION: START COMMAND STATUS  ==================
 		// ===========================================================
 		// Notify caller by GCM (push notification)
+		sendNotificationCommand(msgServiceStarted, 
+				notificationKey, 
+				notificationValue);
+		
+        LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	}
+	
+	
+	private void sendNotificationCommand(String notificationMessage, 
+			String notificationKey, String notificationValue){
+		
+		String methodName = "sendNotificationCommand";
+		
+		MessageDataContactDetails senderMessageDataContactDetails = initClientDetails();
+
+		ContactDeviceDataList contactDeviceDataToSendNotificationTo = new ContactDeviceDataList(
+				senderMessageDataContactDetails.getAccount(),
+				senderMessageDataContactDetails.getMacAddress(),
+				senderMessageDataContactDetails.getPhoneNumber(),
+				senderMessageDataContactDetails.getRegId(), null);
+
+		// ===========================================================
+		// ===  NOTIFICATION: START COMMAND STATUS  ==================
+		// ===========================================================
+		// Notify caller by GCM (push notification)
 		CommandDataBasic commandDataBasic;
 		try {
 			commandDataBasic = new CommandData(
 				getApplicationContext(), 
 				contactDeviceDataToSendNotificationTo, 
 				CommandEnum.notification, 
-				msgServiceStarted, 
+				notificationMessage, 
 				messageDataContactDetails, 
 				null, 					// location
 				notificationKey, 
@@ -607,10 +612,9 @@ public class GcmIntentService extends IntentService {
 			LogManager.LogException(e, className, methodName);
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 		}
-		
-        LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
+	
+	
 	
 	private void handleCommandStopTrackLocationService(Bundle extras){
 		
@@ -646,8 +650,7 @@ public class GcmIntentService extends IntentService {
 			return;
 		}
 
-        MessageDataContactDetails senderMessageDataContactDetails = new MessageDataContactDetails(clientAccount, 
-            	clientMacAddress, clientPhoneNumber, clientRegId, clientBatteryLevel);
+        MessageDataContactDetails senderMessageDataContactDetails = messageDataContactDetails;
         ContactDeviceDataList contactDeviceDataToSendNotificationTo = 
         	new ContactDeviceDataList (
         		accountCommandSentFrom, 
@@ -1027,6 +1030,9 @@ public class GcmIntentService extends IntentService {
 			Controller.removeSenderAccountFromSendCommandList(context, 
 					jsonListAccounts, senderAccount);
 			Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
+		} else if (CommandKeyEnum.start_status.toString().equals(key) && 
+				CommandValueEnum.start_track_location_service_received.toString().equals(value)){
+			Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
 		}
 
 // TODO: Delete from here - not needed - ONLY as example of BROADCAST:
@@ -1137,17 +1143,14 @@ public class GcmIntentService extends IntentService {
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
 			return;
 		}
-		
-		MessageDataContactDetails messageDataContactDetails = new MessageDataContactDetails(
-			clientAccount, clientMacAddress, clientPhoneNumber,
-			clientRegId, clientBatteryLevel);
+
 		ContactDeviceDataList contactDeviceDataToSendNotificationTo = new ContactDeviceDataList(
 			senderMessageDataContactDetails.getAccount(),
 			senderMessageDataContactDetails.getMacAddress(),
 			senderMessageDataContactDetails.getPhoneNumber(),
 			senderMessageDataContactDetails.getRegId(), null);
 
-		if(isPermissionToGetLocation(senderAccount, contactDeviceDataToSendNotificationTo, 
+		if(isPermissionToGetLocation(senderAccount, 
 				messageDataContactDetails, methodName) == false){
 			return;
 		}
@@ -1203,7 +1206,7 @@ public class GcmIntentService extends IntentService {
 
 		// send broadcast to finish the ActivityDialogRing
 		Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_FINISH_ACITIVTY_DIALOG_RING.toString(), 
-				"Turn Off the Ring signal" + " by " + clientAccount, 
+				"Turn Off the Ring signal" + " by " + messageDataContactDetails.getAccount(), 
 				BroadcastKeyEnum.finish.toString(), CommonConst.NOBODY_RESPONDED);
 
 //		messageDataContactDetails = new MessageDataContactDetails(
@@ -1278,16 +1281,7 @@ public class GcmIntentService extends IntentService {
 			return;
 		}
 		
-		MessageDataContactDetails messageDataContactDetails = new MessageDataContactDetails(
-			clientAccount, clientMacAddress, clientPhoneNumber,
-			clientRegId, clientBatteryLevel);
-		ContactDeviceDataList contactDeviceDataToSendNotificationTo = new ContactDeviceDataList(
-			senderMessageDataContactDetails.getAccount(),
-			senderMessageDataContactDetails.getMacAddress(),
-			senderMessageDataContactDetails.getPhoneNumber(),
-			senderMessageDataContactDetails.getRegId(), null);
-
-		if(isPermissionToGetLocation(senderAccount, contactDeviceDataToSendNotificationTo, 
+		if(isPermissionToGetLocation(senderAccount, 
 				messageDataContactDetails, methodName) == false){
 			return;
 		}
@@ -1321,14 +1315,14 @@ public class GcmIntentService extends IntentService {
 		ComponentName componentName = clientContext.startService(serviceToStart); 
 		if(componentName != null){
 			// Notify that TrackLoactionService was started - by GCM (push notification)
-			msgServiceStarted = serviceName + " is starting by [" + clientAccount + "]";
+			msgServiceStarted = serviceName + " is starting by [" + messageDataContactDetails.getAccount() + "]";
 			notificationKey = CommandKeyEnum.starting_status.toString();
 			notificationValue = CommandValueEnum.success.toString();
 			LogManager.LogInfoMsg(className, methodName, msgServiceStarted);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + msgServiceStarted);
 		} else {
 			// Notify that TrackLoactionService was not started - by GCM (push notification)
-			msgServiceStarted = "Failed to start " + serviceName + " on [" + clientAccount + "]";
+			msgServiceStarted = "Failed to start " + serviceName + " on [" + messageDataContactDetails.getAccount() + "]";
 			notificationKey = CommandKeyEnum.starting_status.toString();
 			notificationValue = CommandValueEnum.error.toString();		
 			LogManager.LogErrorMsg(className, methodName, msgServiceStarted);
@@ -1339,25 +1333,8 @@ public class GcmIntentService extends IntentService {
 		// ===  NOTIFICATION: START COMMAND STATUS  ==================
 		// ===========================================================
 		// Notify caller by GCM (push notification)
-		CommandDataBasic commandDataBasic;
-		try {
-			commandDataBasic = new CommandData(
-				getApplicationContext(), 
-				contactDeviceDataToSendNotificationTo, 
-				CommandEnum.notification, 
-				msgServiceStarted, 
-				messageDataContactDetails, 
-				null, 					// location
-				notificationKey, 
-				notificationValue,
-				appInfo
-			);
-			commandDataBasic.sendCommand();
-		} catch (UnableToSendCommandException e) {
-			LogManager.LogException(e, className, methodName);
-			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
-		}
-
+		sendNotificationCommand(msgServiceStarted, notificationKey, notificationValue);
+		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
@@ -1420,7 +1397,7 @@ public class GcmIntentService extends IntentService {
 					if(currVoulme >= maxVolume && ringTimeWithMaxVolume >= CommonConst.MAX_RINGTIME_WITH_MAX_VOLUME/* * 3 */){
 						// send broadcast to finish the ActivityDialogRing
 						Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_FINISH_ACITIVTY_DIALOG_RING.toString(), 
-								"Turn Off the Ring signal" + " by " + clientAccount, 
+								"Turn Off the Ring signal" + " by " + messageDataContactDetails.getAccount(), 
 								BroadcastKeyEnum.finish.toString(), CommonConst.NOBODY_RESPONDED);
 						break; // stop Ringtone signal
 
@@ -1444,7 +1421,6 @@ public class GcmIntentService extends IntentService {
 	}
 	
 	private boolean isPermissionToGetLocation(String senderAccount, 
-			ContactDeviceDataList contactDeviceDataToSendNotificationTo, 
 			MessageDataContactDetails messageDataContactDetails,
 			String methodName){
 		PermissionsData permissionsData = DBLayer.getInstance().getPermissions(senderAccount);
@@ -1457,29 +1433,14 @@ public class GcmIntentService extends IntentService {
             Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
             LogManager.LogErrorMsg(className, methodName, logMessage);
             
-			// ===========================================================
+    		// ===========================================================
 			// ===  NOTIFICATION: NO PERMISSIONS DEFINED FOR ACCOUNT  ====
 			// ===========================================================
             // Notify caller by GCM (push notification)
-            CommandDataBasic commandDataBasic;
-			try {
-				commandDataBasic = new CommandData(
-					getApplicationContext(), 
-					contactDeviceDataToSendNotificationTo, 
-					CommandEnum.notification, 
-					logMessage, 
-					messageDataContactDetails, 
-					null, // location
-					CommandKeyEnum.permissions.toString(), // key
-					CommandValueEnum.not_defined.toString(), // value
-					appInfo
-				);
-	            commandDataBasic.sendCommand();
-			} catch (UnableToSendCommandException e) {
-				LogManager.LogException(e, className, methodName);
-				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
-			}
-            
+    		sendNotificationCommand(logMessage, 
+    				CommandKeyEnum.permissions.toString(), 
+    				CommandValueEnum.not_defined.toString());
+
     		return false;
     	}
     	
@@ -1490,28 +1451,13 @@ public class GcmIntentService extends IntentService {
             Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
             LogManager.LogErrorMsg(className, methodName, logMessage);
             
-			// ===========================================================
+    		// ===========================================================
 			// ===  NOTIFICATION: NOT PERMITTED TO SHARE FOR ACCOUNT  ====
 			// ===========================================================
             // Notify caller by GCM (push notification)
-            CommandDataBasic commandDataBasic;
-			try {
-				commandDataBasic = new CommandData(
-					getApplicationContext(), 
-					contactDeviceDataToSendNotificationTo, 
-					CommandEnum.notification, 
-					logMessage, 
-					messageDataContactDetails, 
-					null, // location
-					CommandKeyEnum.permissions.toString(), // key
-					CommandValueEnum.not_permitted.toString(), // value
-					appInfo
-				);
-				commandDataBasic.sendCommand();
-			} catch (UnableToSendCommandException e) {
-				LogManager.LogException(e, className, methodName);
-				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
-			}
+    		sendNotificationCommand(logMessage, 
+    				CommandKeyEnum.permissions.toString(), 
+    				CommandValueEnum.not_permitted.toString());
 
     		return false;
     	}

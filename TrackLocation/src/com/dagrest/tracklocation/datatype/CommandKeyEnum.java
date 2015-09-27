@@ -4,9 +4,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum CommandKeyEnum {
-	starting_status("starting_status"), start_status("start_status"),
-	start_tracking_status("start_tracking_status"),
-	mutualId("mutualId"), permissions("permissions"),
+	starting_status("starting_status"), 
+	start_status("start_status"), // Start Track Location Service status
+	start_tracking_status("start_tracking_status"), // Start Tracking Service status
+	mutualId("mutualId"), 
+	permissions("permissions"),
 	updated_reg_id("updated_reg_id");
 	
 	private final String name;       
