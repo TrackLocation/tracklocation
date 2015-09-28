@@ -236,6 +236,7 @@ public class ContactList extends MainActivity {
 	    		// Start Map activity to see locations of selected contacts
 	    		Intent intentMap = new Intent(context, Map.class);
 	    		// Pass to Map activity list of selected contacts to get their location
+	    		removeBitmaps(selectedContactDeviceDataList);
 	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, gson.toJson(selectedContactDeviceDataList));
 	   			startActivity(intentMap);
         	} else {
@@ -253,7 +254,18 @@ public class ContactList extends MainActivity {
         }
 	}
 
-    @Override
+    private void removeBitmaps(ContactDeviceDataList selectedContactDeviceDataList) {
+		for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList.getContactDeviceDataList()) {
+			if(contactDeviceData != null){
+    			ContactData contactData = contactDeviceData.getContactData();
+    			if(contactData != null){
+    				contactData.setContactPhoto(null);
+    			}
+			}
+		}
+	}
+
+	@Override
     protected void onDestroy() {
     	super.onDestroy();
 

@@ -204,6 +204,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 					ContactData contactData = contactDeviceData.getContactData();
 					if(contactData != null){
 						selectedAccountList.add(contactData.getEmail());
+						contactData.setContactPhoto(Controller.getContactPhotoByEmail(context, contactData.getEmail()));
 					}
 				}
 				
