@@ -38,7 +38,7 @@
 	<string name="ring_dialog_message">[%s] is trying to contact you.\n\nPlease contact him as soon as possible.</string>
 	
 	
-	<string name="about_dialog_text">\n\"Track Location\" application\n\n\nVersion %s\nWritten by David Agrest\n\n\nEmail: dagrest@gmail.com\n</string>
+	<string name="about_dialog_text">\n\"Track Location\" application\n\nVersion %s\n\nWritten by:\n\t\t\t\tDavid Agrest\n\t\t\t\tOleg Tsentsiper\n\n\nEmail: dagrest@gmail.com\n</string>
 	<string name="about_dialog_ok_btn">OK</string>
 	<string-array name="log_level_entries">
 	    <item>&quot;Error&quot;</item>
