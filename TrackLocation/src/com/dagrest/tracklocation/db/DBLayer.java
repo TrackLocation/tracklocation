@@ -857,7 +857,7 @@ public class DBLayer {
 			try{
 				db = DBManager.getDBManagerInstance().open();
 				db.beginTransaction();
-				for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+				for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 					if(contactDeviceData != null){
 						
 						ContactData contactData = contactDeviceData.getContactData();
@@ -1178,7 +1178,6 @@ public class DBLayer {
     	// Are LocationSharing and Tracking columns exist
     	int locationSharingIndex = -1;
     	int trackingIndex = -1;
-		
     	
 		try{
 	        String selectClause = "select " +		
@@ -1270,7 +1269,7 @@ public class DBLayer {
 		            	contactDeviceData.setTracking(tracking);
 	    	        }
 
-	            	contactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
+	            	contactDeviceDataList.add(contactDeviceData);
 	            	
 	            } while (cursor.moveToNext());
 	        }
@@ -1307,10 +1306,7 @@ public class DBLayer {
     }*/
 
     private  boolean isContactDeviceExist(String email, String macAddress, String phoneNumber, SQLiteDatabase db){
-		String selectQuery = "select " +		
-	        "contact_first_name, contact_last_name, contact_nick, contact_email, device_mac, " +
-	        "device_name, device_type, contact_device_imei, contact_device_phone_number, " +
-	        "registration_id, contact_device_guid " +
+		String selectQuery = "select count(*) " +			        
 	        "from " + DBConst.TABLE_CONTACT_DEVICE + " as CD " +
 	        "join " + DBConst.TABLE_CONTACT + " as C " +
 	        "on CD.contact_device_email = C.contact_email " +
@@ -1323,25 +1319,28 @@ public class DBLayer {
 		return isFieldExist(selectQuery, new String[] {email, macAddress, phoneNumber}, db);
     }
 
-    private  boolean isPhoneInJoinRequestTable(String phoneNumber, SQLiteDatabase db){
-		String selectQuery = "select " + DBConst.PHONE_NUMBER + " from " + DBConst.TABLE_SEND_JOIN_REQUEST +
-				" where " + DBConst.PHONE_NUMBER + " = ?";
-		// TODO: check that macAddress is valid value to avoid SQL injection
-		return isFieldExist(selectQuery, new String[] { phoneNumber }, db);
+    private  boolean isPhoneInJoinRequestTable(String phoneNumber, SQLiteDatabase db) throws Exception{
+    	return isValueInTable(phoneNumber, new Object[]{ DBConst.PHONE_NUMBER, DBConst.TABLE_SEND_JOIN_REQUEST, DBConst.PHONE_NUMBER }, db);		
     }
 
-    private  boolean isEmailInPermissionsTable(String email, SQLiteDatabase db){
-		String selectQuery = "select " + DBConst.EMAIL + " from " + DBConst.TABLE_PERMISSIONS +
-				" where " + DBConst.EMAIL + " = ?";
-		// TODO: check that email is valid value to avoid SQL injection
-		return isFieldExist(selectQuery, new String[] { email }, db);
+    private  boolean isEmailInPermissionsTable(String email, SQLiteDatabase db) throws Exception{    	
+    	return isValueInTable(email, new Object[]{ DBConst.EMAIL, DBConst.TABLE_PERMISSIONS, DBConst.EMAIL }, db);		
     }
 
-    private  boolean isPhoneInReceivedJoinRequestTable(String phoneNumber, SQLiteDatabase db){
-		String selectQuery = "select " + DBConst.PHONE_NUMBER + " from " + DBConst.TABLE_RECEIVED_JOIN_REQUEST +
-				" where " + DBConst.PHONE_NUMBER + " = ?";
-		// TODO: check that phoneNumber is valid value to avoid SQL injection
-		return isFieldExist(selectQuery, new String[] { phoneNumber }, db);
+    private  boolean isPhoneInReceivedJoinRequestTable(String phoneNumber, SQLiteDatabase db) throws Exception{   	
+    	return isValueInTable(phoneNumber, new Object[]{ DBConst.PHONE_NUMBER, DBConst.TABLE_RECEIVED_JOIN_REQUEST, DBConst.PHONE_NUMBER }, db);		
+    }
+    
+    private  boolean isValueInTable(String value, Object[] fields, SQLiteDatabase db) throws Exception{
+    	if (fields.length == 3){
+	    	String selectQuery = "select %s from %s where %s = ?";
+			String selectQueryFormated = String.format(selectQuery, fields);				
+			// TODO: check that value is valid value to avoid SQL injection
+			return isFieldExist(selectQueryFormated, new String[] { value }, db);
+    	}
+    	else
+    		throw new Exception("Number of query fields must be 3!");
+    	
     }
 
     private  boolean isColumnExistsInTable(String tableName, String columnName, SQLiteDatabase db){
@@ -1406,134 +1405,23 @@ public class DBLayer {
     }
 
     public  ContactDeviceData getContactDeviceData(String email){
-    	ContactDeviceData contactDeviceData = null;
-		SQLiteDatabase db = null;
+    	ContactDeviceDataList contactDeviceDataList = null;
+
+    	SQLiteDatabase db = null;
 		try{
 			db = DBManager.getDBManagerInstance().open();
 			
-	        // Select All Query
-	        String selectQuery = 
-	        "select " +		
-	        "contact_first_name, contact_last_name, contact_nick, contact_email, " +
-	        "device_mac, device_name, device_type, contact_device_imei, contact_device_phone_number, registration_id " +
-	        "from TABLE_CONTACT_DEVICE as CD " +
-	        "where C.contact_email = " + email +
-	        " join TABLE_CONTACT as C " +
-	        "on CD.contact_device_email = C.contact_email " +
-	        "join TABLE_DEVICE as D " +
-	        "on CD.contact_device_mac = D.device_mac";	  
-	        Cursor cursor = db.rawQuery(selectQuery, null);
-	  
-	        // looping through all rows and adding to list
-	        if (cursor.moveToFirst()) {
-	            do {
-	            	contactDeviceData = new ContactDeviceData();
-	            	
-	            	String contact_first_name = cursor.getString(0);
-	            	String contact_last_name = cursor.getString(1);
-	            	String contact_nick = cursor.getString(2);
-	            	String contact_email = cursor.getString(3);
-	            	String device_mac = cursor.getString(4);
-	            	String device_name = cursor.getString(5);
-	            	String device_type = cursor.getString(6);
-	            	String contact_device_imei = cursor.getString(7);
-	            	String contact_device_phone_number = cursor.getString(8);
-	            	String registration_id = cursor.getString(9);
-	            	
-	            	ContactData contactData = new ContactData();
-	            	contactData.setEmail(contact_email);
-	            	contactData.setFirstName(contact_first_name);
-	            	contactData.setLastName(contact_last_name);
-	            	contactData.setNick(contact_nick);
-	            	
-	            	DeviceData deviceData = new DeviceData();
-	            	deviceData.setDeviceMac(device_mac);
-	            	deviceData.setDeviceName(device_name);
-	            	deviceData.setDeviceTypeEnum(DeviceTypeEnum.getValue(device_type));
-	            	
-	            	contactDeviceData.setPhoneNumber(contact_device_phone_number);
-	            	contactDeviceData.setImei(contact_device_imei);
-	            	contactDeviceData.setRegistration_id(registration_id);
-	            	contactDeviceData.setContactData(contactData);
-	            	contactDeviceData.setDeviceData(deviceData);
-
-	            } while (cursor.moveToNext());
-	        }
-	        cursor.close();
-        } catch (Throwable t) {
-        	String errMsg = "Exception caught: " + t.getMessage();
-        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(className, "getContactDeviceData", errMsg);
+			contactDeviceDataList = getContactDeviceDataListInternal(email, db);
+        
 		} finally {
 			if(db != null){
 				DBManager.getDBManagerInstance().close();
 			}
 		}
-    	return contactDeviceData;
-    }
+		
+    	return contactDeviceDataList != null && contactDeviceDataList.size() > 0 ? contactDeviceDataList.get(0) : null;    	
+    } 
     
-    public  ContactDeviceData getContactDeviceDataCursor(String email){
-		SQLiteDatabase db = null;
-		ContactDeviceData contactDeviceData = null;
-		try{
-			db = DBManager.getDBManagerInstance().open();
-
-	        String selectQuery = 
-	        "select " +		
-	        "contact_first_name, contact_last_name, contact_nick, contact_email, " +
-	        "device_mac, device_name, device_type, contact_device_imei, contact_device_phone_number, registration_id " +
-	        "from TABLE_CONTACT_DEVICE as CD " +	        
-	        " join TABLE_CONTACT as C " +
-	        "on CD.contact_device_email = C.contact_email " +
-	        "join TABLE_DEVICE as D " +
-	        "on CD.contact_device_mac = D.device_mac" + 
-	        " where C.contact_email = '" + email + "'";	  
-	        Cursor cursor = db.rawQuery(selectQuery, null);
-	        
-	        if (cursor != null && cursor.moveToFirst()) {
-            	contactDeviceData = new ContactDeviceData();
-            	
-            	String contact_first_name = cursor.getString(0);
-            	String contact_last_name = cursor.getString(1);
-            	String contact_nick = cursor.getString(2);
-            	String contact_email = cursor.getString(3);
-            	String device_mac = cursor.getString(4);
-            	String device_name = cursor.getString(5);
-            	String device_type = cursor.getString(6);
-            	String contact_device_imei = cursor.getString(7);
-            	String contact_device_phone_number = cursor.getString(8);
-            	String registration_id = cursor.getString(9);
-            	
-            	ContactData contactData = new ContactData();
-            	contactData.setEmail(contact_email);
-            	contactData.setFirstName(contact_first_name);
-            	contactData.setLastName(contact_last_name);
-            	contactData.setNick(contact_nick);
-            	
-            	DeviceData deviceData = new DeviceData();
-            	deviceData.setDeviceMac(device_mac);
-            	deviceData.setDeviceName(device_name);
-            	deviceData.setDeviceTypeEnum(DeviceTypeEnum.getValue(device_type));
-            	
-            	contactDeviceData.setPhoneNumber(contact_device_phone_number);
-            	contactDeviceData.setImei(contact_device_imei);
-            	contactDeviceData.setRegistration_id(registration_id);
-            	contactDeviceData.setContactData(contactData);
-            	contactDeviceData.setDeviceData(deviceData);
-	        }
-	        cursor.close();
-        } catch (Throwable t) {
-        	String errMsg = "Exception caught: " + t.getMessage();
-        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(className, "getContactDeviceData", errMsg);
-		} finally {
-			if(db != null){
-				DBManager.getDBManagerInstance().close();
-			}
-		}
-		return contactDeviceData;
-    }
-     
     // Escape string for single quotes (Insert,Update)
     private  String sqlEscapeString(String aString) {
         String aReturn = "";

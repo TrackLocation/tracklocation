@@ -60,7 +60,7 @@ public class ContactEdit extends Activity {
 		String jsonStringContactData = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DATA);
 		ContactData contactData = gson.fromJson(jsonStringContactData, ContactData.class);
 		
-		contactDeviceData = DBLayer.getInstance().getContactDeviceDataCursor(contactData.getEmail());
+		contactDeviceData = DBLayer.getInstance().getContactDeviceData(contactData.getEmail());
 		
 		text_email = (EditText) findViewById(R.id.fld_email);
 		text_email.setText(contactDeviceData.getContactData().getEmail());

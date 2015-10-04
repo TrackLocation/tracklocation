@@ -39,7 +39,6 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.Projection;
 import com.google.gson.Gson;
-import com.sun.mail.handlers.message_rfc822;
 import com.dagrest.tracklocation.R;
 
 import android.app.Activity;
@@ -194,13 +193,12 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		String jsonStringContactDeviceDataList = null;
 		if(bundle.containsKey(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST)){
 			jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
-			selectedContactDeviceDataList = 
-				gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
-			if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
-				contactsQuantity = selectedContactDeviceDataList.getContactDeviceDataList().size();
+			selectedContactDeviceDataList = gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
+			if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.isEmpty()){
+				contactsQuantity = selectedContactDeviceDataList.size();
 				// Create and fill all requested accounts shat should be shown on the location map
 				selectedAccountList = new ArrayList<String>();
-				for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList.getContactDeviceDataList()) {
+				for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
 					ContactData contactData = contactDeviceData.getContactData();
 					if(contactData != null){
 						selectedAccountList.add(contactData.getEmail());
@@ -688,6 +686,8 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		if(account == null || account.isEmpty()) {
 			return null;
 		}
+				
+		updateSelectedData();        
 		
 		Bitmap.Config conf = Bitmap.Config.ARGB_8888;
 		Bitmap bmp = Bitmap.createBitmap(80, 80, conf);
@@ -720,6 +720,41 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
 		
 		return new MapMarkerDetails(contactDetails, locationDetails, marker, locationCircle);
+	}
+
+	private void updateSelectedData() {
+		if (selectedMarkerDetails != null && viewStatus == DialogStatus.Opened){
+			String accurancy = selectedMarkerDetails.getLocationDetails().getLocationProviderType().equals("gps") ? "High" : "Low";
+			String snippetString = "Battery: " + String.valueOf(Math.round(selectedMarkerDetails.getContactDetails().getBatteryPercentage())) + "%" +  
+		        "\nAccurancy: " + accurancy;
+			final double lat;
+			final double lng;
+			double speed = selectedMarkerDetails.getLocationDetails().getSpeed();
+			if(speed > 0){
+				snippetString = snippetString + "\nSpeed: " + String.valueOf(Math.round(speed)) + " km/h";
+			}
+			else{
+	
+				Geocoder geocoder = new Geocoder(this.context, Locale.ENGLISH);
+				try {
+					lat = selectedMarkerDetails.getLocationDetails().getLat();
+	        		lng = selectedMarkerDetails.getLocationDetails().getLng();
+					List<Address>  addresses = geocoder.getFromLocation(lat, lng, 1);
+					String address = null;
+					String city = null;
+					if(addresses != null && addresses.size() > 0 && addresses.get(0) != null){
+						address = addresses.get(0).getAddressLine(0);
+						city = addresses.get(0).getAddressLine(1);
+						//String country = addresses.get(0).getAddressLine(2);
+						snippetString = snippetString + "\nCity : " + city + "\nAddress: " + address;					
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			info_preview.setText(snippetString);
+		}
 	}
 	
     @Override
@@ -777,7 +812,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
         	return false;
         }
         	    
-        String accurancy = selectedMarkerDetails.getLocationDetails().getLocationProviderType().equals("gps") ? "High" : "Low";
+        /*String accurancy = selectedMarkerDetails.getLocationDetails().getLocationProviderType().equals("gps") ? "High" : "Low";
 		String snippetString = "Battery: " + String.valueOf(Math.round(selectedMarkerDetails.getContactDetails().getBatteryPercentage())) + "%" +  
 	        "\nAccurancy: " + accurancy;
 		double speed = selectedMarkerDetails.getLocationDetails().getSpeed();
@@ -803,7 +838,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}        
+		}      */  
         
         map.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation), ANIMATION_DURATION, null);
         if (viewStatus == DialogStatus.Closed){
@@ -813,8 +848,9 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 			
 			layoutAccountMenu.startAnimation(animUp);
         }
-        title_text.setText(marker.getSnippet());          
-        info_preview.setText(snippetString);
+        title_text.setText(marker.getSnippet()); 
+        updateSelectedData();
+        //info_preview.setText(snippetString);
 		        
         return true;
 	}

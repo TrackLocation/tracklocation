@@ -226,7 +226,7 @@ public class ContactList extends MainActivity {
         	LogManager.LogFunctionCall(className, "onClick->[BUTTON:TrackLocation]");
         	
             selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
-        	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.getContactDeviceDataList().isEmpty()){
+        	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.isEmpty()){
         		
         		LogManager.LogInfoMsg(className, "onClick->[BUTTON:TrackLocation]", "Track location of " + selectedContactDeviceDataList.toString());
         		
@@ -255,7 +255,7 @@ public class ContactList extends MainActivity {
 	}
 
     private void removeBitmaps(ContactDeviceDataList selectedContactDeviceDataList) {
-		for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList.getContactDeviceDataList()) {
+		for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
 			if(contactDeviceData != null){
     			ContactData contactData = contactDeviceData.getContactData();
     			if(contactData != null){

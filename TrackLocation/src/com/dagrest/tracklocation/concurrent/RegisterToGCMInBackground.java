@@ -89,7 +89,7 @@ public class RegisterToGCMInBackground implements Runnable {
 	    				ContactDeviceDataList contDevDataList = DBLayer.getInstance().getContactDeviceDataList(null);
 	    				if(contDevDataList != null){
 	    					// get owner information from DB and save GUID to Preferences
-	    					for (ContactDeviceData cdd : contDevDataList.getContactDeviceDataList()) {
+	    					for (ContactDeviceData cdd : contDevDataList) {
 	    						if(cdd != null && cdd.getContactData() != null){
 	    							sendToAccount = cdd.getContactData().getEmail();
 	    						} else {

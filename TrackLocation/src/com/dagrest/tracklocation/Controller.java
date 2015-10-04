@@ -541,7 +541,7 @@ public class Controller {
 		List<String> nickList = null;
 		if(contactDeviceDataList != null){
 			nickList = new ArrayList<String>();
-			for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+			for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 				if(contactDeviceData != null){
 					ContactData contactData = contactDeviceData.getContactData();
 					if(contactData != null){
@@ -560,7 +560,7 @@ public class Controller {
 		List<String> accountList = null;
 		if(contactDeviceDataList != null){
 			accountList = new ArrayList<String>();
-			for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+			for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 				if(contactDeviceData != null){
 					ContactData contactData = contactDeviceData.getContactData();
 					if(contactData != null){
@@ -663,16 +663,11 @@ public class Controller {
 		if(contactDeviceDataCollection == null){
 			// TODO: error message to log
 			return null;
-		}
- 	    List<ContactDeviceData> contactDeviceDataList = contactDeviceDataCollection.getContactDeviceDataList();
-	    if(contactDeviceDataList == null){
-			// TODO: error message to log
-	    	return null;
-	    }
+		} 	   	    
 	    
 	    int i = 0;
 	    values = new ArrayList<ContactData>();
-	    for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
+	    for (ContactDeviceData contactDeviceData : contactDeviceDataCollection) {
 	    	ContactData contactData = contactDeviceData.getContactData();
 	    	contactData.setContactPhoto(Controller.getContactPhotoByEmail(context, contactData.getEmail()));
 	    	DeviceData deviceData = contactDeviceData.getDeviceData();
@@ -770,13 +765,13 @@ public class Controller {
 		}
 		ContactDeviceDataList selectedContactDeviceDataList = new ContactDeviceDataList();
 		// remove extra contacts in contactDeviceDataList
-		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+		for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 			ContactData contactData = contactDeviceData.getContactData();
 			DeviceData deviceData = contactDeviceData.getDeviceData();
 			if(contactData != null && deviceData != null) {
 				for (String selectedContactID : selectedContcatList) {
 					if(selectedContactID.equals(contactData.getNick()) || selectedContactID.equals(contactData.getEmail())){
-						selectedContactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
+						selectedContactDeviceDataList.add(contactDeviceData);
 					}
 				}
 			}
@@ -845,8 +840,7 @@ public class Controller {
 		ContactDeviceDataList contactDeviceDataToSendNotificationTo = null;
 		java.util.Map<String, String> sendToMap = Preferences.getPreferencesReturnToContactMap(context);
 		if(sendToMap != null && !sendToMap.isEmpty()){
-		    contactDeviceDataToSendNotificationTo = new ContactDeviceDataList();
-		    List<ContactDeviceData> contactDeviceDataList = contactDeviceDataToSendNotificationTo.getContactDeviceDataList();
+		    contactDeviceDataToSendNotificationTo = new ContactDeviceDataList();		   
 		    for (java.util.Map.Entry<String,String> entry : sendToMap.entrySet()) {
 		    	entry.getKey();
 		    	entry.getValue();
@@ -855,7 +849,7 @@ public class Controller {
 		    	ContactDeviceData cdd = new ContactDeviceData();
 		    	cdd.setRegistration_id(entry.getValue());
 		    	cdd.setContactData(cd);
-		    	contactDeviceDataList.add(cdd);
+		    	contactDeviceDataToSendNotificationTo.add(cdd);
 			}
 		}
 		return contactDeviceDataToSendNotificationTo;

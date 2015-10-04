@@ -49,7 +49,7 @@ public class CommandData extends CommandDataBasic {
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 			return;
 		}
-		for (ContactDeviceData contactDeviceData : contactDeviceDataList.getContactDeviceDataList()) {
+		for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 			ContactData contactData = contactDeviceData.getContactData();
 			if(contactData != null){
 				String regId = contactDeviceData.getRegistration_id();

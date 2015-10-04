@@ -192,10 +192,8 @@ public class Utils {
         ContactDeviceDataList contactDeviceDataList = 
         	new ContactDeviceDataList();
         
-        contactDeviceDataList.getContactDeviceDataList()
-        	.add(contactDeviceDataDavid);
-        contactDeviceDataList.getContactDeviceDataList()
-    		.add(contactDeviceDataLarisa);
+        contactDeviceDataList.add(contactDeviceDataDavid);
+        contactDeviceDataList.add(contactDeviceDataLarisa);
         
 //        List<CustomerDataFromFile> customerDataList = customerDataFromFileList.getCustomerDataFromFileList();
 //        customerDataList.add(customerDataFromFileDavid);
@@ -206,7 +204,7 @@ public class Utils {
         if (gsonString != null) {
         	customerDataListNew = 
         		gson.fromJson(gsonString, ContactDeviceDataList.class);
-        	customerDataListNew.getContactDeviceDataList();
+        	//customerDataListNew.getContactDeviceDataList();
         }
 
 		File contactDeviceDataListInputFileName = 
@@ -238,14 +236,12 @@ public class Utils {
 		}
 	}
 	
-	public static ContactDeviceData getContactDeviceDataByUsername(ContactDeviceDataList contactDeviceDataCollection, String userName){
-
-		List<ContactDeviceData> contactDeviceDataList = contactDeviceDataCollection.getContactDeviceDataList();
-	    if(contactDeviceDataList == null){
+	public static ContactDeviceData getContactDeviceDataByUsername(ContactDeviceDataList contactDeviceDataCollection, String userName){	
+	    if(contactDeviceDataCollection == null){
 	    	return null;
 	    }
 	    
-	    for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
+	    for (ContactDeviceData contactDeviceData : contactDeviceDataCollection) {
 	    	ContactData contactData = contactDeviceData.getContactData();
 	    	if(contactData != null) {
 	    		if(contactData.getNick() != null){

@@ -416,7 +416,7 @@ public class MainActivityController {
 		
 		// Insert into DB: owner information if doesn't exist
 		ContactDeviceDataList contDevDataList = DBLayer.getInstance().getContactDeviceDataList(account);
-		if( contDevDataList == null || contDevDataList.getContactDeviceDataList().size() == 0){
+		if( contDevDataList == null || contDevDataList.size() == 0){
 			// add information about owner to DB 
 			ContactDeviceDataList contactDeviceDataListOwner = 
 				DBLayer.getInstance().addContactDeviceDataList(new ContactDeviceDataList(account,

@@ -29,8 +29,8 @@ public class ContactDataAdapter extends BaseAdapter {
         mInflater = LayoutInflater.from(context);
         
 		ContactDeviceDataList contDevDataList = DBLayer.getInstance().getContactDeviceDataList(null);
-		List<ContactDeviceData> conatctDevDataList = contDevDataList.getContactDeviceDataList();
-		int contactDeviceQuantity = conatctDevDataList.size();
+		
+		int contactDeviceQuantity = contDevDataList.size();
 		if( contactDeviceQuantity > 0){
 		
 			phoneArray = new String[contactDeviceQuantity];
@@ -38,7 +38,7 @@ public class ContactDataAdapter extends BaseAdapter {
 			macAddressArray = new String[contactDeviceQuantity];
 			
 			int i = 0;
-			for (ContactDeviceData contactDeviceData : contDevDataList.getContactDeviceDataList()) {	
+			for (ContactDeviceData contactDeviceData : contDevDataList) {	
 				String phoneNumber = contactDeviceData.getPhoneNumber();
 				phoneArray[i] = contactDeviceData.getPhoneNumber();
 				ContactData contactData = contactDeviceData.getContactData();
