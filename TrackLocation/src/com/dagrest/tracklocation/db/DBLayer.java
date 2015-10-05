@@ -1306,7 +1306,10 @@ public class DBLayer {
     }*/
 
     private  boolean isContactDeviceExist(String email, String macAddress, String phoneNumber, SQLiteDatabase db){
-		String selectQuery = "select count(*) " +			        
+		String selectQuery = "select " +		
+	        "contact_first_name, contact_last_name, contact_nick, contact_email, device_mac, " +
+	        "device_name, device_type, contact_device_imei, contact_device_phone_number, " +
+	        "registration_id, contact_device_guid " +		        
 	        "from " + DBConst.TABLE_CONTACT_DEVICE + " as CD " +
 	        "join " + DBConst.TABLE_CONTACT + " as C " +
 	        "on CD.contact_device_email = C.contact_email " +
