@@ -638,21 +638,21 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 				    		map.animateCamera(cu); // or map.moveCamera(cu); 
 			    			isShowAllMarkersEnabled = false;
 			    		}
-		    		} else if(mapMarkerDetailsList.size() == 1 && isShowAllMarkersEnabled == true) {
-		    			
-				    		// Update map's camera only for requested accounts(contacts) from Locate screen
-				    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
-
-				    			if(locationDetails != null) {
-				    	    		double lat = locationDetails.getLat();
-				    	    		double lng = locationDetails.getLng();
-					    			latLngChanging = new LatLng(lat, lng);
-					    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngChanging, zoom));
-					    			if(mapMarkerDetailsList.size() >= contactsQuantity){
-					    				isShowAllMarkersEnabled = false;
-					    			}
+		    		} 
+		    		else if(mapMarkerDetailsList.size() == 1) {
+		    			if (!isShowAllMarkersEnabled && locationDetails.getSpeed() > 0 )
+		    				isShowAllMarkersEnabled = true;
+		    			if (isShowAllMarkersEnabled && selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
+			    			if(locationDetails != null) {
+			    	    		double lat = locationDetails.getLat();
+			    	    		double lng = locationDetails.getLng();
+				    			latLngChanging = new LatLng(lat, lng);
+				    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngChanging, zoom));
+				    			if(mapMarkerDetailsList.size() >= contactsQuantity){
+				    				isShowAllMarkersEnabled = false;
 				    			}
-				    		}
+			    			}				    		
+		    			}
 		    		}
 		    		if(mapMarkerDetailsList != null && mapMarkerDetailsList.size() == contactsQuantity){
 		    			waitingDialog.dismiss();
@@ -686,9 +686,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		if(account == null || account.isEmpty()) {
 			return null;
 		}
-				
-		updateSelectedData();        
-		
+						        
 		Bitmap.Config conf = Bitmap.Config.ARGB_8888;
 		Bitmap bmp = Bitmap.createBitmap(80, 80, conf);
 		Canvas canvas1 = new Canvas(bmp);
@@ -718,27 +716,28 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		            .radius(accuracy)
 		            .strokeColor(Color.argb(255, 0, 153, 255))
 		            .fillColor(Color.argb(30, 0, 153, 255)).strokeWidth(2));
-		
-		return new MapMarkerDetails(contactDetails, locationDetails, marker, locationCircle);
+		MapMarkerDetails mapMarkerDetails = new MapMarkerDetails(contactDetails, locationDetails, marker, locationCircle);
+		updateSelectedData(mapMarkerDetails);
+		return mapMarkerDetails;
 	}
 
-	private void updateSelectedData() {
-		if (selectedMarkerDetails != null && viewStatus == DialogStatus.Opened){
-			String accurancy = selectedMarkerDetails.getLocationDetails().getLocationProviderType().equals("gps") ? "High" : "Low";
-			String snippetString = "Battery: " + String.valueOf(Math.round(selectedMarkerDetails.getContactDetails().getBatteryPercentage())) + "%" +  
+	private void updateSelectedData(MapMarkerDetails mapMarkerDetails) {
+		if (mapMarkerDetails != null && viewStatus == DialogStatus.Opened){
+			String accurancy = mapMarkerDetails.getLocationDetails().getLocationProviderType().equals("gps") ? "High" : "Low";
+			String snippetString = "Battery: " + String.valueOf(Math.round(mapMarkerDetails.getContactDetails().getBatteryPercentage())) + "%" +  
 		        "\nAccurancy: " + accurancy;
 			final double lat;
 			final double lng;
-			double speed = selectedMarkerDetails.getLocationDetails().getSpeed();
+			double speed = mapMarkerDetails.getLocationDetails().getSpeed();
 			if(speed > 0){
-				snippetString = snippetString + "\nSpeed: " + String.valueOf(Math.round(speed)) + " km/h";
+				snippetString = snippetString + "\nSpeed: " + String.valueOf(Math.round(speed)) + " km/h\n";
 			}
 			else{
 	
 				Geocoder geocoder = new Geocoder(this.context, Locale.ENGLISH);
 				try {
-					lat = selectedMarkerDetails.getLocationDetails().getLat();
-	        		lng = selectedMarkerDetails.getLocationDetails().getLng();
+					lat = mapMarkerDetails.getLocationDetails().getLat();
+	        		lng = mapMarkerDetails.getLocationDetails().getLng();
 					List<Address>  addresses = geocoder.getFromLocation(lat, lng, 1);
 					String address = null;
 					String city = null;
@@ -810,35 +809,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
         
         if (selectedMarkerDetails == null){
         	return false;
-        }
-        	    
-        /*String accurancy = selectedMarkerDetails.getLocationDetails().getLocationProviderType().equals("gps") ? "High" : "Low";
-		String snippetString = "Battery: " + String.valueOf(Math.round(selectedMarkerDetails.getContactDetails().getBatteryPercentage())) + "%" +  
-	        "\nAccurancy: " + accurancy;
-		double speed = selectedMarkerDetails.getLocationDetails().getSpeed();
-		if(speed > 0){
-			snippetString = snippetString + "\nSpeed: " + String.valueOf(Math.round(speed)) + " km/h";
-		}
-		else{
-
-			Geocoder geocoder = new Geocoder(this.context, Locale.ENGLISH);
-			try {
-				double lat = selectedMarkerDetails.getLocationDetails().getLat();
-        		double lng = selectedMarkerDetails.getLocationDetails().getLng();
-				List<Address>  addresses = geocoder.getFromLocation(lat, lng, 1);
-				String address = null;
-				String city = null;
-				if(addresses != null && addresses.size() > 0 && addresses.get(0) != null){
-					address = addresses.get(0).getAddressLine(0);
-					city = addresses.get(0).getAddressLine(1);
-					//String country = addresses.get(0).getAddressLine(2);
-					snippetString = snippetString + "\nCity : " + city + "\nAddress: " + address;					
-				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}      */  
+        }        	      
         
         map.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation), ANIMATION_DURATION, null);
         if (viewStatus == DialogStatus.Closed){
@@ -849,8 +820,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 			layoutAccountMenu.startAnimation(animUp);
         }
         title_text.setText(marker.getSnippet()); 
-        updateSelectedData();
-        //info_preview.setText(snippetString);
+        updateSelectedData(selectedMarkerDetails);
 		        
         return true;
 	}
