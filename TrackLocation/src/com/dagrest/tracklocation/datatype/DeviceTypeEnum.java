@@ -3,7 +3,10 @@ package com.dagrest.tracklocation.datatype;
 import java.util.HashMap;
 import java.util.Map;
 
-public enum DeviceTypeEnum {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public enum DeviceTypeEnum implements Parcelable{
 	phone("phone"), tablet("tablet"), computer("computer"), unknown("unknown");
 	
 	private final String name;       
@@ -31,4 +34,27 @@ public enum DeviceTypeEnum {
     	
         return valueMap.get(value);
     }
+
+	@Override
+	public int describeContents() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeInt(ordinal());
+	}
+	
+	public static final Creator<DeviceTypeEnum> CREATOR = new Creator<DeviceTypeEnum>() {
+        @Override
+        public DeviceTypeEnum createFromParcel(final Parcel source) {
+            return DeviceTypeEnum.values()[source.readInt()];
+        }
+
+        @Override
+        public DeviceTypeEnum[] newArray(final int size) {
+            return new DeviceTypeEnum[size];
+        }
+    };
 }

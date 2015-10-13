@@ -124,8 +124,7 @@ public class StartTrackLocationService implements Runnable {
         Log.i(CommonConst.LOG_TAG, "Saved recipients: " + jsonListAccounts);
         List<String> listAccounts = null;
 		for (int i = 0; i < retryTimes; i++) {
-			jsonListAccounts = Preferences.getPreferencesString(context, 
-	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
 	        Log.i(CommonConst.LOG_TAG, "Inside loop for recipients: " + jsonListAccounts);
 
 			if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
@@ -157,8 +156,7 @@ public class StartTrackLocationService implements Runnable {
 				}
 			}
 			
-			jsonListAccounts = Preferences.getPreferencesString(context, 
-	        	CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
 			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
 				tempListAccounts = gson.fromJson(jsonListAccounts, List.class);
 				if(!tempListAccounts.isEmpty()){
@@ -168,16 +166,14 @@ public class StartTrackLocationService implements Runnable {
 			        	broadcastMessage = broadcastMessage + currentAccount + "\n";
 					}
 			        broadcastMessage += "\nPlease wait...";
-				    broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), 
-				    	CommandValueEnum.wait.toString());
+				    broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), CommandValueEnum.wait.toString());
 				}
 			}
 
 		}
 
 		// Reset list of recipients' accounts list to be empty
-        Preferences.setPreferencesString(context, 
-        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, "");
+        Preferences.setPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, "");
         Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> : Recipients list after loop: " + jsonListAccounts);
         tempListAccounts = gson.fromJson(jsonListAccounts, List.class);
         String broadcastMessage = "\nCurrently unavailable:\n\n";
@@ -186,11 +182,9 @@ public class StartTrackLocationService implements Runnable {
 		}
         broadcastMessage += "\n";
         if(tempListAccounts != null && !tempListAccounts.isEmpty()){
-	        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), 
-	        	CommandValueEnum.error.toString());
+	        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), CommandValueEnum.error.toString());
         } else {
-	        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), 
-		        CommandValueEnum.success.toString());
+	        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), CommandValueEnum.success.toString());
         }
 	}
 
@@ -202,9 +196,6 @@ public class StartTrackLocationService implements Runnable {
 		Gson gson = new Gson();
 		String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
 		
-//		MessageDataContactDetails mdcd = 
-//			gson.fromJson(extras.getString(CommandTagEnum.contactDetails.toString()), MessageDataContactDetails.class);
-
 		// Broadcast corresponding message
 		Controller.broadcastMessage(context, 
 			BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 

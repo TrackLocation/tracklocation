@@ -25,12 +25,12 @@
 	<string name="err_load_location">Location not found</string>
 	
 		
-	<string name="nick_name">Nick name:</string>	
+	<string name="nick_name">Nick name</string>	
 	<string name="lbl_email">Email:</string>
-	<string name="lbl_devicename">Device name :</string>	
+	<string name="lbl_devicename">Device name</string>	
 	<string name="lbl_devicetype">Device type :</string>
-	<string name="lbl_last_name">Last name :</string>
-	<string name="lbl_first_name">First name :</string>
+	<string name="lbl_last_name">Last name</string>
+	<string name="lbl_first_name">First name</string>
 
 	
 	<string name="ring_dialog_btn_first_name">Turn Off singnal</string>

@@ -33,12 +33,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class ContactList extends MainActivity {
+public class ContactListActivity extends MainActivity {
 
 	private static final int EDIT_OPTION = 0;
 	private static final int DELETE_OPTION = 1;
-	
-	private static Gson gson = new Gson();
 
 	private ListView lv;
 	// ---------------------------------------
@@ -47,7 +45,6 @@ public class ContactList extends MainActivity {
 	private ArrayAdapter<ContactData> adapter;
 	private List<Boolean> isSelected;
 	private ContactDeviceDataList contactDeviceDataList;
-	private ContactDeviceDataList selectedContactDeviceDataList;
 	private List<String> selectedContcatList;
 
 	List<ContactData> values;
@@ -62,9 +59,11 @@ public class ContactList extends MainActivity {
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 		
-		contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
+		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = this.getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST); 
+		contactDeviceDataList = new ContactDeviceDataList();
+		contactDeviceDataList.addAll(selectedContactDeviceDataListEx);		
 		
-		values = Controller.fillContactListWithContactDeviceDataFromJSON(ContactList.this, contactDeviceDataList, null, null, null);
+		values = Controller.fillContactListWithContactDeviceData(ContactListActivity.this, contactDeviceDataList, null, null, null);
 	    if(values != null){
 	    	// TODO: move to init isSelected list:
 	    	isSelected = new ArrayList<Boolean>(values.size());
@@ -74,47 +73,8 @@ public class ContactList extends MainActivity {
 	    	
 			lv = (ListView) findViewById(R.id.contact_list_view);
 			
-			// ---------------------------------------
-			/*
-			// Create search edit text
-	        // inputSearch = (EditText) findViewById(R.id.find_contact);
-			*/
-			// ---------------------------------------
-
-//	    	View header = getLayoutInflater().inflate(R.layout.find_contacts_header, null);
-//	    	ListView listView = getListView();
-//	    	listView.addHeaderView(header);
 	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, values, null, null, null);
-	    	lv.setAdapter(adapter);
-	    	
-			// ---------------------------------------
-	    	/*
-	        //
-	        // Enabling Search Filter
-	        //
-	        inputSearch.addTextChangedListener(new TextWatcher() {
-	             
-	            @Override
-	            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
-	                // When user changed the Text
-	            	ContactList.this.adapter.getFilter().filter(cs);
-	            }
-	             
-	            @Override
-	            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
-	                    int arg3) {
-	                // TODO Auto-generated method stub
-	                 
-	            }
-	             
-	            @Override
-	            public void afterTextChanged(Editable arg0) {
-	                // TODO Auto-generated method stub                          
-	            }
-	        });
-	        */
-			// ---------------------------------------
-	         
+	    	lv.setAdapter(adapter);	    		         
 	    } else {
 	    	// There can be a case when data is not provided.
 	    	// No contacts are joined.
@@ -196,7 +156,7 @@ public class ContactList extends MainActivity {
 			}
 	    });
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -225,7 +185,7 @@ public class ContactList extends MainActivity {
         	
         	LogManager.LogFunctionCall(className, "onClick->[BUTTON:TrackLocation]");
         	
-            selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
+        	ContactDeviceDataList selectedContactDeviceDataList = Controller.removeNonSelectedContacts(contactDeviceDataList, selectedContcatList);
         	if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.isEmpty()){
         		
         		LogManager.LogInfoMsg(className, "onClick->[BUTTON:TrackLocation]", "Track location of " + selectedContactDeviceDataList.toString());
@@ -235,9 +195,8 @@ public class ContactList extends MainActivity {
 				
 	    		// Start Map activity to see locations of selected contacts
 	    		Intent intentMap = new Intent(context, Map.class);
-	    		// Pass to Map activity list of selected contacts to get their location
-	    		removeBitmaps(selectedContactDeviceDataList);
-	    		intentMap.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, gson.toJson(selectedContactDeviceDataList));
+	    		// Pass to Map activity list of selected contacts to get their location	    		
+	    		intentMap.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, selectedContactDeviceDataList);
 	   			startActivity(intentMap);
         	} else {
         		// TODO: Inform customer that no contact was selected by pop-up dialog
@@ -252,17 +211,6 @@ public class ContactList extends MainActivity {
     	// ... button
     	// ========================================
         }
-	}
-
-    private void removeBitmaps(ContactDeviceDataList selectedContactDeviceDataList) {
-		for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
-			if(contactDeviceData != null){
-    			ContactData contactData = contactDeviceData.getContactData();
-    			if(contactData != null){
-    				contactData.setContactPhoto(null);
-    			}
-			}
-		}
 	}
 
 	@Override
@@ -342,10 +290,9 @@ public class ContactList extends MainActivity {
 	
 	private void editContact(int position) {
 		final ContactData editContact = adapter.getItem(position);
-		Intent contactEditIntent = new Intent(this, ContactEdit.class);		
-		contactEditIntent.putExtra(CommonConst.JSON_STRING_CONTACT_DATA, gson.toJson(editContact));
+		Intent contactEditIntent = new Intent(this, ContactEditActivity.class);	
+		contactEditIntent.putExtra(CommonConst.JSON_STRING_CONTACT_DATA, editContact);
 		contactEditIntent.putExtra(CommonConst.CONTACT_LIST_SELECTED_VALUE, position);
-		startActivity(contactEditIntent);	
 		startActivityForResult(contactEditIntent,2);		
 	}
 	
@@ -355,23 +302,21 @@ public class ContactList extends MainActivity {
 	        
 		 if(requestCode==2){
 			// Make sure the request was successful
-	        if (resultCode == RESULT_OK) {	        	
-	        	String jsonStringContactData = data.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DATA);   			        	
-	    		ContactData contactData = gson.fromJson(jsonStringContactData, ContactData.class);
-	    		
+	        if (resultCode == RESULT_OK) {	        	 			        	
+	    		ContactData contactData = data.getExtras().getParcelable(CommonConst.JSON_STRING_CONTACT_DATA);  	    		
 	    		int contactPosition = data.getExtras().getInt(CommonConst.CONTACT_LIST_SELECTED_VALUE);
 	    		adapter.remove(adapter.getItem(contactPosition));
 	    		adapter.insert(contactData, contactPosition);
 	    		adapter.notifyDataSetChanged(); 	
 	    		LogManager.LogInfoMsg(className, "onActivityResult", "ContactData of " + contactData.getNick() + " was updated");
-	    		Toast.makeText(ContactList.this, "The contact " + contactData.getNick() + " was updated", Toast.LENGTH_SHORT).show();    		
+	    		Toast.makeText(ContactListActivity.this, "The contact " + contactData.getNick() + " was updated", Toast.LENGTH_SHORT).show();    		
 	        }
 		}
 	}
 
 	private void removeContact(int deletePosition){
 		final ContactData deleteContact = adapter.getItem(deletePosition);
-		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ContactList.this); 
+		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ContactListActivity.this); 
 		// set title
 		alertDialogBuilder.setTitle(getString(R.string.delete_menu_operation));
  
@@ -381,12 +326,12 @@ public class ContactList extends MainActivity {
 			.setCancelable(false)
 			.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog,int id) {
-					ContactDeviceData contactDeviceData = contactDeviceDataList.getContactDeviceDataByContactData(deleteContact);
+					ContactDeviceData contactDeviceData = contactDeviceDataList.getContactDeviceDataByContactData(deleteContact.getEmail());
 					if (contactDeviceData != null ){
 						if (DBLayer.getInstance().removeContactDataDeviceDetail(contactDeviceData) != -1){
 							values.remove(deleteContact);
 							adapter.notifyDataSetChanged(); 
-							Toast.makeText(ContactList.this, "The contact " + deleteContact.getNick() + " was removed", Toast.LENGTH_SHORT).show();
+							Toast.makeText(ContactListActivity.this, "The contact " + deleteContact.getNick() + " was removed", Toast.LENGTH_SHORT).show();
 						}
 					}
 				}

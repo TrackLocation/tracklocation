@@ -178,12 +178,8 @@ public class MainActivity extends Activity {
     			"ContactList activity started.");
     		
     		if(mainModel.getContactDeviceDataList() != null){
-	    		Intent intentContactList = new Intent(this, ContactList.class);
-//	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, new Gson().toJson(contactDeviceDataList));
-//	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-//	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
-//	    		intentContactList.putExtra(CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
-//	    		intentContactList.putExtra(CommonConst.PREFERENCES_REG_ID, mainActivityController.getRegistrationId());
+	    		Intent intentContactList = new Intent(this, ContactListActivity.class);
+	    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, mainModel.getContactDeviceDataList());
 	    		startActivity(intentContactList);
     		} else {
     	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 
@@ -197,12 +193,10 @@ public class MainActivity extends Activity {
         } else if (view == findViewById(R.id.btnLocationSharing)) {
     		LogManager.LogInfoMsg(className, "onClick -> Location Sharing Management button", 
     			"ContactList activity started.");
-    		
-    		ContactDeviceDataList contactDeviceDataList = mainModel.getContactDeviceDataList();
-    		if(contactDeviceDataList != null){
+    		    		
+    		if(mainModel.getContactDeviceDataList() != null){
 	    		Intent intentContactList = new Intent(this, LocationSharingList.class);
-	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
-	    			new Gson().toJson(contactDeviceDataList));
+	    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, mainModel.getContactDeviceDataList());
 	    		startActivity(intentContactList);
     		} else {
     	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 
@@ -216,12 +210,10 @@ public class MainActivity extends Activity {
         } else if (view == findViewById(R.id.btnTracking)) {
     		LogManager.LogInfoMsg(className, "onClick -> Tracking button", 
     			"TrackingList activity started.");
-    		
-    		ContactDeviceDataList contactDeviceDataList = mainModel.getContactDeviceDataList();
-    		if(contactDeviceDataList != null){
+    		    		
+    		if(mainModel.getContactDeviceDataList() != null){
 	    		Intent intentContactList = new Intent(this, TrackingList.class);
-	    		intentContactList.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, 
-	    			new Gson().toJson(contactDeviceDataList));
+	    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, mainModel.getContactDeviceDataList());
 	    		startActivity(intentContactList);
     		} else {
     	    	Toast.makeText(MainActivity.this, "There is no any contact.\nJoin some contact at first.", 

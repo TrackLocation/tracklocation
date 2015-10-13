@@ -4,16 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.graphics.Bitmap;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import com.dagrest.tracklocation.Controller;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class ContactData {
+public class ContactData implements Parcelable{
 	private String nick; // free text
 	private String email;
-//	private String registration_id;
 	private String firstName;
 	private String lastName;
-	private Bitmap contactPhoto;
+	@JsonIgnore
+	private transient Bitmap contactPhoto;
 	private final List<String> phoneNumbersList = new ArrayList<String>();
 	
 	public ContactData() {}
@@ -21,6 +24,14 @@ public class ContactData {
 	public ContactData(String email) {
 		this.email = email;
 	}
+	
+	public ContactData(Parcel in ) {
+		nick = in.readString();
+		email = in.readString();
+		firstName = in.readString();
+		lastName = in.readString();
+		contactPhoto = (Bitmap) in.readValue(Bitmap.class.getClassLoader());
+    }
 	
 	public String getNick() {
 		if (nick == null || nick.isEmpty()){
@@ -59,7 +70,7 @@ public class ContactData {
 	public List<String> getPhoneNumbersList() {
 		return phoneNumbersList;
 	}
-
+	
 	public Bitmap getContactPhoto() {
 		return contactPhoto;
 	}
@@ -67,4 +78,28 @@ public class ContactData {
 	public void setContactPhoto(Bitmap contactPhoto) {
 		this.contactPhoto = contactPhoto;
 	}
+
+	@Override
+	public int describeContents() {	
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeString(nick);
+        dest.writeString(email);
+        dest.writeString(firstName);
+        dest.writeString(lastName);
+        dest.writeValue(contactPhoto);		
+	}
+	
+    public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public ContactData createFromParcel(Parcel in ) {
+            return new ContactData( in );
+        }
+
+        public ContactData[] newArray(int size) {
+            return new ContactData[size];
+        }
+    };
 }

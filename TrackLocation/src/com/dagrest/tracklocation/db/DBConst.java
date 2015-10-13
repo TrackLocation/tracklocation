@@ -11,7 +11,9 @@ public final class DBConst {
     // DATABASE_VERSION = 2 until application version ...
     // Added a new fields to TABLE_CONTACT_DEVICE:
     // CONTACT_DEVICE_LOCATION_SHARING and CONTACT_DEVICE_TRACKING
-    public static final int 	DATABASE_VERSION = 2;
+    // DATABASE_VERSION = 3 until application version ...
+    // Added a new field to TABLE_CONTACT: CONTACT_PHOTO
+    public static final int 	DATABASE_VERSION = 3;
  	public static final String 	LOG_TAG_DB = "TrackLocationDB";
  	
  	public static final String TIMESTAMP = "DATETIME";
@@ -21,6 +23,7 @@ public final class DBConst {
     public static final String CONTACT_LAST_NAME = "contact_last_name"; 	// OPTIONAL 
     public static final String CONTACT_NICK = "contact_nick"; 				// OPTIONAL 
     public static final String CONTACT_EMAIL = "contact_email"; 			// KEY + NOT EMPTY
+    public static final String CONTACT_PHOTO = "contact_photo";
 
     public static final String TABLE_DEVICE = "TABLE_DEVICE"; 
     public static final String DEVICE_NAME = "device_name"; 	// OPTIONAL 
@@ -73,6 +76,7 @@ public final class DBConst {
 		  CONTACT_LAST_NAME + " text," +
 		  CONTACT_NICK + " text," +
 		  CONTACT_EMAIL + " text not null unique," + // PRIMARY KEY
+		  CONTACT_PHOTO + " BLOB," + 
 		  "PRIMARY KEY (" + CONTACT_EMAIL + ")" +
 		  ");";
 

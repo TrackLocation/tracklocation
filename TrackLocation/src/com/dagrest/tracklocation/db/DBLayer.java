@@ -1,5 +1,6 @@
 package com.dagrest.tracklocation.db;
 
+import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,6 +23,9 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 public class DBLayer {
@@ -31,6 +35,20 @@ public class DBLayer {
     private String className;
     private String logMessage;
     private String methodName;
+    
+    private static class DbBitmapUtility {
+        // convert from bitmap to byte array
+        public static byte[] getBytes(Bitmap bitmap) {
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(CompressFormat.PNG, 0, stream);
+            return stream.toByteArray();
+        }
+
+        // convert from byte array to bitmap
+        public static Bitmap getImage(byte[] image) {
+            return BitmapFactory.decodeByteArray(image, 0, image.length);
+        }
+    }
 
     protected DBLayer() {
     	className = this.getClass().getName();		
@@ -540,7 +558,10 @@ public class DBLayer {
 			cVal.put(DBConst.CONTACT_FIRST_NAME, contactData.getFirstName());
 			cVal.put(DBConst.CONTACT_LAST_NAME, contactData.getLastName());
 			cVal.put(DBConst.CONTACT_NICK, contactData.getNick());
-			cVal.put(DBConst.CONTACT_EMAIL, contactData.getEmail());						
+			cVal.put(DBConst.CONTACT_EMAIL, contactData.getEmail());
+			if (contactData.getContactPhoto() != null){
+				cVal.put(DBConst.CONTACT_PHOTO, DbBitmapUtility.getBytes(contactData.getContactPhoto()));
+			}
 			        
 			if (whereClause == null){
 				return db.insert(DBConst.TABLE_CONTACT, null, cVal);
@@ -965,11 +986,13 @@ public class DBLayer {
 	            	String contact_last_name = cursor.getString(1);
 	            	String contact_nick = cursor.getString(2);
 	            	String contact_email = cursor.getString(3);
+	            	byte[] contact_photo = cursor.getBlob(4);
 	            	
 	            	contactData.setEmail(contact_email);
 	            	contactData.setFirstName(contact_first_name);
 	            	contactData.setLastName(contact_last_name);
 	            	contactData.setNick(contact_nick);
+	            	contactData.setContactPhoto(DbBitmapUtility.getImage(contact_photo));
 	            	
 	            } while (cursor.moveToNext());
 	        }
@@ -1023,129 +1046,6 @@ public class DBLayer {
 		}
     	return deviceData;
     }
-
-//    public  ContactDeviceData getContactDeviceDataONLY(){
-//    	ContactDeviceData contactDeviceData = null;
-//		SQLiteDatabase db = null;
-//		try{
-//			db = DBManager.getDBManagerInstance().open();
-//            
-//	        // Select All Query
-//			String selectQuery = "select * from " + DBConst.TABLE_CONTACT_DEVICE;
-//	        Cursor cursor = db.rawQuery(selectQuery, null);
-//	  
-//	        // looping through all rows and adding to list
-//	        if (cursor.moveToFirst()) {
-//	            do {
-//	            	contactDeviceData = new ContactDeviceData();
-//	            	
-//	            	String email = cursor.getString(0);
-//	            	String phone = cursor.getString(1);
-//	            	String mac = cursor.getString(2);
-//	            	String imei = cursor.getString(3);
-//	            	String regId = cursor.getString(4);
-//	            	String guid = cursor.getString(5);
-//	            	
-//	            	ContactData contactData = new ContactData();
-//	            	contactData.setEmail(email);
-//	            	
-//	            	DeviceData deviceData = new DeviceData();
-//	            	deviceData.setDeviceMac(mac);
-//	            	
-//	            	contactDeviceData.setPhoneNumber(phone);
-//	            	contactDeviceData.setImei(imei);
-//	            	contactDeviceData.setRegistration_id(regId);
-//	            	contactDeviceData.setContactData(contactData);
-//	            	contactDeviceData.setDeviceData(deviceData);
-//	            	contactDeviceData.setGuid(guid);
-//
-//	            } while (cursor.moveToNext());
-//	        }
-//	        cursor.close();
-//        } catch (Throwable t) {
-//        	String errMsg = "Exception caught: " + t.getMessage();
-//        	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-//            LogManager.LogErrorMsg(CLASS_NAME, "getContactDeviceDataONLY", errMsg);
-//		} finally {
-//			if(db != null){
-//				DBManager.getDBManagerInstance().close();
-//			}
-//		}
-//    	return contactDeviceData;
-//    }
-
-//    public  ContactDeviceDataList getContactDeviceDataList(){
-// 
-//    	ContactDeviceDataList contactDeviceDataList = null;
-//    	ContactDeviceData contactDeviceData = null;
-//		
-//    	SQLiteDatabase db = null;
-//		try{
-//			db = DBManager.getDBManagerInstance().open();
-//            
-//	        // Select All Query
-//	        String selectQuery = 
-//	        "select " +		
-//	        "contact_first_name, contact_last_name, contact_nick, contact_email, device_mac, " +
-//	        "device_name, device_type, contact_device_imei, contact_device_phone_number, " +
-//	        "registration_id, contact_device_guid  " +
-//	        "from TABLE_CONTACT_DEVICE as CD " +
-//	        "join TABLE_CONTACT as C " +
-//	        "on CD.contact_device_email = C.contact_email " +
-//	        "join TABLE_DEVICE as D " +
-//	        "on CD.contact_device_mac = D.device_mac";	  
-//	        Cursor cursor = db.rawQuery(selectQuery, null);
-//	  
-//	        // looping through all rows and adding to list
-//	        if (cursor.moveToFirst()) {
-//	        	contactDeviceDataList = new ContactDeviceDataList();
-//	            do {
-//	            	contactDeviceData = new ContactDeviceData();
-//	            	
-//	            	String contact_first_name = cursor.getString(0);
-//	            	String contact_last_name = cursor.getString(1);
-//	            	String contact_nick = cursor.getString(2);
-//	            	String contact_email = cursor.getString(3);
-//	            	String device_mac = cursor.getString(4);
-//	            	String device_name = cursor.getString(5);
-//	            	String device_type = cursor.getString(6);
-//	            	String contact_device_imei = cursor.getString(7);
-//	            	String contact_device_phone_number = cursor.getString(8);
-//	            	String registration_id = cursor.getString(9);
-//	            	String guid = cursor.getString(10);
-//	            	
-//	            	ContactData contactData = new ContactData();
-//	            	contactData.setEmail(contact_email);
-//	            	contactData.setFirstName(contact_first_name);
-//	            	contactData.setLastName(contact_last_name);
-//	            	contactData.setNick(contact_nick);
-//	            	
-//	            	DeviceData deviceData = new DeviceData();
-//	            	deviceData.setDeviceMac(device_mac);
-//	            	deviceData.setDeviceName(device_name);
-//	            	deviceData.setDeviceTypeEnum(DeviceTypeEnum.getValue(device_type));
-//	            	
-//	            	contactDeviceData.setPhoneNumber(contact_device_phone_number);
-//	            	contactDeviceData.setImei(contact_device_imei);
-//	            	contactDeviceData.setRegistration_id(registration_id);
-//	            	contactDeviceData.setContactData(contactData);
-//	            	contactDeviceData.setDeviceData(deviceData);
-//	            	contactDeviceData.setGuid(guid);
-//
-//	            	contactDeviceDataList.getContactDeviceDataList().add(contactDeviceData);
-//	            	
-//	            } while (cursor.moveToNext());
-//	        }
-//	        cursor.close();
-//        } catch (Throwable t) {
-//            Log.i("Database", "Exception caught: " + t.getMessage(), t);
-//		} finally {
-//			if(db != null){
-//				DBManager.getDBManagerInstance().close();
-//			}
-//		}
-//    	return contactDeviceDataList;
-//    }
     
     public  ContactDeviceDataList getContactDeviceDataList(String email){
     	 
@@ -1174,7 +1074,7 @@ public class DBLayer {
     	
     	// According to columns quantity in SQL query that was in use until
     	// DB version 1 and application version 5/0.0.5
-    	int columnIndex = 10; 
+    	int columnIndex = 11; 
     	// Are LocationSharing and Tracking columns exist
     	int locationSharingIndex = -1;
     	int trackingIndex = -1;
@@ -1184,7 +1084,8 @@ public class DBLayer {
 	        DBConst.CONTACT_FIRST_NAME + ", " + 
 	        DBConst.CONTACT_LAST_NAME + ", " + 
 	        DBConst.CONTACT_NICK + ", " + 
-	        DBConst.CONTACT_EMAIL + ", " + 
+	        DBConst.CONTACT_EMAIL + ", " +
+	        DBConst.CONTACT_PHOTO + ", " +
 	        DBConst.DEVICE_MAC + ", " + 
 	        DBConst.DEVICE_NAME + ", " + 
 	        DBConst.DEVICE_TYPE + ", " + 
@@ -1229,13 +1130,14 @@ public class DBLayer {
 	            	String contact_last_name = cursor.getString(1);
 	            	String contact_nick = cursor.getString(2);
 	            	String contact_email = cursor.getString(3);
-	            	String device_mac = cursor.getString(4);
-	            	String device_name = cursor.getString(5);
-	            	String device_type = cursor.getString(6);
-	            	String contact_device_imei = cursor.getString(7);
-	            	String contact_device_phone_number = cursor.getString(8);
-	            	String registration_id = cursor.getString(9);
-	            	String guid = cursor.getString(10);
+	            	byte[] contact_photo = cursor.getBlob(4);
+	            	String device_mac = cursor.getString(5);
+	            	String device_name = cursor.getString(6);
+	            	String device_type = cursor.getString(7);
+	            	String contact_device_imei = cursor.getString(8);
+	            	String contact_device_phone_number = cursor.getString(9);
+	            	String registration_id = cursor.getString(10);
+	            	String guid = cursor.getString(11);
 	            	int locationSharing = -1;
 	            	int tracking = -1;
 	    	        if(locationSharingIndex > 0){
@@ -1250,6 +1152,7 @@ public class DBLayer {
 	            	contactData.setFirstName(contact_first_name);
 	            	contactData.setLastName(contact_last_name);
 	            	contactData.setNick(contact_nick);
+	            	contactData.setContactPhoto(contact_photo != null ? DbBitmapUtility.getImage(contact_photo) : null);
 	            	
 	            	DeviceData deviceData = new DeviceData();
 	            	deviceData.setDeviceMac(device_mac);
@@ -1283,27 +1186,6 @@ public class DBLayer {
 		
     	return contactDeviceDataList;
     }
-
- /*   public  boolean isContactWithEmailExist(String email, SQLiteDatabase db){
-		String selectQuery = "select contact_email from " + DBConst.TABLE_CONTACT +
-				" where contact_email = ?";
-		// TODO: check that email is valid value to avoid SQL injection
-		return isFieldExist(selectQuery, new String[] { email }, db);
-    }*/
-    
- /*   public  boolean isContactWithNickExist(String nick, SQLiteDatabase db){
-		String selectQuery = "select contact_nick from " + DBConst.TABLE_CONTACT +
-				" where contact_nick = ?";
-		// TODO: check that nick is valid value to avoid SQL injection
-		return isFieldExist(selectQuery, new String[] { nick }, db);
-    }*/
-
-/*    public  boolean isDeviceWithMacAddressExist(String macAddress, SQLiteDatabase db){
-		String selectQuery = "select device_mac from " + DBConst.TABLE_DEVICE +
-				" where device_mac = ?";
-		// TODO: check that macAddress is valid value to avoid SQL injection
-		return isFieldExist(selectQuery, new String[] { macAddress}, db);
-    }*/
 
     private  boolean isContactDeviceExist(String email, String macAddress, String phoneNumber, SQLiteDatabase db){
 		String selectQuery = "select " +		

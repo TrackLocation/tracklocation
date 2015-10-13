@@ -45,10 +45,10 @@ public class ContactDeviceDataList extends ArrayList<ContactDeviceData>{
 		return output;
 	}
 	
-	public ContactDeviceData getContactDeviceDataByContactData(ContactData data){
+	public ContactDeviceData getContactDeviceDataByContactData(String email){
 		
 		for(ContactDeviceData cdData : this){
-			if (cdData.getContactData().getEmail().equals(data.getEmail()))
+			if (cdData.getContactData().getEmail().equals(email))
 				return cdData;
 		}
 		 

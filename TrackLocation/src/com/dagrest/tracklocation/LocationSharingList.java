@@ -4,35 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.dagrest.tracklocation.datatype.ContactData;
+import com.dagrest.tracklocation.datatype.ContactDeviceData;
 import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
-import com.google.gson.Gson;
-
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.AdapterView.OnItemLongClickListener;
 
 public class LocationSharingList extends Activity {
 
-	private String jsonStringContactDeviceDataList = null;
 	private ListView lv;
 	private ArrayAdapter<ContactData> adapter;
-	private List<Boolean> isSelected;
-	private Gson gson;
-	private ContactDeviceDataList contactDeviceDataList;
-	private ContactDeviceDataList selectedContactDeviceDataList;
-	private List<String> selectedContcatList;
+	private List<Boolean> isSelected;	
 	private String className = this.getClass().getName();
 	private String methodName;
 	
@@ -45,18 +35,14 @@ public class LocationSharingList extends Activity {
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
-		Intent intent = getIntent();
-		gson = new Gson();
-		jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
-		//account = intent.getExtras().getString(CommonConst.PREFERENCES_PHONE_ACCOUNT);
-		contactDeviceDataList = gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
+		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = this.getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST); 
+		ContactDeviceDataList contactDeviceDataList = new ContactDeviceDataList();
+		contactDeviceDataList.addAll(selectedContactDeviceDataListEx);
 	
-		// jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
-		//List<String> values = Controller.fillContactListWithContactDeviceDataFromJSON(jsonStringContactDeviceDataList);
 		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
 		List<String> emailList = new ArrayList<String>();
 		List<String> macAddressList = new ArrayList<String>();
-		List<ContactData> values = Controller.fillContactListWithContactDeviceDataFromJSON(LocationSharingList.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+		List<ContactData> values = Controller.fillContactListWithContactDeviceData(LocationSharingList.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
 		
 	    if(values != null){
 	    	// TODO: move to init isSelected list:
@@ -67,8 +53,7 @@ public class LocationSharingList extends Activity {
 	    	
 			lv = (ListView) findViewById(R.id.location_sharing_list_view);
 			
-	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, 
-	        	R.id.contact, values, checkBoxesShareLocation, emailList, macAddressList);
+	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, R.id.contact, values, checkBoxesShareLocation, emailList, macAddressList);
 	    	lv.setAdapter(adapter);
 	    	
 	    } else {
@@ -97,25 +82,7 @@ public class LocationSharingList extends Activity {
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, final View view,
 	            int position, long id) {
-	        	final String selectedValue = (String) parent.getItemAtPosition(position);
-//	        	
-//	        	if(selectedContcatList == null){
-//	        		selectedContcatList = new ArrayList<String>();
-//	        	}
-//	        	boolean isSelectedVal = isSelected.get(position);
-//	        	isSelected.set(position, !isSelectedVal);
-//	        	if(isSelected.get(position) == false){
-//	        		lv.getChildAt(position).setBackgroundColor(android.R.drawable.btn_default);
-//	        		if(selectedContcatList.contains(selectedValue)){
-//	        			selectedContcatList.remove(selectedValue);
-//	        		}
-//	        	} else {
-//	        		lv.getChildAt(position).setBackgroundColor(getResources().getColor(R.color.LightGrey));
-//	        		if(!selectedContcatList.contains(selectedValue)){
-//	        			selectedContcatList.add(selectedValue);
-//	        		}
-//	        	}
-//	        	
+	        	parent.getItemAtPosition(position);
 	        }
 	    });
 	    

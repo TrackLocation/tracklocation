@@ -70,7 +70,7 @@ public class CommonConst {
 	public static final String 	CONTACT_DTAT_INPUT_FILE = "contact_device_list.dat";
 
  	//public static final String 	JSON_STRING_CONTACT_DEVICE_DATA = "jsonStringContactDeviceData";
- 	public static final String 	JSON_STRING_CONTACT_DEVICE_DATA_LIST = "jsonStringContactDeviceDataList";
+ 	public static final String 	CONTACT_DEVICE_DATA_LIST = "ContactDeviceDataList";
  	public static final String 	JSON_STRING_CONTACT_DATA = "jsonStringContactData";
  	public static final String 	CONTACT_LIST_SELECTED_VALUE = "selectedValue";
  	public static final String 	CONTACT_REGISTRATION_ID = "registration_id";

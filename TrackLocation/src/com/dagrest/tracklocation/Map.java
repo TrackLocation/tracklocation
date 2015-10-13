@@ -28,6 +28,7 @@ import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -104,7 +105,6 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	private float zoom;
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private List<String> selectedAccountList;
-	//private ScaleGestureDetector detector;
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
 	private ProgressDialog waitingDialog;
@@ -188,21 +188,19 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
 		gson = new Gson();
-		Intent intent = getIntent();
-		Bundle bundle = intent.getExtras();
-		String jsonStringContactDeviceDataList = null;
-		if(bundle.containsKey(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST)){
-			jsonStringContactDeviceDataList = intent.getExtras().getString(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST);
-			selectedContactDeviceDataList = gson.fromJson(jsonStringContactDeviceDataList, ContactDeviceDataList.class);
-			if(selectedContactDeviceDataList != null && !selectedContactDeviceDataList.isEmpty()){
+		
+		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST); 
+		if(selectedContactDeviceDataListEx != null){
+			selectedContactDeviceDataList = new ContactDeviceDataList();
+			selectedContactDeviceDataList.addAll(selectedContactDeviceDataListEx);
+			if(!selectedContactDeviceDataList.isEmpty()){
 				contactsQuantity = selectedContactDeviceDataList.size();
 				// Create and fill all requested accounts shat should be shown on the location map
 				selectedAccountList = new ArrayList<String>();
 				for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
 					ContactData contactData = contactDeviceData.getContactData();
 					if(contactData != null){
-						selectedAccountList.add(contactData.getEmail());
-						contactData.setContactPhoto(Controller.getContactPhotoByEmail(context, contactData.getEmail()));
+						selectedAccountList.add(contactData.getEmail());				
 					}
 				}
 				
@@ -213,10 +211,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 				MessageDataContactDetails senderMessageDataContactDetails = // sender contact details
 						new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
 							Controller.getBatteryLevel(context));
-//				HashMap<String, Object> params = new HashMap<String, Object>();
-//				params.put(CommonConst.START_CMD_CONTEXT, context);
-//				params.put(CommonConst.START_CMD_SELECTED_CONTACT_DEVICE_DATA_LIST, selectedContactDeviceDataList);
-//				params.put(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS, senderMessageDataContactDetails); 
+
 				final int retryTimes = 5;
 				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> BEGIN of LOOP: CMD START TrackLocationService");
 				LogManager.LogInfoMsg(className, methodName, "BEGIN of LOOP: CMD START TrackLocationService");
@@ -254,8 +249,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 
         setupLocation();
 
-		String jsonListAccounts = Preferences.getPreferencesString(context, 
-        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+		String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
         Log.i(CommonConst.LOG_TAG, "Inside loop for recipients: " + jsonListAccounts);
 
         String accountsListMsg = "Waiting for:\n\n";
@@ -494,8 +488,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    			
 	    			// Notification about command: Start TrackLocation Service
     				// RECEIVED - some recipient received request
-	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
-	    					CommandValueEnum.start_track_location_service_received.toString().equals(value)){
+	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.start_track_location_service_received.toString().equals(value)){
 	    				displayNotification(bundle);
 	    				notificationView.setVisibility(0);
 	    				notificationView.setText(broadcastData.getMessage());
@@ -503,8 +496,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 
 	    			// Notification about command: Start TrackLocation Service
     				// PLEASE WAIT - some recipients are not responding
-	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
-	    					CommandValueEnum.wait.toString().equals(value)){
+	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.wait.toString().equals(value)){
 	    				displayNotification(bundle);
 	    				notificationView.setVisibility(0);
 	    				notificationView.setText(broadcastData.getMessage());
@@ -512,8 +504,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    			
     				// Notification about command: Start TrackLocation Service 
     				// FAILED for some recipients
-	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
-	    					CommandValueEnum.error.toString().equals(value)){
+	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.error.toString().equals(value)){
 	    				//showNotificationDialog(broadcastData.getMessage());
 	    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
 	    				notificationView.setText(broadcastData.getMessage());
@@ -522,13 +513,11 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    			
     				// Notification about command: Start TrackLocation Service 
     				// SUCCESS for some recipients
-	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && 
-	    					CommandValueEnum.success.toString().equals(value)){
+	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.success.toString().equals(value)){
 	    				notificationView.setText(broadcastData.getMessage());
 	    				notificationView.setVisibility(4);
 	    		        String accountsListMsg = "Waiting for:\n\n";
-	    				String jsonListAccounts = Preferences.getPreferencesString(context, 
-	    		        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+	    				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
 	    				if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
 	    					accountsListMsg = "All contacts found.";
 	    				} else {
@@ -540,8 +529,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    				waitingDialog.setMessage(accountsListMsg);
 	    			}
 	    			
-	    			if(CommandKeyEnum.permissions.toString().equals(key) && 
-	    					CommandValueEnum.not_defined.toString().equals(value)){
+	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_defined.toString().equals(value)){
 	    				if(isPermissionDialogShown == false){
 		    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
 		    				isPermissionDialogShown = true;
@@ -553,8 +541,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 //	    		    	}
 	    			}
 
-	    			if(CommandKeyEnum.permissions.toString().equals(key) && 
-	    					CommandValueEnum.not_permitted.toString().equals(value)){
+	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_permitted.toString().equals(value)){
 	    				if(isPermissionDialogShown == false){
 		    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
 		    				isPermissionDialogShown = true;
@@ -612,16 +599,21 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    			// TODO: Check that locationDetails are not null
 	    			
 	    			String updatingAccount = contactDetails.getAccount();
-	    			
+	    			MessageDataLocation prevLocationDetails = null; 
+	    			float bearing = 0;
 		    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
-		    			// Set marker on the map
-		    			//final View infoView = getLayoutInflater().inflate(R.layout.map_info_window, null);
+		    			// Set marker on the map		    			
 		    			if (mapMarkerDetailsList.containsKey(updatingAccount)){
+		    				prevLocationDetails = mapMarkerDetailsList.get(updatingAccount).getLocationDetails();
 		    				mapMarkerDetailsList.get(updatingAccount).getLocationCircle().remove();
 		    				mapMarkerDetailsList.get(updatingAccount).getMarker().remove();
 		    				mapMarkerDetailsList.remove(updatingAccount);
 		    			}
-		    			MapMarkerDetails  mapMarkerDetails = createMapMarker(map, contactDetails, locationDetails);
+		    			if (prevLocationDetails !=  null && locationDetails.getSpeed() > 0){
+		    				bearing = getRotationAngle(new LatLng(prevLocationDetails.getLat(), prevLocationDetails.getLng()), latLngChanging);
+		    			}
+		    			locationDetails.setBearing(bearing);
+		    			MapMarkerDetails  mapMarkerDetails = createMapMarker(contactDetails, locationDetails);
 		    			if (mapMarkerDetails != null){
 		    				mapMarkerDetailsList.put(updatingAccount, mapMarkerDetails);
 		    			}	    			
@@ -647,7 +639,14 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 			    	    		double lat = locationDetails.getLat();
 			    	    		double lng = locationDetails.getLng();
 				    			latLngChanging = new LatLng(lat, lng);
-				    			map.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngChanging, zoom));
+				    			
+				    			bearing =  (prevLocationDetails !=  null && Math.abs(prevLocationDetails.getBearing()) - Math.abs(bearing) > 10)? bearing : 0;					    			
+				    				
+				    			CameraPosition currentPlace = new CameraPosition.Builder()
+			                    .target(latLngChanging)
+			                    .bearing(bearing).zoom(zoom).build();
+				    			map.moveCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
+				    			
 				    			if(mapMarkerDetailsList.size() >= contactsQuantity){
 				    				isShowAllMarkersEnabled = false;
 				    			}
@@ -667,9 +666,20 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }
 	
-	private MapMarkerDetails createMapMarker(GoogleMap map, 
-			final MessageDataContactDetails contactDetails, 
-			final MessageDataLocation locationDetails) {
+	private float getRotationAngle(LatLng secondLastLatLng, LatLng lastLatLng)
+	{
+	    double x1 = secondLastLatLng.latitude;
+	    double y1 = secondLastLatLng.longitude;
+	    double x2 = lastLatLng.latitude;
+	    double y2 = lastLatLng.longitude;
+
+	    float xDiff = (float) (x2 - x1);
+	    float yDiff = (float) (y2 - y1);
+
+	    return (float) (Math.atan2(yDiff, xDiff) * 180.0 / Math.PI);
+	}
+	
+	private MapMarkerDetails createMapMarker(final MessageDataContactDetails contactDetails, final MessageDataLocation locationDetails) {
 		if(locationDetails == null) {
 			return null;
 		}
@@ -701,10 +711,11 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		canvas1.drawBitmap(BitmapFactory.decodeResource(getResources(),	R.drawable.wpfrk), 0,0, color);
 		canvas1.drawText("User Name!", 30, 40, color);
 		
+		ContactDeviceData contactDeviceData = selectedContactDeviceDataList.getContactDeviceDataByContactData(contactDetails.getAccount());
 		
 		Marker marker = map.addMarker(new MarkerOptions()
 			//TODO add user profile image
-			.icon(BitmapDescriptorFactory.fromBitmap(drawMarker(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))))
+			.icon(BitmapDescriptorFactory.fromBitmap(drawMarker(contactDeviceData.getContactData().getContactPhoto())))
 			.snippet(account)
 			//.anchor(0.0f, 1.0f) // Anchors the marker on the bottom
 								// left
@@ -722,7 +733,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	}
 
 	private void updateSelectedData(MapMarkerDetails mapMarkerDetails) {
-		if (mapMarkerDetails != null && viewStatus == DialogStatus.Opened){
+		if (mapMarkerDetails != null && selectedMarkerDetails != null && mapMarkerDetails.getContactDetails().getAccount().equals(selectedMarkerDetails.getContactDetails().getAccount()) && viewStatus == DialogStatus.Opened){
 			String accurancy = mapMarkerDetails.getLocationDetails().getLocationProviderType().equals("gps") ? "High" : "Low";
 			String snippetString = "Battery: " + String.valueOf(Math.round(mapMarkerDetails.getContactDetails().getBatteryPercentage())) + "%" +  
 		        "\nAccurancy: " + accurancy;
@@ -901,7 +912,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	}
 	
 	private Bitmap drawMarker(Bitmap bitmap) {		
-		bitmap = Utils.getResizedBitmap(Utils.getRoundedCornerImage(bitmap), 50, 60);
+		bitmap = Utils.getResizedBitmap(Utils.getRoundedCornerImage(bitmap), 100, 100);
 		Bitmap bmp = Bitmap.createBitmap(bitmap.getWidth() + 20, bitmap.getHeight() + 40, Config.ARGB_8888);
 		Canvas canvas = new Canvas(bmp);
 

@@ -32,9 +32,7 @@ import android.widget.ToggleButton;
 
 public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 	private final Context context;
-	private final List<ContactData> values;
 	private final List<String> emailList;
-	private final List<Boolean> checkBoxValues;
 	private final List<String> macAddressList;
 	private final int res;
 	private String className;
@@ -45,9 +43,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 			List<Boolean> checkBoxValues, List<String> emailList, List<String> macAddressList) {
 		super(context, resource, values);
 		this.context = context;
-		this.values = values;
 		this.res = resource;
-		this.checkBoxValues = checkBoxValues;
 		this.emailList = emailList;
 		this.macAddressList = macAddressList;
 		className = this.getClass().getName();
@@ -59,9 +55,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 		super(context, resource, textViewResourceId, values);
 		
 		this.context = context;
-		this.values = values;
 		this.res = resource;
-		this.checkBoxValues = checkBoxValues;
 		this.emailList = emailList;
 		this.macAddressList = macAddressList;
 	}
@@ -127,7 +121,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 				viewHolder.checkBox.setOnClickListener(new View.OnClickListener() {
 					public void onClick(View v) {
 						CheckBox cb = (CheckBox) v;
-						String t = cb.getText().toString();
+						cb.getText().toString();
 						int isChecked = cb.isChecked() == true ? 1 : 0;
 						PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
 						if (p != null) {

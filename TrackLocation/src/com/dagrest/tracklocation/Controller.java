@@ -589,11 +589,11 @@ public class Controller {
 		return cursor.getCount();
 	}
 	
-	public static Bitmap getContactPhoto(ContentResolver contentResolver, Long contactId) {
+	public static Bitmap getContactPhoto(ContentResolver contentResolver, Long contactId, Boolean isRounded) {
 	    Uri contactPhotoUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
 	    InputStream photoDataStream = ContactsContract.Contacts.openContactPhotoInputStream(contentResolver,contactPhotoUri); // <-- always null
 	    Bitmap photo = BitmapFactory.decodeStream(photoDataStream);
-	    return  Utils.getRoundedCornerImage(photo);
+	    return  isRounded ? Utils.getRoundedCornerImage(photo) : photo;
 	}
 	
 	public static SparseArray<ContactData> fetchContacts(Context context, SparseArray<ContactData> contactDetailsGroups,
@@ -636,7 +636,7 @@ public class Controller {
 	                if (hasPhoneNumber > 0) {
 	                	ContactData contactDetails = new ContactData();
 	                	contactDetails.setNick(contactName);
-	                	contactDetails.setContactPhoto(getContactPhoto(contentResolver, contact_id));
+	                	contactDetails.setContactPhoto(getContactPhoto(contentResolver, contact_id, false));
 	                    // Query and loop for every phone number of the contact
 	                    Cursor phoneCursor = contentResolver.query(PhoneCONTENT_URI, null, Phone_CONTACT_ID + " = ?", new String[] { Long.toString(contact_id) }, null);
 	                    while (phoneCursor.moveToNext()) {
@@ -656,7 +656,7 @@ public class Controller {
         return contactDetailsGroups;
     }
 
-	public static List<ContactData> fillContactListWithContactDeviceDataFromJSON(Context context, ContactDeviceDataList contactDeviceDataCollection,
+	public static List<ContactData> fillContactListWithContactDeviceData(Context context, ContactDeviceDataList contactDeviceDataCollection,
 			List<Boolean> checkBoxesShareLocation, List<String> emailList, List<String> macAddressList){
 		List<ContactData> values = null;
 	    
@@ -669,7 +669,9 @@ public class Controller {
 	    values = new ArrayList<ContactData>();
 	    for (ContactDeviceData contactDeviceData : contactDeviceDataCollection) {
 	    	ContactData contactData = contactDeviceData.getContactData();
-	    	contactData.setContactPhoto(Controller.getContactPhotoByEmail(context, contactData.getEmail()));
+	  
+	    	contactData.setContactPhoto(contactData.getContactPhoto() == null ? Controller.getContactPhotoByEmail(context, contactData.getEmail()) : contactData.getContactPhoto());
+	    	
 	    	DeviceData deviceData = contactDeviceData.getDeviceData();
 	    	if(contactData != null && deviceData != null) {
 	    		String nick = contactData.getNick();
@@ -978,6 +980,6 @@ public class Controller {
 	
 	public static Bitmap getContactPhotoByEmail(Context context, String email) {
 		Long contactId = getContactIdByEmail(context, email);
-		return getContactPhoto(context.getContentResolver(), contactId);
+		return getContactPhoto(context.getContentResolver(), contactId, false);
 	}
 }

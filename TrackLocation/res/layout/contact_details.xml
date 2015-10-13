@@ -14,7 +14,7 @@
         android:orientation="vertical"
         android:weightSum="100" >
 
-        <LinearLayout
+       <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -39,13 +39,10 @@
                 android:id="@+id/img_contact"
                 android:layout_width="32dp"
                 android:layout_height="64dp"
-                android:layout_weight="10.24"
+                android:layout_weight="10.44"
                 android:src="@android:drawable/ic_menu_my_calendar" />
 
-            <QuickContactBadge
-                android:id="@+id/quickContactBadge1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+      
 
         </LinearLayout>
 
@@ -54,22 +51,15 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:weightSum="100" >
-
-            <TextView
-                android:id="@+id/lbl_first_name"
-                style="@style/textbox"
-                android:layout_width="0dp"
-                android:layout_marginLeft="20dp"
-                android:layout_weight="30"
-                android:text="@string/lbl_first_name" />
 
             <EditText
                 android:id="@+id/fld_first_name"
                 style="@style/textbox"
                 android:layout_width="0dp"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
                 android:layout_weight="70"
+                android:hint="@string/lbl_first_name"
                 android:inputType="textEmailAddress"
                 android:theme="@style/textbox" />
 
@@ -80,24 +70,18 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:weightSum="100" >
-
-            <TextView
-                android:id="@+id/lbl_last_name"
-                style="@style/textbox"
-                android:layout_width="0dp"
-                android:layout_marginLeft="20dp"
-                android:layout_weight="30"
-                android:text="@string/lbl_last_name" />
 
             <EditText
                 android:id="@+id/fld_last_name"
                 style="@style/textbox"
                 android:layout_width="0dp"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
-                android:layout_weight="70"              
+                android:layout_weight="70"
+                android:hint="@string/lbl_last_name"
                 android:inputType="textEmailAddress"
                 android:theme="@style/textbox" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -105,25 +89,19 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:weightSum="100" >
-
-            <TextView
-                android:id="@+id/lbl_email"
-                style="@style/textbox"
-                android:layout_width="0dp"
-                android:layout_marginLeft="20dp"
-                android:layout_weight="30"
-                android:text="@string/lbl_email" />
 
             <EditText
                 android:id="@+id/fld_email"
                 style="@style/textbox"
                 android:layout_width="0dp"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
                 android:layout_weight="70"
                 android:enabled="false"
+                android:hint="@string/lbl_email"
                 android:inputType="textEmailAddress"
                 android:theme="@style/textbox" />
+
         </LinearLayout>
 
         <LinearLayout
@@ -132,22 +110,16 @@
             android:orientation="horizontal"
             android:weightSum="100" >
 
-            <TextView
-                android:id="@+id/lbl_devicename"
-                style="@style/textbox"
-                android:layout_width="0dp"
-                android:layout_marginLeft="20dp"
-                android:layout_weight="30"
-                android:text="@string/lbl_devicename" />
-
             <EditText
                 android:id="@+id/fld_devicename"
                 style="@style/textbox"
                 android:layout_width="0dp"
-                android:layout_marginLeft="10dp"
+                android:layout_marginLeft="20dp"
                 android:layout_marginRight="20dp"
                 android:layout_weight="70"
+                android:hint="@string/lbl_devicename"
                 android:inputType="text" />
+
         </LinearLayout>
 
         <LinearLayout

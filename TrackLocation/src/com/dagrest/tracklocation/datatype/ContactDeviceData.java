@@ -1,8 +1,12 @@
 package com.dagrest.tracklocation.datatype;
 
+import android.graphics.Bitmap;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.dagrest.tracklocation.Controller;
 
-public class ContactDeviceData {
+public class ContactDeviceData implements Parcelable{
 	private ContactData contactData;
 	private DeviceData deviceData;
 	private String phoneNumber;
@@ -23,6 +27,17 @@ public class ContactDeviceData {
 			this.guid = guidId;
 		}
 	}
+	
+	public ContactDeviceData(Parcel in ) {
+		phoneNumber = in.readString();
+		imei = in.readString();
+		registration_id = in.readString();
+		guid = in.readString();
+		locationSharing = in.readInt();
+		tracking = in.readInt();
+		contactData = in.readParcelable(ContactData.class.getClassLoader());
+		deviceData = in.readParcelable(DeviceData.class.getClassLoader());
+    }
 	
 	public String getPhoneNumber() {
 		return phoneNumber;
@@ -72,4 +87,32 @@ public class ContactDeviceData {
 	public void setTracking(int tracking) {
 		this.tracking = tracking;
 	}
+
+	@Override
+	public int describeContents() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void writeToParcel(Parcel dest, int flags) {
+		dest.writeString(phoneNumber);
+		dest.writeString(imei);
+		dest.writeString(registration_id);
+		dest.writeString(guid);
+		dest.writeInt(locationSharing);
+		dest.writeInt(tracking);
+		dest.writeParcelable(contactData, flags);
+		dest.writeParcelable(deviceData, flags);
+	}
+	
+	public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
+        public ContactDeviceData createFromParcel(Parcel in ) {
+            return new ContactDeviceData( in );
+        }
+
+        public ContactDeviceData[] newArray(int size) {
+            return new ContactDeviceData[size];
+        }
+    };
 }
