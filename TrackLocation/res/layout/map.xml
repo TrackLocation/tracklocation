@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scrollbars="vertical"  
-        class="com.google.android.gms.maps.MapFragment"/>
+        class="com.dagrest.tracklocation.MyMapFragment"/>
 
     <TextView
         android:id="@+id/textViewMap"
@@ -43,7 +43,7 @@
             android:id="@+id/map_popup_first"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:weightSum="100" >
+             >
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -71,20 +71,29 @@
                     android:textColor="@color/Black" />
                 
             </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/nav_btn"
-                style="@style/button_text"
+            <LinearLayout
                 android:layout_width="0dp"
-                android:layout_height="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="8dp"
+                android:layout_marginLeft="12dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
                 android:layout_weight="20"
-                android:baselineAlignBottom="true"
-                android:cropToPadding="false"
-                android:maxHeight="20dp"
-                android:maxWidth="20dp"
-                android:scaleType="center"
-                android:src="@drawable/navigate"
-                 />
+                android:orientation="vertical">
+	                <ImageButton
+		                android:id="@+id/nav_btn"
+		                style="?android:attr/buttonStyleToggle"
+		                android:layout_width="56dp"
+		                android:layout_height="56dp"
+		                android:layout_gravity="center_vertical|center_horizontal"
+		                android:layout_margin="@dimen/activity_horizontal_margin"
+		                android:layout_weight="20"
+		                android:background="@drawable/circle_btn_ripple"
+		                android:elevation="6dp"
+		                android:src="@drawable/ic_navigation_black_36dp" />
+                </LinearLayout>
+
+            
 
         </LinearLayout>
 
@@ -98,36 +107,48 @@
                 android:id="@+id/call_btn"
                 android:layout_width="0dp"
                 android:layout_height="fill_parent"
-                style="@style/button_text"
+                style="@style/general_button"
+                android:minHeight="48dip"
                 android:layout_weight="20"               
                 android:text="Call" />
 
             <Button
                 android:id="@+id/message_btn"
-                style="@style/button_text"  
+                style="@style/general_button"  
                 android:layout_height="fill_parent"  
                 android:layout_width="0dp"                       
-                android:layout_weight="60"                     
+                android:layout_weight="60"   
+                android:minHeight="48dip"                  
                 android:text="Send message" />
 
           	<Button
                 android:id="@+id/ring_btn"
-                style="@style/button_text"  
+                style="@style/general_button"  
                 android:layout_height="fill_parent"  
                 android:layout_width="0dp"                       
-                android:layout_weight="20"                     
+                android:layout_weight="20"
+                android:minHeight="48dip"                     
                 android:text="Ring..." />
             
-        </LinearLayout>
-        
+        </LinearLayout>       
     </LinearLayout>
+    
+    <ImageButton
+        android:id="@+id/btn_my_location"
+        style="?android:attr/buttonStyleToggle"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="false"
+        android:layout_alignParentLeft="true"
+        android:layout_centerHorizontal="false"
+        android:layout_centerInParent="false"
+        android:layout_centerVertical="true"
+        android:layout_gravity="center_vertical|center_horizontal"
+        android:layout_margin="@dimen/activity_horizontal_margin"
+        android:background="@drawable/circle_btn_ripple"
+        android:visibility="invisible"
+        android:elevation="3dp"  
+        android:alpha="0.6"      
+        android:src="@drawable/ic_my_location_black_36dp" />
+
 </RelativeLayout>
-
-<!-- 
-<fragment 
-    android:id="@+id/map" xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:name="com.google.android.gms.maps.MapFragment" xmlns:tools="http://schemas.android.com/tools"/>
-
- -->

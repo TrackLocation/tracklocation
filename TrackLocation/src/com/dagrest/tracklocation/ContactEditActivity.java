@@ -30,6 +30,7 @@ import android.provider.MediaStore.MediaColumns;
 import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
@@ -74,7 +75,8 @@ public class ContactEditActivity extends Activity {
         text_nick.setText(contactDeviceData.getContactData().getNick());
         
         iv_photo = (ImageView) findViewById(R.id.img_contact); 
-        iv_photo.setOnClickListener(imgButtonHandler); 
+        Button btn_ChangeImage = (Button) findViewById(R.id.change_image); 
+        btn_ChangeImage.setOnClickListener(imgButtonHandler); 
         
         Bitmap bmp = contactData.getContactPhoto();
         if (bmp != null){

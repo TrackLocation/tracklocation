@@ -2,141 +2,138 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:layout_centerHorizontal="true"
-    android:paddingBottom="8sp"
-    android:paddingLeft="9sp"
-    android:paddingRight="9sp"
-    android:paddingTop="8sp" >
+    android:paddingBottom="8dp"
+    android:paddingLeft="9dp"
+    android:paddingRight="9dp"
+    android:paddingTop="8dp" >
 
     <LinearLayout
-		android:id="@+id/row01"
-        android:orientation="horizontal"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" 
-		android:paddingTop="4sp"
-        android:paddingBottom="4sp"
-		android:minHeight="150dip">
-		
-		<Button
-		    android:id="@+id/btnLocate"
-		    android:layout_width="0.0dip"
-		    android:layout_height="fill_parent"
-		    android:layout_gravity="center_vertical"
-		    android:layout_weight="1"
-		    android:gravity="center"
-			android:onClick="onClick"
-			android:background="@drawable/button_shape"
-			android:textSize="25sp"
-		    android:text="Locate" />
-		    <!-- android:background="@android:drawable/bottom_bar" -->
-		
-		<TextView
-		    android:id="@+id/textView1"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_weight="0.05"
-		    android:gravity="center"
-		    android:visibility="invisible" />
+        android:layout_height="fill_parent"
+        android:orientation="vertical"
+        android:weightSum="3" >
 
-		<Button
-            android:id="@+id/btnJoin"
-            android:layout_width="0.0dip" 
-            android:layout_height="fill_parent"
+        <LinearLayout
+            android:id="@+id/row01"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:gravity="center"
-			android:onClick="onClick"
-			android:background="@drawable/button_shape"
-			android:textSize="25sp"
-            android:text="Join" />
-		    <!-- android:background="@android:drawable/bottom_bar" -->
-				
-	</LinearLayout>
+            android:orientation="horizontal"
+            android:paddingBottom="4dp"
+            android:paddingTop="4dp" >
 
-    <LinearLayout
-		android:id="@+id/row02"
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" 
-		android:minHeight="150dip"
-		android:paddingTop="4sp"
-        android:paddingBottom="4sp"
-        android:layout_below="@+id/row01">
-        		
-		<Button
-            android:id="@+id/btnLocationSharing"
-            android:layout_width="0.0dip" 
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-			android:onClick="onClick"
-			android:background="@drawable/button_shape"
-			android:textSize="25sp"
-            android:text="Location\nSharing" />
-		    <!-- android:background="@android:drawable/bottom_bar" -->
-		
-		<TextView
-		    android:id="@+id/textView2"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_weight="0.05"
-		    android:gravity="center"
-		    android:visibility="invisible" />
+            <Button
+                android:id="@+id/btnLocate"
+                android:layout_width="0.0dip"
+                android:layout_height="fill_parent"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1"
+                style="@style/general_button"
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="Locate"
+                android:textSize="25sp" />
 
-		<Button
-            android:id="@+id/btnTracking"
-            android:layout_width="0.0dip" 
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-			android:onClick="onClick"
-			android:background="@drawable/button_shape"
-			android:textSize="25sp"
-            android:text="Tracking" />
-		    <!-- android:background="@android:drawable/bottom_bar" -->
-				
-	</LinearLayout>
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.05"
+                android:gravity="center"
+                android:visibility="visible" />
 
-    <LinearLayout
-		android:id="@+id/row03"
-        android:orientation="horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content" 
-		android:minHeight="150dip"
-		android:paddingTop="4sp"
-        android:paddingBottom="4sp"
-        android:layout_below="@+id/row02">
-        		
-		<Button
-            android:id="@+id/btnSettings"
-            android:layout_width="0.0dip" 
-            android:layout_height="fill_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-			android:onClick="onClick"
-			android:background="@drawable/button_shape"
-			android:textSize="25sp"
-            android:text="Settings" />
-		    <!-- android:background="@android:drawable/bottom_bar" -->
-		
-		<TextView
-		    android:id="@+id/textView3"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_weight="0.05"
-		    android:gravity="center"
-		    android:visibility="invisible" />
+            <Button
+                android:id="@+id/btnJoin"
+                android:layout_width="0.0dip"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                style="@style/general_button"                
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="Join"
+                android:textSize="25sp" />
+        </LinearLayout>
 
-		<Button
-            android:id="@+id/btnAbout"
-            android:layout_width="0.0dip" 
-            android:layout_height="fill_parent"
+        <LinearLayout
+            android:id="@+id/row02"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:gravity="center"
-			android:onClick="onClick"
-			android:background="@drawable/button_shape"
-			android:textSize="25sp"
-            android:text="About" />
-		    <!-- android:background="@android:drawable/bottom_bar" -->
-				
-	</LinearLayout>
+            android:orientation="horizontal"
+            android:paddingBottom="4sp"
+            android:paddingTop="4sp" >
+
+            <Button
+                android:id="@+id/btnLocationSharing"
+                android:layout_width="0.0dip"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                style="@style/general_button"                
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="Location\nSharing"
+                android:textSize="25sp" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.05"
+                android:gravity="center"
+                android:visibility="invisible" />
+
+            <Button
+                android:id="@+id/btnTracking"
+                android:layout_width="0.0dip"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                style="@style/general_button"                
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="Tracking"
+                android:textSize="25sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/row03"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:paddingBottom="4sp"
+            android:paddingTop="4sp" >
+
+            <Button
+                android:id="@+id/btnSettings"
+                android:layout_width="0.0dip"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                style="@style/general_button"                
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="Settings"
+                android:textSize="25sp" />
+
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.05"
+                android:gravity="center"
+                android:visibility="invisible" />
+
+            <Button
+                android:id="@+id/btnAbout"
+                android:layout_width="0.0dip"
+                android:layout_height="fill_parent"
+                android:layout_weight="1"
+                style="@style/general_button"                
+                android:gravity="center"
+                android:onClick="onClick"
+                android:text="About"
+                android:textSize="25sp" />
+        </LinearLayout>
+
+    </LinearLayout>
 
 </RelativeLayout>

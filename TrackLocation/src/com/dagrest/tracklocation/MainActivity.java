@@ -5,7 +5,6 @@ import com.dagrest.tracklocation.datatype.BackupDataOperations;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastConstEnum;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
-import com.dagrest.tracklocation.datatype.ContactDeviceDataList;
 import com.dagrest.tracklocation.datatype.NotificationBroadcastData;
 import com.dagrest.tracklocation.db.DBHelper;
 import com.dagrest.tracklocation.db.DBLayer;
@@ -339,5 +338,12 @@ public class MainActivity extends Activity {
 		public void doOnChooseItem(int which) {
 		}
 	};
+	
+	@Override
+    public void onBackPressed() {
+    	// TODO Auto-generated method stub
+    	super.onBackPressed();
+    	finish();
+    }
 	
 }

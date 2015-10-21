@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import com.dagrest.tracklocation.concurrent.StartTrackLocationService;
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
@@ -37,7 +39,6 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.Projection;
 import com.google.gson.Gson;
 import com.dagrest.tracklocation.R;
@@ -67,9 +68,12 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.view.MotionEventCompat;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.DragEvent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -86,8 +90,10 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Map extends MainActivity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, OnTouchListener{
-	
+public class Map extends Activity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, OnTouchListener{
+	private String className;
+	private String logMessage;
+	private String methodName;
 	// Max time of waiting dialog displaying - 30 seconds
 	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
 	private final static float DEFAULT_CAMERA_UPDATE = 15;
@@ -107,6 +113,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	private List<String> selectedAccountList;
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
+	private boolean isMapInMovingState = false;;
 	private ProgressDialog waitingDialog;
 	private Gson gson;
 	private Context context;
@@ -130,8 +137,17 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	private Animation animDown;
 	private LinearLayout map_popup_second;
 	private LinearLayout layoutAccountMenu;
+	private ImageButton btnMyLocation;
+	
+	float mLastTouchX = 0;
+	float mLastTouchY = 0;
+	private int mActivePointerId = -1;
 	
 	private DialogStatus viewStatus;
+	TimerTask timerTask;
+	//we are going to use a handler to be able to run in our TimerTask
+	private final Handler handler = new Handler();
+	private Timer timer;
 	
 	private enum DialogStatus{
 		Opened, Closed
@@ -175,7 +191,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		mapActivity = this;
     	isPermissionDialogShown = false;
 		setContentView(R.layout.map);	
-		
+
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
@@ -244,8 +260,54 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		initNotificationBroadcastReceiver();
 
 		// Get a handle to the Map Fragment
-		MapFragment mapFragment = (MapFragment) getFragmentManager().findFragmentById(R.id.map);
-        map = mapFragment.getMap();
+        MyMapFragment myMapFragment = (MyMapFragment) getFragmentManager().findFragmentById(R.id.map);
+        myMapFragment.setOnDragListener(new MapWrapperLayout.OnDragListener() {
+        	
+            @Override
+            public void onDrag(MotionEvent motionEvent){
+            	final int action = MotionEventCompat.getActionMasked(motionEvent); 
+                
+                switch (action) { 
+	                case MotionEvent.ACTION_DOWN: {
+	                    final int pointerIndex = MotionEventCompat.getActionIndex(motionEvent); 
+	                    mLastTouchX = MotionEventCompat.getX(motionEvent, pointerIndex); 
+	                    mLastTouchY = MotionEventCompat.getY(motionEvent, pointerIndex); 
+	                        
+	                    // Save the ID of this pointer (for dragging)
+	                    mActivePointerId = MotionEventCompat.getPointerId(motionEvent, 0);
+	                    break;
+	                }
+	                        
+	                case MotionEvent.ACTION_MOVE: {
+	                    // Find the index of the active pointer and fetch its position
+	                    final int pointerIndex = MotionEventCompat.findPointerIndex(motionEvent, mActivePointerId);  
+	                        
+	                    final float x = MotionEventCompat.getX(motionEvent, pointerIndex);
+	                    final float y = MotionEventCompat.getY(motionEvent, pointerIndex);
+	                        
+	                    // Calculate the distance moved
+	                    if (Math.abs(x - mLastTouchX) > 5 || Math.abs(y - mLastTouchY) > 5){
+	                    	if (mapMarkerDetailsList.size() > 0){
+	    						isMapInMovingState = true;
+	    						startTimer();
+	    					}
+	                    }                    
+	
+	                    break;
+	                }                                                            
+                }       
+                Log.d("ON_DRAG", String.format("ME: %s", motionEvent));                                
+            }
+
+			@Override
+			public void onDrag(DragEvent dragEvent) {
+				Toast.makeText(Map.this,  String.format("ME: %s", dragEvent), Toast.LENGTH_SHORT).show();
+				
+			}
+        });
+        
+        map = myMapFragment.getMap();
+        
 
         setupLocation();
 
@@ -270,7 +332,8 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
         }
         
         map.setOnMapClickListener(this);
-        map.setOnMarkerClickListener(this);        
+        map.setOnMarkerClickListener(this);         
+
 
         map.clear();                
         
@@ -287,6 +350,14 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		layoutAccountMenu.setLayoutParams(layoutAccountMenu.getLayoutParams());
 		layoutAccountMenu.setOnTouchListener(this);
 		
+		btnMyLocation = (ImageButton) findViewById(R.id.btn_my_location);
+		btnMyLocation.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {            	
+            	goToMyLocation();
+            }
+        });
+		
 		map_popup_first = (LinearLayout) findViewById(R.id.map_popup_first);
 		
 		map_popup_second = (LinearLayout) findViewById(R.id.map_popup_second);
@@ -295,6 +366,8 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		viewStatus = DialogStatus.Closed;
 
 		map_popup_second.setVisibility(View.GONE);
+		
+
 		
 		Button callBtn = (Button) findViewById(R.id.call_btn);			
 		callBtn.setOnClickListener(new OnClickListener() {
@@ -309,7 +382,6 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		
 		Button messageBtn = (Button) findViewById(R.id.message_btn);
 		messageBtn.setOnClickListener(new OnClickListener() {
-
 	        @Override
 	        public void onClick(View v) {
 			    PackageManager pm = getPackageManager();
@@ -392,13 +464,20 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		
         controller = new Controller();
         controller.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
-        	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);
-        
+        	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);       
 	}		
 	
 	@Override
 	protected void onPause() {
 		super.onPause();
+	}
+	
+	private void goToMyLocation(){
+		stoptimertask();
+    	btnMyLocation.setVisibility(View.INVISIBLE);
+    	isShowAllMarkersEnabled = true;
+    	isMapInMovingState = false;
+    	mapAnimateCameraForMarkers(null, "");		
 	}
 	 
 	private void setupLocation() {
@@ -600,7 +679,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    			
 	    			String updatingAccount = contactDetails.getAccount();
 	    			MessageDataLocation prevLocationDetails = null; 
-	    			float bearing = 0;
+	    			
 		    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
 		    			// Set marker on the map		    			
 		    			if (mapMarkerDetailsList.containsKey(updatingAccount)){
@@ -609,6 +688,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		    				mapMarkerDetailsList.get(updatingAccount).getMarker().remove();
 		    				mapMarkerDetailsList.remove(updatingAccount);
 		    			}
+		    			float bearing = 0;
 		    			if (prevLocationDetails !=  null && locationDetails.getSpeed() > 0){
 		    				bearing = getRotationAngle(new LatLng(prevLocationDetails.getLat(), prevLocationDetails.getLng()), latLngChanging);
 		    			}
@@ -618,41 +698,8 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		    				mapMarkerDetailsList.put(updatingAccount, mapMarkerDetails);
 		    			}	    			
 		    		}
-
-		    		// TODO: Create another function ???
-		    		if(mapMarkerDetailsList.size() > 1 && isShowAllMarkersEnabled == true) {
-		    			// put camera to show all markers
-		    			CameraUpdate cu = Controller.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
-			    		map.animateCamera(cu); // or map.moveCamera(cu); 
-			    		if(mapMarkerDetailsList.size() >= contactsQuantity){
-			    			// put camera to show all markers
-			    			cu = Controller.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
-				    		map.animateCamera(cu); // or map.moveCamera(cu); 
-			    			isShowAllMarkersEnabled = false;
-			    		}
-		    		} 
-		    		else if(mapMarkerDetailsList.size() == 1) {
-		    			if (!isShowAllMarkersEnabled && locationDetails.getSpeed() > 0 )
-		    				isShowAllMarkersEnabled = true;
-		    			if (isShowAllMarkersEnabled && selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
-			    			if(locationDetails != null) {
-			    	    		double lat = locationDetails.getLat();
-			    	    		double lng = locationDetails.getLng();
-				    			latLngChanging = new LatLng(lat, lng);
-				    			
-				    			bearing =  (prevLocationDetails !=  null && Math.abs(prevLocationDetails.getBearing()) - Math.abs(bearing) > 10)? bearing : 0;					    			
-				    				
-				    			CameraPosition currentPlace = new CameraPosition.Builder()
-			                    .target(latLngChanging)
-			                    .bearing(bearing).zoom(zoom).build();
-				    			map.moveCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
-				    			
-				    			if(mapMarkerDetailsList.size() >= contactsQuantity){
-				    				isShowAllMarkersEnabled = false;
-				    			}
-			    			}				    		
-		    			}
-		    		}
+		    		
+		    		mapAnimateCameraForMarkers(prevLocationDetails, updatingAccount);
 		    		if(mapMarkerDetailsList != null && mapMarkerDetailsList.size() == contactsQuantity){
 		    			waitingDialog.dismiss();
 		    			notificationView.setVisibility(4);
@@ -665,6 +712,47 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 	    registerReceiver(gcmLocationUpdatedWatcher, intentFilter);
 	    LogManager.LogFunctionExit("ContactConfiguration", "initGcmIntentServiceWatcher");
     }
+	
+	private void mapAnimateCameraForMarkers(MessageDataLocation prevLocationDetails, String updatingAccount) {
+		if (!isMapInMovingState && selectedAccountList.size() == mapMarkerDetailsList.size()){
+			if(mapMarkerDetailsList.size() > 1 && isShowAllMarkersEnabled == true) {
+				// put camera to show all markers
+				CameraUpdate cu = Controller.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
+				map.animateCamera(cu);
+				if(mapMarkerDetailsList.size() >= contactsQuantity){
+					// put camera to show all markers
+					cu = Controller.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
+					map.animateCamera(cu); // or map.moveCamera(cu); 
+					isShowAllMarkersEnabled = false;
+				}
+			} 
+			else if(mapMarkerDetailsList.size() == 1) {
+				String account = updatingAccount.isEmpty() ? selectedAccountList.get(0) : updatingAccount;
+				MapMarkerDetails mapMarkerDetails =  mapMarkerDetailsList.get(account);
+				if (!isShowAllMarkersEnabled && mapMarkerDetails.getLocationDetails().getSpeed() > 0 )
+					isShowAllMarkersEnabled = true;
+				if (isShowAllMarkersEnabled ){
+					
+					if(mapMarkerDetails.getLocationDetails() != null) {
+			    		double lat = mapMarkerDetails.getLocationDetails().getLat();
+			    		double lng = mapMarkerDetails.getLocationDetails().getLng();
+						latLngChanging = new LatLng(lat, lng);
+						
+						float bearing =  (prevLocationDetails !=  null && Math.abs(prevLocationDetails.getBearing()) - Math.abs(mapMarkerDetails.getLocationDetails().getBearing()) > 10)? mapMarkerDetails.getLocationDetails().getBearing() : 0;					    			
+							
+						CameraPosition currentPlace = new CameraPosition.Builder()
+			            .target(latLngChanging)
+			            .bearing(bearing).zoom(zoom).build();
+						map.moveCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
+						
+						if(mapMarkerDetailsList.size() >= contactsQuantity){
+							isShowAllMarkersEnabled = false;
+						}
+					}				    		
+				}
+			}
+		}
+	}
 	
 	private float getRotationAngle(LatLng secondLastLatLng, LatLng lastLatLng)
 	{
@@ -709,13 +797,15 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 
 		//modify canvas
 		canvas1.drawBitmap(BitmapFactory.decodeResource(getResources(),	R.drawable.wpfrk), 0,0, color);
-		canvas1.drawText("User Name!", 30, 40, color);
+		canvas1.drawText("User Name!", 30, 40, color);				
 		
 		ContactDeviceData contactDeviceData = selectedContactDeviceDataList.getContactDeviceDataByContactData(contactDetails.getAccount());
 		
+		Bitmap bmpContact = contactDeviceData.getContactData().getContactPhoto() == null ? BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher) : contactDeviceData.getContactData().getContactPhoto();
+		
 		Marker marker = map.addMarker(new MarkerOptions()
 			//TODO add user profile image
-			.icon(BitmapDescriptorFactory.fromBitmap(drawMarker(contactDeviceData.getContactData().getContactPhoto())))
+			.icon(BitmapDescriptorFactory.fromBitmap(drawMarker(bmpContact)))
 			.snippet(account)
 			//.anchor(0.0f, 1.0f) // Anchors the marker on the bottom
 								// left
@@ -958,7 +1048,7 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 			contactDetails = (MessageDataContactDetails) objects[0][0];
 		}		
 	};
-	
+
 	private void showRingConfirmationDialog(Activity activity, String confirmationMessage, MessageDataContactDetails contactDetails) {
 		Object[] objects = new Object[1];
 		objects[0] = contactDetails;
@@ -974,5 +1064,43 @@ public class Map extends MainActivity implements LocationListener, GoogleMap.OnM
 		aboutDialog.setCancelable(true);
     }
 	
+    private void startTimer() {
+    	stoptimertask();
+        //set a new Timer
+        timer = new Timer();
+        //initialize the TimerTask's job
+        initializeTimerTask();
+        //schedule the timer, after the first 5000ms the TimerTask will run every 10000ms
+         timer.schedule(timerTask, 20000); //
+         btnMyLocation.setVisibility(View.VISIBLE);
+    }
+
+    private void stoptimertask() {
+        //stop the timer, if it's not already null
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
+    public void initializeTimerTask() {
+        timerTask = new TimerTask() {
+            public void run() {
+                //use a handler to run a toast that shows the current timestamp
+                handler.post(new Runnable() {
+                    public void run() {
+                    	goToMyLocation();
+                    }
+                });
+            }
+        };
+    }
+    
+    @Override
+    public void onBackPressed() {
+    	// TODO Auto-generated method stub
+    	super.onBackPressed();
+    	finish();
+    }
 }
 

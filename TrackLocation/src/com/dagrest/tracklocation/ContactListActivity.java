@@ -11,7 +11,6 @@ import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
-import com.google.gson.Gson;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -33,8 +32,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class ContactListActivity extends MainActivity {
-
+public class ContactListActivity extends Activity {
+	private String className;
+	private String methodName;
 	private static final int EDIT_OPTION = 0;
 	private static final int DELETE_OPTION = 1;
 
@@ -194,7 +194,7 @@ public class ContactListActivity extends MainActivity {
 				// Show pop up message - reinstall app/update regID.
 				
 	    		// Start Map activity to see locations of selected contacts
-	    		Intent intentMap = new Intent(context, Map.class);
+	    		Intent intentMap = new Intent(this, Map.class);
 	    		// Pass to Map activity list of selected contacts to get their location	    		
 	    		intentMap.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, selectedContactDeviceDataList);
 	   			startActivity(intentMap);
@@ -346,7 +346,12 @@ public class ContactListActivity extends MainActivity {
 		alertDialog.show();
 	}
 	
-	
+	@Override
+    public void onBackPressed() {
+    	// TODO Auto-generated method stub
+    	super.onBackPressed();
+    	finish();
+    }
 }
 
 	
