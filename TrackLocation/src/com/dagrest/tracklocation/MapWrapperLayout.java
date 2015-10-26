@@ -8,31 +8,13 @@ import android.widget.FrameLayout;
 
 public class MapWrapperLayout extends FrameLayout {
 	public interface OnDragListener {
-        public void onDrag(MotionEvent motionEvent);
-        public void onDrag(DragEvent dragEvent);
+        public void onDrag(MotionEvent motionEvent);        
     }
 
     private OnDragListener mOnDragListener;
 
     public MapWrapperLayout(Context context) {
         super(context);
-    }
-    
-    @Override
-    public boolean dispatchDragEvent(DragEvent event) {
-    	boolean r = super.dispatchDragEvent(event);
-        if (r && (event.getAction() == DragEvent.ACTION_DRAG_STARTED
-                || event.getAction() == DragEvent.ACTION_DRAG_ENDED)){
-            // If we got a start or end and the return value is true, our
-            // onDragEvent wasn't called by ViewGroup.dispatchDragEvent
-            // So we do it here.
-        	mOnDragListener.onDrag(event);
-        }
-        return r;
-    	/*if (mOnDragListener != null) {
-            mOnDragListener.onDrag(event);
-        }
-    	return super.dispatchDragEvent(event);*/
     }
 
     @Override

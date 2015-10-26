@@ -27,6 +27,7 @@ import com.dagrest.tracklocation.dialog.CommonDialog;
 import com.dagrest.tracklocation.dialog.IDialogOnClickAction;
 import com.dagrest.tracklocation.log.LogManager;
 import com.dagrest.tracklocation.utils.CommonConst;
+import com.dagrest.tracklocation.utils.MapUtils;
 import com.dagrest.tracklocation.utils.Preferences;
 import com.dagrest.tracklocation.utils.Utils;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -96,6 +97,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	private String methodName;
 	// Max time of waiting dialog displaying - 30 seconds
 	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
+	private final static int MARKER_BITMAP_HEIGHT = 80; 
 	private final static float DEFAULT_CAMERA_UPDATE = 15;
 	//private static final int POPUP_POSITION_REFRESH_INTERVAL = 16;
 	private static final int ANIMATION_DURATION = 500;
@@ -281,29 +283,23 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	                case MotionEvent.ACTION_MOVE: {
 	                    // Find the index of the active pointer and fetch its position
 	                    final int pointerIndex = MotionEventCompat.findPointerIndex(motionEvent, mActivePointerId);  
-	                        
-	                    final float x = MotionEventCompat.getX(motionEvent, pointerIndex);
-	                    final float y = MotionEventCompat.getY(motionEvent, pointerIndex);
-	                        
-	                    // Calculate the distance moved
-	                    if (Math.abs(x - mLastTouchX) > 5 || Math.abs(y - mLastTouchY) > 5){
-	                    	if (mapMarkerDetailsList.size() > 0){
-	    						isMapInMovingState = true;
-	    						startTimer();
-	    					}
-	                    }                    
-	
+	                    if (pointerIndex >= 0){	                   
+		                    final float x = MotionEventCompat.getX(motionEvent, pointerIndex);
+		                    final float y = MotionEventCompat.getY(motionEvent, pointerIndex);
+		                        
+		                    // Calculate the distance moved
+		                    if (Math.abs(x - mLastTouchX) > 5 || Math.abs(y - mLastTouchY) > 5){
+		                    	if (mapMarkerDetailsList.size() > 0){
+		    						isMapInMovingState = true;
+		    						startTimer();
+		    					}
+		                    }                    
+	                    } 
 	                    break;
 	                }                                                            
                 }       
                 Log.d("ON_DRAG", String.format("ME: %s", motionEvent));                                
-            }
-
-			@Override
-			public void onDrag(DragEvent dragEvent) {
-				Toast.makeText(Map.this,  String.format("ME: %s", dragEvent), Toast.LENGTH_SHORT).show();
-				
-			}
+            }			
         });
         
         map = myMapFragment.getMap();
@@ -353,7 +349,8 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 		btnMyLocation = (ImageButton) findViewById(R.id.btn_my_location);
 		btnMyLocation.setOnClickListener(new OnClickListener() {
             @Override
-            public void onClick(View v) {            	
+            public void onClick(View v) {
+            	closeLayouUserMenu();
             	goToMyLocation();
             }
         });
@@ -496,8 +493,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 					Toast.LENGTH_LONG).show();
 		}
 
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-				0,0, Map.this); 
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, Map.this); 
 	}
 	
 	private Location getLastKnownLocation() {
@@ -690,7 +686,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 		    			}
 		    			float bearing = 0;
 		    			if (prevLocationDetails !=  null && locationDetails.getSpeed() > 0){
-		    				bearing = getRotationAngle(new LatLng(prevLocationDetails.getLat(), prevLocationDetails.getLng()), latLngChanging);
+		    				bearing = MapUtils.getRotationAngle(new LatLng(prevLocationDetails.getLat(), prevLocationDetails.getLng()), latLngChanging);
 		    			}
 		    			locationDetails.setBearing(bearing);
 		    			MapMarkerDetails  mapMarkerDetails = createMapMarker(contactDetails, locationDetails);
@@ -717,11 +713,11 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 		if (!isMapInMovingState && selectedAccountList.size() == mapMarkerDetailsList.size()){
 			if(mapMarkerDetailsList.size() > 1 && isShowAllMarkersEnabled == true) {
 				// put camera to show all markers
-				CameraUpdate cu = Controller.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
+				CameraUpdate cu = MapUtils.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
 				map.animateCamera(cu);
 				if(mapMarkerDetailsList.size() >= contactsQuantity){
 					// put camera to show all markers
-					cu = Controller.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
+					cu = MapUtils.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
 					map.animateCamera(cu); // or map.moveCamera(cu); 
 					isShowAllMarkersEnabled = false;
 				}
@@ -742,8 +738,10 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 							
 						CameraPosition currentPlace = new CameraPosition.Builder()
 			            .target(latLngChanging)
-			            .bearing(bearing).zoom(zoom).build();
-						map.moveCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
+			            .bearing(bearing)
+			            .zoom(zoom)
+			            .build();
+						map.animateCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
 						
 						if(mapMarkerDetailsList.size() >= contactsQuantity){
 							isShowAllMarkersEnabled = false;
@@ -752,19 +750,6 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 				}
 			}
 		}
-	}
-	
-	private float getRotationAngle(LatLng secondLastLatLng, LatLng lastLatLng)
-	{
-	    double x1 = secondLastLatLng.latitude;
-	    double y1 = secondLastLatLng.longitude;
-	    double x2 = lastLatLng.latitude;
-	    double y2 = lastLatLng.longitude;
-
-	    float xDiff = (float) (x2 - x1);
-	    float yDiff = (float) (y2 - y1);
-
-	    return (float) (Math.atan2(yDiff, xDiff) * 180.0 / Math.PI);
 	}
 	
 	private MapMarkerDetails createMapMarker(final MessageDataContactDetails contactDetails, final MessageDataLocation locationDetails) {
@@ -783,21 +768,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 		final String account = contactDetails.getAccount();
 		if(account == null || account.isEmpty()) {
 			return null;
-		}
-						        
-		Bitmap.Config conf = Bitmap.Config.ARGB_8888;
-		Bitmap bmp = Bitmap.createBitmap(80, 80, conf);
-		Canvas canvas1 = new Canvas(bmp);
-
-		// paint defines the text color,
-		// stroke width, size
-		Paint color = new Paint();
-		color.setTextSize(35);
-		color.setColor(Color.BLACK);
-
-		//modify canvas
-		canvas1.drawBitmap(BitmapFactory.decodeResource(getResources(),	R.drawable.wpfrk), 0,0, color);
-		canvas1.drawText("User Name!", 30, 40, color);				
+		}						        	
 		
 		ContactDeviceData contactDeviceData = selectedContactDeviceDataList.getContactDeviceDataByContactData(contactDetails.getAccount());
 		
@@ -905,30 +876,32 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
         Point trackedPoint = projection.toScreenLocation(lastKnownLocation);
         
         LatLng newCameraLocation = projection.fromScreenLocation(trackedPoint);
+        map.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation), ANIMATION_DURATION, null);
         
         selectedMarkerDetails = mapMarkerDetailsList.get(marker.getSnippet());
         
         if (selectedMarkerDetails == null){
         	return false;
         }        	      
-        
-        map.animateCamera(CameraUpdateFactory.newLatLng(newCameraLocation), ANIMATION_DURATION, null);
+                
         if (viewStatus == DialogStatus.Closed){
 	        layoutAccountMenu.getLayoutParams().height = map_popup_first.getLayoutParams().height;
 			layoutAccountMenu.setLayoutParams(layoutAccountMenu.getLayoutParams());					
 			viewStatus = DialogStatus.Opened;
-			
+			title_text.setText(marker.getSnippet()); 
+	        updateSelectedData(selectedMarkerDetails);
 			layoutAccountMenu.startAnimation(animUp);
         }
-        title_text.setText(marker.getSnippet()); 
-        updateSelectedData(selectedMarkerDetails);
-		        
+        else{
+        	closeLayouUserMenu();
+        }
+        		        
         return true;
 	}
 
 	@Override
 	public void onMapClick(LatLng point) {
-		closeLayouUserMenu();
+		
 	}
 
     @Override
@@ -1103,4 +1076,3 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
     	finish();
     }
 }
-

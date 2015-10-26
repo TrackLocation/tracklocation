@@ -782,19 +782,6 @@ public class Controller {
 		return selectedContactDeviceDataList;
 	}
 
-	public static CameraUpdate createCameraUpdateLatLngBounds(LinkedHashMap<String, MapMarkerDetails> markerMap) {
-		LatLngBounds.Builder builder = new LatLngBounds.Builder();
-		for (LinkedHashMap.Entry<String, MapMarkerDetails> markerEntry : markerMap.entrySet()) {
-			Marker m = markerEntry.getValue().getMarker();
-			if(m != null){
-    			builder.include(m.getPosition());
-			}
-		}
-		LatLngBounds bounds = builder.build();
-		int padding = 50; // offset from edges of the map in pixels
-		return  CameraUpdateFactory.newLatLngBounds(bounds, padding);
-	}
-	
 	public static int getBatteryLevel(Context context){
 		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
 		Intent batteryStatus = context.registerReceiver(null, ifilter);
