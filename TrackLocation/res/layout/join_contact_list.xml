@@ -10,17 +10,21 @@
     android:orientation="vertical" >
 
     <!-- Editext for Search -->
-    <EditText android:id="@+id/find_join_contact"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:hint="Find contact to join ..."
-        android:textSize="30sp"
-        android:inputType="textVisiblePassword"/>
-    
-    <ExpandableListView
-        android:id="@+id/listView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
-    </ExpandableListView>
+     <EditText
+         android:id="@+id/find_join_contact"
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:hint="Find contact to join ..."
+         android:inputType="textVisiblePassword"
+         android:textSize="30sp" >
+
+         <requestFocus />
+     </EditText>
+
+     <ExpandableListView
+         android:id="@+id/listView"
+         android:layout_width="match_parent"
+         android:layout_height="fill_parent" >
+     </ExpandableListView>
 
 </LinearLayout> 

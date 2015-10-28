@@ -685,8 +685,8 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 		    				mapMarkerDetailsList.remove(updatingAccount);
 		    			}
 		    			float bearing = 0;
-		    			if (prevLocationDetails !=  null && locationDetails.getSpeed() > 0){
-		    				bearing = MapUtils.getRotationAngle(new LatLng(prevLocationDetails.getLat(), prevLocationDetails.getLng()), latLngChanging);
+		    			if (prevLocationDetails !=  null  && locationDetails.getSpeed() > 0){
+		    				bearing = MapUtils.getRotationAngle(new LatLng(prevLocationDetails.getLat(), prevLocationDetails.getLng()), new LatLng(locationDetails.getLat(), locationDetails.getLng()));
 		    			}
 		    			locationDetails.setBearing(bearing);
 		    			MapMarkerDetails  mapMarkerDetails = createMapMarker(contactDetails, locationDetails);

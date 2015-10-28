@@ -48,6 +48,8 @@ import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Patterns;
@@ -614,7 +616,7 @@ public class Controller {
         // String DATA = ContactsContract.CommonDataKinds.Email.DATA;
         ContentResolver contentResolver = context.getContentResolver();
         long startTime = System.currentTimeMillis();
-        Cursor cursor = contentResolver.query(CONTENT_URI, null,null, null, DISPLAY_NAME + " COLLATE LOCALIZED ASC"); 
+        Cursor cursor = contentResolver.query(CONTENT_URI, new String[] {_ID, DISPLAY_NAME, HAS_PHONE_NUMBER },null, null, DISPLAY_NAME + " COLLATE LOCALIZED ASC"); 
         long endTime = System.currentTimeMillis() - startTime;
 //        System.out.println("Retrieve all contacts query: " + endTime);
         
@@ -623,11 +625,8 @@ public class Controller {
         // Loop for every contact in the phone
         if (cursor.getCount() > 0) {
         	int i = 0;
-            while (cursor.moveToNext()) {
-            	//barProgressDialog.incrementProgressBy(2);
+            while (cursor.moveToNext()) {            	
                 barProgressDialog.incrementProgressBy(1);
-
-            	//System.out.println("Element: " + (i + 1));
                 
                 Long contact_id = cursor.getLong(cursor.getColumnIndex( _ID ));
                 String contactName = cursor.getString(cursor.getColumnIndex( DISPLAY_NAME ));
@@ -638,10 +637,11 @@ public class Controller {
 	                	contactDetails.setNick(contactName);
 	                	contactDetails.setContactPhoto(getContactPhoto(contentResolver, contact_id, false));
 	                    // Query and loop for every phone number of the contact
-	                    Cursor phoneCursor = contentResolver.query(PhoneCONTENT_URI, null, Phone_CONTACT_ID + " = ?", new String[] { Long.toString(contact_id) }, null);
+	                    Cursor phoneCursor = contentResolver.query(PhoneCONTENT_URI,  new String[] {Phone.NUMBER}, Phone_CONTACT_ID + " = ?", new String[] { Long.toString(contact_id) }, null);
 	                    while (phoneCursor.moveToNext()) {
-	                        phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex(NUMBER));
-	                        contactDetails.getPhoneNumbersList().add(phoneNumber);
+	                        phoneNumber = PhoneNumberUtils.extractNetworkPortion(phoneCursor.getString(phoneCursor.getColumnIndex(NUMBER)));
+	                        if (!contactDetails.getPhoneNumbersList().contains(phoneNumber))
+	                        	contactDetails.getPhoneNumbersList().add(phoneNumber);	                        	                      
 	                    }
 	                    phoneCursor.close();
 	                    contactDetailsGroups.append(i, contactDetails);

@@ -18,7 +18,6 @@ import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
@@ -94,10 +93,6 @@ public class JoinContactList extends Activity {
 		
 		listView = (ExpandableListView) findViewById(R.id.listView);
         
-		//	    Controller.fetchContacts(JoinContactList.this, contactDetailsGroups, barProgressDialog);
-		//		adapter = new ContactDeatilsExpandableListAdapter(this, contactDetailsGroups);
-		//	    listView.setAdapter(adapter);
-
 	    launchBarDialog(listView);
         
 	    inputSearch = (EditText) findViewById(R.id.find_join_contact);
@@ -134,8 +129,6 @@ public class JoinContactList extends Activity {
 	    {
 	    	String phoneNumber = null;
 	    	String contactName = null;
-	    	String mutualId = null;
-	    	
 	    	@Override
     		public void onReceive(final Context context, Intent intent) {
 	    		
@@ -164,8 +157,6 @@ public class JoinContactList extends Activity {
 		    			contactName = args[0];
 		    			phoneNumber = args[1];
 		    			
-		    			// send join SMS command
-		    			long res = -1;
 		    			SentJoinRequestData joinRequestData = DBLayer.getInstance().getSentJoinRequestByPhone(phoneNumber);
 		    			if( joinRequestData == null ) { 
 		    				toSendAddJoinRequest = true;

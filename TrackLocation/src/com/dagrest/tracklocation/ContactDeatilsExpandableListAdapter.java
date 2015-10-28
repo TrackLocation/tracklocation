@@ -1,13 +1,15 @@
 package com.dagrest.tracklocation;
 
+import java.util.Locale;
+
 import com.dagrest.tracklocation.datatype.BroadcastActionEnum;
 import com.dagrest.tracklocation.datatype.BroadcastKeyEnum;
 import com.dagrest.tracklocation.datatype.ContactData;
 import com.dagrest.tracklocation.utils.CommonConst;
 import com.dagrest.tracklocation.utils.Utils;
+import com.dagrest.tracklocation.utils.ViewHolder;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -20,7 +22,6 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.CheckedTextView;
 import android.widget.TextView;
-//import android.widget.Toast;
 
 public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapter {
 
@@ -52,17 +53,26 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 	public View getChildView(int groupPosition, final int childPosition,
 			boolean isLastChild, View convertView, ViewGroup parent) {
 		final String groupPhone = (String) getChild(groupPosition, childPosition);
-		TextView text = null;
-		if (convertView == null) {
-			convertView = inflater.inflate(R.layout.listrow_details, null);
+		
+		View row = convertView;
+		if (row == null){
+			row = inflater.inflate(R.layout.listrow_details, null);
+			TextView text = (TextView) row.findViewById(R.id.textView1);
+			text.setCompoundDrawablesWithIntrinsicBounds( R.drawable.ic_contact_phone_black_24dp, 0, 0, 0);
+			//View photo = row.findViewById(R.id.ic_launcher);
+			ViewHolder holder = new ViewHolder();
+            holder.addView(text);
+            //holder.addView(photo);
+            row.setTag(holder);
 		}
-		text = (TextView) convertView.findViewById(R.id.textView1);
+		
+		ViewHolder holder = (ViewHolder) row.getTag();
+        TextView text = (TextView) holder.getView(R.id.textView1);        
 		text.setText(groupPhone);
 		setGroupPositionCurrent(groupPosition);
-		convertView.setOnClickListener(new OnClickListener() {
+		row.setOnClickListener(new OnClickListener() {
 			@Override
-			public void onClick(View v) {
-				//Toast.makeText(activity, children, Toast.LENGTH_SHORT).show();
+			public void onClick(View v) {				
 				ContactData contactDetails = (ContactData) getGroup(getGroupPositionCurrent());
 				String contactName = null;
 				if(contactDetails != null && !contactDetails.getNick().isEmpty()){
@@ -76,13 +86,12 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 					contactName + CommonConst.DELIMITER_STRING + groupPhone);
 			}
 		});
-		return convertView;
+		return row;
 	}
-
+	
 	@Override
 	public int getChildrenCount(int groupPosition) {
-		return contactDetailsGroups.get(groupPosition).getPhoneNumbersList()
-				.size();
+		return contactDetailsGroups.get(groupPosition).getPhoneNumbersList().size();
 	}
 
 	@Override
@@ -143,7 +152,7 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 
 	public void filterData(final String contcatName) {
 
-		String contcatNameLowerCase = contcatName.toLowerCase();
+		String contcatNameLowerCase = contcatName.toLowerCase(Locale.getDefault());
 		SparseArray<ContactData> contactDetailsGroupsNew = new SparseArray<ContactData>();
 
 		if (contcatNameLowerCase == null || contcatNameLowerCase.isEmpty()) {
