@@ -7,7 +7,7 @@
         android:key="pref_sync"
         android:title="Enable Log"
         android:summary="Summary"
-        android:defaultValue="true" />
+        android:defaultValue="true" android:selectable="false"/>
     <ListPreference
         android:dependency="pref_sync"
         android:key="pref_syncConnectionType"
@@ -15,6 +15,5 @@
         android:dialogTitle="Choose Log Level"
         android:entries="@array/log_level_entries"
         android:entryValues="@array/log_level_values"
-        android:defaultValue="string/default" />
-    
+        android:defaultValue="string/default" />  
 </PreferenceScreen>

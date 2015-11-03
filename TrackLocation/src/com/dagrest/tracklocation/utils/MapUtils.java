@@ -19,7 +19,7 @@ public class MapUtils {
 			}
 		}
 		LatLngBounds bounds = builder.build();
-		int padding = 50; // offset from edges of the map in pixels
+		int padding = 150; // offset from edges of the map in pixels
 		return  CameraUpdateFactory.newLatLngBounds(bounds, padding);
 	}
 	

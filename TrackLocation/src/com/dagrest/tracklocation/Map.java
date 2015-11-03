@@ -2,6 +2,7 @@ package com.dagrest.tracklocation;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -74,7 +75,6 @@ import android.support.v4.view.MotionEventCompat;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.DragEvent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -97,7 +97,6 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	private String methodName;
 	// Max time of waiting dialog displaying - 30 seconds
 	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
-	private final static int MARKER_BITMAP_HEIGHT = 80; 
 	private final static float DEFAULT_CAMERA_UPDATE = 15;
 	//private static final int POPUP_POSITION_REFRESH_INTERVAL = 16;
 	private static final int ANIMATION_DURATION = 500;
@@ -112,7 +111,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 
 	private float zoom;
 	private ContactDeviceDataList selectedContactDeviceDataList;
-	private List<String> selectedAccountList;
+	private HashMap<String, ContactData> selectedAccountList;
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
 	private boolean isMapInMovingState = false;;
@@ -172,7 +171,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
             public void run() {
             	if(mapMarkerDetailsList.size() >= contactsQuantity) {
             		waitingDialog.dismiss();
-            		notificationView.setVisibility(4);
+            		notificationView.setVisibility(View.INVISIBLE);
             	}
             	try {
 					Thread.sleep(MAX_SHOW_TIME_WAITING_DIALOG); 
@@ -214,11 +213,11 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 			if(!selectedContactDeviceDataList.isEmpty()){
 				contactsQuantity = selectedContactDeviceDataList.size();
 				// Create and fill all requested accounts shat should be shown on the location map
-				selectedAccountList = new ArrayList<String>();
+				selectedAccountList = new HashMap<String, ContactData>();
 				for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
 					ContactData contactData = contactDeviceData.getContactData();
 					if(contactData != null){
-						selectedAccountList.add(contactData.getEmail());				
+						selectedAccountList.put(contactData.getEmail(), contactData);				
 					}
 				}
 				
@@ -316,7 +315,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 		} else {
 			List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
 			for (String account : listAccounts) {
-				accountsListMsg = accountsListMsg + account + "\n";
+				accountsListMsg = accountsListMsg + selectedAccountList.get(account).getNick() + "\n";
 			}
 		}        
         waitingDialog.setMessage(accountsListMsg);
@@ -598,7 +597,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	    				} else {
 	    					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
 	    					for (String account : listAccounts) {
-	    						accountsListMsg = accountsListMsg + account + "\n";
+	    						accountsListMsg = accountsListMsg + selectedAccountList.get(account).getNick() + "\n";
 	    					}
 	    				}
 	    				waitingDialog.setMessage(accountsListMsg);
@@ -676,7 +675,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	    			String updatingAccount = contactDetails.getAccount();
 	    			MessageDataLocation prevLocationDetails = null; 
 	    			
-		    		if(selectedAccountList != null && selectedAccountList.contains(updatingAccount)){
+		    		if(selectedAccountList != null && selectedAccountList.containsKey(updatingAccount)){
 		    			// Set marker on the map		    			
 		    			if (mapMarkerDetailsList.containsKey(updatingAccount)){
 		    				prevLocationDetails = mapMarkerDetailsList.get(updatingAccount).getLocationDetails();
@@ -723,7 +722,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 				}
 			} 
 			else if(mapMarkerDetailsList.size() == 1) {
-				String account = updatingAccount.isEmpty() ? selectedAccountList.get(0) : updatingAccount;
+				String account = updatingAccount.isEmpty() ? selectedAccountList.keySet().toArray()[0].toString() : updatingAccount;
 				MapMarkerDetails mapMarkerDetails =  mapMarkerDetailsList.get(account);
 				if (!isShowAllMarkersEnabled && mapMarkerDetails.getLocationDetails().getSpeed() > 0 )
 					isShowAllMarkersEnabled = true;
@@ -734,12 +733,15 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 			    		double lng = mapMarkerDetails.getLocationDetails().getLng();
 						latLngChanging = new LatLng(lat, lng);
 						
-						float bearing =  (prevLocationDetails !=  null && Math.abs(prevLocationDetails.getBearing()) - Math.abs(mapMarkerDetails.getLocationDetails().getBearing()) > 10)? mapMarkerDetails.getLocationDetails().getBearing() : 0;					    			
+						float bearing = mapMarkerDetails.getLocationDetails().getSpeed() > 0 && !isMapInMovingState ? mapMarkerDetails.getLocationDetails().getBearing() : 0;  						
+						float zoomCalc = mapMarkerDetails.getLocationDetails().getSpeed() > 0 && !isMapInMovingState ? 17 : zoom;
+						float tilt = mapMarkerDetails.getLocationDetails().getSpeed() > 0 && !isMapInMovingState ? 45 : 0;
 							
 						CameraPosition currentPlace = new CameraPosition.Builder()
 			            .target(latLngChanging)
 			            .bearing(bearing)
-			            .zoom(zoom)
+			            .zoom(zoomCalc)
+			            .tilt(tilt)
 			            .build();
 						map.animateCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
 						
@@ -775,11 +777,8 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 		Bitmap bmpContact = contactDeviceData.getContactData().getContactPhoto() == null ? BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher) : contactDeviceData.getContactData().getContactPhoto();
 		
 		Marker marker = map.addMarker(new MarkerOptions()
-			//TODO add user profile image
 			.icon(BitmapDescriptorFactory.fromBitmap(drawMarker(bmpContact)))
 			.snippet(account)
-			//.anchor(0.0f, 1.0f) // Anchors the marker on the bottom
-								// left
 			.position(latLngChanging));
 		
 		double accuracy = locationDetails.getAccuracy();
@@ -894,6 +893,8 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
         }
         else{
         	closeLayouUserMenu();
+        	isShowAllMarkersEnabled = true;
+        	mapAnimateCameraForMarkers(null, "");
         }
         		        
         return true;
@@ -929,8 +930,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	            float endY = event.getY();
 	             
 	            if (endY < startY) {
-	            	if (viewStatus == DialogStatus.Opened){
-//		                System.out.println("Move UP");	                
+	            	if (viewStatus == DialogStatus.Opened){	                
 		                layoutAccountMenu.getLayoutParams().height = map_popup_first.getLayoutParams().height + map_popup_second.getLayoutParams().height;
 						layoutAccountMenu.setLayoutParams(layoutAccountMenu.getLayoutParams());
 		                Animation animUpEx = new TranslateAnimation(0, 0, layoutAccountMenu.getLayoutParams().height, 0 );

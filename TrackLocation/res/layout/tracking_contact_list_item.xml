@@ -7,44 +7,31 @@
     android:paddingLeft="30sp"
     android:paddingRight="30sp"
     android:paddingTop="20sp" >
-    
-    <include layout="@layout/user_data_fragment"/>
 
     <LinearLayout
         android:id="@+id/linearLayout1"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true" >
+        android:weightSum="1" >
+
+        <include
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.9"
+            layout="@layout/user_data_fragment" />
 
     	<ToggleButton
-	        android:id="@+id/tracking_toggle_button"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-            android:layout_gravity="right"
-            android:layout_marginLeft="5sp"
-            android:layout_marginRight="5sp"
-            android:layout_marginTop="0sp"
-            android:focusable="false"	        
-	        android:text="ToggleButton"> 
-	   	    <!--  
-	        android:layout_alignBottom="@+id/linearLayout1"
-	        android:layout_toLeftOf="@+id/linearLayout1"
-	        -->
-	    </ToggleButton>
-	   	<!--  
-        <CheckBox
-            android:id="@+id/check_share_location"
-            android:layout_width="30sp"
-            android:layout_height="30sp"
-            android:layout_gravity="right"
-            android:layout_marginLeft="5sp"
-            android:layout_marginRight="20sp"
-            android:layout_marginTop="5sp"
-            android:focusable="false" >
-        </CheckBox>
-        -->
-    	
+    	    android:id="@+id/tracking_toggle_button"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    android:layout_gravity="right"
+    	    android:layout_marginLeft="5sp"
+    	    android:layout_marginRight="5sp"
+    	    android:layout_marginTop="0sp"
+    	    android:layout_weight="0.1"
+    	    android:focusable="false"
+    	    android:text="ToggleButton" >
+ 	   	   
+	    </ToggleButton>	     	
     </LinearLayout>
-
-
 </RelativeLayout>

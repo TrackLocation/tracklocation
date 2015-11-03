@@ -119,10 +119,12 @@
 
             <Button
                 android:id="@+id/change_image"
+                style="@style/general_button"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="34dp"
                 android:layout_gravity="center_vertical|center_horizontal"
                 android:layout_marginLeft="20dp"
+                android:layout_weight="11.26"
                 android:text="@string/lbl_change" />
 
         </LinearLayout>
@@ -182,12 +184,16 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentRight="false"
+        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="false"
+        android:layout_centerVertical="true"
         android:layout_gravity="bottom|center"
         android:layout_margin="@dimen/activity_horizontal_margin"
         android:background="@drawable/circle_btn_ripple"
         android:elevation="3dp"
         android:fontFamily="sans-serif-light"
         android:onClick="submitUpdateResult"
-        android:src="@drawable/ic_add_black_24dp" />
+        android:src="@drawable/ic_done_black_24dp" />
+
 </RelativeLayout>
