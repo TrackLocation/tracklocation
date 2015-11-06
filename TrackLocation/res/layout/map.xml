@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scrollbars="vertical"  
-        class="com.dagrest.tracklocation.MyMapFragment"/>
+        class="com.doat.tracklocation.MyMapFragment"/>
 
     <TextView
         android:id="@+id/textViewMap"

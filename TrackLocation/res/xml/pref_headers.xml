@@ -3,13 +3,13 @@
     <!-- These settings headers are only used on tablets. -->
 
     <header
-        android:fragment="com.dagrest.tracklocation.Settings$GeneralPreferenceFragment"
+        android:fragment="com.doat.tracklocation.Settings$GeneralPreferenceFragment"
         android:title="@string/pref_header_general" />
     <header
-        android:fragment="com.dagrest.tracklocation.Settings$NotificationPreferenceFragment"
+        android:fragment="com.doat.tracklocation.Settings$NotificationPreferenceFragment"
         android:title="@string/pref_header_notifications" />
     <header
-        android:fragment="com.dagrest.tracklocation.Settings$DataSyncPreferenceFragment"
+        android:fragment="com.doat.tracklocation.Settings$DataSyncPreferenceFragment"
         android:title="@string/pref_header_data_sync" />
 
 </preference-headers>

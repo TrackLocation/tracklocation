@@ -1,19 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:key="pref_syncConnectionType"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
-
-    <CheckBoxPreference
-        android:key="pref_sync"
-        android:title="Enable Log"
-        android:summary="Summary"
-        android:defaultValue="true" android:selectable="false"/>
-    <ListPreference
-        android:dependency="pref_sync"
-        android:key="pref_syncConnectionType"
-        android:title="Log Level"
-        android:dialogTitle="Choose Log Level"
-        android:entries="@array/log_level_entries"
-        android:entryValues="@array/log_level_values"
-        android:defaultValue="string/default" />  
+	<PreferenceCategory 
+        android:title="Log"
+        android:key="pref_key_log_settings">
+	    <CheckBoxPreference
+	        android:key="pref_log_enable"
+	        android:title="Enable Log"
+	        android:summary="Summary"
+	        android:defaultValue="true" android:selectable="true"/>
+	    <ListPreference
+	        android:dependency="pref_log_enable"
+	        android:key="pref_log_levels"
+	        android:title="Log Level"
+	        android:dialogTitle="Choose Log Level"
+	        android:entries="@array/log_level_entries"
+	        android:entryValues="@array/log_level_values"
+	        android:defaultValue="string/default" />
+    </PreferenceCategory>   
+    <PreferenceCategory 
+        android:title="Map"
+        android:key="pref_key_map_settings">
+	    <CheckBoxPreference
+	        android:key="pref_map_lock"
+	        android:title="Lock map 'North' on contact move"
+	        android:defaultValue="false" android:selectable="true"/>	   
+    </PreferenceCategory>   
 </PreferenceScreen>

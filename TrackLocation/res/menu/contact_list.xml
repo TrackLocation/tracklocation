@@ -1,6 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.dagrest.tracklocation.ContactList" >
+    tools:context="com.doat.tracklocation.ContactList" >
 
     <item
         android:id="@+id/action_settings"

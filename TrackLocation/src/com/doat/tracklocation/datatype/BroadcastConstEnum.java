@@ -1,0 +1,34 @@
+package com.doat.tracklocation.datatype;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public enum BroadcastConstEnum {
+	data("data");
+	
+	private final String name;       
+	private static Map<String, BroadcastConstEnum> valueMap;
+	
+    private BroadcastConstEnum(String s) {
+        name = s;
+    }
+
+    public boolean equalsName(String otherName){
+        return (otherName == null)? false:name.equals(otherName);
+    } 
+
+    public String toString(){
+       return name;
+    }
+    
+    public static BroadcastConstEnum getValue(String value){
+    	if (valueMap == null)
+        {
+            valueMap = new HashMap<String, BroadcastConstEnum>();
+            for(BroadcastConstEnum provider: values())
+                valueMap.put(provider.toString(), provider);
+        }
+    	
+        return valueMap.get(value);
+    }
+}
