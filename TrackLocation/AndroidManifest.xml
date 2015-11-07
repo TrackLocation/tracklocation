@@ -67,9 +67,10 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/main_icon_96"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme" 
+        android:icon="@drawable/main_icon_96">
+        
         <receiver
             android:name="com.doat.tracklocation.service.GcmBroadcastReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >
@@ -117,27 +118,28 @@
             android:configChanges="keyboardHidden|orientation|screenSize">            
         </activity>
         <activity
-            android:name=".TrackingList"
+            android:name=".TrackingListActivity"
             android:label="@string/title_activity_tracking_list"
             android:screenOrientation="unspecified"
             android:configChanges="keyboardHidden|orientation|screenSize" >
         </activity>
         <activity
-            android:name=".LocationSharingList"
+            android:name=".LocationSharingListActivity"
             android:label="@string/title_activity_location_sharing_list"
             android:screenOrientation="unspecified" 
             android:configChanges="keyboardHidden|orientation|screenSize">
         </activity>
         <activity
-            android:name=".Map"
+            android:name=".MapActivity"
             android:label="@string/title_activity_googlemap"
             android:screenOrientation="unspecified" 
             android:configChanges="keyboardHidden|orientation|screenSize">
         </activity>
         <activity
-            android:name=".JoinContactList"
+            android:name=".JoinContactListActivity"
             android:label="@string/title_activity_join_contact_list"
             android:screenOrientation="unspecified"
+            android:windowSoftInputMode="stateHidden"
             android:configChanges="keyboardHidden|orientation|screenSize" >
         </activity>
         <activity

@@ -50,6 +50,9 @@
 	    <item>&quot;error&quot;</item>
 	    <item>&quot;info&quot;</item>
 	    <item>&quot;full&quot;</item>
-	</string-array>	    	
+	</string-array>	   
+	
+	<!-- Main Activity -->
+	<string name="ma_locate">Locate</string>	
 </resources>
 

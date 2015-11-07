@@ -30,12 +30,9 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
-
-    private final static int JOIN_REQUEST = 1;  
-    protected String className;
-    protected String logMessage;
-    protected String methodName;
+public class MainActivity extends BaseActivity {
+    private final static int JOIN_REQUEST = 1;      
+    protected String logMessage;    
     protected Context context;
     protected MainActivityController mainActivityController;
     protected MainModel mainModel;
@@ -150,7 +147,7 @@ public class MainActivity extends Activity {
         		LogManager.LogErrorMsg(className, "onClick -> JOIN button", 
             		"Unable to join contacts - application is not registred yet.");
         	} else {
-        		Intent joinContactListIntent = new Intent(this, JoinContactList.class);
+        		Intent joinContactListIntent = new Intent(this, JoinContactListActivity.class);
         		startActivityForResult(joinContactListIntent, JOIN_REQUEST);
         	}
 
@@ -195,7 +192,7 @@ public class MainActivity extends Activity {
     			"ContactList activity started.");
     		    		
     		if(mainModel.getContactDeviceDataList() != null){
-	    		Intent intentContactList = new Intent(this, LocationSharingList.class);
+	    		Intent intentContactList = new Intent(this, LocationSharingListActivity.class);
 	    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, mainModel.getContactDeviceDataList());
 	    		startActivity(intentContactList);
     		} else {
@@ -212,7 +209,7 @@ public class MainActivity extends Activity {
     			"TrackingList activity started.");
     		    		
     		if(mainModel.getContactDeviceDataList() != null){
-	    		Intent intentContactList = new Intent(this, TrackingList.class);
+	    		Intent intentContactList = new Intent(this, TrackingListActivity.class);
 	    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, mainModel.getContactDeviceDataList());
 	    		startActivity(intentContactList);
     		} else {
@@ -339,12 +336,4 @@ public class MainActivity extends Activity {
 		public void doOnChooseItem(int which) {
 		}
 	};
-	
-	@Override
-    public void onBackPressed() {
-    	// TODO Auto-generated method stub
-    	super.onBackPressed();
-    	finish();
-    }
-	
 }

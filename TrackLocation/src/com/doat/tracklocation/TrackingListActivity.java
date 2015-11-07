@@ -9,29 +9,25 @@ import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
-
-import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-public class LocationSharingList extends Activity {
-
+public class TrackingListActivity extends BaseActivity {
 	private ListView lv;
 	private ArrayAdapter<ContactData> adapter;
-	private List<Boolean> isSelected;	
-	private String className = this.getClass().getName();
-	private String methodName;
+	private List<Boolean> isSelected;
+	private List<String> selectedContcatList;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.location_sharing_list);
+		setContentView(R.layout.tracking_contact_list);
+
 		methodName = "onCreate";
 		
 		LogManager.LogActivityCreate(className, methodName);
@@ -44,7 +40,7 @@ public class LocationSharingList extends Activity {
 		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
 		List<String> emailList = new ArrayList<String>();
 		List<String> macAddressList = new ArrayList<String>();
-		List<ContactData> values = Controller.fillContactListWithContactDeviceData(LocationSharingList.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+		List<ContactData> values = Controller.fillContactListWithContactDeviceData(TrackingListActivity.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
 		
 	    if(values != null){
 	    	// TODO: move to init isSelected list:
@@ -53,9 +49,10 @@ public class LocationSharingList extends Activity {
 	    		isSelected.add(false);
 	    	}
 	    	
-			lv = (ListView) findViewById(R.id.location_sharing_list_view);
+			lv = (ListView) findViewById(R.id.tracking_contact_list_view);
 			
-	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, R.id.contact, values, checkBoxesShareLocation, emailList, macAddressList);
+	        adapter = new ContactListArrayAdapter(this, R.layout.tracking_contact_list_item, 
+	        	R.id.contact, values, checkBoxesShareLocation, emailList, macAddressList);
 	    	lv.setAdapter(adapter);
 	    	
 	    } else {
@@ -84,18 +81,44 @@ public class LocationSharingList extends Activity {
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, final View view,
 	            int position, long id) {
-	        	parent.getItemAtPosition(position);
+	        	final ContactData selectedValue = (ContactData) parent.getItemAtPosition(position);
+	        	
+	        	if(selectedContcatList == null){
+	        		selectedContcatList = new ArrayList<String>();
+	        	}
+	        	boolean isSelectedVal = isSelected.get(position);
+	        	isSelected.set(position, !isSelectedVal);
+	        	if(isSelected.get(position) == false){
+	        		lv.getChildAt(position).setBackgroundColor(android.R.drawable.btn_default);
+	        		if(selectedContcatList.contains(selectedValue.getEmail())){
+	        			selectedContcatList.remove(selectedValue.getEmail());
+	        		}
+	        	} else {
+	        		lv.getChildAt(position).setBackgroundColor(getResources().getColor(R.color.LightGrey));
+	        		if(!selectedContcatList.contains(selectedValue.getEmail())){
+	        			selectedContcatList.add(selectedValue.getEmail());
+	        		}
+	        	}
+	        	
 	        }
 	    });
 	    
+//	    ToggleButton toggle = (ToggleButton) findViewById(R.id.tracking_toggle_button);
+//	    toggle.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+//
+//	    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//	                    Toast.makeText(getApplicationContext(), buttonView.isChecked()+"", Toast.LENGTH_SHORT).show();
+//	                }
+//	            });
+	
 	}
 
-    @Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.contact_list, menu);
-		return true;
-	}
+//    @Override
+//	public boolean onCreateOptionsMenu(Menu menu) {
+//		// Inflate the menu; this adds items to the action bar if it is present.
+//		getMenuInflater().inflate(R.menu.contact_list, menu);
+//		return true;
+//	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
@@ -174,12 +197,11 @@ public class LocationSharingList extends Activity {
 //	  
 //	  }
 	 
-	 @Override
-    protected void onDestroy() {
-    	super.onDestroy();
-    	methodName = "onDestroy";
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		methodName = "onDestroy";
 		LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
-    }
-	 
+	}
 }

@@ -2,7 +2,7 @@
 <ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="?android:colorControlHighlight">
     <item>
         <shape android:shape="oval">
-            <solid android:color="@color/WhiteSmoke" />
+            <solid android:color="#64B5F6" />
         </shape>
     </item>
 </ripple>

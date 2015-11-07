@@ -14,7 +14,6 @@ import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -37,7 +36,7 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-public class ContactEditActivity extends Activity {
+public class ContactEditActivity extends BaseActivity {
 	private int REQUEST_CAMERA = 0;
 	private int SELECT_FILE = 1;
 	private EditText text_nick;
@@ -49,9 +48,7 @@ public class ContactEditActivity extends Activity {
 	private ImageView iv_photo;
 	private Spinner spn_device_type;
 	protected String selectedDeviceTypeValue;
-	private int contactPosition;
-    private String className;
-    private String methodName;
+	private int contactPosition;    
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -224,15 +221,4 @@ public class ContactEditActivity extends Activity {
 			}
 		}		
 	}
-
-	private void createBitmapFromURI(Uri selectedImage) {
-		String[] filePathColumn = { MediaStore.Images.Media.DATA };
-		Cursor cursor = getContentResolver().query(selectedImage,filePathColumn, null, null, null);
-		cursor.moveToFirst();
-		int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-		String picturePath = cursor.getString(columnIndex);
-		cursor.close();
-		iv_photo.setImageBitmap(BitmapFactory.decodeFile(picturePath));
-	}
-	
 }

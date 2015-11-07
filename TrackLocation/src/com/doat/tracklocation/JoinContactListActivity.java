@@ -33,7 +33,7 @@ import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.Toast;
 
-public class JoinContactList extends Activity {
+public class JoinContactListActivity extends Activity {
 	
 	private SparseArray<ContactData> contactDetailsGroups = new SparseArray<ContactData>();
 	private EditText inputSearch;
@@ -48,12 +48,12 @@ public class JoinContactList extends Activity {
 	
 	public void launchBarDialog(View view) {
 		methodName = "launchBarDialog";
-		barProgressDialog = new ProgressDialog(JoinContactList.this);
+		barProgressDialog = new ProgressDialog(JoinContactListActivity.this);
 		barProgressDialog.setTitle("Fetching contacts");
 		barProgressDialog.setMessage("Please wait ...");
 		barProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		barProgressDialog.setProgress(0);
-		barProgressDialog.setMax(Controller.getContactsNumber(JoinContactList.this));
+		barProgressDialog.setMax(Controller.getContactsNumber(JoinContactListActivity.this));
 		barProgressDialog.setCancelable(false);
 		//barProgressDialog.setIndeterminate(true);
 		barProgressDialog.show();
@@ -63,10 +63,10 @@ public class JoinContactList extends Activity {
 		    public void run() {
 		    	String methodName = "launchBarDialog->Thread->Runnable->run";
 		        try {
-		        	Controller.fetchContacts(JoinContactList.this, contactDetailsGroups, barProgressDialog);
+		        	Controller.fetchContacts(JoinContactListActivity.this, contactDetailsGroups, barProgressDialog);
 		        	barProgressDialog.dismiss();
 		
-		        	Controller.broadcastMessage(JoinContactList.this, 
+		        	Controller.broadcastMessage(JoinContactListActivity.this, 
 		        			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
 		        			"fetchContacts",
 		        			null,
@@ -103,7 +103,7 @@ public class JoinContactList extends Activity {
             @Override
             public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
                 // When user changed the Text
-            	JoinContactList.this.adapter.filterData(cs.toString());
+            	JoinContactListActivity.this.adapter.filterData(cs.toString());
 
             }
              
@@ -197,7 +197,7 @@ public class JoinContactList extends Activity {
 
 		    		} else if(bundle.containsKey(broadcastKeyFetchContactsCompleted)){
 		    			// update expandable list of the device contacts
-		    	        adapter = new ContactDeatilsExpandableListAdapter(JoinContactList.this, contactDetailsGroups);
+		    	        adapter = new ContactDeatilsExpandableListAdapter(JoinContactListActivity.this, contactDetailsGroups);
 		    		    listView.setAdapter(adapter);
 		    		} else if(bundle.containsKey(BroadcastKeyEnum.resend_join_request.toString())){
 		    			sendJoinRequest(context, contactName, phoneNumber);
@@ -239,7 +239,7 @@ public class JoinContactList extends Activity {
 			smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
 			// Notify by toast that join request sent by SMS
 			String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
-			Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_LONG).show();
+			Toast.makeText(JoinContactListActivity.this, msg, Toast.LENGTH_LONG).show();
 		}
 		finish();
     }
@@ -248,7 +248,7 @@ public class JoinContactList extends Activity {
 		@Override
 		public void doOnPositiveButton() {
 			toSendAddJoinRequest = true;
-        	Controller.broadcastMessage(JoinContactList.this, 
+        	Controller.broadcastMessage(JoinContactListActivity.this, 
         			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
         			"fetchContacts",
         			null, 

@@ -93,10 +93,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
 
-public class Map extends Activity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, OnTouchListener{
-	private String className;
-	private String logMessage;
-	private String methodName;
+public class MapActivity extends BaseActivity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, OnTouchListener{
+	private String logMessage;	
 	// Max time of waiting dialog displaying - 30 seconds
 	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
 	private final static float DEFAULT_CAMERA_UPDATE = 15;
@@ -157,7 +155,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	}
 	
 	public void launchWaitingDialog() {
-        waitingDialog = new ProgressDialog(Map.this);
+        waitingDialog = new ProgressDialog(MapActivity.this);
         waitingDialog.setTitle("Tracking location");
         waitingDialog.setMessage("Please wait ...");
         waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
@@ -440,7 +438,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 	        @Override
 	        public void onClick(View v) {	
 	        	if (selectedMarkerDetails != null){
-	        		showRingConfirmationDialog(Map.this, "Are you sure?", selectedMarkerDetails.getContactDetails());
+	        		showRingConfirmationDialog(MapActivity.this, "Are you sure?", selectedMarkerDetails.getContactDetails());
 	        	}
 	        }
 	    });
@@ -497,11 +495,11 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 					location.getLongitude());
 		} 
 		else {
-			Toast.makeText(Map.this, "getString(R.string.err_load_location)",
+			Toast.makeText(MapActivity.this, "getString(R.string.err_load_location)",
 					Toast.LENGTH_LONG).show();
 		}
 
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, Map.this); 
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, MapActivity.this); 
 	}
 	
 	private Location getLastKnownLocation() {
@@ -692,11 +690,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 		    				mapMarkerDetailsList.get(updatingAccount).getMarker().remove();
 		    				mapMarkerDetailsList.remove(updatingAccount);
 		    			}
-		    			float bearing = 0;
-		    			if (prevLocationDetails !=  null  && locationDetails.getSpeed() > 0){
-		    				bearing = MapUtils.getRotationAngle(new LatLng(prevLocationDetails.getLat(), prevLocationDetails.getLng()), new LatLng(locationDetails.getLat(), locationDetails.getLng()));
-		    			}
-		    			locationDetails.setBearing(bearing);
+		    			
 		    			MapMarkerDetails  mapMarkerDetails = createMapMarker(contactDetails, locationDetails);
 		    			if (mapMarkerDetails != null){
 		    				mapMarkerDetailsList.put(updatingAccount, mapMarkerDetails);
@@ -733,29 +727,34 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 			else if(mapMarkerDetailsList.size() == 1) {				
 				String account = updatingAccount.isEmpty() ? selectedAccountList.keySet().toArray()[0].toString() : updatingAccount;
 				MapMarkerDetails mapMarkerDetails =  mapMarkerDetailsList.get(account);
-				if(mapMarkerDetails.getLocationDetails() != null) {
+				if(mapMarkerDetails != null && mapMarkerDetails.getLocationDetails() != null) {
 					if (!isShowAllMarkersEnabled && mapMarkerDetails.getLocationDetails().getSpeed() > 0 )
 						isShowAllMarkersEnabled = true;
 					if (isShowAllMarkersEnabled ){
 			    		double lat = mapMarkerDetails.getLocationDetails().getLat();
 			    		double lng = mapMarkerDetails.getLocationDetails().getLng();
 			    		LatLng latLngChangingLast = new LatLng(lat, lng);
-			    		LatLng latLngChangingPrev = null; 
-			    		double distance = 0;
-			    		float prevBearing = 0;
-						if (prevLocationDetails != null){
-							latLngChangingPrev = new LatLng(lat, lng);
-							distance = MapUtils.getDistanceBetweenPoints(latLngChangingPrev, latLngChangingLast);
-							prevBearing = prevLocationDetails.getBearing();
+			
+			    		Location prevLocation = null;			    		
+						if (prevLocationDetails != null){					
+							prevLocation = new Location("prevLocation");							
+							prevLocation.setLatitude(prevLocationDetails.getLat());
+							prevLocation.setLongitude(prevLocationDetails.getLng());
+							
 						}
 						float bearing = 0;
 						float zoomCalc = zoom;
 						float tilt = 0;
 						if (mapMarkerDetails.getLocationDetails().getSpeed() > 0 && !isMapInMovingState){
-							if (!bLockMapNothOnly){								
-								bearing = distance > 15 ? mapMarkerDetails.getLocationDetails().getBearing() : prevBearing;
+							if (!bLockMapNothOnly){			
+								Location currLocation = new Location("prevLocation");							
+								currLocation.setLatitude(lat);
+								currLocation.setLongitude(lng);
+								if (prevLocation != null){
+									bearing = prevLocation.bearingTo(currLocation);
+								}																				
 							}
-							zoomCalc = 17;
+							zoomCalc = 18;
 							tilt = 45;
 						}
 						   																								
@@ -887,7 +886,7 @@ public class Map extends Activity implements LocationListener, GoogleMap.OnMapCl
 			return;
 		}
 		
-		Toast.makeText(Map.this, broadcastData.getMessage(), Toast.LENGTH_LONG).show();
+		Toast.makeText(MapActivity.this, broadcastData.getMessage(), Toast.LENGTH_LONG).show();
 	}
 
 	@Override

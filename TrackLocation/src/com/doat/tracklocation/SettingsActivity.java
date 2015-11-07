@@ -7,6 +7,7 @@ import com.doat.tracklocation.utils.CommonConst;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.util.Log;
+import android.view.WindowManager;
 
 public class SettingsActivity extends PreferenceActivity{
 	public static final String KEY_PREF_SYNC_CONN = "pref_syncConnectionType";
@@ -18,6 +19,7 @@ public class SettingsActivity extends PreferenceActivity{
 	@Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);       
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         methodName = "onCreate";
         
 		LogManager.LogActivityCreate(className, methodName);
