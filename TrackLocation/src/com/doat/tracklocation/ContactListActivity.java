@@ -140,6 +140,9 @@ public class ContactListActivity extends BaseActivity {
 						int lastVisiblePosition = lv.getLastVisiblePosition();
 						for (int i = firstVisiblePosition; i < lastVisiblePosition; i++) {
 							int isSelectedIndex = i + firstVisiblePosition;
+							if(isSelectedIndex >= isSelected.size()){
+								continue;
+							}
 				        	if(isSelected.get(isSelectedIndex) == false){
 				        		if(lv.getChildAt(i) != null){
 					        		lv.getChildAt(i).setBackgroundColor(android.R.drawable.btn_default);
