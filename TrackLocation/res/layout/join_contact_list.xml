@@ -10,7 +10,7 @@
     android:orientation="vertical" >
 
     <!-- Editext for Search -->
-     <EditText
+    <!--  <EditText
          android:id="@+id/find_join_contact"
          android:layout_width="fill_parent"
          android:layout_height="wrap_content"
@@ -19,7 +19,7 @@
          android:textSize="30sp" >
 
          <requestFocus />
-     </EditText>
+     </EditText> -->
 
      <ExpandableListView
          android:id="@+id/listView"

@@ -79,6 +79,8 @@ public class CommonConst {
  	public static final String	PREFERENCES_VERSION_NUMBER = "ApplicationNumber";
  	public static final String	PREFERENCES_VERSION_NAME = "ApplicationName";
  	
+ 	public static final String THEME_CHANGED = "THEME_CHANGED";
+ 	
 // 	// BROADCAST ACTIONS
 // 	// deprecated: "com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED" use:
 // 	public static final String 	BROADCAST_LOCATION_UPDATED 		= "com.dagrest.tracklocation.service.GcmIntentService.LOCATION_UPDATED";

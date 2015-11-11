@@ -735,12 +735,13 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			    		double lng = mapMarkerDetails.getLocationDetails().getLng();
 			    		LatLng latLngChangingLast = new LatLng(lat, lng);
 			
-			    		Location prevLocation = null;			    		
+			    		Location prevLocation = null;
+			    		float prevBearing = 0;
 						if (prevLocationDetails != null){					
 							prevLocation = new Location("prevLocation");							
 							prevLocation.setLatitude(prevLocationDetails.getLat());
 							prevLocation.setLongitude(prevLocationDetails.getLng());
-							
+							prevBearing = prevLocationDetails.getBearing();							
 						}
 						float bearing = 0;
 						float zoomCalc = zoom;
@@ -752,10 +753,14 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 								currLocation.setLongitude(lng);
 								if (prevLocation != null){
 									bearing = prevLocation.bearingTo(currLocation);
-								}																				
+								}
+								mapMarkerDetails.getLocationDetails().setBearing(bearing);
+								if (getDifference(prevBearing, bearing) < 20){
+									bearing = prevBearing;
+								}
 							}
-							zoomCalc = 18;
-							tilt = 45;
+							zoomCalc = 19;
+							tilt = 40;
 						}
 						   																								
 						CameraPosition currentPlace = new CameraPosition.Builder()
@@ -773,6 +778,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				}
 			}
 		}
+	}
+	
+	private float getDifference(float a1, float a2) {
+	    return Math.min((a1-a2)<0?a1-a2+360:a1-a2, (a2-a1)<0?a2-a1+360:a2-a1);
 	}
 	
 	private MapMarkerDetails createMapMarker(final MessageDataContactDetails contactDetails, final MessageDataLocation locationDetails) {

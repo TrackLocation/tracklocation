@@ -41,18 +41,19 @@
 	
 	<string name="about_dialog_text">\n\"Track Location\" application\n\nVersion %s\n\nWritten by:\n\t\t\t\tDavid Agrest\n\t\t\t\tOleg Tsentsiper\n\n\nEmail: dagrest@gmail.com\n</string>
 	<string name="about_dialog_ok_btn">OK</string>
-	<string-array name="log_level_entries">
-	    <item>&quot;Error&quot;</item>
-	    <item>&quot;Info&quot;</item>
-	    <item>&quot;Full&quot;</item>
-	</string-array>	
-	<string-array name="log_level_values">
-	    <item>&quot;error&quot;</item>
-	    <item>&quot;info&quot;</item>
-	    <item>&quot;full&quot;</item>
-	</string-array>	   
 	
 	<!-- Main Activity -->
 	<string name="ma_locate">Locate</string>	
+	
+	<!-- Settings -->
+	<string name="title_log_level">Choose Log Level</string>
+		
+	<string name="settings_Map">Map</string>
+	
+	<string name="settings_Themes">Themes</string>
+	<string name="title_Themes">Choose Theame</string>
+	
+	<string name="hint_find_contact">Find contact to join</string>
+		
 </resources>
 
