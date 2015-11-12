@@ -17,6 +17,7 @@ import com.doat.tracklocation.utils.Preferences;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -24,19 +25,18 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.telephony.SmsManager;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.Menu;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 public class JoinContactListActivity extends Activity {
 	
 	private SparseArray<ContactData> contactDetailsGroups = new SparseArray<ContactData>();
-	private EditText inputSearch;
+	//private EditText inputSearch;
 	private ContactDeatilsExpandableListAdapter adapter;
 	private BroadcastReceiver broadcastReceiver;
 	private String className = this.getClass().getName();
@@ -70,8 +70,7 @@ public class JoinContactListActivity extends Activity {
 		        			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
 		        			"fetchContacts",
 		        			null,
-							BroadcastKeyEnum.fetch_contacts_completed.toString(), 
-							"Completed");
+							BroadcastKeyEnum.fetch_contacts_completed.toString(), "Completed");
 		        } catch (Exception e) {
 		    		LogManager.LogException(e, className, methodName);
 		    		Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
@@ -84,7 +83,6 @@ public class JoinContactListActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.join_contact_list);
-		
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
@@ -96,7 +94,7 @@ public class JoinContactListActivity extends Activity {
         
 	    launchBarDialog(listView);
         
-	    inputSearch = (EditText) findViewById(R.id.find_join_contact);
+	    /*inputSearch = (EditText) findViewById(R.id.find_join_contact);
         // Enabling Search Filter
         inputSearch.addTextChangedListener(new TextWatcher() {
              
@@ -118,7 +116,7 @@ public class JoinContactListActivity extends Activity {
             public void afterTextChanged(Editable arg0) {
                 // TODO Auto-generated method stub                          
             }
-        });
+        });*/
 	}
 
 	private void initBroadcastReceiver()
@@ -276,10 +274,43 @@ public class JoinContactListActivity extends Activity {
 		}
 		@Override
 		public void doOnChooseItem(int which) {
-			// TODO Auto-generated method stub
-			
+			// TODO Auto-generated method stub			
 		}
 	};
+	
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		super.onCreateOptionsMenu(menu);
+	    // Inflate the menu; this adds items to the action bar if it is present.
+	    getMenuInflater().inflate(R.menu.search_menu, menu);
+	 
+	    SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+	    SearchView searchView = (SearchView) menu.findItem(R.id.search).getActionView();
+	    if (searchView != null )
+	    {
+	    	searchView.setSearchableInfo( searchManager.getSearchableInfo(getComponentName()) );
+	    	searchView.setIconifiedByDefault(false);
+
+	        SearchView.OnQueryTextListener queryTextListener = new SearchView.OnQueryTextListener()
+	        {
+	            public boolean onQueryTextChange(String newText)
+	            {
+	            	JoinContactListActivity.this.adapter.filterData(newText);
+	                return true;
+	            }
+
+				@Override
+				public boolean onQueryTextSubmit(String query) {
+					// TODO Auto-generated method stub
+					return false;
+				}	           
+	        };
+
+	        searchView.setOnQueryTextListener(queryTextListener);
+	    }
+	 
+	    return true;
+	}
 	
     private void joinRequestDialog(String contactName, String phoneNumber) {
     	String dialogMessage = "\nJoin request has been already sent to " + contactName + 

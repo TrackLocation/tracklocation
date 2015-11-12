@@ -19,15 +19,22 @@ import com.doat.tracklocation.utils.Preferences;
 import com.google.gson.Gson;
 
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 public class MainActivity extends BaseActivity {
@@ -48,7 +55,26 @@ public class MainActivity extends BaseActivity {
 	@SuppressLint("ResourceAsColor")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		/*SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+		int theameId = Integer.parseInt(sharedPref.getString("pref_theame", "0"));
+		switch (theameId) {
+		case 1:
+			theameId = R.style.AppTheme_Material_Light;
+			break;
+		case 2 : 
+			theameId = R.style.AppTheme_Material_Light_Blue;
+			break;
+		case 3 : 
+			theameId = R.style.AppTheme_Material_Dark;
+			break;
+		default:
+			theameId = R.style.AppTheme;
+			break;
+		}
+		
+		getApplication().setTheme(theameId);*/
 		super.onCreate(savedInstanceState);
+		
 		className = this.getClass().getName();
 		methodName = "onCreate";
 		
@@ -60,6 +86,18 @@ public class MainActivity extends BaseActivity {
 		initNotificationBroadcastReceiver();
 		
 		isTrackLocationRunning = true;
+
+		Context context = getApplicationContext();
+		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+		.setSmallIcon(R.drawable.main_icon_96).setContentTitle(getResources().getString(R.string.app_name));      
+
+		Intent intent = new Intent( context, MainActivity.class);
+		PendingIntent pIntent = PendingIntent.getActivity(context, 1 , intent, 0);
+		builder.setContentIntent(pIntent);
+		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+		Notification notif = builder.build();
+		mNotificationManager.notify(1, notif);
     }
 
 	@Override
@@ -165,7 +203,8 @@ public class MainActivity extends BaseActivity {
     	// ========================================
         } else if (view == findViewById(R.id.btnSettings)) {	
     		Intent settingsIntent = new Intent(this, SettingsActivity.class);
-    		startActivity(settingsIntent);
+    		startActivityForResult(settingsIntent, 2);
+    		//startActivity(settingsIntent);
 
     	// ========================================
     	// LOCATE button (CONTACT_LIST)
@@ -315,6 +354,21 @@ public class MainActivity extends BaseActivity {
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
     }
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		if(requestCode==2){
+			// Make sure the request was successful
+	        if (resultCode == RESULT_OK) {	 
+	        	if (data != null && data.getExtras().getBoolean(CommonConst.THEME_CHANGED)){
+	        		Intent i = new Intent(this, MainActivity.class);
+	                i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_NEW_TASK);
+	                startActivity(i);
+	        	}
+	       }
+		}
+	}
     
 	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
 		@Override

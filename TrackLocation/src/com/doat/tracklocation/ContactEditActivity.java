@@ -162,23 +162,7 @@ public class ContactEditActivity extends BaseActivity {
 	};
 	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) { 
-		/*super.onActivityResult(requestCode, resultCode, imageReturnedIntent); 
-		switch(requestCode) {
-		case 0:
-		    if(resultCode == RESULT_OK){  
-		        Uri selectedImage = imageReturnedIntent.getData();
-		        createBitmapFromURI(selectedImage);
-		    }
-		break; 
-		case 1:
-		    if(resultCode == RESULT_OK){  
-		    	Uri selectedImage = imageReturnedIntent.getData();
-	            createBitmapFromURI(selectedImage);
-		    }
-		break;
-		}*/
-		
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) { 		
 		super.onActivityResult(requestCode, resultCode, data);
 		if (resultCode == RESULT_OK) {
 			if (requestCode == REQUEST_CAMERA) {

@@ -6,6 +6,15 @@ public class MessageDataLocation {
 	private double accuracy;
 	private double speed;
 	private String locationProviderType;
+	private float bearing = 0;
+
+	public void setBearing(float bearing) {
+		this.bearing = bearing;
+	}
+	
+	public float getBearing(){
+		return bearing;
+	}
 
 	public MessageDataLocation(){};
 	
