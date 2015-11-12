@@ -118,9 +118,10 @@ public class GcmIntentService extends IntentService {
         // The getMessageType() intent parameter must be the intent you received
         // in your BroadcastReceiver.
         String messageType = gcm.getMessageType(intent);
-
-        // LogManager.LogInfoMsg(className, "onHandleIntent", 
-        //     	"messageType :" + messageType);
+		
+		logMessage = "Received message type: " + messageType;
+		LogManager.LogInfoMsg(className, "onHandleIntent", logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
                 
         if (!extras.isEmpty()) {  
             // ============================================
@@ -355,9 +356,16 @@ public class GcmIntentService extends IntentService {
         			handleCommandStopTracking(extras);
             	} 
         	
-            } // if (GoogleCloudMessaging
-            
-        } // if (extras.isEmpty())...
+            } else { // if (GoogleCloudMessaging
+        		logMessage = "Unknown GCM type - NOTHING DONE.";
+        		LogManager.LogInfoMsg(className, "onHandleIntent", logMessage);
+        		Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+            }
+        } else {// if (extras.isEmpty())...
+    		logMessage = "Bundle extras is EMPTY.";
+    		LogManager.LogInfoMsg(className, "onHandleIntent", logMessage);
+    		Log.w(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+        }
         
         // Release the wake lock provided by the WakefulBroadcastReceiver.
         GcmBroadcastReceiver.completeWakefulIntent(intent);
@@ -387,6 +395,8 @@ public class GcmIntentService extends IntentService {
 		
 		try {
 			Controller.checkPlayServices(clientContext);
+			LogManager.LogFunctionExit(className, methodName);
+			Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 		} catch (CheckPlayServicesException e) {
 			String errorMessage = e.getMessage();
 			if(CommonConst.PLAYSERVICES_ERROR.equals(errorMessage)){
@@ -406,9 +416,6 @@ public class GcmIntentService extends IntentService {
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 			//finish();
-    		
-			LogManager.LogFunctionExit(className, methodName);
-			Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 		}
 	}
 	

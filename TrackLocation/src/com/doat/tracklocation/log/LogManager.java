@@ -8,7 +8,7 @@ import com.doat.tracklocation.utils.CommonConst;
 public class LogManager {
     	public static void LogFunctionCall(String className, String methodName)          
     	{                  
-    		LogHelper.getLog().toLog(MessageType.FUNCTION_CALL, className + "\n{" + methodName + "}\n");          
+    		LogHelper.getLog().toLog(MessageType.FUNCTION_ENTRY, className + "\n{" + methodName + "}\n");          
     	}                    
     	public static void LogFunctionExit(String className, String methodName)          
     	{                  
