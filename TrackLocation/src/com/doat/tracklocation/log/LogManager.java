@@ -29,6 +29,10 @@ public class LogManager {
     	{                  
     		LogHelper.getLog().toLog(MessageType.INFO, className + "\n{" + methodName + "}\n" + infoMessage + "\n");          
     	}                    
+    	public static void LogWarnMsg(String className, String methodName, String warnMessage)          
+    	{                  
+    		LogHelper.getLog().toLog(MessageType.WARN, className + "\n{" + methodName + "}\n" + warnMessage + "\n");          
+    	}                    
     	public static void LogErrorMsg(String className, String methodName, String errorMsg)          
     	{                 
     		LogHelper.getLog().toLog(MessageType.ERROR, className + "\n{" + methodName + "}\n" + errorMsg + "\n");         

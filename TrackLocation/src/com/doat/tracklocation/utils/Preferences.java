@@ -224,6 +224,29 @@ public class Preferences {
 		}
 	}
 
+	public static void clearPreferencesReturnToContactMap(Context context) {
+		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX
+				+ ".Preferences";
+		String methodName = "clearPreferencesReturnToContactMap";
+		Map<String, String> returnToContactMap = getPreferencesReturnToContactMap(context);
+		Gson gson = new Gson();
+
+		if (context != null) {
+			if (returnToContactMap != null) {
+				returnToContactMap.clear();
+				String jsonReturnToContactMap = gson.toJson(returnToContactMap);
+				Preferences.setPreferencesString(context,
+						CommonConst.PREFERENCES_RETURN_TO_CONTACT_MAP,
+						jsonReturnToContactMap);
+			}
+		} else {
+			String logMessage = "Unable to clear PreferencesReturnToContactMap. Context parameter is null.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> "
+					+ logMessage);
+		}
+	}
+
 //	  //CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST // regIDToReturnMessageTo
 //		public static List<String> getPreferencesReturnToRegIDList(Context context){
 //			String returnToRegIdList = Preferences.getPreferencesString(context, 

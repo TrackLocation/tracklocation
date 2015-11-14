@@ -9,7 +9,8 @@
 	    <CheckBoxPreference
 	        android:key="pref_log_enable"
 	        android:title="Enable Log"	        
-	        android:defaultValue="true" android:selectable="true"/>
+	        android:defaultValue="true" 
+	        android:selectable="true"/>
 	    <ListPreference
 	        android:dependency="pref_log_enable"
 	        android:key="pref_log_levels"
@@ -25,7 +26,8 @@
 	    <CheckBoxPreference
 	        android:key="pref_map_lock"
 	        android:title="Lock map 'North' on contact move"	        
-	        android:defaultValue="false" android:selectable="true"/>	   
+	        android:defaultValue="false" 
+	        android:selectable="true"/>	   
     </PreferenceCategory>   
     <!-- <PreferenceCategory 
         android:title="@string/settings_Themes"

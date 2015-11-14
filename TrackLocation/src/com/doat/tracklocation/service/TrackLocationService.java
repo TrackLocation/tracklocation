@@ -234,6 +234,7 @@ public class TrackLocationService extends TrackLocationServiceBasic {
     	Log.i(CommonConst.LOG_TAG, "Stop TrackLocationService");
 	    unregisterReceiver(gcmKeepAliveBroadcastReceiver);
     	stopSelf();
+    	Preferences.clearPreferencesReturnToContactMap(context);
     	logMessage = "Track Location Service has been stopped.";
     	LogManager.LogInfoMsg(className, methodName, logMessage);
     	Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
