@@ -86,10 +86,11 @@ public class MainActivity extends BaseActivity {
 		initNotificationBroadcastReceiver();
 		
 		isTrackLocationRunning = true;
-
+		
 		Context context = getApplicationContext();
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-		.setSmallIcon(R.drawable.main_icon_96).setContentTitle(getResources().getString(R.string.app_name));      
+			.setSmallIcon(R.drawable.main_icon_96)
+			.setContentTitle(getResources().getString(R.string.app_name));      
 
 		Intent intent = new Intent( context, MainActivity.class);
 		PendingIntent pIntent = PendingIntent.getActivity(context, 1 , intent, 0);
@@ -98,6 +99,8 @@ public class MainActivity extends BaseActivity {
 
 		Notification notif = builder.build();
 		mNotificationManager.notify(1, notif);
+
+		
     }
 
 	@Override

@@ -464,11 +464,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	}		
 	
 	@Override
-	protected void onPause() {
-		super.onPause();
-	}
-	
-	@Override
 	protected void onStart() {	
 		super.onStart();
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -616,10 +611,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		    				isPermissionDialogShown = true;
 	    				}
 	    				waitingDialog.dismiss();
-//	    				notificationView.setVisibility(4);
-//	    		    	if(startTrackLocationServerThread != null){
-//	    		    		startTrackLocationServerThread.interrupt();
-//	    		    	}
 	    			}
 
 	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_permitted.toString().equals(value)){
@@ -628,10 +619,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		    				isPermissionDialogShown = true;
 	    				}
 	    				waitingDialog.dismiss();
-//	    				notificationView.setVisibility(4);
-//	    		    	if(startTrackLocationServerThread != null){
-//	    		    		startTrackLocationServerThread.interrupt();
-//	    		    	}
 	    			}
 	    		}
 			}
@@ -737,15 +724,18 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			
 			    		Location prevLocation = null;
 			    		float prevBearing = 0;
+			    		double prevDistance = 0;
 						if (prevLocationDetails != null){					
 							prevLocation = new Location("prevLocation");							
 							prevLocation.setLatitude(prevLocationDetails.getLat());
 							prevLocation.setLongitude(prevLocationDetails.getLng());
-							prevBearing = prevLocationDetails.getBearing();							
+							prevBearing = prevLocationDetails.getBearing();			
+							prevDistance = prevLocationDetails.getDistance();
 						}
 						float bearing = 0;
 						float zoomCalc = zoom;
 						float tilt = 0;
+						double distance = 0;
 						if (mapMarkerDetails.getLocationDetails().getSpeed() > 0 && !isMapInMovingState){
 							if (!bLockMapNothOnly){			
 								Location currLocation = new Location("prevLocation");							
@@ -753,14 +743,17 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 								currLocation.setLongitude(lng);
 								if (prevLocation != null){
 									bearing = prevLocation.bearingTo(currLocation);
+									distance = MapUtils.getDistanceBetweenPoints(new LatLng(prevLocation.getLatitude(), prevLocation.getLongitude()), latLngChangingLast);
 								}
+								
 								mapMarkerDetails.getLocationDetails().setBearing(bearing);
-								if (getDifference(prevBearing, bearing) < 20){
+								mapMarkerDetails.getLocationDetails().setDistance(distance);
+								if (getDifference(prevBearing, bearing) < 25 && distance != 0 && (distance - prevDistance > 40)){
 									bearing = prevBearing;
 								}
 							}
 							zoomCalc = 19;
-							tilt = 40;
+							tilt = 60;
 						}
 						   																								
 						CameraPosition currentPlace = new CameraPosition.Builder()

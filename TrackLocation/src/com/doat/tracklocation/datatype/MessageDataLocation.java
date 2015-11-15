@@ -7,6 +7,7 @@ public class MessageDataLocation {
 	private double speed;
 	private String locationProviderType;
 	private float bearing = 0;
+	private double distance = 0;
 
 	public void setBearing(float bearing) {
 		this.bearing = bearing;
@@ -27,6 +28,7 @@ public class MessageDataLocation {
 		this.speed = speed;
 		this.locationProviderType = locationProviderType;
 	}
+	
 	public double getLat() {
 		return lat;
 	}
@@ -56,5 +58,13 @@ public class MessageDataLocation {
 	}
 	public void setLocationProviderType(String locationProviderType) {
 		this.locationProviderType = locationProviderType;
+	}
+
+	public double getDistance() {
+		return distance;
+	}
+
+	public void setDistance(double distance) {
+		this.distance = distance;
 	}
 }

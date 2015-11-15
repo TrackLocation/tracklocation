@@ -1,16 +1,17 @@
 package com.doat.tracklocation;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
-import android.os.Build;
+import android.content.ComponentName;
+import android.content.Intent;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.Menu;
-import android.view.WindowManager;
 
 public class BaseActivity extends Activity {
 	protected String className;    
     protected String methodName;
+    
+    private boolean hasStarted = false;
+    private boolean mActivityOpened = false;
 	
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
