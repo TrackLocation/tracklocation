@@ -12,17 +12,29 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
+import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Bitmap.Config;
 import android.graphics.PorterDuff.Mode;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Environment;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
 
+import com.doat.tracklocation.R;
 import com.doat.tracklocation.datatype.CommandEnum;
 import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
@@ -287,16 +299,21 @@ public class Utils {
 		return resizedBitmap;
 	}
 	
-	public static Bitmap getRoundedCornerImage(Bitmap bitmap) {
+	public static Bitmap getRoundedCornerImage(Bitmap bitmap, Boolean bDefaultImage) {
+		return getRoundedCornerImage(bitmap, bitmap.getWidth(), bitmap.getHeight(), bDefaultImage);
+	}
+	
+	public static Bitmap getRoundedCornerImage(Bitmap bitmap, int iWeight, int iHeight, Boolean bDefaultImage) {
 		if (bitmap == null){
 			return bitmap;
-		}
-		Bitmap output = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Config.ARGB_8888);
+		}		
+
+		Bitmap output = Bitmap.createBitmap(iWeight, iHeight, Config.ARGB_8888);
 		Canvas canvas = new Canvas(output);
 
-		final int color = 0xff424242;
+		final int color = 0xffe6e6e6;
 		final Paint paint = new Paint();
-		final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+		final Rect rect = new Rect(0, 0, iWeight, iHeight);
 		final RectF rectF = new RectF(rect);
 		final float roundPx = 100;
 
@@ -304,10 +321,55 @@ public class Utils {
 		canvas.drawARGB(0, 0, 0, 0);
 		paint.setColor(color);
 		canvas.drawRoundRect(rectF, roundPx, roundPx, paint);
-
-		paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
-		canvas.drawBitmap(bitmap, rect, rect, paint);
-
+		Rect rect1 = rect;
+		if (bDefaultImage){		
+			ColorFilter f=new LightingColorFilter(0x000000, 0xff999999);
+			paint.setColorFilter(f);
+	
+			paint.setXfermode(new PorterDuffXfermode(Mode.SRC_OVER));
+	
+			//bitmap = getResizedBitmap(bitmap, iHeight - 4, iWeight -4 );
+			//rect1 = new Rect(-4, -4, iWeight, iHeight);
+		}
+		else{
+			paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
+		}
+		canvas.drawBitmap(bitmap, rect1, rect, paint);
+		
 		return output;
 	}
+	
+	public static float convertPixelsToDp(float px, Resources resources){	    
+	    DisplayMetrics metrics = resources.getDisplayMetrics();
+	    float dp = px / (metrics.densityDpi / 160f);
+	    return dp;
+	}
+	
+	public static float convertDpToPixels(float dp, Resources resources){		
+		return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.getDisplayMetrics());
+	}
+
+    public static Drawable covertBitmapToDrawable(Context context, Bitmap bitmap) {
+        Drawable d = new BitmapDrawable(context.getResources(), bitmap);
+        return d;
+    }
+
+    public static Bitmap convertDrawableToBitmap(Drawable drawable) {
+        if (drawable instanceof BitmapDrawable) {
+            return ((BitmapDrawable) drawable).getBitmap();
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), 
+        drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
+    }
+    
+    public static Bitmap getDefaultContactBitmap(Resources resources){
+    	Bitmap bmp = BitmapFactory.decodeResource(resources, R.drawable.ic_person_black_24dp);
+    	return getRoundedCornerImage(bmp, true);    	
+    }
 }

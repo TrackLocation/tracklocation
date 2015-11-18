@@ -748,12 +748,15 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 								
 								mapMarkerDetails.getLocationDetails().setBearing(bearing);
 								mapMarkerDetails.getLocationDetails().setDistance(distance);
-								if (getDifference(prevBearing, bearing) < 25 && distance != 0 && (distance - prevDistance > 40)){
+								if (getDifference(prevBearing, bearing) < 25 && distance != 0 && (distance - prevDistance > 50)){
 									bearing = prevBearing;
+									mapMarkerDetails.getLocationDetails().setBearing(bearing);
+									mapMarkerDetails.getLocationDetails().setDistance(distance);
 								}
+								zoomCalc = DEFAULT_CAMERA_UPDATE;
+								tilt = 80;
 							}
-							zoomCalc = 19;
-							tilt = 60;
+							
 						}
 						   																								
 						CameraPosition currentPlace = new CameraPosition.Builder()
@@ -797,7 +800,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		ContactDeviceData contactDeviceData = selectedContactDeviceDataList.getContactDeviceDataByContactData(contactDetails.getAccount());
 		
-		Bitmap bmpContact = contactDeviceData.getContactData().getContactPhoto() == null ? BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher) : contactDeviceData.getContactData().getContactPhoto();
+		Bitmap bmpContact = contactDeviceData.getContactData().getContactPhoto() == null ? Utils.getDefaultContactBitmap(getResources()) : contactDeviceData.getContactData().getContactPhoto();
 		
 		Marker marker = map.addMarker(new MarkerOptions()
 			.icon(BitmapDescriptorFactory.fromBitmap(drawMarker(bmpContact)))
@@ -853,7 +856,11 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     @Override
     protected void onDestroy() {
     	super.onDestroy();
-    	methodName = "onDestroy";
+    }
+    
+    @Override
+    protected void onStop() {
+    	methodName = "onStop";
     	
 		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -875,7 +882,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	isPermissionDialogShown = false;
     	
 		LogManager.LogActivityDestroy(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_Stop] {" + className + "} -> " + methodName);
+
+    	super.onStop();
     }
 
 	private void displayNotification(Bundle bundle){
@@ -997,19 +1006,17 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		return touchEventAnalyzing(event);
 	}
 	
-	private Bitmap drawMarker(Bitmap bitmap) {		
-		bitmap = Utils.getResizedBitmap(Utils.getRoundedCornerImage(bitmap), 100, 100);
-		Bitmap bmp = Bitmap.createBitmap(bitmap.getWidth() + 20, bitmap.getHeight() + 40, Config.ARGB_8888);
+	private Bitmap drawMarker(Bitmap bitmap) {
+		int iSize = (int)Utils.convertDpToPixels(45, getResources());
+		
+		bitmap = Utils.getResizedBitmap(Utils.getRoundedCornerImage(bitmap, false), iSize, iSize);
+		Bitmap bmp = Bitmap.createBitmap(bitmap.getWidth() + (int)(0.2 * iSize), bitmap.getHeight() + (int)(0.4  * iSize), Config.ARGB_8888);
 		Canvas canvas = new Canvas(bmp);
-
-		Paint color = new Paint();
-		color.setTextSize(35);
-		color.setColor(Color.BLACK);
 
 		Bitmap bgBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.wpfrk);
 		// modify canvas
-		canvas.drawBitmap(bgBitmap, null, new Rect(0, 0, bitmap.getWidth() + 20, bitmap.getHeight() + 40), color);
-		canvas.drawBitmap(bitmap, 10, 10, color);
+		canvas.drawBitmap(bgBitmap, null, new Rect(0, 0, bitmap.getWidth() + (int)(0.2 * iSize), bitmap.getHeight() + (int)(0.4 * iSize)), new Paint());
+		canvas.drawBitmap(bitmap, (int)(0.1 * iSize), (int)(0.1 * iSize), new Paint());
 		return bmp;
 	}
 	

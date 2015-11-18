@@ -7,7 +7,7 @@
     <uses-sdk
         android:maxSdkVersion="21"
         android:minSdkVersion="16"
-        android:targetSdkVersion="21" />
+        android:targetSdkVersion="16" />
     <!--
          permission so the Android application can send the registration ID to 
     	the 3rd party server

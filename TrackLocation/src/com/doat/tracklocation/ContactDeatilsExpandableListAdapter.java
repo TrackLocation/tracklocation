@@ -3,6 +3,7 @@ package com.doat.tracklocation;
 import java.util.Locale;
 
 import com.doat.tracklocation.R;
+import com.doat.tracklocation.R.color;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.ContactData;
@@ -13,6 +14,9 @@ import com.doat.tracklocation.utils.ViewHolder;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.PorterDuff.Mode;
+import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.SparseArray;
@@ -128,13 +132,20 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 		}
 		ContactData group = (ContactData) getGroup(groupPosition);
 		((CheckedTextView) convertView).setText(group.getNick());
-		//Add person image into the Join List 
+		//Add person image into the Join List
+		
+		Drawable contactPhoto = null;
+		
 		Bitmap bmp = group.getContactPhoto();
 		if (bmp == null){
-			bmp = BitmapFactory.decodeResource(convertView.getResources(), R.drawable.ic_launcher);
+			bmp = Utils.getDefaultContactBitmap(convertView.getResources());
 		}
-		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), Utils.getRoundedCornerImage(bmp));
-		contactPhoto.setBounds( 0, 0, 120, 120 );
+		else{
+			bmp = Utils.getRoundedCornerImage(bmp, false);
+			//contactPhoto = new BitmapDrawable(convertView.getResources(), bmp);			
+		}
+		contactPhoto = new BitmapDrawable(convertView.getResources(), bmp);
+		contactPhoto.setBounds( 0, 0, 100, 100 );
 		((CheckedTextView) convertView).setCompoundDrawables(null,null,contactPhoto, null);
 		
 		((CheckedTextView) convertView).setChecked(isExpanded);
@@ -163,8 +174,7 @@ public class ContactDeatilsExpandableListAdapter extends BaseExpandableListAdapt
 			for (int i = 0; i < contactDetailsGroupsOriginal.size(); i++) {
 
 				if (contactDetailsGroupsOriginal.get(i).getNick().toLowerCase().contains(contcatNameLowerCase)) {
-					contactDetailsGroupsNew.append(j,
-							contactDetailsGroupsOriginal.get(i));
+					contactDetailsGroupsNew.append(j, contactDetailsGroupsOriginal.get(i));
 					j++;
 				}
 			}

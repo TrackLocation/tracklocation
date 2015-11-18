@@ -143,10 +143,13 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 		viewHolder.textView.setText(contactData.getNick());
 		
 		Bitmap bmp = contactData.getContactPhoto();
-		if (bmp == null){
-			bmp = BitmapFactory.decodeResource(convertView.getResources(), R.drawable.ic_launcher);
+		if (bmp == null){			
+			bmp = Utils.getDefaultContactBitmap(convertView.getResources());
 		}
-		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), Utils.getRoundedCornerImage(bmp));
+		else{
+			bmp = Utils.getRoundedCornerImage(bmp, false);
+		}
+		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), bmp);
 		contactPhoto.setBounds( 0, 0, 120, 120 );
 		viewHolder.imageView.setImageDrawable(contactPhoto);
 

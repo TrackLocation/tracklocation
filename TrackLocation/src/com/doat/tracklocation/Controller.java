@@ -595,7 +595,7 @@ public class Controller {
 	    Uri contactPhotoUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
 	    InputStream photoDataStream = ContactsContract.Contacts.openContactPhotoInputStream(contentResolver,contactPhotoUri); // <-- always null
 	    Bitmap photo = BitmapFactory.decodeStream(photoDataStream);
-	    return  isRounded ? Utils.getRoundedCornerImage(photo) : photo;
+	    return  isRounded ? Utils.getRoundedCornerImage(photo, false) : photo;
 	}
 	
 	public static SparseArray<ContactData> fetchContacts(Context context, SparseArray<ContactData> contactDetailsGroups,

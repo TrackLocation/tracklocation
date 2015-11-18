@@ -63,8 +63,8 @@ public class TrackLocationApplication extends Application {
     	        public void run() {    	        	
     	        	NotificationManager notifManager= (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     	        	notifManager.cancelAll();
-    	        	killApp();
-    	        	//Process.killProcess(Process.myPid());
+    	        	//killApp();  
+    	        	System.runFinalization();
     	        	System.exit(0);
     	        }
     	    };
