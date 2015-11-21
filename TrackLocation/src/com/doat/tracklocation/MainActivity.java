@@ -55,24 +55,6 @@ public class MainActivity extends BaseActivity {
 	@SuppressLint("ResourceAsColor")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		/*SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-		int theameId = Integer.parseInt(sharedPref.getString("pref_theame", "0"));
-		switch (theameId) {
-		case 1:
-			theameId = R.style.AppTheme_Material_Light;
-			break;
-		case 2 : 
-			theameId = R.style.AppTheme_Material_Light_Blue;
-			break;
-		case 3 : 
-			theameId = R.style.AppTheme_Material_Dark;
-			break;
-		default:
-			theameId = R.style.AppTheme;
-			break;
-		}
-		
-		getApplication().setTheme(theameId);*/
 		super.onCreate(savedInstanceState);
 		
 		className = this.getClass().getName();
@@ -99,8 +81,6 @@ public class MainActivity extends BaseActivity {
 
 		Notification notif = builder.build();
 		mNotificationManager.notify(1, notif);
-
-		
     }
 
 	@Override
@@ -188,7 +168,8 @@ public class MainActivity extends BaseActivity {
         		LogManager.LogErrorMsg(className, "onClick -> JOIN button", 
             		"Unable to join contacts - application is not registred yet.");
         	} else {
-        		Intent joinContactListIntent = new Intent(this, JoinContactListActivity.class);
+        		Intent joinContactListIntent = new Intent(this, JoinContactsExpandableList.class);
+        		//Intent joinContactListIntent = new Intent(this, JoinContactListActivity.class);
         		startActivityForResult(joinContactListIntent, JOIN_REQUEST);
         	}
 

@@ -311,7 +311,7 @@ public class Utils {
 		Bitmap output = Bitmap.createBitmap(iWeight, iHeight, Config.ARGB_8888);
 		Canvas canvas = new Canvas(output);
 
-		final int color = 0xffe6e6e6;
+		final int color = 0xffcfcfcf;
 		final Paint paint = new Paint();
 		final Rect rect = new Rect(0, 0, iWeight, iHeight);
 		final RectF rectF = new RectF(rect);
@@ -327,9 +327,6 @@ public class Utils {
 			paint.setColorFilter(f);
 	
 			paint.setXfermode(new PorterDuffXfermode(Mode.SRC_OVER));
-	
-			//bitmap = getResizedBitmap(bitmap, iHeight - 4, iWeight -4 );
-			//rect1 = new Rect(-4, -4, iWeight, iHeight);
 		}
 		else{
 			paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));

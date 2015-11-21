@@ -17,11 +17,12 @@ public class BaseActivity extends Activity {
 	}
 	
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {		
-		super.onCreate(savedInstanceState);
+	protected void onCreate(Bundle savedInstanceState) {
 		ActionBar actionBar = getActionBar();
 	    actionBar.setHomeButtonEnabled(false);	    
 	    actionBar.setDisplayShowHomeEnabled(false);
 	    actionBar.setDisplayShowTitleEnabled(true);
+		super.onCreate(savedInstanceState);
+		
 	}
 }

@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Timer;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -616,7 +617,8 @@ public class Controller {
         // String DATA = ContactsContract.CommonDataKinds.Email.DATA;
         ContentResolver contentResolver = context.getContentResolver();
         long startTime = System.currentTimeMillis();
-        Cursor cursor = contentResolver.query(CONTENT_URI, new String[] {_ID, DISPLAY_NAME, HAS_PHONE_NUMBER },null, null, DISPLAY_NAME + " COLLATE LOCALIZED ASC"); 
+        String selection = HAS_PHONE_NUMBER + " > 0 ";
+        Cursor cursor = contentResolver.query(CONTENT_URI, new String[] {_ID, DISPLAY_NAME},selection, null, DISPLAY_NAME + " COLLATE LOCALIZED ASC"); 
         long endTime = System.currentTimeMillis() - startTime;
 //        System.out.println("Retrieve all contacts query: " + endTime);
         
@@ -631,22 +633,78 @@ public class Controller {
                 Long contact_id = cursor.getLong(cursor.getColumnIndex( _ID ));
                 String contactName = cursor.getString(cursor.getColumnIndex( DISPLAY_NAME ));
                 if( contactName != null && !contactName.isEmpty()) {
-	                int hasPhoneNumber = Integer.parseInt(cursor.getString(cursor.getColumnIndex( HAS_PHONE_NUMBER )));
-	                if (hasPhoneNumber > 0) {
-	                	ContactData contactDetails = new ContactData();
-	                	contactDetails.setNick(contactName);
-	                	contactDetails.setContactPhoto(getContactPhoto(contentResolver, contact_id, false));
-	                    // Query and loop for every phone number of the contact
-	                    Cursor phoneCursor = contentResolver.query(PhoneCONTENT_URI,  new String[] {Phone.NUMBER}, Phone_CONTACT_ID + " = ?", new String[] { Long.toString(contact_id) }, null);
-	                    while (phoneCursor.moveToNext()) {
-	                        phoneNumber = PhoneNumberUtils.extractNetworkPortion(phoneCursor.getString(phoneCursor.getColumnIndex(NUMBER)));
-	                        if (!contactDetails.getPhoneNumbersList().contains(phoneNumber))
-	                        	contactDetails.getPhoneNumbersList().add(phoneNumber);	                        	                      
-	                    }
-	                    phoneCursor.close();
-	                    contactDetailsGroups.append(i, contactDetails);
-	                    i++;
-	                }
+	                
+                	ContactData contactDetails = new ContactData();
+                	contactDetails.setNick(contactName);
+                	contactDetails.setContactPhoto(getContactPhoto(contentResolver, contact_id, false));
+                    // Query and loop for every phone number of the contact
+                    Cursor phoneCursor = contentResolver.query(PhoneCONTENT_URI,  new String[] {Phone.NUMBER}, Phone_CONTACT_ID + " = ?", new String[] { Long.toString(contact_id) }, null);
+                    while (phoneCursor.moveToNext()) {
+                        phoneNumber = PhoneNumberUtils.extractNetworkPortion(phoneCursor.getString(phoneCursor.getColumnIndex(NUMBER)));
+                        if (!contactDetails.getPhoneNumbersList().contains(phoneNumber))
+                        	contactDetails.getPhoneNumbersList().add(phoneNumber);	                        	                      
+                    }
+                    phoneCursor.close();
+                    contactDetailsGroups.append(i, contactDetails);
+                    i++;
+                }
+            }
+        }
+        cursor.close();
+        endTime = System.currentTimeMillis() - startTime;
+//        System.out.println("Retrieve all contacts details query and save to groups: " + endTime);
+        return contactDetailsGroups;
+    }
+	
+	public static SparseArray<ContactData> fetchContactsEx(Context context, SparseArray<ContactData> contactDetailsGroups,
+			ProgressDialog barProgressDialog) {
+        String phoneNumber = null;        
+        contactDetailsGroups.clear();
+        // String email = null;
+        Uri CONTENT_URI = ContactsContract.Contacts.CONTENT_URI;
+        String _ID = ContactsContract.Contacts._ID;
+        String DISPLAY_NAME = ContactsContract.Contacts.DISPLAY_NAME;
+        String HAS_PHONE_NUMBER = ContactsContract.Contacts.HAS_PHONE_NUMBER;
+        Uri PhoneCONTENT_URI = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+        String Phone_CONTACT_ID = ContactsContract.CommonDataKinds.Phone.CONTACT_ID;
+        String NUMBER = ContactsContract.CommonDataKinds.Phone.NUMBER;
+        // Uri EmailCONTENT_URI =  ContactsContract.CommonDataKinds.Email.CONTENT_URI;
+        // String EmailCONTACT_ID = ContactsContract.CommonDataKinds.Email.CONTACT_ID;
+        // String DATA = ContactsContract.CommonDataKinds.Email.DATA;
+        ContentResolver contentResolver = context.getContentResolver();
+        long startTime = System.currentTimeMillis();
+        String selection = HAS_PHONE_NUMBER + " > 0 ";
+        Cursor cursor = contentResolver.query(CONTENT_URI, new String[] {_ID, DISPLAY_NAME},selection, null, DISPLAY_NAME + " COLLATE LOCALIZED ASC"); 
+        long endTime = System.currentTimeMillis() - startTime;
+//        System.out.println("Retrieve all contacts query: " + endTime);
+        
+        startTime = System.currentTimeMillis();
+        
+        Map<String, ContactData> contactMap = new HashMap<String, ContactData>();
+        
+        // Loop for every contact in the phone
+        if (cursor.getCount() > 0) {
+        	int i = 0;
+            while (cursor.moveToNext()) {            	
+                barProgressDialog.incrementProgressBy(1);
+                
+                Long contact_id = cursor.getLong(cursor.getColumnIndex( _ID ));
+                String contactName = cursor.getString(cursor.getColumnIndex( DISPLAY_NAME ));
+                if( contactName != null && !contactName.isEmpty()) {
+	                
+                	ContactData contactDetails = new ContactData();
+                	contactDetails.setNick(contactName);
+                	contactDetails.setContactPhoto(getContactPhoto(contentResolver, contact_id, false));
+                    // Query and loop for every phone number of the contact
+                    Cursor phoneCursor = contentResolver.query(PhoneCONTENT_URI,  new String[] {Phone.NUMBER}, Phone_CONTACT_ID + " = ?", new String[] { Long.toString(contact_id) }, null);
+                    while (phoneCursor.moveToNext()) {
+                        phoneNumber = PhoneNumberUtils.extractNetworkPortion(phoneCursor.getString(phoneCursor.getColumnIndex(NUMBER)));
+                        if (!contactDetails.getPhoneNumbersList().contains(phoneNumber))
+                        	contactDetails.getPhoneNumbersList().add(phoneNumber);	                        	                      
+                    }
+                    phoneCursor.close();
+                    contactDetailsGroups.append(i, contactDetails);
+                    i++;
                 }
             }
         }
