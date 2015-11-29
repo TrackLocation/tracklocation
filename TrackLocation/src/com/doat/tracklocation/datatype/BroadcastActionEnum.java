@@ -7,6 +7,7 @@ public enum BroadcastActionEnum {
 	KEEP_ALIVE("KEEP_ALIVE"),
  	BROADCAST_LOCATION_UPDATED("com.doat.tracklocation.service.GcmIntentService.LOCATION_UPDATED"),
  	BROADCAST_JOIN("com.doat.tracklocation.JoinContactList.BROADCAST_JOIN"),
+ 	//BROADCAST_JOIN_MAIL("com.doat.tracklocation.JoinContactList.BROADCAST_JOIN_MAIL"),
  	BROADCAST_LOCATION_KEEP_ALIVE("com.doat.tracklocation.Map.KEEP_ALIVE"),
  	BROADCAST_MESSAGE("com.doat.tracklocation.MESSAGE"),
 	BROADCAST_TURN_OFF_RING("com.doat.tracklocation.TURN_OFF_RING"),

@@ -1,11 +1,16 @@
+/**
+ * 
+ */
 package com.doat.tracklocation;
 
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Locale;
 
-import com.doat.tracklocation.R;
+import com.doat.tracklocation.crypto.CryptoUtils;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastKeyEnum;
-import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.JoinRequestStatusEnum;
 import com.doat.tracklocation.datatype.SentJoinRequestData;
 import com.doat.tracklocation.db.DBLayer;
@@ -14,111 +19,259 @@ import com.doat.tracklocation.dialog.IDialogOnClickAction;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
+import com.doat.tracklocation.utils.Utils;
 
+import android.app.ActionBar;
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.app.AlertDialog;
+import android.app.ExpandableListActivity;
 import android.app.SearchManager;
+import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
+import android.provider.ContactsContract;
+import android.provider.ContactsContract.Contacts;
+import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.SmsManager;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.View.OnClickListener;
+import android.widget.CursorTreeAdapter;
 import android.widget.ExpandableListView;
+import android.widget.ImageView;
 import android.widget.SearchView;
+import android.widget.SimpleCursorTreeAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
-public class JoinContactListActivity extends Activity {
-	
-	private SparseArray<ContactData> contactDetailsGroups = new SparseArray<ContactData>();
-	//private EditText inputSearch;
-	private ContactDeatilsExpandableListAdapter adapter;
+public class JoinContactListActivity extends ExpandableListActivity {
 	private BroadcastReceiver broadcastReceiver;
 	private String className = this.getClass().getName();
-	private String methodName;
-	ProgressDialog barProgressDialog;
-	Handler updateBarHandler;
-	ExpandableListView listView;
+	private String methodName;	
 	private boolean toSendAddJoinRequest = false;
+	private int groupPositionCurrent = -1;
 	
-	public void launchBarDialog(View view) {
-		methodName = "launchBarDialog";
-		barProgressDialog = new ProgressDialog(JoinContactListActivity.this);
-		barProgressDialog.setTitle("Fetching contacts");
-		barProgressDialog.setMessage("Please wait ...");
-		barProgressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-		barProgressDialog.setProgress(0);
-		barProgressDialog.setMax(Controller.getContactsNumber(JoinContactListActivity.this));
-		barProgressDialog.setCancelable(false);
-		//barProgressDialog.setIndeterminate(true);
-		barProgressDialog.show();
-		
-		new Thread(new Runnable() {
-		    @Override
-		    public void run() {
-		    	String methodName = "launchBarDialog->Thread->Runnable->run";
-		        try {
-		        	Controller.fetchContacts(JoinContactListActivity.this, contactDetailsGroups, barProgressDialog);
-		        	barProgressDialog.dismiss();
-		
-		        	Controller.broadcastMessage(JoinContactListActivity.this, 
-		        			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
-		        			"fetchContacts",
-		        			null,
-							BroadcastKeyEnum.fetch_contacts_completed.toString(), "Completed");
-		        } catch (Exception e) {
-		    		LogManager.LogException(e, className, methodName);
-		    		Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
-		        }
-		    }
-		}).start();
-	}
-	
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.join_contact_list);
-		LogManager.LogActivityCreate(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
+    private static final String[] CONTACTS_PROJECTION = new String[] {    	
+        Contacts._ID, 
+        Contacts.DISPLAY_NAME
+    };
+    
+    private static final int GROUP_ID_COLUMN_INDEX = 0;
 
-		updateBarHandler = new Handler();
+    private static final String[] PHONE_NUMBER_PROJECTION = new String[] {
+            Phone._ID,
+            Phone.NUMBER
+    };
+    
+    private String contactsOrder = Contacts.DISPLAY_NAME + " COLLATE LOCALIZED ASC";    
+    
+    private Uri contactUri = Contacts.CONTENT_URI;
+    private String selection = Contacts.HAS_PHONE_NUMBER + "=1"; 
+    private static String filterSelection = "";
+    private static Boolean inFilterMode = false;
 
+    private static final int TOKEN_GROUP = 0;
+    private static final int TOKEN_CHILD = 1;
+
+    private static final class QueryHandler extends AsyncQueryHandler {
+        private CursorTreeAdapter mAdapter;        
+
+        public QueryHandler(Context context, CursorTreeAdapter adapter) {
+            super(context.getContentResolver());
+            this.mAdapter = adapter;            
+        }
+
+        @Override
+        protected void onQueryComplete(int token, Object cookie, Cursor cursor) {
+            switch (token) {
+            case TOKEN_GROUP:
+            	inFilterMode = !filterSelection.isEmpty() && cursor.getCount() == 0; 
+            	if (inFilterMode){
+            		MatrixCursor matrixCursor = new MatrixCursor(new String[] { Contacts._ID, Contacts.DISPLAY_NAME });
+            		matrixCursor.addRow(new Object[] { 100000000, filterSelection});            		            		
+            		cursor = matrixCursor;
+            	}
+        		mAdapter.setGroupCursor(cursor);
+        		if (inFilterMode){
+        			MatrixCursor matrixCursor = new MatrixCursor(new String[] { Phone._ID, Phone.NUMBER });
+            		matrixCursor.addRow(new Object[] { 100000000, filterSelection});            		            		
+            		cursor = matrixCursor;
+        			this.onQueryComplete(TOKEN_CHILD, 0, cursor);
+        		}
+                break;
+
+            case TOKEN_CHILD:
+            	/*if (!filterSelection.isEmpty() && cursor.getCount() == 0){
+            		MatrixCursor matrixCursor = new MatrixCursor(new String[] { Phone._ID, Phone.NUMBER });
+            		matrixCursor.addRow(new Object[] { 100000000, filterSelection});            		            		
+            		cursor = matrixCursor;
+            	}*/
+                int groupPosition = (Integer) cookie;
+                mAdapter.setChildrenCursor(groupPosition, cursor);
+                break;
+            }
+        }
+    }
+
+    public class MyExpandableListAdapter extends SimpleCursorTreeAdapter {
+
+        // Note that the constructor does not take a Cursor. This is done to avoid querying the 
+        // database on the main thread.
+        public MyExpandableListAdapter(Context context, int groupLayout,
+                int childLayout, String[] groupFrom, int[] groupTo, String[] childrenFrom,
+                int[] childrenTo) {
+        	
+            super(context, null, groupLayout, groupFrom, groupTo, childLayout, childrenFrom, childrenTo);
+        }                         
+        
+        @Override
+        protected void bindGroupView(View view, Context context, Cursor cursor,
+        		boolean isExpanded) {
+        	
+        	super.bindGroupView(view, context, cursor, isExpanded);       
+        	
+        	long _id = cursor.getInt(0);
+        	ImageView imageView =  (ImageView) view.findViewById(R.id.icon);
+        	
+        	Bitmap bmp = getContactPhoto(getContentResolver(), _id, false);
+        	if (bmp == null){        	
+        		bmp = Utils.getDefaultContactBitmap(getResources());
+        	}
+        	
+        	bmp = Utils.getRoundedCornerImage(bmp, false);
+        	
+        	Drawable contactPhoto = new BitmapDrawable(getResources(), bmp);    		
+    		imageView.setImageDrawable(contactPhoto);
+    		if (inFilterMode){
+    			ExpandableListView listView = getExpandableListView();
+    			listView.expandGroup(cursor.getPosition());
+    		}
+        }
+              
+        private Bitmap getContactPhoto(ContentResolver contentResolver, Long contactId, Boolean isRounded) {
+    	    Uri contactPhotoUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
+    	    InputStream photoDataStream = ContactsContract.Contacts.openContactPhotoInputStream(contentResolver,contactPhotoUri); // <-- always null
+    	    return BitmapFactory.decodeStream(photoDataStream);    	 
+    	}       
+
+        @Override
+        protected Cursor getChildrenCursor(Cursor groupCursor) {
+            // Given the group, we return a cursor for all the children within that group 
+            
+            mQueryHandler.startQuery(TOKEN_CHILD, groupCursor.getPosition(), ContactsContract.CommonDataKinds.Phone.CONTENT_URI, 
+            		PHONE_NUMBER_PROJECTION, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[] { Long.toString(groupCursor.getLong(GROUP_ID_COLUMN_INDEX)) }, null);
+                        
+            return null;
+        }       
+        
+        @Override
+        public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+        	View row = super.getChildView(groupPosition, childPosition, isLastChild, convertView, parent);
+        	setGroupPositionCurrent(groupPosition);  
+        	TextView text = (TextView) row.findViewById(R.id.textView1);
+        	int iPic = R.drawable.ic_contact_phone_black_24dp;        	
+        	Bitmap bmp = BitmapFactory.decodeResource(getResources(), iPic);
+        	bmp = Utils.changeBitmapColor(bmp);
+        	Drawable drawable = Utils.covertBitmapToDrawable(getBaseContext(), bmp);
+        	drawable.setBounds(0,0,bmp.getWidth(),bmp.getHeight());
+			text.setCompoundDrawables(drawable,null,null, null);
+        	
+        	row.setOnClickListener(new OnClickListener() {
+    			@Override
+    			public void onClick(View v) {
+    				final View view = v;
+    				Cursor parent = getGroup(getGroupPositionCurrent());    		
+    				final String contactName = parent.getString(1);   
+    				AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(JoinContactListActivity.this); 
+    				// set title
+    				alertDialogBuilder.setTitle(getString(R.string.join_contact_appr));
+    		 
+    				// set dialog message
+    				alertDialogBuilder
+    					.setMessage("The invate will be send to " + contactName )
+    					.setCancelable(false)
+    					.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
+    						public void onClick(DialogInterface dialog,int id) {
+    							TextView tv = (TextView) view.findViewById(R.id.textView1);
+    		    				String valToJoin  =  tv.getText().toString();
+    		            		Controller.broadcastMessage(JoinContactListActivity.this, 
+    		            			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
+    		            			"OnChildClick",
+    		            			null, 
+    		    					BroadcastKeyEnum.join_number.toString(), 
+    		    					contactName + CommonConst.DELIMITER_STRING + valToJoin);    						}
+    					})
+    					.setNegativeButton("No",new DialogInterface.OnClickListener() {
+    						public void onClick(DialogInterface dialog,int id) {
+    							dialog.cancel();
+    						}
+    					});
+            		
+            		AlertDialog alertDialog = alertDialogBuilder.create();
+    				alertDialog.show();
+    			}
+    		});
+        	
+        	return row;
+        }     
+    }
+
+    private QueryHandler mQueryHandler;
+    private CursorTreeAdapter mAdapter;   
+    
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+    	ActionBar actionBar = getActionBar();
+	    actionBar.setHomeButtonEnabled(false);	    
+	    actionBar.setDisplayShowHomeEnabled(false);
+	    actionBar.setDisplayShowTitleEnabled(false);
+	    
+        super.onCreate(savedInstanceState);
+        
+        mAdapter = new MyExpandableListAdapter(
+                this,  
+                R.layout.join_row_group,
+                R.layout.listrow_details,
+                new String[] { Contacts.DISPLAY_NAME }, // Name for group layouts
+                new int[] { R.id.contact },
+                new String[] { Phone.NUMBER }, // Number for child layouts
+                new int[] { R.id.textView1 });
+
+        setListAdapter(mAdapter);
+
+        mQueryHandler = new QueryHandler(this, mAdapter);
+        
+        mQueryHandler.startQuery(TOKEN_GROUP, null, contactUri, CONTACTS_PROJECTION, selection, null, contactsOrder);
+        LogManager.LogActivityCreate(className, methodName);		
 		initBroadcastReceiver();
-		
-		listView = (ExpandableListView) findViewById(R.id.listView);
-        
-	    launchBarDialog(listView);
-        
-	    /*inputSearch = (EditText) findViewById(R.id.find_join_contact);
-        // Enabling Search Filter
-        inputSearch.addTextChangedListener(new TextWatcher() {
-             
-            @Override
-            public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
-                // When user changed the Text
-            	JoinContactListActivity.this.adapter.filterData(cs.toString());
+    }
 
-            }
-             
-            @Override
-            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
-                    int arg3) {
-                // TODO Auto-generated method stub
-                 
-            }
-             
-            @Override
-            public void afterTextChanged(Editable arg0) {
-                // TODO Auto-generated method stub                          
-            }
-        });*/
-	}
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mAdapter.changeCursor(null);
+        mAdapter = null;
+        unregisterReceiver(broadcastReceiver);
+    	methodName = "onDestroy";
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
+    }
+    
 	private void initBroadcastReceiver()
     {
     	LogManager.LogFunctionCall(className, "initBroadcastReceiver");
@@ -193,10 +346,6 @@ public class JoinContactListActivity extends Activity {
 //		    				finish();
 //		    			}
 
-		    		} else if(bundle.containsKey(broadcastKeyFetchContactsCompleted)){
-		    			// update expandable list of the device contacts
-		    	        adapter = new ContactDeatilsExpandableListAdapter(JoinContactListActivity.this, contactDetailsGroups);
-		    		    listView.setAdapter(adapter);
 		    		} else if(bundle.containsKey(BroadcastKeyEnum.resend_join_request.toString())){
 		    			sendJoinRequest(context, contactName, phoneNumber);
 		    		}
@@ -206,40 +355,42 @@ public class JoinContactListActivity extends Activity {
 	    registerReceiver(broadcastReceiver, intentFilter);
 	    LogManager.LogFunctionExit(className, "initBroadcastReceiver");
     }
-
-    @Override
-    protected void onDestroy() {
-    	super.onDestroy();
-    	unregisterReceiver(broadcastReceiver);
-    	methodName = "onDestroy";
-		LogManager.LogActivityDestroy(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
-    }
-    
-    public void sendJoinRequest(Context context, String contactName, String phoneNumber){
-    	String mutualId = Controller.generateUUID();
-    	long res = DBLayer.getInstance().addSentJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
-		if(res != 1){
-			// TODO: Notify that add to DB failed...
+	
+    public void sendJoinRequest(Context context, String contactName, String phoneNumber){    	
+		String joinValue = "";
+		try {
+			joinValue = buildJoinRequestData(context, contactName, phoneNumber);
+		} catch (UnsupportedEncodingException e) {
+			Log.e(CommonConst.LOG_TAG, e.getMessage());			
 		}
-		String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-		if(registrationId != null && !registrationId.isEmpty()){
-        	// Send SMS with registration details: 
-        	// phoneNumber and registartionId (mutual ID - optional) 
-        	SmsManager smsManager = SmsManager.getDefault();
-            String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-            String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
-            String ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
-			ArrayList<String> parts = smsManager.divideMessage(CommonConst.JOIN_FLAG_SMS + 
-				CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
-				mutualId + CommonConst.DELIMITER_COMMA + ownerPhoneNumber + CommonConst.DELIMITER_COMMA + account +
-				CommonConst.DELIMITER_COMMA + macAddress);
+		if(!joinValue.isEmpty()){
+			SmsManager smsManager = SmsManager.getDefault();
+			ArrayList<String> parts = smsManager.divideMessage(joinValue);
 			smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
 			// Notify by toast that join request sent by SMS
 			String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
-			Toast.makeText(JoinContactListActivity.this, msg, Toast.LENGTH_LONG).show();
+			Toast.makeText(JoinContactListActivity.this, msg, Toast.LENGTH_LONG).show();						
 		}
 		finish();
+    }
+    
+    private String buildJoinRequestData(Context context, String contactName, String phoneNumber) throws UnsupportedEncodingException{    	
+    	String mutualId = Controller.generateUUID();
+    	long res = DBLayer.getInstance().addSentJoinRequest(phoneNumber, mutualId, JoinRequestStatusEnum.SENT);
+		if(res != 1){
+			return "";
+		}
+		String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+		if(registrationId != null && !registrationId.isEmpty()){
+            String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+            String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+            String ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+			return CryptoUtils.encodeBase64(CommonConst.JOIN_FLAG_SMS + 
+				CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
+				mutualId + CommonConst.DELIMITER_COMMA + ownerPhoneNumber + CommonConst.DELIMITER_COMMA + account +
+				CommonConst.DELIMITER_COMMA + macAddress);
+		}
+		return "";   	
     }
     
 	IDialogOnClickAction joinRequest = new IDialogOnClickAction() {
@@ -251,8 +402,7 @@ public class JoinContactListActivity extends Activity {
         			"fetchContacts",
         			null, 
 					BroadcastKeyEnum.resend_join_request.toString(), 
-					"Resend");
-			//sendJoinRequest(context, contactName, phoneNumber, mutualId);
+					"Resend");	
 		}
 		@Override
 		public void doOnNegativeButton() {
@@ -294,8 +444,8 @@ public class JoinContactListActivity extends Activity {
 	        SearchView.OnQueryTextListener queryTextListener = new SearchView.OnQueryTextListener()
 	        {
 	            public boolean onQueryTextChange(String newText)
-	            {
-	            	JoinContactListActivity.this.adapter.filterData(newText);
+	            {	            	
+	            	filterData(newText);
 	                return true;
 	            }
 
@@ -312,7 +462,7 @@ public class JoinContactListActivity extends Activity {
 	    return true;
 	}
 	
-    private void joinRequestDialog(String contactName, String phoneNumber) {
+	private void joinRequestDialog(String contactName, String phoneNumber) {
     	String dialogMessage = "\nJoin request has been already sent to " + contactName + 
     		", with phone number " + phoneNumber + ".\n\nDo you want to send it again?\n";
     	
@@ -325,6 +475,25 @@ public class JoinContactListActivity extends Activity {
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
     }
-}
-
 	
+	public int getGroupPositionCurrent() {
+		return groupPositionCurrent;
+	}
+
+	public void setGroupPositionCurrent(int groupPositionCurrent) {
+		this.groupPositionCurrent = groupPositionCurrent;
+	}
+	
+	public void filterData(final String contcatName) {		
+		String contcatNameLowerCase = contcatName.toLowerCase(Locale.getDefault());
+		filterSelection = contcatName;
+				
+		String selFilter = selection;
+		if (!contcatNameLowerCase.isEmpty()){
+			selFilter = Contacts.DISPLAY_NAME + " LIKE '%" + contcatNameLowerCase + "%'";
+		}
+			
+		mQueryHandler.startQuery(TOKEN_GROUP, null, contactUri, CONTACTS_PROJECTION, selFilter, null, contactsOrder);
+			
+	}
+}

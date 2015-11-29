@@ -1,5 +1,7 @@
 package com.doat.tracklocation.utils;
 
+import java.util.regex.Pattern;
+
 public class CommonConst {
 	
 	public static final String 	LOG_TAG 						= "TrackLocation";
@@ -75,6 +77,10 @@ public class CommonConst {
  	public static final String 	CONTACT_LIST_SELECTED_VALUE = "selectedValue";
  	public static final String 	CONTACT_REGISTRATION_ID = "registration_id";
  	
+ 	public static final String 	JOIN_CONTACT_BY_SMS = "sms";
+ 	public static final String 	JOIN_CONTACT_BY_EMAIL = "email";
+ 	public static final String 	JOIN_CONTACT_BY = "join_contact_by";
+ 	
  	// APPLICATION INFO
  	public static final String	PREFERENCES_VERSION_NUMBER = "ApplicationNumber";
  	public static final String	PREFERENCES_VERSION_NAME = "ApplicationName";
@@ -104,4 +110,7 @@ public class CommonConst {
  	
  	public static final int 	MAX_RINGTIME_WITH_MAX_VOLUME = 1; // [minutes]
  	public static final String	NOBODY_RESPONDED = "nobody_responded";
+ 	
+ 	public static final Pattern VALID_EMAIL_ADDRESS_REGEX = 
+ 		    Pattern.compile("^[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,6}$", Pattern.CASE_INSENSITIVE);
 }

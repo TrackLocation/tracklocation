@@ -1,9 +1,11 @@
 package com.doat.tracklocation.service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.MainActivity;
+import com.doat.tracklocation.crypto.CryptoUtils;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
@@ -47,10 +49,18 @@ public class SMSReceiver extends BroadcastReceiver {
 					smsPhoneNumber = ((SmsMessage)msgs[i]).getOriginatingAddress();
 				}
 			}
-
-			if(smsMessageBody.contains(CommonConst.JOIN_FLAG_SMS)){
+			
+			try {
+				smsMessageBody = CryptoUtils.decodeBase64(smsMessageBody);
+			} catch (UnsupportedEncodingException e) {
+				Log.e(CommonConst.LOG_TAG, e.getMessage(), e);
+				return;
+			}
+						
+			String[] smsParams = smsMessageBody.split(CommonConst.DELIMITER_COMMA);
+			
+			if(smsParams.length > 0 && smsParams[0].equals(CommonConst.JOIN_FLAG_SMS)){
 				
-				String[] smsParams = smsMessageBody.split(CommonConst.DELIMITER_COMMA);
 			    if(smsParams.length == CommonConst.JOIN_SMS_PARAMS_NUMBER){
 			    	
 		    	    String phoneNumberFromSMS = smsParams[3];
@@ -91,8 +101,6 @@ public class SMSReceiver extends BroadcastReceiver {
 					notificationBroadcastData.setValue(smsMessageBody);
 					String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
 					
-					MessageDataContactDetails mdcd = null;
-			
 					// Broadcast corresponding message
 					Controller.broadcastMessage(context, 
 						BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 

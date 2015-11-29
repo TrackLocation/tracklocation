@@ -168,7 +168,7 @@ public class MainActivity extends BaseActivity {
         		LogManager.LogErrorMsg(className, "onClick -> JOIN button", 
             		"Unable to join contacts - application is not registred yet.");
         	} else {
-        		Intent joinContactListIntent = new Intent(this, JoinContactsExpandableList.class);
+        		Intent joinContactListIntent = new Intent(this, JoinContactListActivity.class);
         		//Intent joinContactListIntent = new Intent(this, JoinContactListActivity.class);
         		startActivityForResult(joinContactListIntent, JOIN_REQUEST);
         	}
@@ -187,8 +187,7 @@ public class MainActivity extends BaseActivity {
     	// ========================================
         } else if (view == findViewById(R.id.btnSettings)) {	
     		Intent settingsIntent = new Intent(this, SettingsActivity.class);
-    		startActivityForResult(settingsIntent, 2);
-    		//startActivity(settingsIntent);
+    		startActivityForResult(settingsIntent, 2); 
 
     	// ========================================
     	// LOCATE button (CONTACT_LIST)

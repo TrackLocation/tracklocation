@@ -336,6 +336,19 @@ public class Utils {
 		return output;
 	}
 	
+	public static Bitmap changeBitmapColor(Bitmap sourceBitmap) {
+	    Bitmap resultBitmap = Bitmap.createBitmap(sourceBitmap.getWidth(), sourceBitmap.getHeight(), Config.ARGB_8888);
+	    final Rect rect = new Rect(0, 0, sourceBitmap.getWidth(), sourceBitmap.getHeight());
+
+	    Paint paint = new Paint();
+	    paint.setAntiAlias(true);
+	    ColorFilter filter = new LightingColorFilter(0x000000, 0xff999999);
+	    paint.setColorFilter(filter);	  
+	    Canvas canvas = new Canvas(resultBitmap);
+	    canvas.drawBitmap(sourceBitmap, rect, rect, paint);
+	    return resultBitmap;
+	}
+	
 	public static float convertPixelsToDp(float px, Resources resources){	    
 	    DisplayMetrics metrics = resources.getDisplayMetrics();
 	    float dp = px / (metrics.densityDpi / 160f);
