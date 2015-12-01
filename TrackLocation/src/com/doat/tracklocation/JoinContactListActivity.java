@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.regex.Pattern;
 
 import com.doat.tracklocation.crypto.CryptoUtils;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
@@ -47,6 +48,7 @@ import android.provider.ContactsContract.Contacts;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.telephony.SmsManager;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
@@ -116,11 +118,6 @@ public class JoinContactListActivity extends ExpandableListActivity {
                 break;
 
             case TOKEN_CHILD:
-            	/*if (!filterSelection.isEmpty() && cursor.getCount() == 0){
-            		MatrixCursor matrixCursor = new MatrixCursor(new String[] { Phone._ID, Phone.NUMBER });
-            		matrixCursor.addRow(new Object[] { 100000000, filterSelection});            		            		
-            		cursor = matrixCursor;
-            	}*/
                 int groupPosition = (Integer) cookie;
                 mAdapter.setChildrenCursor(groupPosition, cursor);
                 break;
@@ -157,9 +154,8 @@ public class JoinContactListActivity extends ExpandableListActivity {
         	
         	Drawable contactPhoto = new BitmapDrawable(getResources(), bmp);    		
     		imageView.setImageDrawable(contactPhoto);
-    		if (inFilterMode){
-    			ExpandableListView listView = getExpandableListView();
-    			listView.expandGroup(cursor.getPosition());
+    		if (inFilterMode){    			
+    			getExpandableListView().expandGroup(cursor.getPosition());    			
     		}
         }
               
@@ -171,8 +167,6 @@ public class JoinContactListActivity extends ExpandableListActivity {
 
         @Override
         protected Cursor getChildrenCursor(Cursor groupCursor) {
-            // Given the group, we return a cursor for all the children within that group 
-            
             mQueryHandler.startQuery(TOKEN_CHILD, groupCursor.getPosition(), ContactsContract.CommonDataKinds.Phone.CONTENT_URI, 
             		PHONE_NUMBER_PROJECTION, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[] { Long.toString(groupCursor.getLong(GROUP_ID_COLUMN_INDEX)) }, null);
                         
@@ -196,40 +190,43 @@ public class JoinContactListActivity extends ExpandableListActivity {
     			public void onClick(View v) {
     				final View view = v;
     				Cursor parent = getGroup(getGroupPositionCurrent());    		
-    				final String contactName = parent.getString(1);   
-    				AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(JoinContactListActivity.this); 
-    				// set title
-    				alertDialogBuilder.setTitle(getString(R.string.join_contact_appr));
-    		 
-    				// set dialog message
-    				alertDialogBuilder
-    					.setMessage("The invate will be send to " + contactName )
-    					.setCancelable(false)
-    					.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
-    						public void onClick(DialogInterface dialog,int id) {
-    							TextView tv = (TextView) view.findViewById(R.id.textView1);
-    		    				String valToJoin  =  tv.getText().toString();
-    		            		Controller.broadcastMessage(JoinContactListActivity.this, 
-    		            			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
-    		            			"OnChildClick",
-    		            			null, 
-    		    					BroadcastKeyEnum.join_number.toString(), 
-    		    					contactName + CommonConst.DELIMITER_STRING + valToJoin);    						}
-    					})
-    					.setNegativeButton("No",new DialogInterface.OnClickListener() {
-    						public void onClick(DialogInterface dialog,int id) {
-    							dialog.cancel();
-    						}
-    					});
-            		
-            		AlertDialog alertDialog = alertDialogBuilder.create();
-    				alertDialog.show();
+    				final String contactName = parent.getString(1);
+    				if (inFilterMode && !Patterns.PHONE.matcher(filterSelection).matches()){
+    					AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(JoinContactListActivity.this); 
+        				alertDialogBuilder.setTitle("Join contact");
+        	
+        				alertDialogBuilder
+        					.setMessage("The " + filterSelection + " is not valid a phone number")
+        					.setCancelable(false)        					
+        					.setNegativeButton("Ok",new DialogInterface.OnClickListener() {
+        						public void onClick(DialogInterface dialog,int id) {
+        							dialog.cancel();
+        						}
+        					});
+                		
+                		AlertDialog alertDialog = alertDialogBuilder.create();
+        				alertDialog.show();
+    				}
+    				else{
+    					sendBroadcastToJoin(view, contactName);
+    				}    				
     			}
     		});
         	
         	return row;
         }     
     }
+    
+    private void sendBroadcastToJoin(final View view, final String contactName) {
+		TextView tv = (TextView) view.findViewById(R.id.textView1);
+		String valToJoin  =  tv.getText().toString();
+		Controller.broadcastMessage(JoinContactListActivity.this, 
+			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
+			"OnChildClick",
+			null, 
+			BroadcastKeyEnum.join_number.toString(), 
+			contactName + CommonConst.DELIMITER_STRING + valToJoin);
+	}
 
     private QueryHandler mQueryHandler;
     private CursorTreeAdapter mAdapter;   
@@ -310,13 +307,17 @@ public class JoinContactListActivity extends ExpandableListActivity {
 		    			phoneNumber = args[1];
 		    			
 		    			SentJoinRequestData joinRequestData = DBLayer.getInstance().getSentJoinRequestByPhone(phoneNumber);
-		    			if( joinRequestData == null ) { 
-		    				toSendAddJoinRequest = true;
+		    			if( joinRequestData == null ) {
+		    				if (!toSendAddJoinRequest){
+		    					String message = "\nJoin request will be sent to %s ( phone number %s) .\n\nDo you want to send it?\n";
+		    					joinRequestDialog(contactName, phoneNumber, message);
+		    				}
 		    			} else { // join request with <phoneNumber> already exists, check the status
 		    				if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.SENT.toString()) ) {
 		    					// Notify by dialog that join request already sent to <phoneNumber>
 		    					// check if the following request should be sent again
-		    					joinRequestDialog(contactName, phoneNumber);
+		    					String message = "\nJoin request has been already sent to %s, with phone number %s.\n\nDo you want to send it again?\n";
+		    					joinRequestDialog(contactName, phoneNumber, message);
 		    		        	
 		    				} else if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.ACCEPTED.toString()) ) {
 		    					// TODO: notify by dialog that join request already sent to <phoneNumber> and accepted
@@ -336,6 +337,7 @@ public class JoinContactListActivity extends ExpandableListActivity {
 		    			}
 		    			if(toSendAddJoinRequest == true){
 		    				sendJoinRequest(context, contactName, phoneNumber);
+		    				toSendAddJoinRequest = false;
 		    			}
 		    			
 		    			// TODO: fix the following code - use STATUS instead of Mutual_ID
@@ -348,6 +350,7 @@ public class JoinContactListActivity extends ExpandableListActivity {
 
 		    		} else if(bundle.containsKey(BroadcastKeyEnum.resend_join_request.toString())){
 		    			sendJoinRequest(context, contactName, phoneNumber);
+		    			toSendAddJoinRequest = false;
 		    		}
 	    		}
     		}
@@ -462,9 +465,8 @@ public class JoinContactListActivity extends ExpandableListActivity {
 	    return true;
 	}
 	
-	private void joinRequestDialog(String contactName, String phoneNumber) {
-    	String dialogMessage = "\nJoin request has been already sent to " + contactName + 
-    		", with phone number " + phoneNumber + ".\n\nDo you want to send it again?\n";
+	private void joinRequestDialog(String contactName, String phoneNumber, String message) {
+    	String dialogMessage = String.format(message, contactName, phoneNumber) ;
     	
 		CommonDialog aboutDialog = new CommonDialog(this, joinRequest);
 		aboutDialog.setDialogMessage(dialogMessage);
