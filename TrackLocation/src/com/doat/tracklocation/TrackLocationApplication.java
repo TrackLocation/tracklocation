@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.google.gson.Gson;
+
 import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.Application;
@@ -15,11 +17,26 @@ import android.util.Log;
 
 public class TrackLocationApplication extends Application {	    
     
-    @Override
+	private String className;    
+    private String methodName;
+    private Activity currentActivity;
+
+	public static Gson gson = new Gson();
+	
+    public Activity getCurrentActivity() {
+		return currentActivity;
+	}
+
+	public void setCurrentActivity(Activity currentActivity) {
+		this.currentActivity = currentActivity;
+	}
+
+	@Override
     public void onCreate() {
     	// TODO Auto-generated method stub
     	super.onCreate();
        	
+		className = this.getClass().getName();
 		registerActivityLifecycleCallbacks(new MyActivityLifecycleCallbacks());
     }
     
@@ -95,7 +112,8 @@ public class TrackLocationApplication extends Application {
 		}
 	
 		@Override
-		public void onActivityResumed(Activity activity) {	    
+		public void onActivityResumed(Activity activity) {	
+			currentActivity = activity;
 			if (wasInBackground){
 				stopAppDownTimer();
 			}
@@ -153,5 +171,6 @@ public class TrackLocationApplication extends Application {
 		        e.printStackTrace();  // Device not rooted! 
 		    }
 		}
+		
     }
 }

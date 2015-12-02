@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum JoinRequestStatusEnum {
-	SENT("sent"), ACCEPTED("accepted"), DECLINED("declined");
+	SENT("sent"); //, ACCEPTED("accepted"), DECLINED("declined");
 	
 	private final String name;       
 	private static Map<String, JoinRequestStatusEnum> valueMap;

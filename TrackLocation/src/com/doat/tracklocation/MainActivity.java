@@ -3,47 +3,32 @@ package com.doat.tracklocation;
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.controller.MainActivityController;
 import com.doat.tracklocation.datatype.BackupDataOperations;
-import com.doat.tracklocation.datatype.BroadcastActionEnum;
-import com.doat.tracklocation.datatype.BroadcastConstEnum;
-import com.doat.tracklocation.datatype.BroadcastKeyEnum;
-import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.db.DBHelper;
 import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.db.DBManager;
-import com.doat.tracklocation.dialog.CommonDialog;
-import com.doat.tracklocation.dialog.IDialogOnClickAction;
+import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.MainModel;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
-import com.google.gson.Gson;
 
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 public class MainActivity extends BaseActivity {
     private final static int JOIN_REQUEST = 1;      
-    protected String logMessage;    
-    protected Context context;
     protected MainActivityController mainActivityController;
     protected MainModel mainModel;
-    private BroadcastReceiver notificationBroadcastReceiver;
     
     public static volatile boolean isTrackLocationRunning; // Used in SMSReceiver.class
 
@@ -65,8 +50,6 @@ public class MainActivity extends BaseActivity {
 		
 		setContentView(R.layout.activity_main);
 				
-		initNotificationBroadcastReceiver();
-		
 		isTrackLocationRunning = true;
 		
 		Context context = getApplicationContext();
@@ -84,9 +67,17 @@ public class MainActivity extends BaseActivity {
     }
 
 	@Override
+	protected void onStart() {
+		super.onStart();
+		if(broadcastReceiver == null){
+			broadcastReceiver = new BroadcastReceiverBase(MainActivity.this);
+		}
+		initNotificationBroadcastReceiver(broadcastReceiver);
+	}
+
+	@Override
 	protected void onResume() {
 		super.onResume();
-		context = getApplicationContext();
 		DBManager.initDBManagerInstance(new DBHelper(context));
 		if(mainModel == null){
 			mainModel = new MainModel();
@@ -96,12 +87,12 @@ public class MainActivity extends BaseActivity {
 		}
 	}
 
-    @Override
+	@Override
 	protected void onPause() {
 		super.onPause();
 		methodName = "onPause";
 
-		BackupDataOperations backupData = new BackupDataOperations();
+        BackupDataOperations backupData = new BackupDataOperations();
 		boolean isBackUpSuccess = backupData.backUp();
 		if(isBackUpSuccess != true){
 			logMessage = methodName + " -> Backup process failed.";
@@ -110,23 +101,20 @@ public class MainActivity extends BaseActivity {
 		}
     }
 
-	@Override
-    protected void onDestroy() {
-        super.onDestroy();
-        methodName = "onDestroy";
-        
-        isTrackLocationRunning = false;
+    @Override
+	protected void onStop() {
+		super.onStop();
 		
+        if(broadcastReceiver != null){
+    		unregisterReceiver(broadcastReceiver);
+    	}
+        
      	Thread registerToGCMInBackgroundThread = 
-     		mainActivityController.getRegisterToGCMInBackgroundThread();
+         	mainActivityController.getRegisterToGCMInBackgroundThread();
     	if(registerToGCMInBackgroundThread != null){
     		registerToGCMInBackgroundThread.interrupt();
     	}
 
-        if(notificationBroadcastReceiver != null){
-    		unregisterReceiver(notificationBroadcastReceiver);
-    	}
-    	
 		BackupDataOperations backupData = new BackupDataOperations();
 		boolean isBackUpSuccess = backupData.backUp();
 		if(isBackUpSuccess != true){
@@ -134,6 +122,15 @@ public class MainActivity extends BaseActivity {
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 		}
+	}
+
+	@Override
+    protected void onDestroy() {
+        super.onDestroy();
+        methodName = "onDestroy";
+        
+        isTrackLocationRunning = false;
+		
 		
 		LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
@@ -155,7 +152,11 @@ public class MainActivity extends BaseActivity {
     	// ABOUT button
     	// ========================================
         if (view == findViewById(R.id.btnAbout)) {        	
-        	showAboutDialog();
+//        	showAboutDialog();
+        	String title = "About";
+        	String dialogMessage = String.format(getResources().getString(R.string.about_dialog_text), 
+        		Preferences.getPreferencesString(context, CommonConst.PREFERENCES_VERSION_NAME));
+        	new InfoDialog(this, context, title, dialogMessage, null);
         	
     	// ========================================
     	// JOIN button
@@ -244,87 +245,108 @@ public class MainActivity extends BaseActivity {
         }
     }
     
-	// Initialize BROADCAST_MESSAGE broadcast receiver
-	private void initNotificationBroadcastReceiver() {
-		String methodName = "initNotificationBroadcastReceiver";
-		LogManager.LogFunctionCall(className, methodName);
-	    IntentFilter intentFilter = new IntentFilter();
-	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
-	    notificationBroadcastReceiver = new BroadcastReceiver() {
-
-	    	Gson gson = new Gson();
-	    	
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				// String methodName = "onReceive";
-				Bundle bundle = intent.getExtras();
-	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
-	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
-	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
-	    				return;
-	    			}
-	    			NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
-	    			if(broadcastData == null){
-	    				return;
-	    			}
-	    			
-	    			String key  = broadcastData.getKey();
-	    			
-    				// Notification about command: bring to top - to foreground
-	    			// bring MainActivity to foreground
-	    			if(BroadcastKeyEnum.join_sms.toString().equals(key)) {
-	    				showApproveJoinRequestDialog(broadcastData); // bring to foreground
-	    			}
-	    		}
-			}
-	    };
-	    
-	    registerReceiver(notificationBroadcastReceiver, intentFilter);
-	    
-		LogManager.LogFunctionExit(className, methodName);
-	}
-
-	private void showApproveJoinRequestDialog(NotificationBroadcastData broadcastData){
-		methodName = "showApproveJoinRequestDialog";
-		
-		//  SMS Message values:
-		//	[0] - smsMessageKey - "JOIN_TRACK_LOCATION"
-		//	[1] - regIdFromSMS
-		//	[2] - mutualIdFromSMS
-		//	[3] - phoneNumberFromSMS
-		//	[4] - accountFromSMS
-		//	[5] - macAddressFromSMS
-		String smsMessage = broadcastData.getValue();
-		
-//		List<String> listSmsVals = new ArrayList<String>();
-//		StringTokenizer st = new StringTokenizer(smsMessage, ",");
-//		while(st.hasMoreElements()){
-//			listSmsVals.add(st.nextToken().trim());
+//	// Initialize BROADCAST_MESSAGE broadcast receiver
+//	private void initNotificationBroadcastReceiver() {
+//		methodName = "initNotificationBroadcastReceiver";
+//		LogManager.LogFunctionCall(className, methodName);
+//	    IntentFilter intentFilter = new IntentFilter();
+//	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
+//	    notificationBroadcastReceiver = new BroadcastReceiver() {
+//
+//	    	Gson gson = new Gson();
+//	    	
+//			@Override
+//			public void onReceive(Context context, Intent intent) {
+//				methodName = "onReceive";
+//				Bundle bundle = intent.getExtras();
+//	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
+//	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
+//	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
+//	    				return;
+//	    			}
+//	    			NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
+//	    			if(broadcastData == null){
+//	    				return;
+//	    			}
+//	    			
+//	    			String key  = broadcastData.getKey();
+//
+//    				// Notification about command: bring to top - to foreground
+//	    			// bring MainActivity to foreground
+//	    			if(BroadcastKeyEnum.join_sms.toString().equals(key)) {
+//	    				showApproveJoinRequestDialog(broadcastData); // bring to foreground
+//
+//	    				SMSUtils.checkJoinRequestBySMSInBackground(context, MainActivity.this, true);
+//	    			}
+//	    		}
+//			}
+//	    };
+//	    
+//	    registerReceiver(notificationBroadcastReceiver, intentFilter);
+//	    
+//		LogManager.LogFunctionExit(className, methodName);
+//	}
+//
+//	private void showApproveJoinRequestDialog(NotificationBroadcastData broadcastData){
+//		methodName = "showApproveJoinRequestDialog";
+//		
+//		//  SMS Message values:
+//		//	[0] - smsMessageKey - "JOIN_TRACK_LOCATION"
+//		//	[1] - regIdFromSMS
+//		//	[2] - mutualIdFromSMS
+//		//	[3] - phoneNumberFromSMS
+//		//	[4] - accountFromSMS
+//		//	[5] - macAddressFromSMS
+//		String smsMessageText = broadcastData.getValue();
+//		
+////		List<String> listSmsVals = new ArrayList<String>();
+////		StringTokenizer st = new StringTokenizer(smsMessage, ",");
+////		while(st.hasMoreElements()){
+////			listSmsVals.add(st.nextToken().trim());
+////		}
+//		String smsVals[] = smsMessageText.split(",");
+//		if(smsVals.length == CommonConst.JOIN_SMS_PARAMS_NUMBER){ // should be exactly 6 values
+//			//Controller.showApproveJoinRequestDialog(this, 
+////			mainActivityController.showApproveJoinRequestDialog(this,
+////				context, 
+////				smsVals[4].trim(), 	// accountFromSMS
+////				smsVals[3].trim(), 	// phoneNumberFromSMS
+////				smsVals[2].trim(), 	// mutualIdFromSMS 
+////				smsVals[1].trim(), 	// regIdFromSMS
+////				smsVals[5].trim(),	// macAddressFromSMS
+////				null
+////			);
+//			
+//			ApproveJoinRequestContext approveJoinRequestContext = 
+//				new ApproveJoinRequestContext(context, smsVals[2].trim());
+//			
+//			ApproveJoinRequestDialogListener approveJoinRequestDialogListener = 
+//				new ApproveJoinRequestDialogListener(approveJoinRequestContext, null);
+//			
+//			ApproveJoinRequestDialog approveJoinRequestDialog = 
+//				new ApproveJoinRequestDialog(MainActivity.this, context, approveJoinRequestDialogListener);
+//			approveJoinRequestDialog.showApproveJoinRequestDialog(
+//					this, 
+//					context, 
+//					smsVals[4].trim(), 	// accountFromSMS
+//					smsVals[3].trim(), 	// phoneNumberFromSMS 
+//					smsVals[2].trim(), 	// mutualIdFromSMS  
+//					smsVals[1].trim(), 	// regIdFromSMS 
+//					smsVals[5].trim(),	// macAddressFromSMS 
+//					null);
+//		} else {
+//			logMessage = "JOIN SMS Message has incorrect parameters number" +
+//				" - supposed to be: " + CommonConst.JOIN_SMS_PARAMS_NUMBER;
+//			LogManager.LogErrorMsg(className, methodName, logMessage);
+//			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+//		
+//			logMessage = methodName + " -> Backup process failed.";
+//			LogManager.LogErrorMsg(className, methodName, logMessage);
+//			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 //		}
-		String smsVals[] = smsMessage.split(",");
-		if(smsVals.length == CommonConst.JOIN_SMS_PARAMS_NUMBER){ // should be exactly 6 values
-			//Controller.showApproveJoinRequestDialog(this, 
-			mainActivityController.showApproveJoinRequestDialog(this,
-				context, 
-				smsVals[4].trim(), 	// accountFromSMS
-				smsVals[3].trim(), 	// phoneNumberFromSMS
-				smsVals[2].trim(), 	// mutualIdFromSMS 
-				smsVals[1].trim(), 	// regIdFromSMS
-				smsVals[5].trim(),	// macAddressFromSMS
-				null
-			);
-		} else {
-			logMessage = "JOIN SMS Message has incorrect parameters number" +
-				" - supposed to be: " + CommonConst.JOIN_SMS_PARAMS_NUMBER;
-			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-		
-			logMessage = methodName + " -> Backup process failed.";
-			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-		}
-	}
-	
+//	}
+
+/*	
 	private void showAboutDialog() {
     	String dialogMessage = 
     		String.format(getResources().getString(R.string.about_dialog_text), 
@@ -338,7 +360,7 @@ public class MainActivity extends BaseActivity {
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
     }
-	
+*/	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
@@ -353,7 +375,8 @@ public class MainActivity extends BaseActivity {
 	       }
 		}
 	}
-    
+
+/*	
 	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
 		@Override
 		public void doOnPositiveButton() {
@@ -374,4 +397,5 @@ public class MainActivity extends BaseActivity {
 		public void doOnChooseItem(int which) {
 		}
 	};
+*/	
 }

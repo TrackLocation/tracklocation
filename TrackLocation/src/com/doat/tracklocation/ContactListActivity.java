@@ -8,14 +8,11 @@ import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.db.DBLayer;
-import com.doat.tracklocation.dialog.CommonDialog;
-import com.doat.tracklocation.dialog.IDialogOnClickAction;
+import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -45,10 +42,15 @@ public class ContactListActivity extends BaseActivity {
 	private List<Boolean> isSelected;
 	private ContactDeviceDataList contactDeviceDataList;
 	private List<String> selectedContcatList;
+//	private ContactListController contactListController;
 
 	List<ContactData> values;
  	
-	@Override
+//    public ContactListController getContactListController() {
+//		return contactListController;
+//	}
+
+    @Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.contact_list);
@@ -57,7 +59,11 @@ public class ContactListActivity extends BaseActivity {
 		
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
-		
+
+//		if(contactListController == null){
+//			contactListController = new ContactListController(this, getApplicationContext());
+//		}
+
 		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = this.getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST); 
 		contactDeviceDataList = new ContactDeviceDataList();
 		contactDeviceDataList.addAll(selectedContactDeviceDataListEx);		
@@ -157,6 +163,10 @@ public class ContactListActivity extends BaseActivity {
 	        	}
 			}
 	    });
+
+// TODO: OPEN - DAVID    	
+//		// Start thread to check which contacts are online
+//		contactListController.checkWhichContactsOnLine(contactDeviceDataList);
 	}
 	
 	@Override
@@ -204,7 +214,7 @@ public class ContactListActivity extends BaseActivity {
         		// TODO: Inform customer that no contact was selected by pop-up dialog
         		String title = "No contacs selected";
         		String dialogMessage = "\nSelect at least one contact to locate it\n\n";
-        		showNotificationDialog(title, dialogMessage);
+        		new InfoDialog(this, context, title, dialogMessage, null);
         	}
         	
         	LogManager.LogFunctionExit(className, "onClick->[BUTTON:TrackLocation]");
@@ -215,55 +225,39 @@ public class ContactListActivity extends BaseActivity {
         }
 	}
 
+ 	@Override
+	protected void onStart() {
+		super.onStart();
+		if(broadcastReceiver == null){
+			broadcastReceiver = new BroadcastReceiverBase(ContactListActivity.this);
+		}
+		initNotificationBroadcastReceiver(broadcastReceiver);
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+        if(broadcastReceiver != null){
+    		unregisterReceiver(broadcastReceiver);
+    	}
+	}
+
 	@Override
     protected void onDestroy() {
     	super.onDestroy();
 
+// TODO: OPEN - DAVID    	
+//    	// Stop thread that checking which contacts are online
+//    	contactListController.stopCheckWhichContactsOnLine();
+    	
+//        if(notificationBroadcastReceiver != null){
+//    		unregisterReceiver(notificationBroadcastReceiver);
+//    	}
+    	
     	LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
     }
 
-	private void showNotificationDialog(String title, String errorMessage) {
-    	String dialogMessage = errorMessage;
-    	
-		CommonDialog aboutDialog = new CommonDialog(this, notificationDialogOnClickAction);
-		aboutDialog.setDialogMessage(dialogMessage);
-		aboutDialog.setDialogTitle(title);
-		aboutDialog.setPositiveButtonText("OK");
-		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		aboutDialog.showDialog();
-		aboutDialog.setCancelable(true);
-    }
-
-	IDialogOnClickAction notificationDialogOnClickAction = new IDialogOnClickAction() {
-		
-		@Override
-		public void doOnPositiveButton() {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void doOnNegativeButton() {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setActivity(Activity activity) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setContext(Context context) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setParams(Object[]... objects) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void doOnChooseItem(int which) {
-			// TODO Auto-generated method stub
-			
-		}
-	};
-	
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
 	    super.onCreateContextMenu(menu, v, menuInfo);	    

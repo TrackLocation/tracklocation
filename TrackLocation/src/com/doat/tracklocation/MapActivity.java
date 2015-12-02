@@ -75,6 +75,7 @@ import com.doat.tracklocation.datatype.MessageDataLocation;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.dialog.CommonDialog;
 import com.doat.tracklocation.dialog.IDialogOnClickAction;
+import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.MapUtils;
@@ -438,7 +439,13 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        @Override
 	        public void onClick(View v) {	
 	        	if (selectedMarkerDetails != null){
-	        		showRingConfirmationDialog(MapActivity.this, "Are you sure?", selectedMarkerDetails.getContactDetails());
+	        		String title = "Ring to chosen contact.";
+	        		String dialogMessage = "Are you sure?";
+//	        		showRingConfirmationDialog(MapActivity.this, "Are you sure?", selectedMarkerDetails.getContactDetails());
+	        		InfoDialog joinRequestDialog = new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
+	        		if(joinRequestDialog.isSelectionStatus()){
+	        			Controller.RingDevice(context, className, selectedMarkerDetails.getContactDetails());
+	        		}
 	        	}
 	        }
 	    });
@@ -582,7 +589,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     				// FAILED for some recipients
 	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.error.toString().equals(value)){
 	    				//showNotificationDialog(broadcastData.getMessage());
-	    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
+//	    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
+	    				String title = "Warning";
+	    				String dialogMessage = broadcastData.getMessage();
+	    				new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
 	    				notificationView.setText(broadcastData.getMessage());
 	    				notificationView.setVisibility(4);
 	    			}
@@ -607,7 +617,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    			
 	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_defined.toString().equals(value)){
 	    				if(isPermissionDialogShown == false){
-		    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
+//		    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
+	    					String title = "Warning";
+	    					String dialogMessage = broadcastData.getMessage();
+	    	        		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
 		    				isPermissionDialogShown = true;
 	    				}
 	    				waitingDialog.dismiss();
@@ -615,7 +628,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_permitted.toString().equals(value)){
 	    				if(isPermissionDialogShown == false){
-		    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
+//		    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
+	    					String title = "Warning";
+	    					String dialogMessage = broadcastData.getMessage();
+	    	        		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
 		    				isPermissionDialogShown = true;
 	    				}
 	    				waitingDialog.dismiss();
@@ -1019,7 +1035,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		canvas.drawBitmap(bitmap, (int)(0.1 * iSize), (int)(0.1 * iSize), new Paint());
 		return bmp;
 	}
-	
+
+/*	
 	private IDialogOnClickAction dialogOnClickAction = new IDialogOnClickAction(){
 		MessageDataContactDetails contactDetails = null;
 		
@@ -1051,7 +1068,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			contactDetails = (MessageDataContactDetails) objects[0][0];
 		}		
 	};
-
+*/
+/*	
 	private void showRingConfirmationDialog(Activity activity, String confirmationMessage, MessageDataContactDetails contactDetails) {
 		Object[] objects = new Object[1];
 		objects[0] = contactDetails;
@@ -1066,7 +1084,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
     }
-	
+*/	
     private void startTimer() {
     	stoptimertask();
         //set a new Timer

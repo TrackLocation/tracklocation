@@ -5,34 +5,24 @@ import java.util.UUID;
 
 import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.R;
-import com.doat.tracklocation.concurrent.CheckJoinRequestBySMS;
 import com.doat.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.doat.tracklocation.datatype.AppInfo;
 import com.doat.tracklocation.datatype.AppInstDetails;
 import com.doat.tracklocation.datatype.BackupDataOperations;
-import com.doat.tracklocation.datatype.CommandData;
-import com.doat.tracklocation.datatype.CommandDataBasic;
-import com.doat.tracklocation.datatype.CommandEnum;
-import com.doat.tracklocation.datatype.CommandKeyEnum;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
-import com.doat.tracklocation.datatype.MessageDataContactDetails;
-import com.doat.tracklocation.datatype.MessageDataLocation;
-import com.doat.tracklocation.datatype.ReceivedJoinRequestData;
-import com.doat.tracklocation.datatype.SMSMessage;
-import com.doat.tracklocation.datatype.SMSMessageList;
 import com.doat.tracklocation.db.DBLayer;
-import com.doat.tracklocation.dialog.CommonDialog;
-import com.doat.tracklocation.dialog.IDialogOnClickAction;
+import com.doat.tracklocation.dialog.ChooseAccountDialog;
+import com.doat.tracklocation.dialog.ICommonDialogNewOnClickListener;
+import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.exception.CheckPlayServicesException;
-import com.doat.tracklocation.exception.UnableToSendCommandException;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.MainModel;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
+import com.doat.tracklocation.utils.SMSUtils;
 import com.doat.tracklocation.utils.Utils;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.gson.Gson;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -65,20 +55,29 @@ public class MainActivityController {
     
 	private Thread registerToGCMInBackgroundThread;
 	private Runnable registerToGCMInBackground;
-	private Thread checkJoinRequestBySMSInBackgroundThread;
-	private Runnable checkJoinRequestBySMSInBackground;
     
     public MainActivityController(Activity mainActivity, Context context){
     	className = this.getClass().getName();
+    	methodName = "MainActivityController";
+    	LogManager.LogFunctionCall(className, methodName);
+    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
     	this.mainActivity = mainActivity;
     	this.context = context;
     	if(mainModel == null){
     		mainModel = new MainModel();
     	}
-    	start();
+    	startMainActivityController();
+    	
+    	LogManager.LogFunctionExit(className, methodName);
+    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
     }
     
-    public void start(){
+    public void startMainActivityController(){
+    	methodName = "startMainActivityController";
+    	LogManager.LogFunctionCall(className, methodName);
+    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
 		googleProjectNumber = mainActivity.getResources().getString(R.string.google_project_number);
 		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
 
@@ -107,9 +106,15 @@ public class MainActivityController {
 			initCont();
 		}
 		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
     }
     
     private void initCont(){
+    	methodName = "initCont";
+    	LogManager.LogFunctionCall(className, methodName);
+    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
 		Controller.saveAppInfoToPreferences(context);
 		
 		// PHONE NUMBER
@@ -151,7 +156,10 @@ public class MainActivityController {
 	            	PLAY_SERVICES_RESOLUTION_REQUEST).show();
 			} else if(CommonConst.PLAYSERVICES_DEVICE_NOT_SUPPORTED.equals(errorMessage)){
 				// Show dialog with errorMessage and exit from application 
-				showNotificationDialog("\nGoogle Play Services not supported with this device.\nProgram will be closed.\n", "FINISH");
+//				showNotificationDialog("\nGoogle Play Services not supported with this device.\nProgram will be closed.\n", "FINISH");
+        		String title = "Warning";
+        		String dialogMessage = "\nGoogle Play Services not supported with this device.\nProgram will be closed.\n";
+        		new InfoDialog(mainActivity, context, title, dialogMessage, null);
 			}
             Log.e(CommonConst.LOG_TAG, "No valid Google Play Services APK found.");
     		LogManager.LogInfoMsg(className, methodName, "No valid Google Play Services APK found.");
@@ -211,18 +219,10 @@ public class MainActivityController {
 //		}
 		
 		// Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
-		checkJoinRequestBySMSInBackground = new CheckJoinRequestBySMS(context, mainActivity);
-		try {
-			checkJoinRequestBySMSInBackgroundThread = new Thread(checkJoinRequestBySMSInBackground);
-			logMessage = "Started a separate thread to check Join request by SMS";
-			Log.i(CommonConst.LOG_TAG, logMessage);
-			LogManager.LogInfoMsg(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> initCont()", logMessage);
-			checkJoinRequestBySMSInBackgroundThread.start();
-		} catch (IllegalThreadStateException e) {
-			logMessage = "Check Join request by SMS in background thread was started already";
-			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
-		}
+        SMSUtils.checkJoinRequestBySMSInBackground(context, mainActivity, false);
+ 
+        LogManager.LogFunctionExit(className, methodName);
+        Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
     }
     
 	private void getCurrentAccount(){
@@ -237,13 +237,41 @@ public class MainActivityController {
 				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 				initCont();
 			} else {
-				showChooseAccountDialog();
+//				showChooseAccountDialog();
+        		ChooseAccountDialog chooseAccountDialog =
+        				new ChooseAccountDialog(mainActivity, new ICommonDialogNewOnClickListener(){
+        			@Override
+        			public void doOnChooseItem(int which) {
+        				account = accountList.get(which);
+        				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+        				initCont();
+        			}
+
+					@Override
+					public void doOnPositiveButton(Object data) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void doOnNegativeButton(Object data) {
+						// TODO Auto-generated method stub
+						
+					}
+        		});
+        		chooseAccountDialog.setDialogTitle("Choose current account:");
+        		chooseAccountDialog.setItemsList(accountList.toArray(new String[0]));
+        		chooseAccountDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+        		chooseAccountDialog.showDialog();
+        		chooseAccountDialog.setCancelable(false);
+       		
 //				Intent intent = new Intent(context,ActivityDialog.class);
 //				mainActivity.startActivity(intent);
 			}
 		}
 	}
-	
+
+/*
 	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
 		@Override
 		public void doOnPositiveButton() {
@@ -268,7 +296,8 @@ public class MainActivityController {
 			// TODO Auto-generated method stub
 		}
 	};
-
+*/
+/*	
 	IDialogOnClickAction dialogChooseAccountDialog = new IDialogOnClickAction() {
 		@Override
 		public void doOnPositiveButton() {
@@ -296,7 +325,8 @@ public class MainActivityController {
 			initCont();
 		}
 	};
-
+*/
+/*	
 	IDialogOnClickAction notificationDialogOnClickAction = new IDialogOnClickAction() {
 		
 		boolean isExit = false;
@@ -332,7 +362,8 @@ public class MainActivityController {
 			
 		}
 	};
-
+*/
+/*	
 	private void showNotificationDialog(String errorMessage, String action) {
     	//String dialogMessage = "\nGoogle Cloud Service is not available right now.\n\nPlease try later.\n";
     	String dialogMessage = errorMessage;
@@ -348,7 +379,8 @@ public class MainActivityController {
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
     }
-
+*/
+/*	
 	private void showChooseAccountDialog() {
 		CommonDialog aboutDialog = new CommonDialog(mainActivity, dialogChooseAccountDialog);
 		aboutDialog.setDialogTitle("Choose current account:");
@@ -358,7 +390,7 @@ public class MainActivityController {
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(false);
     }
-
+*/
 	private void launchWaitingDialog() {
 		final int MAX_RETRY_TIMES = 5;
 		
@@ -404,7 +436,9 @@ public class MainActivityController {
             		if(registrationId == null || !registrationId.isEmpty()){
             			String errorMessage = "\nGoogle Cloud Service is not available right now.\n\n"
             				+ "Application will be closed.\n\nPlease try later.\n";
-            			showNotificationDialog(errorMessage, "FINISH");
+//            			showNotificationDialog(errorMessage, "FINISH");
+                		String title = "Warning";
+                		new InfoDialog(mainActivity, context, title, errorMessage, null);
             		}
             	}
             }
@@ -481,289 +515,4 @@ public class MainActivityController {
 	public Thread getRegisterToGCMInBackgroundThread() {
 		return registerToGCMInBackgroundThread;
 	}
-	
-  public void showApproveJoinRequestDialog(Activity activity, Context context,
-			String account, String phoneNumber, String mutualId, String regId, 
-			String macAddress, SMSMessage smsMessage) {
-  	String dialogMessage = "Approve join request from " +
-			account + "\n[" + phoneNumber + "]";
-  	
-  	IDialogOnClickAction approveJoinRequestDialogOnClickAction = new IDialogOnClickAction() {
-			Context context;	
-			String mutualId;
-			String regId;
-//			String email;
-//			String macAddress;
-			SMSMessage smsMessage;
-			
-          String ownerEmail;
-          String ownerMacAddress;
-          String ownerRegId;
-          String ownerPhoneNumber;
-          String message = null, key = null, value = null;
-          float batteryPercentage = -1;
-          AppInfo appInfo = null;
-
-          ContactDeviceDataList contactDeviceDataList = null;
-          ReceivedJoinRequestData receivedJoinRequestData = null;
-			MessageDataContactDetails senderMessageDataContactDetails = null; 
-			MessageDataLocation location = null;
-       
-			@Override
-			public void doOnPositiveButton() {
-				String methodName = "doOnPositiveButton";
-				// Send JOIN APPROVED command (CommandEnum.join_approval) with
-				// information about contact approving join request sent by SMS
-//				sendApproveOnJoinRequest(context, regId, mutualId, ownerEmail, ownerRegId, ownerMacAddress, 
-//					ownerPhoneNumber, CommandEnum.join_approval);
-				
-				if(smsMessage != null){
-					saveHandledSmsDetails(context, smsMessage);
-				}
-				
-				CommandDataBasic commandDataBasic;
-				try {
-					commandDataBasic = new CommandData(
-						context, 
-						contactDeviceDataList, 
-						CommandEnum.join_approval,
-						message,					// null
-						senderMessageDataContactDetails,
-						location, 					// null
-						CommandKeyEnum.mutualId.toString(),
-						mutualId, 
-						appInfo
-					);
-					commandDataBasic.sendCommand(/*true*/);
-				} catch (UnableToSendCommandException e) {
-					LogManager.LogException(e, className, methodName);
-					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
-				}
-				
-				// Remove from RECEIVED_JOIN_REQUEST
-				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getInstance().getReceivedJoinRequest(mutualId);
-				if( receivedJoinRequestData == null ){
-		        	String errMsg = "Failed to get received join request data";
-		            Log.e(CommonConst .LOG_TAG, errMsg);
-		            LogManager.LogErrorMsg(className, "showApproveJoinRequestDialog", errMsg);
-				}else {
-					Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + receivedJoinRequestData.toString());
-				}
-				
-				// Add information to DB about contact, requesting join operation 
-				ContactDeviceDataList contactDeviceDataListOwner = 
-						DBLayer.getInstance().addContactDeviceDataList(
-						new ContactDeviceDataList(	receivedJoinRequestData.getAccount(),
-													receivedJoinRequestData.getMacAddress(), 
-													receivedJoinRequestData.getPhoneNumber(), 
-													receivedJoinRequestData.getRegId(), 
-													null));
-				if( contactDeviceDataListOwner == null ){
-		        	String errMsg = "Failed to save to DB details of the contcat requesting join operation";
-		            Log.e(CommonConst .LOG_TAG, errMsg);
-		            LogManager.LogErrorMsg(className, "showApproveJoinRequestDialog", errMsg);
-				}
-				
-				// Delete join request that was handled 
-				int count = DBLayer.getInstance().deleteReceivedJoinRequest(mutualId);
-				if( count < 1) {
-					Log.i(CommonConst.LOG_TAG, "Failed to delete recived join request with mutual id: " + mutualId + " count = " + count);
-				} else {
-					Log.i(CommonConst.LOG_TAG, "Deleted recived join request with mutual id: " + mutualId + " count = " + count);
-				}
-			}
-			
-			@Override
-			public void doOnNegativeButton() {
-				String methodName = "doOnNegativeButton";
-				// Send JOIN REJECTED command (CommandEnum.join_rejected) with
-				// information about contact approving join request sent by SMS
-//				sendApproveOnJoinRequest(context, regId, mutualId, ownerEmail, ownerRegId, ownerMacAddress, 
-//					ownerPhoneNumber, CommandEnum.join_rejected);
-
-				if(smsMessage != null){
-					saveHandledSmsDetails(context, smsMessage);
-				}
-
-				CommandDataBasic commandDataBasic;
-				try {
-					commandDataBasic = new CommandData(
-						context, 
-						contactDeviceDataList, 
-						CommandEnum.join_rejected,
-						message, 			// null
-						senderMessageDataContactDetails, 
-						location,			// null
-						key,				// null
-						value,				// null
-						appInfo
-					);
-					commandDataBasic.sendCommand(/*true*/);
-				} catch (UnableToSendCommandException e) {
-					LogManager.LogException(e, className, methodName);
-					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
-				}
-				
-				// Remove from RECEIVED_JOIN_REQUEST
-				int count = DBLayer.getInstance().deleteReceivedJoinRequest(mutualId);
-				if(count == 0){
-					String errorMsg = "Failed to delete received join request from " + ownerEmail;
-					LogManager.LogErrorMsg(className, "doOnNegativeButton->deleteReceivedJoinRequest", errorMsg);
-				}
-			}
-			
-			@Override
-			public void setActivity(Activity activity) {
-			}
-			
-			@Override
-			public void setContext(Context context) {
-				this.context = context;
-				ownerEmail = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-	            ownerMacAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
-	            ownerRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-	            ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
-				ReceivedJoinRequestData receivedJoinRequestData = DBLayer.getInstance().getReceivedJoinRequest(mutualId);
-				if( receivedJoinRequestData == null ){
-		        	String errMsg = "Failed to get received join request data";
-		            Log.e(CommonConst .LOG_TAG, errMsg);
-		            LogManager.LogErrorMsg(className, "showApproveJoinRequestDialog", errMsg);
-		            return;
-				}else {
-					contactDeviceDataList = 
-							new ContactDeviceDataList(
-									receivedJoinRequestData.getAccount(), 
-									receivedJoinRequestData.getMacAddress(), 
-									receivedJoinRequestData.getPhoneNumber(), 
-									receivedJoinRequestData.getRegId(), 
-									null);
-					Log.i(CommonConst.LOG_TAG, "ReceivedJoinRequestData = " + receivedJoinRequestData.toString());
-				}
-				senderMessageDataContactDetails = 
-						new MessageDataContactDetails(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, batteryPercentage);
-				appInfo = Controller.getAppInfo(context);
-			}
-			
-			@Override
-			public void setParams(Object[]... objects) {
-				mutualId = objects[0][0].toString();
-				regId = objects[0][1].toString();
-				smsMessage = (SMSMessage)objects[0][2];
-//				email = objects[0][2].toString();
-//				macAddress = objects[0][3].toString();
-			}
-
-			@Override
-			public void doOnChooseItem(int which) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-		};
-		
-		Object[] objects = new Object[3];
-		objects[0] = mutualId;
-		objects[1] = regId;
-		objects[2] = smsMessage;
-		approveJoinRequestDialogOnClickAction.setParams(objects);
-		approveJoinRequestDialogOnClickAction.setContext(context);
-//		objects[2] = account;
-//		objects[3] = macAddress;
-  	
-		CommonDialog aboutDialog = new CommonDialog(activity, approveJoinRequestDialogOnClickAction);
-		
-		aboutDialog.setDialogMessage(dialogMessage);
-		aboutDialog.setDialogTitle("Join request approval");
-		aboutDialog.setPositiveButtonText("OK");
-		aboutDialog.setNegativeButtonText("Cancel");
-		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		aboutDialog.showDialog();
-		aboutDialog.setCancelable(false);
-  }
-	
-  
-	public void saveHandledSmsDetails(Context ctx, SMSMessage smsMessage) {
-		Gson gson = new Gson();
-		SMSMessageList handledSmsList = null;
-		String jsonHandledSmsList = Preferences.getPreferencesString(ctx,
-				CommonConst.PREFERENCES_HANDLED_SMS_LIST);
-		if (jsonHandledSmsList == null || jsonHandledSmsList.isEmpty()) {
-			handledSmsList = new SMSMessageList();
-		} else {
-			handledSmsList = gson.fromJson(jsonHandledSmsList,
-					SMSMessageList.class);
-		}
-		if (handledSmsList != null && !isContain(handledSmsList, smsMessage)) {
-			handledSmsList.getSmsMessageList().add(smsMessage);
-			String jsonHandledSmsListNew = gson.toJson(handledSmsList);
-			Preferences.setPreferencesString(ctx,
-					CommonConst.PREFERENCES_HANDLED_SMS_LIST,
-					jsonHandledSmsListNew);
-		}
-	}
-
-	public boolean isContain(SMSMessageList handledSmsList,
-			SMSMessage smsMessage) {
-		if (handledSmsList == null) {
-			return false;
-		}
-		if (smsMessage == null) {
-			return false;
-		}
-		long smsMessageDateLong = Long.parseLong(smsMessage.getMessageDate());
-		List<SMSMessage> list = handledSmsList.getSmsMessageList();
-		if (list != null) {
-			for (SMSMessage smsMessageEntity : list) {
-				if (smsMessageEntity != null
-						&& smsMessageEntity.getMessageDate().equals(
-								smsMessage.getMessageDate())
-						&& smsMessageEntity.getMessageId().equals(
-								smsMessage.getMessageId())) {
-					return true;
-				}
-				long smsMessageEntityDateLongFromList = Long
-						.parseLong(smsMessageEntity.getMessageDate());
-				// Check that smsMessage from list (handled one) has greater
-				// timestamp than smsMessage
-				// that currently checking (if handled) - consider such
-				// smsMessage as handled
-				if (smsMessageDateLong < smsMessageEntityDateLongFromList) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	public boolean isHandledSmsDetails(Context ctx, SMSMessage smsMessage) {
-		Gson gson = new Gson();
-		SMSMessageList handledSmsList = null;
-		if (smsMessage == null) {
-			return true;
-		}
-
-		// If installation date(timestamp) of application id greater
-		// then SMS date(timestamp) - consider SMS as handled
-		AppInstDetails appInstDetails = new AppInstDetails(ctx);
-		long appInstTimestamp = appInstDetails.getTimestamp();
-		String smsMessageDate = smsMessage.getMessageDate();
-		if (smsMessageDate != null && !smsMessageDate.isEmpty()) {
-			long longSmsMessageTimestamp = Long.parseLong(smsMessageDate);
-			if (appInstTimestamp > longSmsMessageTimestamp) {
-				return true;
-			}
-		}
-
-		String jsonHandledSmsList = Preferences.getPreferencesString(ctx,
-				CommonConst.PREFERENCES_HANDLED_SMS_LIST);
-		if (jsonHandledSmsList != null && !jsonHandledSmsList.isEmpty()) {
-			handledSmsList = gson.fromJson(jsonHandledSmsList,
-					SMSMessageList.class);
-			if (handledSmsList != null && isContain(handledSmsList, smsMessage)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 }

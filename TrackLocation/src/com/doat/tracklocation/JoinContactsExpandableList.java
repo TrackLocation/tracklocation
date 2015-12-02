@@ -15,15 +15,13 @@ import com.doat.tracklocation.datatype.SentJoinRequestData;
 import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.CommonDialog;
 import com.doat.tracklocation.dialog.IDialogOnClickAction;
+import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.Utils;
-import com.doat.tracklocation.utils.ViewHolder;
 
-import android.app.Activity;
 import android.app.ExpandableListActivity;
-import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.AsyncQueryHandler;
 import android.content.BroadcastReceiver;
@@ -271,28 +269,34 @@ public class JoinContactsExpandableList extends ExpandableListActivity {
 		    			phoneNumber = args[1];
 		    			
 		    			SentJoinRequestData joinRequestData = DBLayer.getInstance().getSentJoinRequestByPhone(phoneNumber);
+		    			InfoDialog joinRequestDialog = null;
 		    			if( joinRequestData == null ) { 
 		    				toSendAddJoinRequest = true;
 		    			} else { // join request with <phoneNumber> already exists, check the status
 		    				if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.SENT.toString()) ) {
 		    					// Notify by dialog that join request already sent to <phoneNumber>
 		    					// check if the following request should be sent again
-		    					joinRequestDialog(contactName, phoneNumber);
-		    		        	
-		    				} else if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.ACCEPTED.toString()) ) {
+//		    					joinRequestDialog(contactName, phoneNumber);
+		    	        		String title = "Join contact";
+		    	        		String dialogMessage = "\nJoin request has been already sent to " + contactName + 
+		    			        	", with phone number " + phoneNumber + ".\n\nDo you want to send it again?\n";
+		    	        		joinRequestDialog = new InfoDialog(JoinContactsExpandableList.this, context, title, dialogMessage, null);
+		    	        		
+		    	        		toSendAddJoinRequest = joinRequestDialog.isSelectionStatus();
+		    				} else if(toSendAddJoinRequest) {
 		    					// TODO: notify by dialog that join request already sent to <phoneNumber> and accepted
 		    					// check if the following request should be sent again
 		    					// DIALOG FUNC
 		    					
 		    					// in case if request should be sent again
 			    				toSendAddJoinRequest = true;
-		    				} else if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.DECLINED.toString()) ) {
+		    				} else if(!toSendAddJoinRequest) {
 		    					// TODO: notify by dialog that join request already sent to <phoneNumber> but declined
 		    					// check if the following request should be sent again
 		    					// DIALOG FUNC
 		    					
 		    					// in case if request should be sent again
-			    				toSendAddJoinRequest = true;
+			    				toSendAddJoinRequest = false;
 		    				}
 		    			}
 		    			if(toSendAddJoinRequest == true){
@@ -342,7 +346,8 @@ public class JoinContactsExpandableList extends ExpandableListActivity {
 		}
 		finish();
     }
-    
+
+/*    
 	IDialogOnClickAction joinRequest = new IDialogOnClickAction() {
 		@Override
 		public void doOnPositiveButton() {
@@ -378,7 +383,7 @@ public class JoinContactsExpandableList extends ExpandableListActivity {
 			// TODO Auto-generated method stub			
 		}
 	};
-	
+*/	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
@@ -412,7 +417,8 @@ public class JoinContactsExpandableList extends ExpandableListActivity {
 	 
 	    return true;
 	}
-	
+
+/*	
 	private void joinRequestDialog(String contactName, String phoneNumber) {
     	String dialogMessage = "\nJoin request has been already sent to " + contactName + 
     		", with phone number " + phoneNumber + ".\n\nDo you want to send it again?\n";
@@ -426,7 +432,7 @@ public class JoinContactsExpandableList extends ExpandableListActivity {
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
     }
-	
+*/	
 	public int getGroupPositionCurrent() {
 		return groupPositionCurrent;
 	}

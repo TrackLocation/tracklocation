@@ -6,10 +6,8 @@ import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.MainActivity;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastKeyEnum;
-import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.db.DBLayer;
-import com.doat.tracklocation.grid.ContactDataGridView;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.google.gson.Gson;
@@ -33,7 +31,11 @@ public class SMSReceiver extends BroadcastReceiver {
 	public void onReceive(Context context, Intent intent) {
         className = this.getClass().getName();
 
-		String action = intent.getAction();
+        methodName = "onReceive";
+        LogManager.LogFunctionCall(className, methodName);
+        Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
+        String action = intent.getAction();
 		
 		if (action.equals(ACTION_SMS_RECEIVED)) {
 
@@ -46,8 +48,8 @@ public class SMSReceiver extends BroadcastReceiver {
 					smsMessageBody += "\n";
 					smsPhoneNumber = ((SmsMessage)msgs[i]).getOriginatingAddress();
 				}
-			}
-
+			}			
+			
 			if(smsMessageBody.contains(CommonConst.JOIN_FLAG_SMS)){
 				
 				String[] smsParams = smsMessageBody.split(CommonConst.DELIMITER_COMMA);
@@ -91,8 +93,6 @@ public class SMSReceiver extends BroadcastReceiver {
 					notificationBroadcastData.setValue(smsMessageBody);
 					String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
 					
-					MessageDataContactDetails mdcd = null;
-			
 					// Broadcast corresponding message
 					Controller.broadcastMessage(context, 
 						BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
@@ -103,6 +103,9 @@ public class SMSReceiver extends BroadcastReceiver {
 				}
 			}
 		}
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 	private static Intent getIntent(Context context, Class<?> cls) {

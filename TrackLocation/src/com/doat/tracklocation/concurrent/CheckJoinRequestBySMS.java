@@ -2,16 +2,18 @@ package com.doat.tracklocation.concurrent;
 
 import android.app.Activity;
 import android.content.Context;
-// import android.net.Uri;
 import android.util.Log;
 
 import com.doat.tracklocation.Controller;
-import com.doat.tracklocation.MainActivity;
+import com.doat.tracklocation.context.ApproveJoinRequestContext;
 import com.doat.tracklocation.datatype.SMSMessage;
 import com.doat.tracklocation.datatype.SMSMessageList;
 import com.doat.tracklocation.db.DBLayer;
+import com.doat.tracklocation.dialog.ApproveJoinRequestDialog;
+import com.doat.tracklocation.dialog.ApproveJoinRequestDialogListener;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
+import com.doat.tracklocation.utils.SMSUtils;
 
 public class CheckJoinRequestBySMS implements Runnable {
 
@@ -41,6 +43,8 @@ public class CheckJoinRequestBySMS implements Runnable {
 
 	public void handleSms(Context ctx, SMSMessage smsMessage){
 		methodName = "handleSms";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 		
 	    String smsPhoneNumber = smsMessage.getMessageNumber();
 	    
@@ -83,22 +87,41 @@ public class CheckJoinRequestBySMS implements Runnable {
 	    	        //    ((MainActivity) activity).getMainActivityController().saveHandledSmsDetails(ctx, smsMessage);
     				//}
     				
+    				// Show Approve Join Request Dialog only if called by initCont (init process)
+    				// DO not show if called by broadcast invoked by SMSReceiver
     	    	    // Check that join request approved and send back by
     	    	    // push notification (GCM) owner contact details
     				logMessage = "Show 'ApproveJoinRequestDialog' from thread...";
-    				Log.e(CommonConst.LOG_TAG, logMessage);
+    				Log.i(CommonConst.LOG_TAG, logMessage);
     				LogManager.LogInfoMsg(className, methodName, logMessage);
     				//Controller.showApproveJoinRequestDialog(activity, ctx, accountFromSMS, phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, macAddressFromSMS);
-    				((MainActivity) activity).getMainActivityController()
-    				 	.showApproveJoinRequestDialog(activity, 
-    				 		ctx, 
-    				 		accountFromSMS, 
-    				 		phoneNumberFromSMS, 
-    				 		mutualIdFromSMS, 
-    				 		regIdFromSMS, 
-    				 		macAddressFromSMS,
-    				 		smsMessage);
-    			}
+//    				((MainActivity) activity).getMainActivityController()
+//    				 	.showApproveJoinRequestDialog(activity, 
+//    				 		ctx, 
+//    				 		accountFromSMS, 
+//    				 		phoneNumberFromSMS, 
+//    				 		mutualIdFromSMS, 
+//    				 		regIdFromSMS, 
+//    				 		macAddressFromSMS,
+//    				 		smsMessage);
+    				ApproveJoinRequestContext approveJoinRequestContext = 
+    					new ApproveJoinRequestContext(ctx, mutualIdFromSMS);
+    					
+					ApproveJoinRequestDialogListener approveJoinRequestDialogListener = 
+						new ApproveJoinRequestDialogListener(approveJoinRequestContext, smsMessage);
+    					
+					ApproveJoinRequestDialog approveJoinRequestDialog = 
+						new ApproveJoinRequestDialog(activity, ctx, approveJoinRequestDialogListener);
+					approveJoinRequestDialog.showApproveJoinRequestDialog(
+						activity, 
+						ctx, 
+						accountFromSMS,
+						phoneNumberFromSMS, 
+						mutualIdFromSMS,
+						regIdFromSMS,
+						macAddressFromSMS,
+						smsMessage);
+				}
     	    } else {
 	        	logMessage = "No NULL or empty parameters accepted for mutualId , regId, " + 
 	    	    	"macAddress and phoneNumber.";
@@ -131,6 +154,9 @@ public class CheckJoinRequestBySMS implements Runnable {
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 		}
+	    
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 	@Override
@@ -143,10 +169,16 @@ public class CheckJoinRequestBySMS implements Runnable {
 	    	for (SMSMessage smsMessage : smsList.getSmsMessageList()) {
 	    		// Check if there SMS with JOIN REQUEST from TrackLocation application
 				if(smsMessage != null && smsMessage.getMessageContent().contains(CommonConst.JOIN_FLAG_SMS)){
-		    	    if(((MainActivity) activity).getMainActivityController().isHandledSmsDetails(ctx, smsMessage)){
+		    	    if(SMSUtils.isHandledSmsDetails(ctx, smsMessage)){
 		    	    	continue;
 		    	    }
-		    	    handleSms(ctx, smsMessage);
+		    	    
+		    	    // save the SMS as handled
+		    		if(smsMessage != null){
+		    			SMSUtils.saveHandledSmsDetails(ctx, smsMessage);
+		    		}
+
+	    			handleSms(ctx, smsMessage);
 				}
 			}
 	    }

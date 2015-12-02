@@ -1,16 +1,29 @@
 package com.doat.tracklocation;
 
+import com.doat.tracklocation.datatype.BroadcastActionEnum;
+import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.utils.CommonConst;
+
 import android.app.ActionBar;
 import android.app.Activity;
-import android.content.ComponentName;
-import android.content.Intent;
+import android.content.Context;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 
 public class BaseActivity extends Activity {
 	protected String className;    
     protected String methodName;
+    protected Context context;
+//    protected BroadcastReceiver notificationBroadcastReceiver;
+    protected String logMessage;
+    protected BroadcastReceiverBase broadcastReceiver;
 	
+	public TrackLocationApplication getMainApp() {
+		return (TrackLocationApplication) getApplication();
+	}
+
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		return false;
@@ -23,6 +36,30 @@ public class BaseActivity extends Activity {
 	    actionBar.setDisplayShowHomeEnabled(false);
 	    actionBar.setDisplayShowTitleEnabled(true);
 		super.onCreate(savedInstanceState);
+		className = this.getClass().getName();	
+		context = getApplicationContext();
 		
+		LogManager.LogActivityCreate(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
+	}
+
+	// Initialize BROADCAST_MESSAGE broadcast receiver
+	protected void initNotificationBroadcastReceiver(BroadcastReceiverBase broadcastReceiver) {
+		methodName = "initNotificationBroadcastReceiver";
+		LogManager.LogFunctionCall(className, methodName);
+		
+		IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
+	    
+	    registerReceiver(broadcastReceiver, intentFilter);
+	    
+		LogManager.LogFunctionExit(className, methodName);
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
 	}
 }

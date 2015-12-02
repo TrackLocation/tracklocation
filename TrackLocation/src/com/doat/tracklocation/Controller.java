@@ -428,17 +428,23 @@ public class Controller {
 		String value)
 	{
 		String methodName = "broadcastMessage";
-		LogManager.LogFunctionCall(className + " on behalf of " + actionDescription, methodName);
-		
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
 		LogManager.LogInfoMsg(className, methodName, "Action: " + action);
 		LogManager.LogInfoMsg(className, methodName, "Key: " + key);
 		
 		Intent intent = new Intent();
 		intent.setAction(action); //intent.setAction("com.dagrest.tracklocation.service.GcmIntentService.GCM_UPDATED");
+		// TODO: check how to set package for sendBroadcast !!!
+		//intent.setPackage(CommonConst.TRACK_LOCATION_PROJECT_PREFIX);
+		//intent.setPackage("com.doat.tracklocation.*");
 		intent.putExtra(key, value);
 		intent.putExtra(BroadcastConstEnum.data.toString(), data);
 		context.sendBroadcast(intent);
-		LogManager.LogFunctionExit(className + " on behalf of " + actionDescription, methodName);
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 
 	/*
@@ -920,6 +926,7 @@ public class Controller {
 		);
 	}
 
+/*	
 	public static void showNotificationDialog(Activity activity, String errorMessage) {
 		IDialogOnClickAction dialogOnClickAction = null;
 		CommonDialog aboutDialog = new CommonDialog(activity, dialogOnClickAction);
@@ -930,7 +937,7 @@ public class Controller {
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
     }
-	
+*/	
 	public static void removeSenderAccountFromSendCommandList(Context context, 
 			String jsonListAccounts, String senderAccount){
         String methodName = "showNotificationDialog";
@@ -1026,5 +1033,14 @@ public class Controller {
 	public static Bitmap getContactPhotoByEmail(Context context, String email) {
 		Long contactId = getContactIdByEmail(context, email);
 		return getContactPhoto(context.getContentResolver(), contactId, false);
+	}
+	
+	public static MessageDataContactDetails getMessageDataContactDetails(Context context){
+		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+		String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+		String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+		return new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
+			Controller.getBatteryLevel(context));
 	}
 }
