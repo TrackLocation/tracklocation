@@ -6,10 +6,7 @@ import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.SMSUtils;
-import com.google.android.gms.drive.internal.GetMetadataRequest;
-
 import android.app.Activity;
-import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -43,10 +40,16 @@ public class BroadcastReceiverBase extends BroadcastReceiver {
 		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
 			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
 			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
+				logMessage = "The received Broadcast Data is null or empty.";
+				LogManager.LogErrorMsg(className, methodName, logMessage);
+				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 				return;
 			}
 			NotificationBroadcastData broadcastData = TrackLocationApplication.gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
 			if(broadcastData == null){
+				logMessage = "Unable to decode the received Broadcast Data.";
+				LogManager.LogErrorMsg(className, methodName, logMessage);
+				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 				return;
 			}
 			
@@ -57,7 +60,7 @@ public class BroadcastReceiverBase extends BroadcastReceiver {
 			if(BroadcastKeyEnum.join_sms.toString().equals(key)) {
 				Activity currentActivity = ((BaseActivity)activity).getMainApp().getCurrentActivity();
 //				SMSUtils.showApproveJoinRequestDialog(context, currentActivity, broadcastData); // bring to foreground
-				SMSUtils.checkJoinRequestBySMSInBackground(context, currentActivity, true);
+				SMSUtils.checkJoinRequestBySMSInBackground(context, currentActivity);
 			}
 		}
 

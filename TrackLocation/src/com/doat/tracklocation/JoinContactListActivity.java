@@ -385,7 +385,7 @@ public class JoinContactListActivity extends ExpandableListActivity {
             String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
             String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
             String ownerPhoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
-			return CryptoUtils.encodeBase64(CommonConst.JOIN_FLAG_SMS + 
+			return CommonConst.JOIN_SMS_PREFIX + CryptoUtils.encodeBase64(CommonConst.JOIN_FLAG_SMS + 
 				CommonConst.DELIMITER_COMMA + registrationId + CommonConst.DELIMITER_COMMA +
 				mutualId + CommonConst.DELIMITER_COMMA + ownerPhoneNumber + CommonConst.DELIMITER_COMMA + account +
 				CommonConst.DELIMITER_COMMA + macAddress);

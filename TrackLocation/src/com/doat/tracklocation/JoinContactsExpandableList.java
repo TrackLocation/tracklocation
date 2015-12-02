@@ -12,6 +12,7 @@ import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.JoinRequestStatusEnum;
 import com.doat.tracklocation.datatype.SentJoinRequestData;
 import com.doat.tracklocation.db.DBLayer;
+import com.doat.tracklocation.dialog.ICommonDialogNewOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
@@ -263,35 +264,34 @@ public class JoinContactsExpandableList extends ExpandableListActivity {
 		    			phoneNumber = args[1];
 		    			
 		    			SentJoinRequestData joinRequestData = DBLayer.getInstance().getSentJoinRequestByPhone(phoneNumber);
-		    			InfoDialog joinRequestDialog = null;
+//		    			InfoDialog joinRequestDialog = null;
 		    			if( joinRequestData == null ) { 
 		    				toSendAddJoinRequest = true;
 		    			} else { // join request with <phoneNumber> already exists, check the status
 		    				if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.SENT.toString()) ) {
 		    					// Notify by dialog that join request already sent to <phoneNumber>
 		    					// check if the following request should be sent again
-//		    					joinRequestDialog(contactName, phoneNumber);
 		    	        		String title = "Join contact";
 		    	        		String dialogMessage = "\nJoin request has been already sent to " + contactName + 
 		    			        	", with phone number " + phoneNumber + ".\n\nDo you want to send it again?\n";
-		    	        		joinRequestDialog = new InfoDialog(JoinContactsExpandableList.this, context, title, dialogMessage, null);
-		    	        		
-		    	        		toSendAddJoinRequest = joinRequestDialog.isSelectionStatus();
-		    				} else if(toSendAddJoinRequest) {
-		    					// TODO: notify by dialog that join request already sent to <phoneNumber> and accepted
-		    					// check if the following request should be sent again
-		    					// DIALOG FUNC
-		    					
-		    					// in case if request should be sent again
-			    				toSendAddJoinRequest = true;
-		    				} else if(!toSendAddJoinRequest) {
-		    					// TODO: notify by dialog that join request already sent to <phoneNumber> but declined
-		    					// check if the following request should be sent again
-		    					// DIALOG FUNC
-		    					
-		    					// in case if request should be sent again
-			    				toSendAddJoinRequest = false;
-		    				}
+		    	        		new InfoDialog(JoinContactsExpandableList.this, context, title, dialogMessage, joinRequestDialogOnClickListener);
+		    				}	
+//		    	        		toSendAddJoinRequest = joinRequestDialog.isSelectionStatus();
+//		    				} else if(toSendAddJoinRequest) {
+//		    					// TODO: notify by dialog that join request already sent to <phoneNumber> and accepted
+//		    					// check if the following request should be sent again
+//		    					// DIALOG FUNC
+//		    					
+//		    					// in case if request should be sent again
+//			    				toSendAddJoinRequest = true;
+//		    				} else if(!toSendAddJoinRequest) {
+//		    					// TODO: notify by dialog that join request already sent to <phoneNumber> but declined
+//		    					// check if the following request should be sent again
+//		    					// DIALOG FUNC
+//		    					
+//		    					// in case if request should be sent again
+//			    				toSendAddJoinRequest = false;
+//		    				}
 		    			}
 		    			if(toSendAddJoinRequest == true){
 		    				sendJoinRequest(context, contactName, phoneNumber);
@@ -341,10 +341,10 @@ public class JoinContactsExpandableList extends ExpandableListActivity {
 		finish();
     }
 
-/*    
-	IDialogOnClickAction joinRequest = new IDialogOnClickAction() {
+    ICommonDialogNewOnClickListener joinRequestDialogOnClickListener = new ICommonDialogNewOnClickListener(){
+
 		@Override
-		public void doOnPositiveButton() {
+		public void doOnPositiveButton(Object data) {
 			toSendAddJoinRequest = true;
         	Controller.broadcastMessage(JoinContactsExpandableList.this, 
         			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
@@ -354,31 +354,21 @@ public class JoinContactsExpandableList extends ExpandableListActivity {
 					"Resend");
 			//sendJoinRequest(context, contactName, phoneNumber, mutualId);
 		}
+
 		@Override
-		public void doOnNegativeButton() {
+		public void doOnNegativeButton(Object data) {
 			toSendAddJoinRequest = false;
 		}
-		@Override
-		public void setActivity(Activity activity) {
-			// TODO Auto-generated method stub
-			
-		}
-		@Override
-		public void setContext(Context context) {
-			// TODO Auto-generated method stub
-			
-		}
-		@Override
-		public void setParams(Object[]... objects) {
-			// TODO Auto-generated method stub
-		}
+
 		@Override
 		public void doOnChooseItem(int which) {
-			// TODO Auto-generated method stub			
+			// TODO Auto-generated method stub
+			
 		}
-	};
-*/	
-	@Override
+    	
+    };
+
+    @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 	    // Inflate the menu; this adds items to the action bar if it is present.
@@ -412,21 +402,6 @@ public class JoinContactsExpandableList extends ExpandableListActivity {
 	    return true;
 	}
 
-/*	
-	private void joinRequestDialog(String contactName, String phoneNumber) {
-    	String dialogMessage = "\nJoin request has been already sent to " + contactName + 
-    		", with phone number " + phoneNumber + ".\n\nDo you want to send it again?\n";
-    	
-		CommonDialog aboutDialog = new CommonDialog(this, joinRequest);
-		aboutDialog.setDialogMessage(dialogMessage);
-		aboutDialog.setDialogTitle("Join contact");
-		aboutDialog.setPositiveButtonText("Yes");
-		aboutDialog.setNegativeButtonText("No");
-		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		aboutDialog.showDialog();
-		aboutDialog.setCancelable(true);
-    }
-*/	
 	public int getGroupPositionCurrent() {
 		return groupPositionCurrent;
 	}

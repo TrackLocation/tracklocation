@@ -6,13 +6,11 @@ import android.content.Context;
 import android.util.Log;
 
 import com.doat.tracklocation.Controller;
-import com.doat.tracklocation.MainActivity;
 import com.doat.tracklocation.datatype.AppInstDetails;
 import com.doat.tracklocation.datatype.CommandData;
 import com.doat.tracklocation.datatype.CommandDataBasic;
 import com.doat.tracklocation.datatype.CommandEnum;
 import com.doat.tracklocation.datatype.CommandKeyEnum;
-import com.doat.tracklocation.datatype.CommandValueEnum;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;

@@ -4,6 +4,7 @@ import java.util.regex.Pattern;
 
 public class CommonConst {
 	
+	public static final String 	APP_NAME 						= "TrackLocation";
 	public static final String 	LOG_TAG 						= "TrackLocation";
 	public static final String 	STACK_TRACE						= "FALSE";
 	public static final String 	TRACK_LOCATION_PROJECT_PREFIX 	= "com.doat.tracklocation";
@@ -77,6 +78,7 @@ public class CommonConst {
  	public static final String 	CONTACT_LIST_SELECTED_VALUE = "selectedValue";
  	public static final String 	CONTACT_REGISTRATION_ID = "registration_id";
  	
+ 	public static final String	JOIN_SMS_PREFIX = APP_NAME + " application:";
  	public static final String 	JOIN_CONTACT_BY_SMS = "sms";
  	public static final String 	JOIN_CONTACT_BY_EMAIL = "email";
  	public static final String 	JOIN_CONTACT_BY = "join_contact_by";

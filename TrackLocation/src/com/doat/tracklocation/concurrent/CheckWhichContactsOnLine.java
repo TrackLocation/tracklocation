@@ -5,11 +5,9 @@ import java.util.List;
 import android.content.Context;
 import android.util.Log;
 
-import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.CommandData;
 import com.doat.tracklocation.datatype.CommandDataBasic;
 import com.doat.tracklocation.datatype.CommandEnum;
-import com.doat.tracklocation.datatype.CommandValueEnum;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.exception.UnableToSendCommandException;

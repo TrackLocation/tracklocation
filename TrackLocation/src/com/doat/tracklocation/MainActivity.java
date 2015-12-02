@@ -52,7 +52,7 @@ public class MainActivity extends BaseActivity {
 				
 		isTrackLocationRunning = true;
 		
-		Context context = getApplicationContext();
+		context = getApplicationContext();
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
 			.setSmallIcon(R.drawable.main_icon_96)
 			.setContentTitle(getResources().getString(R.string.app_name));      

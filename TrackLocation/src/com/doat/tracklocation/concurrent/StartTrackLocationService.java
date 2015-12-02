@@ -2,7 +2,6 @@ package com.doat.tracklocation.concurrent;
 
 import java.util.List;
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 
@@ -12,16 +11,12 @@ import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.CommandData;
 import com.doat.tracklocation.datatype.CommandDataBasic;
 import com.doat.tracklocation.datatype.CommandEnum;
-import com.doat.tracklocation.datatype.CommandTagEnum;
 import com.doat.tracklocation.datatype.CommandValueEnum;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
-import com.doat.tracklocation.dialog.CommonDialog;
-import com.doat.tracklocation.dialog.IDialogOnClickAction;
 import com.doat.tracklocation.exception.UnableToSendCommandException;
 import com.doat.tracklocation.log.LogManager;
-import com.doat.tracklocation.service.GcmIntentService;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
 import com.google.gson.Gson;

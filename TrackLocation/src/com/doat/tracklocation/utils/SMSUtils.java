@@ -7,13 +7,9 @@ import android.content.Context;
 import android.util.Log;
 
 import com.doat.tracklocation.concurrent.CheckJoinRequestBySMS;
-import com.doat.tracklocation.context.ApproveJoinRequestContext;
 import com.doat.tracklocation.datatype.AppInstDetails;
-import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.datatype.SMSMessage;
 import com.doat.tracklocation.datatype.SMSMessageList;
-import com.doat.tracklocation.dialog.ApproveJoinRequestDialog;
-import com.doat.tracklocation.dialog.ApproveJoinRequestDialogListener;
 import com.doat.tracklocation.log.LogManager;
 import com.google.gson.Gson;
 
@@ -21,7 +17,7 @@ public class SMSUtils {
 	
 	public static final String className = "com.doat.tracklocation.utils.SMSUtils";
 	
-	public static void checkJoinRequestBySMSInBackground(Context context, Activity activity, boolean isBySmsReceiver){
+	public static void checkJoinRequestBySMSInBackground(Context context, Activity activity){
 		
 		Thread checkJoinRequestBySMSInBackgroundThread;
 		Runnable checkJoinRequestBySMSInBackground;
@@ -68,7 +64,7 @@ public class SMSUtils {
 			Preferences.setPreferencesString(ctx,
 					CommonConst.PREFERENCES_HANDLED_SMS_LIST,
 					jsonHandledSmsListNew);
-			String logMessage = "Save SMS as handled.";
+			String logMessage = "Save SMS as handled. Sent by " + smsMessage.getMessageNumber();
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		}

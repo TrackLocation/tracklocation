@@ -73,8 +73,7 @@ import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
-import com.doat.tracklocation.dialog.CommonDialog;
-import com.doat.tracklocation.dialog.IDialogOnClickAction;
+import com.doat.tracklocation.dialog.ICommonDialogNewOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
@@ -258,9 +257,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		launchWaitingDialog();
 		
-		initGcmLocationUpdatedBroadcastReceiver();
-		initNotificationBroadcastReceiver();
-
 		// Get a handle to the Map Fragment
         MyMapFragment myMapFragment = (MyMapFragment) getFragmentManager().findFragmentById(R.id.map);
         myMapFragment.setOnDragListener(new MapWrapperLayout.OnDragListener() {
@@ -442,7 +438,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        		String title = "Ring to chosen contact.";
 	        		String dialogMessage = "Are you sure?";
 //	        		showRingConfirmationDialog(MapActivity.this, "Are you sure?", selectedMarkerDetails.getContactDetails());
-	        		InfoDialog joinRequestDialog = new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
+	        		InfoDialog joinRequestDialog = new InfoDialog(MapActivity.this, context, title, dialogMessage, InfoDialogOnClickListener);
 	        		if(joinRequestDialog.isSelectionStatus()){
 	        			Controller.RingDevice(context, className, selectedMarkerDetails.getContactDetails());
 	        		}
@@ -469,10 +465,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         controller.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
         	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);       
 	}		
-	
+		
 	@Override
 	protected void onStart() {	
 		super.onStart();
+		initGcmLocationUpdatedBroadcastReceiver();
+		initNotificationBroadcastReceiver();
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 		bLockMapNothOnly = sharedPref.getBoolean("pref_map_lock", false);
 	}
@@ -1036,55 +1034,29 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		return bmp;
 	}
 
-/*	
-	private IDialogOnClickAction dialogOnClickAction = new IDialogOnClickAction(){
-		MessageDataContactDetails contactDetails = null;
-		
+	ICommonDialogNewOnClickListener InfoDialogOnClickListener = new ICommonDialogNewOnClickListener(){
+
 		@Override
-		public void doOnPositiveButton() {
-			if (contactDetails != null){
-				Controller.RingDevice(context, className, contactDetails);
+		public void doOnPositiveButton(Object data) {
+			if (selectedMarkerDetails.getContactDetails() != null){
+				Controller.RingDevice(context, className, selectedMarkerDetails.getContactDetails());
 			}
 		}
 
 		@Override
-		public void doOnNegativeButton() {
+		public void doOnNegativeButton(Object data) {
+			// TODO Auto-generated method stub
+			
 		}
 
 		@Override
 		public void doOnChooseItem(int which) {
+			// TODO Auto-generated method stub
+			
 		}
-
-		@Override
-		public void setActivity(Activity activity) {
-		}
-
-		@Override
-		public void setContext(Context context) {
-		}
-
-		@Override
-		public void setParams(Object[]... objects) {
-			contactDetails = (MessageDataContactDetails) objects[0][0];
-		}		
-	};
-*/
-/*	
-	private void showRingConfirmationDialog(Activity activity, String confirmationMessage, MessageDataContactDetails contactDetails) {
-		Object[] objects = new Object[1];
-		objects[0] = contactDetails;
 		
-		dialogOnClickAction.setParams(objects);
-		CommonDialog aboutDialog = new CommonDialog(activity, dialogOnClickAction);
-		aboutDialog.setDialogMessage(confirmationMessage);
-		aboutDialog.setDialogTitle("Ring to chosen contact.");
-		aboutDialog.setPositiveButtonText("Yes");
-		aboutDialog.setNegativeButtonText("No");
-		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		aboutDialog.showDialog();
-		aboutDialog.setCancelable(true);
-    }
-*/	
+	};
+
     private void startTimer() {
     	stoptimertask();
         //set a new Timer

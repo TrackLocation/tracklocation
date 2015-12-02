@@ -868,8 +868,7 @@ public class DBLayer {
     
 	public  ContactDeviceDataList addContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
     	
-		String methodName = "";
-		String logMessage = "";
+		methodName = "addContactDeviceDataList";
 		
     	ContactDeviceDataList contactDeviceDataListInserted = null;
     	
@@ -943,9 +942,10 @@ public class DBLayer {
 								Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
 							}
 				    	} else {
-							String infoMsg = "Account [" + email + "] already exists in DB";
-							Log.i(CommonConst.LOG_TAG, infoMsg);
-							LogManager.LogInfoMsg("DBLayer", "addContactDeviceDataList", infoMsg);
+							String warnMsg = "Account [" + email + "] already exists in DB";
+							Log.w(CommonConst.LOG_TAG, warnMsg);
+							LogManager.LogWarnMsg("DBLayer", "addContactDeviceDataList", warnMsg);
+							// TODO: UPDATE CONTACT ???
 				    	}						
 			    	}
 					

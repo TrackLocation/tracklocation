@@ -53,9 +53,19 @@ public class SMSReceiver extends BroadcastReceiver {
 			}
 			
 			try {
-				smsMessageBody = CryptoUtils.decodeBase64(smsMessageBody);
+				if(!smsMessageBody.isEmpty() && smsMessageBody.contains(CommonConst.JOIN_SMS_PREFIX)){
+					smsMessageBody = CryptoUtils.decodeBase64(smsMessageBody.substring(CommonConst.JOIN_SMS_PREFIX.length(), smsMessageBody.length()));
+				} else {
+					LogManager.LogFunctionExit(className, methodName);
+					Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+					return;
+				}
 			} catch (UnsupportedEncodingException e) {
-				Log.e(CommonConst.LOG_TAG, e.getMessage(), e);
+				LogManager.LogException(e, className, methodName);
+				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+
+				LogManager.LogFunctionExit(className, methodName);
+				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 				return;
 			}
 						
@@ -74,6 +84,10 @@ public class SMSReceiver extends BroadcastReceiver {
 		    	    String accountFromSMS = smsParams[4];
 		    	    String macAddressFromSMS = smsParams[5];
 				
+		    	    logMessage = "Handling of join request SMS received from [" + accountFromSMS + "]";
+		    	    LogManager.LogInfoMsg(className, methodName, logMessage);
+		    	    Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 	    	    	// Save contact details received by join requests to RECEIVED_JOIN_REQUEST table
 	    			long res = DBLayer.getInstance().addReceivedJoinRequest(phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, accountFromSMS, macAddressFromSMS);
 	    			if(res == -1 || res == 0){

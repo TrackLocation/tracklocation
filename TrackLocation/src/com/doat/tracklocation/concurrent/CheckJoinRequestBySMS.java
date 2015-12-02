@@ -1,11 +1,14 @@
 package com.doat.tracklocation.concurrent;
 
+import java.io.UnsupportedEncodingException;
+
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 
 import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.context.ApproveJoinRequestContext;
+import com.doat.tracklocation.crypto.CryptoUtils;
 import com.doat.tracklocation.datatype.SMSMessage;
 import com.doat.tracklocation.datatype.SMSMessageList;
 import com.doat.tracklocation.db.DBLayer;
@@ -94,16 +97,7 @@ public class CheckJoinRequestBySMS implements Runnable {
     				logMessage = "Show 'ApproveJoinRequestDialog' from thread...";
     				Log.i(CommonConst.LOG_TAG, logMessage);
     				LogManager.LogInfoMsg(className, methodName, logMessage);
-    				//Controller.showApproveJoinRequestDialog(activity, ctx, accountFromSMS, phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, macAddressFromSMS);
-//    				((MainActivity) activity).getMainActivityController()
-//    				 	.showApproveJoinRequestDialog(activity, 
-//    				 		ctx, 
-//    				 		accountFromSMS, 
-//    				 		phoneNumberFromSMS, 
-//    				 		mutualIdFromSMS, 
-//    				 		regIdFromSMS, 
-//    				 		macAddressFromSMS,
-//    				 		smsMessage);
+
     				ApproveJoinRequestContext approveJoinRequestContext = 
     					new ApproveJoinRequestContext(ctx, mutualIdFromSMS);
     					
@@ -167,18 +161,32 @@ public class CheckJoinRequestBySMS implements Runnable {
 	    SMSMessageList smsList = Controller.fetchInboxSms(activity, 1);
 	    if(smsList != null && smsList.getSmsMessageList() != null){
 	    	for (SMSMessage smsMessage : smsList.getSmsMessageList()) {
-	    		// Check if there SMS with JOIN REQUEST from TrackLocation application
-				if(smsMessage != null && smsMessage.getMessageContent().contains(CommonConst.JOIN_FLAG_SMS)){
-		    	    if(SMSUtils.isHandledSmsDetails(ctx, smsMessage)){
-		    	    	continue;
-		    	    }
-		    	    
-		    	    // save the SMS as handled
-		    		if(smsMessage != null){
-		    			SMSUtils.saveHandledSmsDetails(ctx, smsMessage);
-		    		}
+	    		
+	    		String smsMessageContent = smsMessage.getMessageContent();
+	    		try {
+					if(!smsMessageContent.isEmpty() && smsMessageContent.contains(CommonConst.JOIN_SMS_PREFIX)){
+						smsMessageContent = CryptoUtils.decodeBase64(smsMessageContent.substring(CommonConst.JOIN_SMS_PREFIX.length(), smsMessageContent.length()));
+						smsMessage.setMessageContent(smsMessageContent);
+						
+						// Check if there SMS with JOIN REQUEST from TrackLocation application
+						if(smsMessageContent != null && smsMessageContent.contains(CommonConst.JOIN_FLAG_SMS)){
+				    	    if(SMSUtils.isHandledSmsDetails(ctx, smsMessage)){
+				    	    	continue;
+				    	    }
+				    	    
+				    	    // save the SMS as handled
+				    		if(smsMessage != null){
+				    			SMSUtils.saveHandledSmsDetails(ctx, smsMessage);
+				    		}
 
-	    			handleSms(ctx, smsMessage);
+			    			handleSms(ctx, smsMessage);
+						}
+					} else {
+						continue;
+					}
+				} catch (UnsupportedEncodingException e) {
+					LogManager.LogException(e, className, methodName);
+					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 				}
 			}
 	    }

@@ -219,7 +219,7 @@ public class MainActivityController {
 //		}
 		
 		// Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
-        SMSUtils.checkJoinRequestBySMSInBackground(context, mainActivity, false);
+        SMSUtils.checkJoinRequestBySMSInBackground(context, mainActivity);
  
         LogManager.LogFunctionExit(className, methodName);
         Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -233,11 +233,9 @@ public class MainActivityController {
 			accountList = Controller.getAccountList(context);
 			if(accountList != null && accountList.size() == 1){
 				account = accountList.get(0);
-				//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
 				initCont();
 			} else {
-//				showChooseAccountDialog();
         		ChooseAccountDialog chooseAccountDialog =
         				new ChooseAccountDialog(mainActivity, new ICommonDialogNewOnClickListener(){
         			@Override
@@ -264,133 +262,10 @@ public class MainActivityController {
         		chooseAccountDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
         		chooseAccountDialog.showDialog();
         		chooseAccountDialog.setCancelable(false);
-       		
-//				Intent intent = new Intent(context,ActivityDialog.class);
-//				mainActivity.startActivity(intent);
-			}
+     		}
 		}
 	}
 
-/*
-	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
-		@Override
-		public void doOnPositiveButton() {
-		}
-		@Override
-		public void doOnNegativeButton() {
-		}
-		@Override
-		public void setActivity(Activity activity) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setContext(Context context) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setParams(Object[]... objects) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void doOnChooseItem(int which) {
-			// TODO Auto-generated method stub
-		}
-	};
-*/
-/*	
-	IDialogOnClickAction dialogChooseAccountDialog = new IDialogOnClickAction() {
-		@Override
-		public void doOnPositiveButton() {
-		}
-		@Override
-		public void doOnNegativeButton() {
-		}
-		@Override
-		public void setActivity(Activity activity) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setContext(Context context) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setParams(Object[]... objects) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void doOnChooseItem(int which) {
-			account = accountList.get(which);
-			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-			//init();
-			initCont();
-		}
-	};
-*/
-/*	
-	IDialogOnClickAction notificationDialogOnClickAction = new IDialogOnClickAction() {
-		
-		boolean isExit = false;
-		
-		@Override
-		public void doOnPositiveButton() {
-			if(isExit == true){
-				// finish();
-				mainActivity.finish();
-			}
-		}
-		@Override
-		public void doOnNegativeButton() {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setActivity(Activity activity) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setContext(Context context) {
-			// TODO Auto-generated method stub
-		}
-		@Override
-		public void setParams(Object[]... objects) {
-			if(objects[0][0] instanceof Boolean){
-				isExit = (Boolean) objects[0][0];
-			}
-		}
-		@Override
-		public void doOnChooseItem(int which) {
-			// TODO Auto-generated method stub
-			
-		}
-	};
-*/
-/*	
-	private void showNotificationDialog(String errorMessage, String action) {
-    	//String dialogMessage = "\nGoogle Cloud Service is not available right now.\n\nPlease try later.\n";
-    	String dialogMessage = errorMessage;
-    	
-    	if(action != null && "FINISH".equals(action)){
-    		notificationDialogOnClickAction.setParams(new Object[] {true});
-    	}
-		CommonDialog aboutDialog = new CommonDialog(mainActivity, notificationDialogOnClickAction);
-		aboutDialog.setDialogMessage(dialogMessage);
-		aboutDialog.setDialogTitle("Warning");
-		aboutDialog.setPositiveButtonText("OK");
-		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		aboutDialog.showDialog();
-		aboutDialog.setCancelable(true);
-    }
-*/
-/*	
-	private void showChooseAccountDialog() {
-		CommonDialog aboutDialog = new CommonDialog(mainActivity, dialogChooseAccountDialog);
-		aboutDialog.setDialogTitle("Choose current account:");
-		aboutDialog.setItemsList(accountList.toArray(new String[0]));
-
-		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		aboutDialog.showDialog();
-		aboutDialog.setCancelable(false);
-    }
-*/
 	private void launchWaitingDialog() {
 		final int MAX_RETRY_TIMES = 5;
 		

@@ -1,4 +1,6 @@
 /.DS_Store
 google_play_services/
+google-play-services_lib/
 TrackLocation/.classpath
 TrackLocation/.settings
+TrackLocation/project.properties
