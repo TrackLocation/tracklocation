@@ -7,23 +7,20 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.regex.Pattern;
-
 import com.doat.tracklocation.crypto.CryptoUtils;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.JoinRequestStatusEnum;
 import com.doat.tracklocation.datatype.SentJoinRequestData;
 import com.doat.tracklocation.db.DBLayer;
-import com.doat.tracklocation.dialog.CommonDialog;
-import com.doat.tracklocation.dialog.IDialogOnClickAction;
+import com.doat.tracklocation.dialog.CommonDialogNew;
+import com.doat.tracklocation.dialog.ICommonDialogNewOnClickListener;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.Utils;
 
 import android.app.ActionBar;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ExpandableListActivity;
 import android.app.SearchManager;
@@ -54,7 +51,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.CursorTreeAdapter;
-import android.widget.ExpandableListView;
 import android.widget.ImageView;
 import android.widget.SearchView;
 import android.widget.SimpleCursorTreeAdapter;
@@ -306,33 +302,34 @@ public class JoinContactListActivity extends ExpandableListActivity {
 		    			contactName = args[0];
 		    			phoneNumber = args[1];
 		    			
+		    			CommonDialogNew joinRequestDialog;
 		    			SentJoinRequestData joinRequestData = DBLayer.getInstance().getSentJoinRequestByPhone(phoneNumber);
 		    			if( joinRequestData == null ) {
 		    				if (!toSendAddJoinRequest){
 		    					String message = "\nJoin request will be sent to %s ( phone number %s) .\n\nDo you want to send it?\n";
-		    					joinRequestDialog(contactName, phoneNumber, message);
+		    					joinRequestDialog = joinRequestDialog(contactName, phoneNumber, message, onClickListener);
 		    				}
 		    			} else { // join request with <phoneNumber> already exists, check the status
 		    				if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.SENT.toString()) ) {
 		    					// Notify by dialog that join request already sent to <phoneNumber>
 		    					// check if the following request should be sent again
 		    					String message = "\nJoin request has been already sent to %s, with phone number %s.\n\nDo you want to send it again?\n";
-		    					joinRequestDialog(contactName, phoneNumber, message);
-		    		        	
-		    				} else if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.ACCEPTED.toString()) ) {
-		    					// TODO: notify by dialog that join request already sent to <phoneNumber> and accepted
-		    					// check if the following request should be sent again
-		    					// DIALOG FUNC
-		    					
-		    					// in case if request should be sent again
-			    				toSendAddJoinRequest = true;
-		    				} else if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.DECLINED.toString()) ) {
-		    					// TODO: notify by dialog that join request already sent to <phoneNumber> but declined
-		    					// check if the following request should be sent again
-		    					// DIALOG FUNC
-		    					
-		    					// in case if request should be sent again
-			    				toSendAddJoinRequest = true;
+		    					joinRequestDialog = joinRequestDialog(contactName, phoneNumber, message, onClickListener);
+		    					toSendAddJoinRequest = joinRequestDialog.isSelectionStatus();
+		    				} else if( toSendAddJoinRequest ) {
+//		    					// TODO: notify by dialog that join request already sent to <phoneNumber> and accepted
+//		    					// check if the following request should be sent again
+//		    					// DIALOG FUNC
+//		    					
+//		    					// in case if request should be sent again
+//			    				toSendAddJoinRequest = true;
+		    				} else if( !toSendAddJoinRequest ) {
+//		    					// TODO: notify by dialog that join request already sent to <phoneNumber> but declined
+//		    					// check if the following request should be sent again
+//		    					// DIALOG FUNC
+//		    					
+//		    					// in case if request should be sent again
+//			    				toSendAddJoinRequest = true;
 		    				}
 		    			}
 		    			if(toSendAddJoinRequest == true){
@@ -395,7 +392,34 @@ public class JoinContactListActivity extends ExpandableListActivity {
 		}
 		return "";   	
     }
-    
+
+	ICommonDialogNewOnClickListener onClickListener = new ICommonDialogNewOnClickListener(){
+
+		@Override
+		public void doOnPositiveButton(Object data) {
+			toSendAddJoinRequest = true;
+        	Controller.broadcastMessage(JoinContactListActivity.this, 
+    			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
+    			"fetchContacts",
+    			null, 
+				BroadcastKeyEnum.resend_join_request.toString(), 
+				"Resend");	
+		}
+
+		@Override
+		public void doOnNegativeButton(Object data) {
+			toSendAddJoinRequest = false;
+		}
+
+		@Override
+		public void doOnChooseItem(int which) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+	};
+
+/*    
 	IDialogOnClickAction joinRequest = new IDialogOnClickAction() {
 		@Override
 		public void doOnPositiveButton() {
@@ -430,7 +454,7 @@ public class JoinContactListActivity extends ExpandableListActivity {
 			// TODO Auto-generated method stub			
 		}
 	};
-	
+*/	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
@@ -465,10 +489,10 @@ public class JoinContactListActivity extends ExpandableListActivity {
 	    return true;
 	}
 	
-	private void joinRequestDialog(String contactName, String phoneNumber, String message) {
+	private CommonDialogNew joinRequestDialog(String contactName, String phoneNumber, String message, ICommonDialogNewOnClickListener onClickListener) {
     	String dialogMessage = String.format(message, contactName, phoneNumber) ;
     	
-		CommonDialog aboutDialog = new CommonDialog(this, joinRequest);
+		CommonDialogNew aboutDialog = new CommonDialogNew(this, onClickListener);
 		aboutDialog.setDialogMessage(dialogMessage);
 		aboutDialog.setDialogTitle("Join contact");
 		aboutDialog.setPositiveButtonText("Yes");
@@ -476,6 +500,7 @@ public class JoinContactListActivity extends ExpandableListActivity {
 		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
 		aboutDialog.showDialog();
 		aboutDialog.setCancelable(true);
+		return aboutDialog;
     }
 	
 	public int getGroupPositionCurrent() {

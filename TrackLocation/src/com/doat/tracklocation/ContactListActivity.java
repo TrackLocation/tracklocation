@@ -119,16 +119,7 @@ public class ContactListActivity extends BaseActivity {
 		        			selectedContcatList.add(selectedValue.getNick());
 		        		}
 	        		}
-	        	}
-	        	
-	        	// TODO: move the following code to a separate function:
-	        	/*
-				Toast.makeText(ContactList.this, selectedValue, Toast.LENGTH_SHORT).show();
-				Intent intentContactConfig = new Intent(ContactList.this, ContactConfiguration.class);
-				intentContactConfig.putExtra(CommonConst.JSON_STRING_CONTACT_DEVICE_DATA_LIST, jsonStringContactDeviceDataList);
-				intentContactConfig.putExtra(CommonConst.CONTACT_LIST_SELECTED_VALUE, selectedValue);
-				startActivity(intentContactConfig);
-				*/
+	        	}	        
 	        }
 
 	    });

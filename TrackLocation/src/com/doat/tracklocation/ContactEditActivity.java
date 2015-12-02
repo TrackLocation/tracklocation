@@ -13,6 +13,7 @@ import com.doat.tracklocation.datatype.DeviceTypeEnum;
 import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
+import com.doat.tracklocation.utils.Utils;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -76,11 +77,14 @@ public class ContactEditActivity extends BaseActivity {
         Button btn_ChangeImage = (Button) findViewById(R.id.change_image); 
         btn_ChangeImage.setOnClickListener(imgButtonHandler); 
         
+        Drawable contactPhoto = null;
         Bitmap bmp = contactData.getContactPhoto();
-        if (bmp != null){
-			Drawable contactPhoto = new BitmapDrawable(this.getResources(), bmp);			
-	        iv_photo.setImageDrawable(contactPhoto);
+        if (bmp == null){
+        	bmp = Utils.getDefaultContactBitmap(getResources());
         }
+        
+        contactPhoto = new BitmapDrawable(this.getResources(), bmp);			
+        iv_photo.setImageDrawable(contactPhoto);        
         
         text_first_name = (EditText) findViewById(R.id.fld_first_name); 
         text_first_name.setText(contactDeviceData.getContactData().getFirstName());

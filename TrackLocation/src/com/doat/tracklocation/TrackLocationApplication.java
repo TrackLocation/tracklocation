@@ -1,19 +1,15 @@
 package com.doat.tracklocation;
 
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import com.google.gson.Gson;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Process;
-import android.util.Log;
 
 public class TrackLocationApplication extends Application {	    
     
@@ -141,35 +137,6 @@ public class TrackLocationApplication extends Application {
 		public void onActivityDestroyed(Activity activity) {
 			// TODO Auto-generated method stub
 			
-		}
-		
-		private int getPid(String packageName){
-		    ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
-		    List<ActivityManager.RunningAppProcessInfo> pids = am.getRunningAppProcesses();
-		    int processid = 0;
-		    for(int i = 0; i < pids.size(); i++) {
-		        ActivityManager.RunningAppProcessInfo info = pids.get(i);	        
-		        Log.i("PID Package",info.processName + " : " + pids.get(i) );
-
-		        if(info.processName.equalsIgnoreCase(packageName)){
-		            processid = info.pid;
-		            return processid;
-		        } 
-		    }
-		    return -1;
-		}
-		
-		private void killApp(){
-		    try {
-		        int pid = getPid("com.doat.tracklocation");
-		        if(pid != -1){
-		        	Process.killProcess(pid);
-		        } else {
-		            Log.i("Not Found","App Not Found");
-		        }
-		    } catch (Exception e) {
-		        e.printStackTrace();  // Device not rooted! 
-		    }
 		}
 		
     }

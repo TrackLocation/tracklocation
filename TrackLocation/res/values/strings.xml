@@ -22,6 +22,7 @@
 	<string name="choose_operation">Choose Contact Operation</string>	
 	<string name="edit_menu_operation">Edit contact details</string>
 	<string name="delete_menu_operation">Remove contact from list</string>
+	<string name="join_contact_appr">Join contact approvement</string>
 	<string name="err_load_location">Location not found</string>
 	<string name="lbl_change">Change</string>	
 	
