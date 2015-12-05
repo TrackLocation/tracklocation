@@ -9,7 +9,7 @@
 	    <CheckBoxPreference
 	        android:key="pref_log_enable"
 	        android:title="Enable Log"	        
-	        android:defaultValue="true" 
+	        android:defaultValue="false" 
 	        android:selectable="true"/>
 	    <ListPreference
 	        android:dependency="pref_log_enable"

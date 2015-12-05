@@ -6,23 +6,29 @@ import java.io.IOException;
 import java.io.PrintWriter;  
 import java.util.Calendar;  
 
+import com.doat.tracklocation.TrackLocationApplication;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Utils;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log; 
 
 public class LogHelper {
 
     	private static LogHelper instance;          
-    	private static boolean isLogEnabled;         
     	private Object lockMe = null;  
     	private String storagePath;
+    	private Context context;
     	
     	private LogHelper(){                  
     		lockMe = new Object();
     		
     		storagePath = Utils.getStoragePath();
-    		checkIsLogEnabled();                  
+    		
+    		context = TrackLocationApplication.getContext();
+
     		if(isLogEnabled() == true){  
     			// create a File object for the log directory                          
     			File logDirectory = new File(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH);                          
@@ -68,11 +74,6 @@ public class LogHelper {
 			return "["+string+"]";          
 		}
 
-    	//      public void toLog(final boolean isLoggedEnabledDeprecated, final String logMessage) // TODO DEPRECATED  
-    	//      {  
-    	//              toLog(logMessage);  
-    	//      }
-
 		public void toLogWrite(final MessageType msgType, final String logMessage){      
 			if(isLogEnabled() == true)                  
 			{                          
@@ -113,21 +114,22 @@ public class LogHelper {
 				}          
 			}
 		
-		private void checkIsLogEnabled()          
-		{                  
-			File enableDirectory = new File(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + File.separator + CommonConst.ENABLE_LOG_DIRECTORY);                  
-			if(enableDirectory.exists())                  
-			{                          
-				isLogEnabled = true;                  
-			}                  
-			else                  
-			{                          
-				isLogEnabled = false;                  
-			}          
-		}   
+//		private void checkIsLogEnabled()          
+//		{                  
+//			File enableDirectory = new File(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + File.separator + CommonConst.ENABLE_LOG_DIRECTORY);                  
+//			if(enableDirectory.exists())                  
+//			{                          
+//				isLogEnabled = true;                  
+//			}                  
+//			else                  
+//			{                          
+//				isLogEnabled = false;                  
+//			}          
+//		}   
     		
-		public boolean isLogEnabled(){                  
-			return isLogEnabled;          
+		public boolean isLogEnabled(){       
+     		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+     		return sharedPref.getBoolean("pref_log_enable", false);
 		}       
     	
 		private String getTimestamp()          

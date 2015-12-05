@@ -3,6 +3,7 @@ package com.doat.tracklocation;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.doat.tracklocation.log.LogHelper;
 import com.google.gson.Gson;
 
 import android.app.Activity;
@@ -14,12 +15,25 @@ import android.os.Bundle;
 public class TrackLocationApplication extends Application {	    
     
 	private String className;    
-    private String methodName;
-    private Activity currentActivity;
+	private String methodName;
+	private Activity currentActivity;
+	private static Context context;
 
 	public static Gson gson = new Gson();
 	
-    public Activity getCurrentActivity() {
+    public String getClassName() {
+		return className;
+	}
+
+	public String getMethodName() {
+		return methodName;
+	}
+
+	public static Context getContext() {
+		return context;
+	}
+
+	public Activity getCurrentActivity() {
 		return currentActivity;
 	}
 
@@ -33,6 +47,7 @@ public class TrackLocationApplication extends Application {
     	super.onCreate();
        	
 		className = this.getClass().getName();
+		context = getApplicationContext();
 		registerActivityLifecycleCallbacks(new MyActivityLifecycleCallbacks());
     }
     
