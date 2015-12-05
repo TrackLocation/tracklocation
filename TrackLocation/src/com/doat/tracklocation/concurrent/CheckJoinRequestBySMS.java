@@ -25,6 +25,7 @@ public class CheckJoinRequestBySMS implements Runnable {
 	private String methodName;
 	private Context ctx;
 	private Activity activity;
+	private long threadId;
 	
     /*
      * Check if received SMS with JOIN REQUEST
@@ -42,10 +43,17 @@ public class CheckJoinRequestBySMS implements Runnable {
 		this.ctx = context;
 		this.activity = activity;
 		className = this.getClass().getName();
+		threadId = Thread.currentThread().getId();
+		methodName = "CheckJoinRequestBySMS" + " -> ThreadID: " + threadId;
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 
 	public void handleSms(Context ctx, SMSMessage smsMessage){
-		methodName = "handleSms";
+		threadId = Thread.currentThread().getId();
+		methodName = "handleSms" + " -> ThreadID: " + threadId;
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 		
@@ -155,7 +163,10 @@ public class CheckJoinRequestBySMS implements Runnable {
 	
 	@Override
 	public void run() {
-		methodName = "run";
+		threadId = Thread.currentThread().getId();
+		methodName = "run" + " -> ThreadID: " + threadId;
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 	    // Read SMS messages from inbox
 		// Fetch all SMS 
 	    SMSMessageList smsList = Controller.fetchInboxSms(activity, 1);
@@ -190,5 +201,7 @@ public class CheckJoinRequestBySMS implements Runnable {
 				}
 			}
 	    }
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 }
