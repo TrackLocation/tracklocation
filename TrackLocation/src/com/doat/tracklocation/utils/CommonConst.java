@@ -2,6 +2,8 @@ package com.doat.tracklocation.utils;
 
 import java.util.regex.Pattern;
 
+import android.net.Uri;
+
 public class CommonConst {
 	
 	public static final String 	APP_NAME 						= "TrackLocation";
@@ -78,7 +80,9 @@ public class CommonConst {
  	public static final String 	CONTACT_LIST_SELECTED_VALUE = "selectedValue";
  	public static final String 	CONTACT_REGISTRATION_ID = "registration_id";
  	
- 	public static final String	JOIN_SMS_PREFIX = APP_NAME + " application:";
+ 	public static final String	TRACK_LOCATION_URL_ON_GOOGLE = "https://goo.gl/CPhWXT";
+ 	public static final String	JOIN_SMS_PREFIX = 
+ 		APP_NAME + " application (" + Uri.parse(TRACK_LOCATION_URL_ON_GOOGLE) + "):\n";
  	public static final String 	JOIN_CONTACT_BY_SMS = "sms";
  	public static final String 	JOIN_CONTACT_BY_EMAIL = "email";
  	public static final String 	JOIN_CONTACT_BY = "join_contact_by";
