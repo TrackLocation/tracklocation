@@ -69,7 +69,8 @@ public class CommonConst {
  	public static final String 	SMS_URI = "content://sms";
  	
 	public static final String 	TRACK_LOCATION_DIRECTORY_PATH = "TrackLocation";         
-	public static final String 	TRACK_LOCATION_LOG_FILE_NAME = "TrackLocation.log";          
+	public static final String 	TRACK_LOCATION_LOG_FILE_NAME = "TrackLocation";          
+	public static final String 	TRACK_LOCATION_LOG_FILE_EXT = ".log";          
 	public static final String 	TRACK_LOCATION_BACKUP_FILE_NAME = "TrackLocationBackUp.dat";          
 	public static final String 	ENABLE_LOG_DIRECTORY = "enable_log";
 	public static final String 	CONTACT_DTAT_INPUT_FILE = "contact_device_list.dat";

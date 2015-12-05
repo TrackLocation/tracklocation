@@ -17,10 +17,11 @@ import android.util.Log;
 
 public class LogHelper {
 
-    	private static LogHelper instance;          
-    	private Object lockMe = null;  
-    	private String storagePath;
-    	private Context context;
+	private final static int MAX_LOG_FILE_SIZE_IN_MB = 1;
+	private static LogHelper instance;          
+	private Object lockMe = null;  
+	private String storagePath;
+	private Context context;
     	
     	private LogHelper(){                  
     		lockMe = new Object();
@@ -37,13 +38,41 @@ public class LogHelper {
     				logDirectory.mkdirs();                          
    				}
     			
-    			File logFile = new File(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + File.separator + CommonConst.TRACK_LOCATION_LOG_FILE_NAME);                          
-    			if(logFile.exists()){                                  
-    				//logFile.delete();                          
-    			}                                            
+    			createNewLogFileIfGreaterThanSize(MAX_LOG_FILE_SIZE_IN_MB);
    			}          
   		}                    
 
+    	private void createNewLogFileIfGreaterThanSize(int fileSizeInMb){
+    		String logFileName = getLogFileName();
+			File logFile = new File(logFileName);                          
+			if(logFile.exists()){    
+				int fileSize = new Double(logFile.length() / (1024 * 1024)).intValue();
+				if(fileSize >= fileSizeInMb){
+					
+					logFile.renameTo(new File(getLogFileName(Long.toString(System.currentTimeMillis()))));
+				}
+			}                                            
+    	}
+    	
+    	
+    	private String getLogFileName(){
+    		return storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + 
+    			File.separator + CommonConst.TRACK_LOCATION_LOG_FILE_NAME + CommonConst.TRACK_LOCATION_LOG_FILE_EXT;
+    	}
+   	
+    	private String getLogFileNameNoExt(){
+    		return storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + 
+    			File.separator + CommonConst.TRACK_LOCATION_LOG_FILE_NAME;
+    	}
+    	
+     	private String getLogFileName(String logFileNameExtension){
+    		if(logFileNameExtension != null && !logFileNameExtension.isEmpty()){
+    			return getLogFileNameNoExt() + "_" + logFileNameExtension + CommonConst.TRACK_LOCATION_LOG_FILE_EXT;
+    		} else {
+    			return getLogFileName();
+    		}
+    	}
+    	
     	public static LogHelper getLog(){                  
     		if(instance == null){                          
     			instance = new LogHelper();                  
@@ -77,6 +106,7 @@ public class LogHelper {
 		public void toLogWrite(final MessageType msgType, final String logMessage){      
 			if(isLogEnabled() == true)                  
 			{                          
+				createNewLogFileIfGreaterThanSize(MAX_LOG_FILE_SIZE_IN_MB);
 				final String timeStamp = getTimestamp();     
 				String activityCreatePrefix = "";
 				String activityDestroyPostfix = "";
@@ -98,7 +128,7 @@ public class LogHelper {
 						{                                          
 							try {                                                  
 								PrintWriter pw = new PrintWriter(                                                  
-								new FileWriter(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + File.separator +CommonConst.TRACK_LOCATION_LOG_FILE_NAME, true));                                          
+								new FileWriter(getLogFileName(), true));                                          
 								//ex.printStackTrace(pw);  
 								
 								pw.println(prefix+timeStamp+CommonConst.DELIMITER+logMessage+postfix);                                          
@@ -114,19 +144,6 @@ public class LogHelper {
 				}          
 			}
 		
-//		private void checkIsLogEnabled()          
-//		{                  
-//			File enableDirectory = new File(storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + File.separator + CommonConst.ENABLE_LOG_DIRECTORY);                  
-//			if(enableDirectory.exists())                  
-//			{                          
-//				isLogEnabled = true;                  
-//			}                  
-//			else                  
-//			{                          
-//				isLogEnabled = false;                  
-//			}          
-//		}   
-    		
 		public boolean isLogEnabled(){       
      		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
      		return sharedPref.getBoolean("pref_log_enable", false);
