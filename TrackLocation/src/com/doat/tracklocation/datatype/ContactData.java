@@ -17,6 +17,8 @@ public class ContactData implements Parcelable{
 	private String lastName;
 	@JsonIgnore
 	private transient Bitmap contactPhoto;
+	@JsonIgnore
+	private transient Bitmap contactStatus;
 	private final List<String> phoneNumbersList = new ArrayList<String>();
 	
 	public ContactData() {}
@@ -79,6 +81,14 @@ public class ContactData implements Parcelable{
 		this.contactPhoto = contactPhoto;
 	}
 
+	public Bitmap getContactStatus() {
+		return contactStatus;
+	}
+
+	public void setContactStatus(Bitmap contactStatus) {
+		this.contactStatus = contactStatus;
+	}
+
 	@Override
 	public int describeContents() {	
 		return 0;
@@ -90,7 +100,7 @@ public class ContactData implements Parcelable{
         dest.writeString(email);
         dest.writeString(firstName);
         dest.writeString(lastName);
-        dest.writeValue(contactPhoto);		
+        dest.writeValue(contactPhoto);	
 	}
 	
     public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {

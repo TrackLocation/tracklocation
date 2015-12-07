@@ -10,7 +10,8 @@ public enum CommandValueEnum {
 	not_defined("not_defined"), 
 	not_permitted("not_permitted"),
 	// start Track Location Service command received on recipient
-	start_track_location_service_received("start_tls_received") // tls - Track Location Service
+	start_track_location_service_received("start_tls_received"), // tls - Track Location Service
+	online("online")
 	; 
 	
 	private final String name;       

@@ -13,6 +13,7 @@ import com.doat.tracklocation.utils.Utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
@@ -64,6 +65,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
         ImageView imageView;
         CheckBox checkBox;
         ToggleButton toggleButton; 
+        ImageView statusView;
     }
     
 	@Override
@@ -80,6 +82,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
       		viewHolder.imageView = (ImageView) convertView.findViewById(R.id.icon);
       		viewHolder.checkBox = (CheckBox) convertView.findViewById(R.id.check_share_location);
       		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);
+      		viewHolder.statusView = (ImageView) convertView.findViewById(R.id.status_image);
       		if (viewHolder.toggleButton != null){
 	      		viewHolder.toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 	    			@Override
@@ -151,6 +154,14 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), bmp);
 		contactPhoto.setBounds( 0, 0, 120, 120 );
 		viewHolder.imageView.setImageDrawable(contactPhoto);
+
+		Bitmap statusBmp = contactData.getContactStatus();
+		if (statusBmp == null){			
+			statusBmp = BitmapFactory.decodeResource(convertView.getResources(), R.drawable.red);
+		}
+		Drawable contactStatus = new BitmapDrawable(convertView.getResources(), statusBmp);
+		contactStatus.setBounds( 0, 0, 120, 120 );
+		viewHolder.statusView.setImageDrawable(contactStatus);
 
 				// Action on Row click 
 		if (viewHolder.checkBox != null) {								

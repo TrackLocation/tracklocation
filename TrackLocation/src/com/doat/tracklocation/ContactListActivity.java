@@ -1,9 +1,11 @@
 package com.doat.tracklocation;
 
+import java.lang.Thread.State;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.doat.tracklocation.R;
+import com.doat.tracklocation.controller.ContactListController;
 import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
@@ -11,7 +13,6 @@ import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -42,13 +43,13 @@ public class ContactListActivity extends BaseActivity {
 	private List<Boolean> isSelected;
 	private ContactDeviceDataList contactDeviceDataList;
 	private List<String> selectedContcatList;
-//	private ContactListController contactListController;
+	private ContactListController contactListController;
 
 	List<ContactData> values;
  	
-//    public ContactListController getContactListController() {
-//		return contactListController;
-//	}
+    public ContactListController getContactListController() {
+		return contactListController;
+	}
 
     @Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -60,9 +61,9 @@ public class ContactListActivity extends BaseActivity {
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
-//		if(contactListController == null){
-//			contactListController = new ContactListController(this, getApplicationContext());
-//		}
+		if(contactListController == null){
+			contactListController = new ContactListController(this, getApplicationContext());
+		}
 
 		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = this.getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST); 
 		contactDeviceDataList = new ContactDeviceDataList();
@@ -155,9 +156,6 @@ public class ContactListActivity extends BaseActivity {
 			}
 	    });
 
-// TODO: OPEN - DAVID    	
-//		// Start thread to check which contacts are online
-//		contactListController.checkWhichContactsOnLine(contactDeviceDataList);
 	}
 	
 	@Override
@@ -196,7 +194,12 @@ public class ContactListActivity extends BaseActivity {
 				// Catch ecxeption - version changed, so RegID is empty
 				// Show pop up message - reinstall app/update regID.
 				
-	    		// Start Map activity to see locations of selected contacts
+            	// Stop thread that checking which contacts are online
+                if(contactListController != null){
+                	contactListController.stopCheckWhichContactsOnLine();
+                }
+
+                // Start Map activity to see locations of selected contacts
 	    		Intent intentMap = new Intent(this, MapActivity.class);
 	    		// Pass to Map activity list of selected contacts to get their location	    		
 	    		intentMap.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, selectedContactDeviceDataList);
@@ -220,9 +223,15 @@ public class ContactListActivity extends BaseActivity {
 	protected void onStart() {
 		super.onStart();
 		if(broadcastReceiver == null){
-			broadcastReceiver = new BroadcastReceiverBase(ContactListActivity.this);
+			broadcastReceiver = new BroadcastReceiverContactListActivity(ContactListActivity.this);
 		}
 		initNotificationBroadcastReceiver(broadcastReceiver);
+		
+		// Start thread to check which contacts are online
+		if(contactListController != null){
+			State state = contactListController.getThreadState();
+			contactListController.checkWhichContactsOnLine(contactDeviceDataList);
+		}
 	}
 
 	@Override
@@ -231,20 +240,16 @@ public class ContactListActivity extends BaseActivity {
         if(broadcastReceiver != null){
     		unregisterReceiver(broadcastReceiver);
     	}
+    	// Stop thread that checking which contacts are online
+        if(contactListController != null){
+        	contactListController.stopCheckWhichContactsOnLine();
+        }
 	}
 
 	@Override
     protected void onDestroy() {
     	super.onDestroy();
 
-// TODO: OPEN - DAVID    	
-//    	// Stop thread that checking which contacts are online
-//    	contactListController.stopCheckWhichContactsOnLine();
-    	
-//        if(notificationBroadcastReceiver != null){
-//    		unregisterReceiver(notificationBroadcastReceiver);
-//    	}
-    	
     	LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
     }

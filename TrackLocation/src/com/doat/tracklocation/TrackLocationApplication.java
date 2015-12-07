@@ -3,7 +3,6 @@ package com.doat.tracklocation;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.doat.tracklocation.log.LogHelper;
 import com.google.gson.Gson;
 
 import android.app.Activity;
@@ -112,14 +111,12 @@ public class TrackLocationApplication extends Application {
 
 		@Override
 		public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-			// TODO Auto-generated method stub
-			
+			currentActivity = activity;
 		}
 	
 		@Override
 		public void onActivityStarted(Activity activity) {
-			// TODO Auto-generated method stub
-			
+			currentActivity = activity;
 		}
 	
 		@Override

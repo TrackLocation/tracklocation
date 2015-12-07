@@ -1,18 +1,18 @@
 package com.doat.tracklocation.controller;
 
+import java.lang.Thread.State;
+
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
 
 import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.concurrent.CheckWhichContactsOnLine;
-import com.doat.tracklocation.concurrent.StartTrackLocationService;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactListModel;
 import com.doat.tracklocation.utils.CommonConst;
-import com.doat.tracklocation.utils.Preferences;
 
 public class ContactListController {
 	private Activity contactListControllerActivity;
@@ -80,5 +80,13 @@ public class ContactListController {
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	}
+	
+	public State getThreadState(){
+		if(checkWhichContactsOnLineThread != null){
+			return checkWhichContactsOnLineThread.getState();
+		} else {
+			return null;
+		}
 	}
 }

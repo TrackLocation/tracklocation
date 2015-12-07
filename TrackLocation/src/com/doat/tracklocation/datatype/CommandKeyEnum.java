@@ -9,7 +9,8 @@ public enum CommandKeyEnum {
 	start_tracking_status("start_tracking_status"), // Start Tracking Service status
 	mutualId("mutualId"), 
 	permissions("permissions"),
-	updated_reg_id("updated_reg_id");
+	updated_reg_id("updated_reg_id"),
+	online_status("online");
 	
 	private final String name;       
 	private static Map<String, CommandKeyEnum> valueMap;

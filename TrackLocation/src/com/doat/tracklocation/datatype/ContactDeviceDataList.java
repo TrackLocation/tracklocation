@@ -1,7 +1,6 @@
 package com.doat.tracklocation.datatype;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ContactDeviceDataList extends ArrayList<ContactDeviceData>{
 	private static final long serialVersionUID = 7346181519310520513L;

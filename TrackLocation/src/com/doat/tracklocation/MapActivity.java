@@ -10,7 +10,6 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -101,7 +100,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	//private static final int POPUP_POSITION_REFRESH_INTERVAL = 16;
 	private static final int ANIMATION_DURATION = 500;
 	
-	private Activity mapActivity;
 	private LocationManager locationManager;
 	private LatLng lastKnownLocation;
 	private BroadcastReceiver gcmLocationUpdatedWatcher;
@@ -189,7 +187,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		className = this.getClass().getName();
 		getActionBar().hide();
 		methodName = "onCreate";
-		mapActivity = this;
     	isPermissionDialogShown = false;
 		setContentView(R.layout.map);	
 
@@ -437,7 +434,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        	if (selectedMarkerDetails != null){
 	        		String title = "Ring to chosen contact.";
 	        		String dialogMessage = "Are you sure?";
-//	        		showRingConfirmationDialog(MapActivity.this, "Are you sure?", selectedMarkerDetails.getContactDetails());
 	        		InfoDialog joinRequestDialog = new InfoDialog(MapActivity.this, context, title, dialogMessage, InfoDialogOnClickListener);
 	        		if(joinRequestDialog.isSelectionStatus()){
 	        			Controller.RingDevice(context, className, selectedMarkerDetails.getContactDetails());
@@ -587,7 +583,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     				// FAILED for some recipients
 	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.error.toString().equals(value)){
 	    				//showNotificationDialog(broadcastData.getMessage());
-//	    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
 	    				String title = "Warning";
 	    				String dialogMessage = broadcastData.getMessage();
 	    				new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
@@ -615,7 +610,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    			
 	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_defined.toString().equals(value)){
 	    				if(isPermissionDialogShown == false){
-//		    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
 	    					String title = "Warning";
 	    					String dialogMessage = broadcastData.getMessage();
 	    	        		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
@@ -626,7 +620,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_permitted.toString().equals(value)){
 	    				if(isPermissionDialogShown == false){
-//		    				Controller.showNotificationDialog(mapActivity, broadcastData.getMessage());
 	    					String title = "Warning";
 	    					String dialogMessage = broadcastData.getMessage();
 	    	        		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);

@@ -40,7 +40,7 @@ public class CheckWhichContactsOnLine implements Runnable {
 
 	@Override
 	public void run() {
-		methodName = "run";
+		methodName = "run -> ThreadID: " + Thread.currentThread().getId();
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
@@ -66,7 +66,7 @@ public class CheckWhichContactsOnLine implements Runnable {
 			commandDataBasic = new CommandData(
 					context, 
 					selectedContactDeviceDataList, 
-					CommandEnum.start,	// [START]	
+					CommandEnum.is_online,	// [IS_ONLINE]	
 					null, 				// message
 					senderMessageDataContactDetails, 
 					null,				// location

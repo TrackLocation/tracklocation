@@ -773,18 +773,25 @@ public class Controller {
 		);
 	}
 
-/*	
-	public static void showNotificationDialog(Activity activity, String errorMessage) {
-		IDialogOnClickAction dialogOnClickAction = null;
-		CommonDialog aboutDialog = new CommonDialog(activity, dialogOnClickAction);
-		aboutDialog.setDialogMessage(errorMessage);
-		aboutDialog.setDialogTitle("Warning");
-		aboutDialog.setPositiveButtonText("OK");
-		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		aboutDialog.showDialog();
-		aboutDialog.setCancelable(true);
-    }
-*/	
+	public static void broadcsatMessage(Context context, MessageDataContactDetails contactDetails, String broadcastMessage, String message, String key, String value){
+		NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
+		notificationBroadcastData.setContactDetails(contactDetails);
+		notificationBroadcastData.setMessage(message);
+		notificationBroadcastData.setKey(key);
+		notificationBroadcastData.setValue(value);
+		Gson gson = new Gson();
+		String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
+		
+		// Broadcast corresponding message
+		Controller.broadcastMessage(context, 
+			broadcastMessage, 
+			"GcmIntentService",
+			jsonNotificationBroadcastData, 
+			key, // BroadcastKeyEnum.message.toString(),  
+			value
+		);
+	}
+
 	public static void removeSenderAccountFromSendCommandList(Context context, 
 			String jsonListAccounts, String senderAccount){
         String methodName = "showNotificationDialog";
