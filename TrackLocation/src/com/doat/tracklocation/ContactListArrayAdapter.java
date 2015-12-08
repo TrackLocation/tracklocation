@@ -155,15 +155,17 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 		contactPhoto.setBounds( 0, 0, 120, 120 );
 		viewHolder.imageView.setImageDrawable(contactPhoto);
 
-		Bitmap statusBmp = contactData.getContactStatus();
-		if (statusBmp == null){			
-			statusBmp = BitmapFactory.decodeResource(convertView.getResources(), R.drawable.red);
+		if (viewHolder.statusView != null){
+			Bitmap statusBmp = contactData.getContactStatus();
+			if (statusBmp == null){			
+				statusBmp = BitmapFactory.decodeResource(convertView.getResources(), R.drawable.red);
+			}
+			Drawable contactStatus = new BitmapDrawable(convertView.getResources(), statusBmp);
+			contactStatus.setBounds( 0, 0, 120, 120 );
+			viewHolder.statusView.setImageDrawable(contactStatus);
 		}
-		Drawable contactStatus = new BitmapDrawable(convertView.getResources(), statusBmp);
-		contactStatus.setBounds( 0, 0, 120, 120 );
-		viewHolder.statusView.setImageDrawable(contactStatus);
-
-				// Action on Row click 
+		
+		// Action on Row click 
 		if (viewHolder.checkBox != null) {								
 			if(emailList != null){
 				PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
