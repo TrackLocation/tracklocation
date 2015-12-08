@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileWriter;  
 import java.io.IOException;  
 import java.io.PrintWriter;  
+import java.text.SimpleDateFormat;
 import java.util.Calendar;  
+import java.util.Date;
 
 import com.doat.tracklocation.TrackLocationApplication;
 import com.doat.tracklocation.utils.CommonConst;
@@ -48,12 +50,17 @@ public class LogHelper {
 			if(logFile.exists()){    
 				int fileSize = new Double(logFile.length() / (1024 * 1024)).intValue();
 				if(fileSize >= fileSizeInMb){
-					
-					logFile.renameTo(new File(getLogFileName(Long.toString(System.currentTimeMillis()))));
+					logFile.renameTo(new File(getLogFileName(getCurrentTimestampAsDate())));
 				}
 			}                                            
     	}
     	
+    	private String getCurrentTimestampAsDate(){
+    		long tsMilliseconds = System.currentTimeMillis();
+    		SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");    
+    		Date date = new Date(tsMilliseconds);
+    		return sdf.format(date);
+    	}
     	
     	private String getLogFileName(){
     		return storagePath + File.separator + CommonConst.TRACK_LOCATION_DIRECTORY_PATH + 
