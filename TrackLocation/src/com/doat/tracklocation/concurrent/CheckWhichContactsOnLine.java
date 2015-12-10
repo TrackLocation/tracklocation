@@ -21,7 +21,7 @@ public class CheckWhichContactsOnLine implements Runnable {
 	private String className;
 	private String methodName;
 	private String logMessage;
-	private int delay = 5000; // in milliseconds
+	private final int SLEEP = 5000; // in milliseconds
 	private Context context;
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private MessageDataContactDetails senderMessageDataContactDetails;
@@ -112,9 +112,9 @@ public class CheckWhichContactsOnLine implements Runnable {
 			// Sleep for delay milliseconds and continue...
 			// Stop and exit the thread if interrupted
 			try {
-				logMessage = "Sleep " + (delay / 1000) + " seconds";
+				logMessage = "Sleep " + (SLEEP / 1000) + " seconds";
 				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-				Thread.sleep(delay);
+				Thread.sleep(SLEEP);
 			} catch (InterruptedException e) {
 				logMessage = "Stop thread that checking which contacts are online. ThreadID = " + 
 					Thread.currentThread().getId();
@@ -126,23 +126,6 @@ public class CheckWhichContactsOnLine implements Runnable {
 				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 				return;
 			}
-			
-			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
-//				tempListAccounts = gson.fromJson(jsonListAccounts, List.class);
-//				if(!tempListAccounts.isEmpty()){
-//			        String broadcastMessage = "Retry " + (i+1) + " from " + retryTimes + 
-//			        	":\nCurrently unavailable:\n\n";
-//			        for (String currentAccount : tempListAccounts) {
-//			        	broadcastMessage = broadcastMessage + currentAccount + "\n";
-//					}
-//			        broadcastMessage += "\nPlease wait...";
-//				    broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), CommandValueEnum.wait.toString());
-//				}
-			}
-
 		}
-		
 	}
-
 }

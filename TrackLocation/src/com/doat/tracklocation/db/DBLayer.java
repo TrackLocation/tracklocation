@@ -672,7 +672,56 @@ public class DBLayer {
         return contactDeviceData;
     }
     
-	public  long updateRegistrationID(String email, String macAddress, String registrationID){
+    // Insert contact/device data
+    private  ContactDeviceData updateContactDeviceData(String phoneNumber, ContactData  contactData, 
+    		DeviceData deviceData, String imei, String registartionId, String guid, SQLiteDatabase db)
+     {
+    	ContactDeviceData contactDeviceData = null;
+    	boolean bNeedOpenDb  = db == null;
+		try{
+			if (bNeedOpenDb){
+				db = DBManager.getDBManagerInstance().open();
+			}
+			
+			contactDeviceData = new ContactDeviceData();
+			
+            contactDeviceData.setPhoneNumber(sqlEscapeString(phoneNumber));
+            contactDeviceData.setContactData(contactData);
+            contactDeviceData.setDeviceData(deviceData);
+            contactDeviceData.setImei(sqlEscapeString(imei));
+            contactDeviceData.setRegistration_id(sqlEscapeString(registartionId));
+            if(guid == null){
+            	contactDeviceData.setGuid(Controller.generateUUID());
+            } else {
+            	contactDeviceData.setGuid(guid);
+            }
+            
+            ContentValues cVal = new ContentValues();
+            cVal.put(DBConst.CONTACT_DEVICE_PHONE_NUMBER, contactDeviceData.getPhoneNumber());
+            cVal.put(DBConst.CONTACT_DEVICE_EMAIL, contactDeviceData.getContactData().getEmail());
+            cVal.put(DBConst.CONTACT_DEVICE_MAC, contactDeviceData.getDeviceData().getDeviceMac());
+            cVal.put(DBConst.CONTACT_DEVICE_REG_ID, contactDeviceData.getRegistration_id());
+            cVal.put(DBConst.CONTACT_DEVICE_IMEI, contactDeviceData.getImei());
+            cVal.put(DBConst.CONTACT_DEVICE_GUID, contactDeviceData.getGuid());
+            
+            db.update(DBConst.TABLE_CONTACT_DEVICE, cVal, 
+            	DBConst.CONTACT_DEVICE_EMAIL + " = ? and " + 
+            	DBConst.CONTACT_DEVICE_MAC + " = ? ", 
+            	new String[] {contactDeviceData.getContactData().getEmail(),
+            		contactDeviceData.getDeviceData().getDeviceMac()});
+        } catch (Throwable t) {
+        	contactDeviceData = null;
+            Log.e("Database", "Exception caught: " + t.getMessage(), t);
+            LogManager.LogErrorMsg(className, "addContactDeviceData", t.getMessage());
+		} finally {
+			if(db != null && bNeedOpenDb){
+				DBManager.getDBManagerInstance().close();
+			}
+		}
+        return contactDeviceData;
+    }
+
+    public  long updateRegistrationID(String email, String macAddress, String registrationID){
 		String methodName = "updateRegistrationID";
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
@@ -893,7 +942,7 @@ public class DBLayer {
 						} else {
 							String errMsg = "Unable to add contactDeviceData to DB - no email account was provided";
 							Log.e(CommonConst.LOG_TAG, errMsg);
-							LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
+							LogManager.LogErrorMsg("DBLayer", methodName, errMsg);
 							continue;
 						}
 						
@@ -908,44 +957,75 @@ public class DBLayer {
 						} else {
 							String errMsg = "Unable to add contactDeviceData to DB - no macAddress was provided";
 							Log.e(CommonConst.LOG_TAG, errMsg);
-							LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
+							LogManager.LogErrorMsg("DBLayer", methodName, errMsg);
 							continue;
 						}
 						
 						if(registrationId == null || registrationId.isEmpty()){
 							String errMsg = "Unable to add contactDeviceData to DB - no registrationId was provided";
 							Log.e(CommonConst.LOG_TAG, errMsg);
-							LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
+							LogManager.LogErrorMsg("DBLayer", methodName, errMsg);
 							continue;
 						}
 						
-						if(!isContactDeviceExist(email, macAddress, phoneNumber,db)){
-							addContactDataInternal(contactData, db, null, null);
-							addDeviceDataInternal(deviceData, db, null, null);
+						long updateResult = 0;
+						if(!isContactDeviceExist(email, macAddress, db)){
+							updateResult = addContactDataInternal(contactData, db, null, null);
+							if(updateResult < 1){
+								logMessage = "Add Contact Data Internal failed for the following account: " + email;
+								LogManager.LogErrorMsg(className, methodName, logMessage);
+								Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
+							}
+							updateResult = addDeviceDataInternal(deviceData, db, null, null);
+							if(updateResult < 1){
+								logMessage = "Add Device Data Internal failed for the following mac address: " + macAddress;
+								LogManager.LogErrorMsg(className, methodName, logMessage);
+								Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
+							}
 							ContactDeviceData resultContactDeviceData = addContactDeviceData(phoneNumber, contactData, deviceData, imei, registrationId, guid, db);
 							if(resultContactDeviceData == null){
 								String errMsg = "Failed to add contactDeviceData to DB by addContactDeviceData()";
 								Log.e(CommonConst.LOG_TAG, errMsg);
-								LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
+								LogManager.LogErrorMsg("DBLayer", methodName, errMsg);
 							}
 							if(addFullPermissions(email, db) < 0){
 								String errMsg = "Failed to add FULL permissions for the following account: " + email;
 								Log.e(CommonConst.LOG_TAG, errMsg);
-								LogManager.LogErrorMsg("DBLayer", "addContactDeviceDataList", errMsg);
+								LogManager.LogErrorMsg("DBLayer", methodName, errMsg);
 							}
 							java.util.Map<String, Object> m = new HashMap<String, Object>();
 							m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, 1);
-							long updateResult = updateTableContactDeviceInternal(email, macAddress, m, db);
+							updateResult = updateTableContactDeviceInternal(email, macAddress, m, db);
 							if(updateResult < 1){
 								logMessage = "Failed to add FULL permissions for the following account: " + email;
 								LogManager.LogErrorMsg(className, methodName, logMessage);
 								Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
 							}
 				    	} else {
-							String warnMsg = "Account [" + email + "] already exists in DB";
-							Log.w(CommonConst.LOG_TAG, warnMsg);
-							LogManager.LogWarnMsg("DBLayer", "addContactDeviceDataList", warnMsg);
-							// TODO: UPDATE CONTACT ???
+							String warnMsg = "Account [" + email + "] with MacAddress [" + macAddress + "] " +
+								"already exists in DB - updating it...";
+							Log.i(CommonConst.LOG_TAG, warnMsg);
+							LogManager.LogInfoMsg("DBLayer", methodName, warnMsg);
+							
+							// UPDATE CONTACT
+				    		updateResult = addContactDataInternal(contactData, db, DBConst.CONTACT_EMAIL + " = ? ", new String[] { contactData.getEmail() });
+							if(updateResult < 1){
+								logMessage = "Add Contact Data Internal failed for the following account: " + email;
+								LogManager.LogErrorMsg(className, methodName, logMessage);
+								Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
+							}
+							updateResult = addDeviceDataInternal(deviceData, db, DBConst.DEVICE_MAC + " = ? ", new String[] { deviceData.getDeviceMac() });
+							if(updateResult < 1){
+								logMessage = "Add Device Data Internal failed for the following mac address: " + macAddress;
+								LogManager.LogErrorMsg(className, methodName, logMessage);
+								Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
+							}
+							ContactDeviceData resultContactDeviceData = updateContactDeviceData(phoneNumber, contactData, deviceData, imei, registrationId, guid, db);
+							if(resultContactDeviceData == null){
+								String errMsg = "Failed to update contactDeviceData to DB by addContactDeviceData()";
+								Log.e(CommonConst.LOG_TAG, errMsg);
+								LogManager.LogErrorMsg("DBLayer", methodName, errMsg);
+							}
 				    	}						
 			    	}
 					
@@ -967,7 +1047,7 @@ public class DBLayer {
 		return contactDeviceDataListInserted;
     }
 	
-    public  ContactData getContactData(){
+	public  ContactData getContactData(){
     	ContactData contactData = null;
 		SQLiteDatabase db = null;
 		try{
@@ -1187,7 +1267,7 @@ public class DBLayer {
     	return contactDeviceDataList;
     }
 
-    private  boolean isContactDeviceExist(String email, String macAddress, String phoneNumber, SQLiteDatabase db){
+    private  boolean isContactDeviceExist(String email, String macAddress, SQLiteDatabase db){
 		String selectQuery = "select " +		
 	        "contact_first_name, contact_last_name, contact_nick, contact_email, device_mac, " +
 	        "device_name, device_type, contact_device_imei, contact_device_phone_number, " +
@@ -1198,10 +1278,9 @@ public class DBLayer {
 	        "join " + DBConst.TABLE_DEVICE + " as D " +
 	        "on CD.contact_device_mac = D.device_mac " +
 			"where CD.contact_device_email = ? " +
-			"and CD.contact_device_mac = ? " + 
-			"and CD.contact_device_phone_number = ? ";
+			"and CD.contact_device_mac = ? ";
 		// TODO: check that phoneNumber, email and macAddress are valid values to avoid SQL injection
-		return isFieldExist(selectQuery, new String[] {email, macAddress, phoneNumber}, db);
+		return isFieldExist(selectQuery, new String[] {email, macAddress}, db);
     }
 
     private  boolean isPhoneInJoinRequestTable(String phoneNumber, SQLiteDatabase db) throws Exception{
@@ -1371,6 +1450,7 @@ public class DBLayer {
 	}
 	
 	public long updateContactDeviceData(ContactDeviceData contactDeviceData){
+		methodName = "updateContactDeviceData";
 		long lRes = -1;
 		SQLiteDatabase db = null;
 		try{
@@ -1389,7 +1469,7 @@ public class DBLayer {
 		} catch (Throwable t) {
         	String errMsg = "Exception caught: " + t.getMessage();
         	Log.e(DBConst.LOG_TAG_DB, errMsg, t);
-            LogManager.LogErrorMsg(className, "updateContactDeviceDataList", errMsg);
+            LogManager.LogErrorMsg(className, methodName, errMsg);
 		} finally {
 			if(db != null){
 				db.endTransaction();

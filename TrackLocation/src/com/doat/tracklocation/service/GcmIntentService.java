@@ -927,6 +927,10 @@ public class GcmIntentService extends IntentService {
 		DBLayer.getInstance().addContactDeviceDataList(new ContactDeviceDataList(accountCommandSentFrom,
 				macAddress, phoneNumber, registrationIdJoinApproval, null));
 		
+		// Broadcast message to update ContactList
+		Controller.broadcsatMessage(context, messageDataContactDetails, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+			"Update Contacts List", CommandKeyEnum.update_contact_list.toString(), CommandValueEnum.update_contact_list.toString());
+		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}

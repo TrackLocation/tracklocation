@@ -1,11 +1,14 @@
 package com.doat.tracklocation;
 
+import java.util.List;
+
 import com.doat.tracklocation.datatype.BroadcastConstEnum;
 import com.doat.tracklocation.datatype.CommandKeyEnum;
 import com.doat.tracklocation.datatype.CommandValueEnum;
 import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
+import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 
@@ -74,6 +77,31 @@ public class BroadcastReceiverContactListActivity extends BroadcastReceiverBase 
 								}
 							}
 						}
+					}
+				}
+			}
+			
+			if(CommandKeyEnum.update_contact_list.toString().equals(key)) {
+				
+				ListView lv = (ListView) activity.findViewById (R.id.contact_list_view);
+				ArrayAdapter<ContactData> adapter = (ArrayAdapter<ContactData>) lv.getAdapter();
+
+				// Get all joined contacts from DB
+				DBLayer.getInstance().getContactDeviceDataList(null);
+				List<ContactData> values = Controller.fillContactListWithContactDeviceData(activity, DBLayer.getInstance().getContactDeviceDataList(null), null, null, null);
+
+				// Get details of contact that sent join request by SMS from broadcast
+				MessageDataContactDetails contactSentJoinRequest = broadcastData.getContactDetails();
+				
+				for (ContactData jonedContact : values) {
+					if(jonedContact.getEmail().equals(contactSentJoinRequest.getAccount())){
+						int position = adapter.getPosition(jonedContact);
+						// if joined contact still not shown in Contact List - add it and show it
+						if(position < 0){
+							adapter.add(jonedContact);
+							adapter.notifyDataSetChanged();
+						}
+						break;
 					}
 				}
 			}

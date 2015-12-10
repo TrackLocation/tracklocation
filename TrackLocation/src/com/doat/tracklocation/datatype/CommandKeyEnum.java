@@ -10,7 +10,8 @@ public enum CommandKeyEnum {
 	mutualId("mutualId"), 
 	permissions("permissions"),
 	updated_reg_id("updated_reg_id"),
-	online_status("online");
+	online_status("online"),
+	update_contact_list("update_contact_list");
 	
 	private final String name;       
 	private static Map<String, CommandKeyEnum> valueMap;

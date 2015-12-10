@@ -2,12 +2,16 @@ package com.doat.tracklocation.dialog;
 
 import android.util.Log;
 
+import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.context.ApproveJoinRequestContext;
+import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.CommandData;
 import com.doat.tracklocation.datatype.CommandDataBasic;
 import com.doat.tracklocation.datatype.CommandEnum;
 import com.doat.tracklocation.datatype.CommandKeyEnum;
+import com.doat.tracklocation.datatype.CommandValueEnum;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
+import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
 import com.doat.tracklocation.datatype.ReceivedJoinRequestData;
 import com.doat.tracklocation.datatype.SMSMessage;
@@ -89,6 +93,21 @@ public class ApproveJoinRequestDialogListener implements
 				
 		// Delete join request that was handled 
 		deleteReceivedJoinRequest(approveJoinRequestContext.getMutualId(), approveJoinRequestContext.getOwnerEmail());
+
+		MessageDataContactDetails joinRequesterMessageDataContactDetails = 
+			new MessageDataContactDetails(receivedJoinRequestData.getAccount(), 
+				receivedJoinRequestData.getMacAddress(), 
+				receivedJoinRequestData.getPhoneNumber(), 
+				receivedJoinRequestData.getRegId(), 
+				0);
+		
+		// Broadcast message to update ContactList
+		Controller.broadcsatMessage(approveJoinRequestContext.getContext(), 
+			joinRequesterMessageDataContactDetails, 
+			BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+			"Update Contacts List", 
+			CommandKeyEnum.update_contact_list.toString(), 
+			CommandValueEnum.update_contact_list.toString());
 	}
 
 	@Override
