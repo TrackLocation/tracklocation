@@ -24,6 +24,7 @@
 	<string name="delete_menu_operation">Remove contact from list</string>
 	<string name="join_contact_appr">Join contact approvement</string>
 	<string name="err_load_location">Location not found</string>
+	<string name="activity_contact_detail">Contact Detail</string>
 	<string name="lbl_change">Change</string>	
 	
 		
@@ -55,6 +56,20 @@
 	<string name="title_Themes">Choose Theame</string>
 	
 	<string name="hint_find_contact">Find contact to join</string>
+	
+	<string name="imageview_description">Contact Thumbnail</string>
+	<string name="no_contacts">No Contacts Found</string>
+    <string name="no_contact_selected">No Contact Selected</string>
+    <string name="search_hint">Find contacts</string>
+    <string name="search_match_other">Matches Other Field</string>
+    <string name="menu_edit_contact">Edit Contact</string>
+    <string name="menu_search">Search</string>
+    <string name="contacts_list_search_results_title">Contacts List Search for \"%s\"</string>
+    <string name="no_phone">No phone found</string>
+    
+    <!-- Used for the AlphabetIndexer in ContactsListFragment to provide quick navigation by
+         alphabet using ListView fast scroll. -->
+    <string name="alphabet">ABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
 		
 </resources>
 

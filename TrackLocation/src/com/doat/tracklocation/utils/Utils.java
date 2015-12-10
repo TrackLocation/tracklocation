@@ -9,20 +9,18 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Scanner;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.PorterDuffColorFilter;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -30,10 +28,14 @@ import android.graphics.Bitmap.Config;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
+import com.doat.tracklocation.JoinContactDetailActivity;
+import com.doat.tracklocation.JoinContactsListActivity;
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.datatype.CommandEnum;
 import com.doat.tracklocation.datatype.ContactData;
@@ -43,8 +45,6 @@ import com.doat.tracklocation.datatype.DeviceData;
 import com.doat.tracklocation.datatype.DeviceTypeEnum;
 import com.doat.tracklocation.datatype.Message;
 import com.doat.tracklocation.datatype.MessageData;
-import com.doat.tracklocation.datatype.PushNotificationServiceStatusEnum;
-import com.doat.tracklocation.datatype.TrackLocationServiceStatusEnum;
 import com.doat.tracklocation.log.LogManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -376,6 +376,38 @@ public class Utils {
         drawable.draw(canvas);
 
         return bitmap;
+    }  
+
+    /**
+     * Uses static final constants to detect if the device's platform version is Gingerbread or
+     * later.
+     */
+    public static boolean hasGingerbread() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD;
+    }
+
+    /**
+     * Uses static final constants to detect if the device's platform version is Honeycomb or
+     * later.
+     */
+    public static boolean hasHoneycomb() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB;
+    }
+
+    /**
+     * Uses static final constants to detect if the device's platform version is Honeycomb MR1 or
+     * later.
+     */
+    public static boolean hasHoneycombMR1() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR1;
+    }
+
+    /**
+     * Uses static final constants to detect if the device's platform version is ICS or
+     * later.
+     */
+    public static boolean hasICS() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH;
     }
     
     public static Bitmap getDefaultContactBitmap(Resources resources){

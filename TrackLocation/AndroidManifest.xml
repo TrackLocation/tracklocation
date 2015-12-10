@@ -111,7 +111,6 @@
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_googlemap"
             android:name=".MapActivity" android:screenOrientation="unspecified"/>
-        
         <activity android:label="Contact Data Grid View"
             android:name=".grid.ContactDataGridView" android:screenOrientation="portrait"/>
         <activity android:label="Settings" android:name="SettingsActivity"/>
@@ -120,14 +119,28 @@
             android:name=".ContactEditActivity" android:screenOrientation="portrait"/>
         <activity android:label="Notification Receiver" android:name="NotificationReceiver"/>
         <activity android:label="Activity Dialog Ring"
-            android:name=".dialog.ActivityDialogRing" android:theme="@android:style/Theme.Dialog"/>        
-        <activity android:configChanges="keyboardHidden|orientation|screenSize"           
-            android:name=".JoinContactListActivity"
-            android:screenOrientation="unspecified" android:windowSoftInputMode="stateHidden">
+            android:name=".dialog.ActivityDialogRing" android:theme="@android:style/Theme.Dialog"/>
+        <activity
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:name=".JoinContactListActivity"            
+            android:screenOrientation="unspecified" android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH"/>
             </intent-filter>
-            <meta-data android:name="android.app.searchable" android:resource="@xml/searchable"/>            
+            <meta-data android:name="android.app.searchable" android:resource="@xml/searchable_contacts"/>
+        </activity>
+        <activity
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:name=".JoinContactsListActivity"            
+            android:screenOrientation="unspecified" android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH"/>
+            </intent-filter>
+            <meta-data android:name="android.app.searchable" android:resource="@xml/searchable_contacts"/>
+        </activity>
+        <activity android:label="@string/activity_contact_detail"
+            android:name=".JoinContactDetailActivity" android:parentActivityName=".JoinContactsListActivity">
+            <meta-data android:name="android.support.PARENT_ACTIVITY" android:value=".JoinContactsListActivity"/>
         </activity>
         <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version"/>
         <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="AIzaSyC2YburJfQ9h12eLEn7Ar1XPK_2deytF30"/>

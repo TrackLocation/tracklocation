@@ -31,7 +31,6 @@ public class MainActivity extends BaseActivity {
     protected MainModel mainModel;
     
     public static volatile boolean isTrackLocationRunning; // Used in SMSReceiver.class
-
     
     public MainActivityController getMainActivityController() {
 		return mainActivityController;
@@ -169,9 +168,9 @@ public class MainActivity extends BaseActivity {
         		LogManager.LogErrorMsg(className, "onClick -> JOIN button", 
             		"Unable to join contacts - application is not registred yet.");
         	} else {
-        		Intent joinContactListIntent = new Intent(this, JoinContactListActivity.class);
-        		//Intent joinContactListIntent = new Intent(this, JoinContactListActivity.class);
-        		startActivityForResult(joinContactListIntent, JOIN_REQUEST);
+        		Intent joinContactsListIntent = new Intent(this, JoinContactsListActivity.class);
+        		//startActivity(joinContactsListIntent);
+        		startActivityForResult(joinContactsListIntent, JOIN_REQUEST);
         	}
 
 // 			*********************************************************************************        	

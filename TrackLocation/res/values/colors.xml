@@ -141,5 +141,7 @@
  <color name="Navy">#000080</color>
  <color name="Black">#000000</color>
  
+  <color name="holo_blue">#FF33B5E5</color>
+ 
 
 </resources>
