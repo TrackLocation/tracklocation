@@ -82,13 +82,10 @@
                 android:orientation="vertical">
 	                <ImageButton
 		                android:id="@+id/nav_btn"
-		                style="?android:attr/buttonStyleToggle"
-		                android:layout_width="56dp"
-		                android:layout_height="56dp"
+		                style="@style/flat_round_button"		                
 		                android:layout_gravity="center_vertical|center_horizontal"
 		                android:layout_margin="@dimen/activity_horizontal_margin"
 		                android:layout_weight="20"
-		                android:background="@drawable/circle_btn_ripple"
 		                android:elevation="6dp"
 		                android:src="@drawable/ic_directions_black_24dp" />
                 </LinearLayout>
@@ -135,19 +132,15 @@
     
     <ImageButton
         android:id="@+id/btn_my_location"
-        style="?android:attr/buttonStyleToggle"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        style="@style/flat_round_button"        
         android:layout_alignParentBottom="false"
         android:layout_alignParentLeft="true"
         android:layout_centerHorizontal="false"
         android:layout_centerInParent="false"
         android:layout_centerVertical="true"
         android:layout_gravity="center_vertical|center_horizontal"
-        android:layout_margin="@dimen/activity_horizontal_margin"
-        android:background="@drawable/circle_btn_ripple"
-        android:visibility="invisible"
-        android:elevation="3dp"  
+        android:layout_margin="@dimen/activity_horizontal_margin"        
+        android:visibility="invisible"        
         android:alpha="0.6"      
         android:src="@drawable/ic_my_location_black_24dp" />
 
