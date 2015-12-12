@@ -1173,7 +1173,7 @@ public class GcmIntentService extends IntentService {
 				int ringTimeWithMaxVolume = 0;
 				while(currVoulme <= maxVolume && isRinging == true){
 					int secondsCounter = 0;
-					while(secondsCounter <= 20 && isRinging == true){ // 20 seconds - waiting loop
+					while(secondsCounter <= 5 && isRinging == true){ // 5 seconds - waiting loop
 						Thread.sleep(1000);
 						secondsCounter++;
 					}
