@@ -162,7 +162,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         //waitingDialog.setCancelable(false);
         waitingDialog.setIndeterminate(true);
         waitingDialog.show();
-        waitingDialog.setCanceledOnTouchOutside(false);
+        waitingDialog.setCanceledOnTouchOutside(true);
         
         new Thread(new Runnable() {
             @Override
@@ -209,7 +209,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			selectedContactDeviceDataList.addAll(selectedContactDeviceDataListEx);
 			if(!selectedContactDeviceDataList.isEmpty()){
 				contactsQuantity = selectedContactDeviceDataList.size();
-				// Create and fill all requested accounts shat should be shown on the location map
+				// Create and fill all requested accounts that should be shown on the location map
 				selectedAccountList = new HashMap<String, ContactData>();
 				for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
 					ContactData contactData = contactDeviceData.getContactData();
@@ -234,7 +234,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					selectedContactDeviceDataList,
 					senderMessageDataContactDetails,
 					retryTimes,
-					20000); // delay in milliseconds
+					20000); // retry delay in milliseconds to start TrackLocation Service for all recipients
 				// ===========================================================================
 				// Start TrackLocation Service for all requested recipients
 				// ===========================================================================

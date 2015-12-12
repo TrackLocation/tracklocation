@@ -169,59 +169,7 @@ public class TrackLocationService extends TrackLocationServiceBasic {
 			LogManager.LogException(e, className, "onStart");
 		}
 	}
-	
-	public void requestLocation(boolean forceGps) {
-        try{
-        	LogManager.LogFunctionCall(className, "requestLocation");
-        	if(locationListenerGPS != null){
-        		locationManager.removeUpdates(locationListenerGPS);
-        	}
-        	if(locationListenerNetwork != null){
-        		locationManager.removeUpdates(locationListenerNetwork);
-        	}
-			locationManager = null;
-			locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-			locationProviders = locationManager.getProviders(true);
-			LogManager.LogInfoMsg(className, "requestLocation", "Providers list: " + locationProviders.toString());
 
-	        if (providerAvailable(locationProviders)) {
-	        	boolean containsGPS = locationProviders.contains(LocationManager.GPS_PROVIDER);
-                LogManager.LogInfoMsg(className, "requestLocation", "containsGPS: " + containsGPS);
-
-                boolean containsNetwork = locationProviders.contains(LocationManager.NETWORK_PROVIDER);
-                LogManager.LogInfoMsg(className, "requestLocation", "containsNetwork: " + containsNetwork);
-
-                String intervalString = Preferences.getPreferencesString(context, CommonConst.LOCATION_SERVICE_INTERVAL);
-                if(intervalString == null || intervalString.isEmpty()){
-                	intervalString = CommonConst.LOCATION_DEFAULT_UPDATE_INTERVAL; // time in milliseconds
-                }
-                
-                String objectName = TrackLocationService.className.toString();
-                if (containsGPS && forceGps) {
-                	LogManager.LogInfoMsg(className, "requestLocation", "GPS_PROVIDER selected.");
-                
-	            	locationListenerGPS = new LocationListenerBasic(context, this, "LocationListenerGPS", CommonConst.GPS, objectName);
-	            	locationListenerNetwork = new LocationListenerBasic(context, this, "LocationListenerNetwork", CommonConst.NETWORK, objectName);
-
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerGPS);
-                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
-                } else if (containsNetwork) {
-                	LogManager.LogInfoMsg(className, "requestLocation", "NETWORK_PROVIDER selected.");
-                	
-            		locationListenerNetwork = new LocationListenerBasic(context, this, "LocationListenerNetwork", CommonConst.NETWORK, objectName);
-
-            		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
-                }
-	        } else {
-		        LogManager.LogInfoMsg(className, "requestLocation", "No location providers available.");
-	        }
-	        
-        LogManager.LogFunctionExit(className, "requestLocation");
-        } catch (Exception e) {
-        	LogManager.LogException(e, className, "requestLocation");
-        }
-    }
-    
     protected boolean providerAvailable(List<String> providers) {
         if (providers.size() < 1) {
         	return false;

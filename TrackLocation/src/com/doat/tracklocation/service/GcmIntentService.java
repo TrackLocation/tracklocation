@@ -208,27 +208,6 @@ public class GcmIntentService extends IntentService {
             		
         			handleCommandStartTrackLocationService(extras);
     	    		
-            	// ============================================
-            	// ====  COMMAND: TRACKING  ===================
-            	// ============================================
-                // COMMAND: Start Tracking on client
-            	// CLIENT SIDE	
-            	// command received via GCM from Master
-            	// to Slave - in order to start tracking 
-        		// service on Slave and 
-        		// notify about location every certain
-        		// period of time
-            	// ============================================
-            	} else if(extras.containsKey(CommandTagEnum.command.toString()) &&
-                			extras.getString(CommandTagEnum.command.toString()).
-                			equals(CommandEnum.tracking.toString())){ // COMMAND TRACKING
-                		
-                		logMessage = "Catched push notification message (GCM): [START Tracking Service]";
-            			LogManager.LogInfoMsg(className, "Start Tracking Service", logMessage);
-            			Log.i(CommonConst.LOG_TAG, "[INFO] {" +className + "} -> " + logMessage);
-                		
-            			handleCommandStartTrackingService(extras);
-            			
                 // ============================================
                 // ====  COMMAND: STATUS_REQUEST  =============
         		// ============================================
@@ -348,31 +327,7 @@ public class GcmIntentService extends IntentService {
         			LogManager.LogInfoMsg(className, "RingDevice", logMessage);
         			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-    			handleCommandRingDevice(extras);
-            	// ============================================
-	            // ====  COMMAND: START_TRACKING  =============
-        		// ============================================
-            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
-                			extras.getString(CommandTagEnum.command.toString()).
-                			equals(CommandEnum.start_tracking.toString())){ // COMMAND START_TRACKING
-            		
-            		logMessage = "Catched push notification message (GCM): [START_TRACKING]";
-        			LogManager.LogInfoMsg(className, "StartTracking", logMessage);
-        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
-        			handleCommandStartTracking(extras);
-            	// ============================================
-	            // ====  COMMAND: STOP_TRACKING  ==============
-        		// ============================================
-            	} else if (extras.containsKey(CommandTagEnum.command.toString()) &&
-                			extras.getString(CommandTagEnum.command.toString()).
-                			equals(CommandEnum.stop_tracking.toString())){ // COMMAND STOP_TRACKING
-            		
-            		logMessage = "Catched push notification message (GCM): [STOP_TRACKING]";
-        			LogManager.LogInfoMsg(className, "StopTracking", logMessage);
-        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
-        			handleCommandStopTracking(extras);
+        			handleCommandRingDevice(extras);
             	} 
         	
             } else { // if (GoogleCloudMessaging
@@ -534,7 +489,7 @@ public class GcmIntentService extends IntentService {
         // Notify caller by GCM (push notification)
 		sendNotificationCommand(
 			senderMessageDataContactDetails,
-			"Strat Track Location Service command received by '" + senderAccount + "'", 
+			"Start Track Location Service command received by '" + senderAccount + "'", 
 			CommandKeyEnum.online_status.toString(), 
 			CommandValueEnum.online.toString());
 
@@ -575,7 +530,7 @@ public class GcmIntentService extends IntentService {
 
 		sendNotificationCommand(
 			senderMessageDataContactDetails,
-			"Strat Track Location Service command received by '" + senderAccount + "'", 
+			"Start Track Location Service command received by '" + senderAccount + "'", 
 			CommandKeyEnum.start_status.toString(), 
 			CommandValueEnum.start_track_location_service_received.toString());
 		
@@ -591,10 +546,14 @@ public class GcmIntentService extends IntentService {
     	// PARAMETER: 	interval
     	// CLIENT SIDE	
     	// ============================================
-		if(extras.containsKey(CommandTagEnum.interval.toString())){ // PARAMETER INTERVAL
-			String intervalString = extras.getString(CommandTagEnum.interval.toString());
-            Preferences.setPreferencesString(getApplicationContext(), 
-            	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
+		if(extras.containsKey(CommandTagEnum.key.toString()) && 
+				extras.getString(CommandTagEnum.key.toString()).
+    			equals(CommandTagEnum.interval.toString())){ // PARAMETER INTERVAL
+			String intervalString = extras.getString(CommandTagEnum.value.toString());
+			if(intervalString != null && !intervalString.isEmpty()){
+	            Preferences.setPreferencesString(getApplicationContext(), 
+	            	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
+			}
 		}
 		
         String msgServiceStarted;
@@ -677,24 +636,6 @@ public class GcmIntentService extends IntentService {
 			LogManager.LogException(e, className, methodName);
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 		}
-	}
-	
-	
-	
-	private void handleCommandStopTrackLocationService(Bundle extras){
-		
-		String methodName = "handleCommandStopTrackLocationService";
-		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY]  {" + className + "} -> " + methodName);
-
-		Intent trackLocationService = new Intent(context, TrackLocationService.class);
-		boolean result = context.stopService(trackLocationService); 
-		
-		LogManager.LogInfoMsg(className, methodName, "Servise stopped: " + result);
-		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + "Servise stopped: " + result);
-
-		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 	private void handleCommandStatusRequest(Bundle extras){
@@ -880,8 +821,7 @@ public class GcmIntentService extends IntentService {
 		if(CommandKeyEnum.mutualId.toString().equals(key)){
 			mutualId = extras.getString(CommandTagEnum.value.toString()); // mutualId
 		}
-		String currentDateTime = Controller.getCurrentDate();
-		
+
 //		// Insert into TABLE_PERMISSIONS account(email) according to mutualId
 //		long countAdded = DBLayer.addPermissions(email, 0, 0, 0);
 //		PermissionsData permissionData = DBLayer.getPermissions(email);
@@ -941,7 +881,6 @@ public class GcmIntentService extends IntentService {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 		
-		String key = extras.getString(CommandTagEnum.key.toString());
 		String value = extras.getString(CommandTagEnum.value.toString());
 		
 		String jsonContactDetails = extras.getString(CommandTagEnum.contactDetails.toString());
@@ -1147,41 +1086,6 @@ public class GcmIntentService extends IntentService {
 		}
 	}
 	
-	private void handleCommandStartTrackingService(Bundle extras){
-		String methodName = "handleCommandStartTrackingService";
-		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
-		
-		MessageDataContactDetails senderMessageDataContactDetails;
-		String senderAccount;
-		
-		try {
-			senderMessageDataContactDetails = initCommand(extras);
-			senderAccount = senderMessageDataContactDetails.getAccount();
-		} catch (NoSentContactFromException e) {
-			logMessage = "Failed to start TrackLocationService - NoSentContactFrom details";
-			LogManager.LogException(e, logMessage, methodName);
-			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
-			return;
-		} catch (NoSentContactFromAccountException e) {
-			logMessage = "Failed to start TrackLocationService - NoSentContactFromAccount details";
-			LogManager.LogException(e, logMessage, methodName);
-			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
-			return;
-		}
-
-		ContactDeviceDataList contactDeviceDataToSendNotificationTo = new ContactDeviceDataList(
-			senderMessageDataContactDetails.getAccount(),
-			senderMessageDataContactDetails.getMacAddress(),
-			senderMessageDataContactDetails.getPhoneNumber(),
-			senderMessageDataContactDetails.getRegId(), null);
-
-		if(isPermissionToGetLocation(senderMessageDataContactDetails, 
-				messageDataContactDetails, methodName) == false){
-			return;
-		}
-	}
-	
 	private void handleCommandRingDevice(Bundle extras){
 		String methodName = "handleCommandRingDevice";
 		LogManager.LogFunctionCall(className, methodName);
@@ -1239,125 +1143,6 @@ public class GcmIntentService extends IntentService {
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	private void handleCommandStartTracking(Bundle extras){
-		String methodName = "handleCommandStartTrackLocationService";
-		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
-		
-		StartService(extras, "TrackingService", TrackingService.class);
-			
-        LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	
-	}
-	
-	private void handleCommandStopTracking(Bundle extras){
-		String methodName = "handleCommandStopTracking";
-		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
-		
-		StopService("TrackingService", TrackingService.class);
-		
-		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	}
-	
-	private void StartService(Bundle extras, String serviceName, Class<?> serviceClass){
-		String methodName = "StartService_" + serviceName;
-		MessageDataContactDetails senderMessageDataContactDetails;
-		String senderAccount;
-		
-		try {
-			senderMessageDataContactDetails = initCommand(extras);
-			senderAccount = senderMessageDataContactDetails.getAccount();
-		} catch (NoSentContactFromException e) {
-			logMessage = "Failed to start " + serviceName + " - NoSentContactFrom details";
-			LogManager.LogException(e, logMessage, methodName);
-			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
-			return;
-		} catch (NoSentContactFromAccountException e) {
-			logMessage = "Failed to start " + serviceName + " - NoSentContactFromAccount details";
-			LogManager.LogException(e, logMessage, methodName);
-			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
-			return;
-		}
-		
-		if(isPermissionToGetLocation(senderMessageDataContactDetails, 
-				messageDataContactDetails, methodName) == false){
-			return;
-		}
-		
-    	// ============================================
-    	// ====  COMMAND: START + INTERVAL PARAM  =====
-    	// ============================================
-        // COMMAND: 	start - with parameter:
-    	// PARAMETER: 	interval
-    	// CLIENT SIDE	
-    	// ============================================
-		if(extras.containsKey(CommandTagEnum.interval.toString())){ // PARAMETER INTERVAL
-			String intervalString = extras.getString(CommandTagEnum.interval.toString());
-            Preferences.setPreferencesString(getApplicationContext(), 
-            	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
-		}
-		
-        String msgServiceStarted;
-        String notificationKey;
-        String notificationValue;
-        
-		// ===========================================================
-		// Start TrackLocation service to get current location
-		// ===========================================================
-		Intent serviceToStart = new Intent(clientContext, serviceClass);
-		String jsonSenderMessageDataContactDetails = gson.toJson(senderMessageDataContactDetails);
-		//String jsonContactDetailsSentFrom = gson.toJson(contactDetailsSentFrom, MessageDataContactDetails.class);
-		serviceToStart.putExtra(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS, jsonSenderMessageDataContactDetails);
-		ComponentName componentName = clientContext.startService(serviceToStart); 
-		if(componentName != null){
-			// Notify that TrackLoactionService was started - by GCM (push notification)
-			msgServiceStarted = serviceName + " is starting by [" + messageDataContactDetails.getAccount() + "]";
-			notificationKey = CommandKeyEnum.starting_status.toString();
-			notificationValue = CommandValueEnum.success.toString();
-			LogManager.LogInfoMsg(className, methodName, msgServiceStarted);
-			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + msgServiceStarted);
-		} else {
-			// Notify that TrackLoactionService was not started - by GCM (push notification)
-			msgServiceStarted = "Failed to start " + serviceName + " on [" + messageDataContactDetails.getAccount() + "]";
-			notificationKey = CommandKeyEnum.starting_status.toString();
-			notificationValue = CommandValueEnum.error.toString();		
-			LogManager.LogErrorMsg(className, methodName, msgServiceStarted);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + msgServiceStarted);
-		}
-		
-		// ===========================================================
-		// ===  NOTIFICATION: START COMMAND STATUS  ==================
-		// ===========================================================
-		// Notify caller by GCM (push notification)
-
-		sendNotificationCommand(
-			senderMessageDataContactDetails, 
-			msgServiceStarted, 
-			notificationKey, 
-			notificationValue);
-		
-		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	}
-	
-	private void StopService(String serviceName, Class<?> serviceClass){
-		String methodName = "StopTracking_" + serviceName;
-		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY]  {" + className + "} -> " + methodName);
-
-		Intent serviceToStop = new Intent(context, serviceClass);
-		boolean result = context.stopService(serviceToStop); 
-		
-		LogManager.LogInfoMsg(className, methodName, "Servise stopped: " + result);
-		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + "Servise stopped: " + result);
-
-		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	}
-
 	private void ringDevice(){
 		String methodName = "ringDevice";
 		AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);

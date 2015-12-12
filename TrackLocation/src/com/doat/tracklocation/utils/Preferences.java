@@ -157,7 +157,7 @@ public class Preferences {
 		Gson gson = new Gson();
 		if (context != null) {
 			String jsonReturnToContactMap = Preferences.getPreferencesString(
-					context, CommonConst.PREFERENCES_RETURN_TO_CONTACT_MAP);
+					context, CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID);
 			if (jsonReturnToContactMap != null
 					&& !jsonReturnToContactMap.isEmpty()) {
 				returnToContactMap = gson.fromJson(jsonReturnToContactMap,
@@ -188,7 +188,7 @@ public class Preferences {
 			returnToContactMap.put(account, regId);
 			String jsonReturnToContactMap = gson.toJson(returnToContactMap);
 			Preferences.setPreferencesString(context,
-					CommonConst.PREFERENCES_RETURN_TO_CONTACT_MAP,
+					CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID,
 					jsonReturnToContactMap);
 		} else {
 			String logMessage = "Unable to set PreferencesReturnToContactMap. Context parameter is null.";
@@ -213,7 +213,7 @@ public class Preferences {
 				returnToContactMap.remove(account);
 				String jsonReturnToContactMap = gson.toJson(returnToContactMap);
 				Preferences.setPreferencesString(context,
-						CommonConst.PREFERENCES_RETURN_TO_CONTACT_MAP,
+						CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID,
 						jsonReturnToContactMap);
 			}
 		} else {
@@ -236,7 +236,7 @@ public class Preferences {
 				returnToContactMap.clear();
 				String jsonReturnToContactMap = gson.toJson(returnToContactMap);
 				Preferences.setPreferencesString(context,
-						CommonConst.PREFERENCES_RETURN_TO_CONTACT_MAP,
+						CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID,
 						jsonReturnToContactMap);
 			}
 		} else {

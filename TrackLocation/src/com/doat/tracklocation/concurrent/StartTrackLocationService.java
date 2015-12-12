@@ -11,6 +11,7 @@ import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.CommandData;
 import com.doat.tracklocation.datatype.CommandDataBasic;
 import com.doat.tracklocation.datatype.CommandEnum;
+import com.doat.tracklocation.datatype.CommandTagEnum;
 import com.doat.tracklocation.datatype.CommandValueEnum;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
@@ -30,13 +31,11 @@ import com.google.gson.Gson;
  */
 public class StartTrackLocationService implements Runnable {
 
-	private final static int DELAY_IN_MS = 1000;
-	
 	private Context context;
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private MessageDataContactDetails senderMessageDataContactDetails;
 	private int retryTimes;
-	private int delay;
+	private int retrySendCommandDelay; // in milliseconds
 	private String className;
 	private List<String> tempListAccounts;
 	private volatile boolean exitNow;
@@ -54,7 +53,7 @@ public class StartTrackLocationService implements Runnable {
 		this.selectedContactDeviceDataList = selectedContactDeviceDataList;
 		this.senderMessageDataContactDetails = senderMessageDataContactDetails;
 		this.retryTimes = retryTimes;
-		this.delay = delay; // in milliseconds
+		this.retrySendCommandDelay = delay; // in milliseconds
 		className = this.getClass().getName();
 	}
 	
@@ -95,13 +94,13 @@ public class StartTrackLocationService implements Runnable {
 			commandDataBasic = new CommandData(
 					context, 
 					selectedContactDeviceDataList, 
-					CommandEnum.start,	// [START]	
-					null, 				// message
+					CommandEnum.start,					// [START]	
+					null, 								// message
 					senderMessageDataContactDetails, 
-					null,				// location
-					null, 				// key
-					null, 				// value,
-					null 				// appInfo
+					null,								// location
+					CommandTagEnum.interval.toString(),	// key: location update interval
+					"1000", 							// value: location update interval = 1 second
+					null 								// appInfo
 			);
 		} catch (UnableToSendCommandException e) {
 			LogManager.LogException(e, className, methodName);
@@ -136,19 +135,15 @@ public class StartTrackLocationService implements Runnable {
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> LOOP: " + (i+1) + 
 				" [START] command sent to recipients: " + jsonListAccounts);
 			
-			for(int j = 0; j < (delay / 1000); j++){
-				try {
-					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + DELAY_IN_MS / 1000 + " sec");
-					Thread.sleep(DELAY_IN_MS);
-				} catch (InterruptedException e) {
-					//if(exitNow == true){
-					logMessage = "Finish the thread with loop for starting of TrackLocation Service. ThreadID = " + 
-						Thread.currentThread().getId();
-					LogManager.LogInfoMsg(className, methodName, logMessage);
-					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-					return;
-					//}
-				}
+			try {
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + retrySendCommandDelay / 1000 + " sec");
+				Thread.sleep(retrySendCommandDelay);
+			} catch (InterruptedException e) {
+				logMessage = "Finish the thread with loop for starting of TrackLocation Service. ThreadID = " + 
+					Thread.currentThread().getId();
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+				return;
 			}
 			
 			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);

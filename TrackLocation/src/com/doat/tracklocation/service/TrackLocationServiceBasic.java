@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.datatype.AppInfo;
-import com.doat.tracklocation.datatype.CommandEnum;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
@@ -48,7 +47,7 @@ public class TrackLocationServiceBasic extends Service {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
                 
-        try{
+		try{
             LogManager.LogFunctionCall(className, "onCreate");
             if(context == null){
             	context = getApplicationContext();
@@ -110,7 +109,7 @@ public class TrackLocationServiceBasic extends Service {
 	}
 	
 	public void requestLocation(boolean forceGps) {
-/*        try{
+        try{
         	LogManager.LogFunctionCall(className, "requestLocation");
         	if(locationListenerGPS != null){
         		locationManager.removeUpdates(locationListenerGPS);
@@ -118,8 +117,9 @@ public class TrackLocationServiceBasic extends Service {
         	if(locationListenerNetwork != null){
         		locationManager.removeUpdates(locationListenerNetwork);
         	}
-			locationManager = null;
-			locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        	if(locationManager == null){
+        		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        	}
 			locationProviders = locationManager.getProviders(true);
 			LogManager.LogInfoMsg(className, "requestLocation", "Providers list: " + locationProviders.toString());
 
@@ -158,7 +158,7 @@ public class TrackLocationServiceBasic extends Service {
         } catch (Exception e) {
         	LogManager.LogException(e, className, "requestLocation");
         }
-*/        
+       
     }
     
     protected boolean providerAvailable(List<String> providers) {
