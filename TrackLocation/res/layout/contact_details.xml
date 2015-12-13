@@ -180,19 +180,14 @@
     
     <ImageButton
         android:id="@+id/button1"
-        style="?android:attr/buttonStyleToggle"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
+        style="@style/flat_round_button"                  
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="false"
         android:layout_centerHorizontal="true"
         android:layout_centerInParent="false"
         android:layout_centerVertical="true"
         android:layout_gravity="bottom|center"
-        android:layout_margin="@dimen/activity_horizontal_margin"
-        android:background="@drawable/circle_btn_ripple"
-        android:elevation="3dp"
-        android:fontFamily="sans-serif-light"
+        android:layout_margin="@dimen/activity_horizontal_margin"                
         android:onClick="submitUpdateResult"
         android:src="@drawable/ic_done_black_24dp" />
 
