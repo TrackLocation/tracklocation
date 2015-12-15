@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
-                android:layout_height="?android:attr/listPreferredItemHeight"
+                android:layout_height="?android:attr/listPreferredItemHeight"                
                 style="@style/listViewActivatedStyle">
         
     <ImageView
@@ -9,7 +9,7 @@
         style="@style/round_contact_image"
         android:layout_centerHorizontal="false"
         android:layout_centerVertical="true"
-        android:layout_marginLeft="5dp"
+        android:layout_marginLeft="15sp"
         android:layout_marginRight="20dp"        
         android:contentDescription="ConstentDescription"
         android:src="@drawable/ic_person_black_24dp" />
