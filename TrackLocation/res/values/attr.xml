@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="StatusImageView">        
+        <attr name="siv_showStatus" format="boolean" />
+    </declare-styleable>        
+</resources>
