@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.doat.tracklocation;
 
 import android.annotation.SuppressLint;
@@ -62,24 +46,6 @@ import java.util.Locale;
 import com.doat.tracklocation.utils.ImageLoader;
 import com.doat.tracklocation.utils.Utils;
 
-/**
- * This fragment displays a list of contacts stored in the Contacts Provider. Each item in the list
- * shows the contact's thumbnail photo and display name. On devices with large screens, this
- * fragment's UI appears as part of a two-pane layout, along with the UI of
- * {@link JoinContactDetailFragment}. On smaller screens, this fragment's UI appears as a single pane.
- *
- * This Fragment retrieves contacts based on a search string. If the user doesn't enter a search
- * string, then the list contains all the contacts in the Contacts Provider. If the user enters a
- * search string, then the list contains only those contacts whose data matches the string. The
- * Contacts Provider itself controls the matching algorithm, which is a "substring" search: if the
- * search string is a substring of any of the contacts data, then there is a match.
- *
- * On newer API platforms, the search is implemented in a SearchView in the ActionBar; as the user
- * types the search string, the list automatically refreshes to display results ("type to filter").
- * On older platforms, the user must enter the full string and trigger the search. In response, the
- * trigger starts a new Activity which loads a fresh instance of this fragment. The resulting UI
- * displays the filtered list and disables the search feature to prevent furthering searching.
- */
 public class JoinContactsListFragment extends ListFragment implements
         AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
 
@@ -111,16 +77,6 @@ public class JoinContactsListFragment extends ListFragment implements
      */
     public JoinContactsListFragment() {}
 
-    /**
-     * In platform versions prior to Android 3.0, the ActionBar and SearchView are not supported,
-     * and the UI gets the search string from an EditText. However, the fragment doesn't allow
-     * another search when search results are already showing. This would confuse the user, because
-     * the resulting search would re-query the Contacts Provider instead of searching the listed
-     * results. This method sets the search query and also a boolean that tracks if this Fragment
-     * should be displayed as a search result view or not.
-     *
-     * @param query The contacts search query.
-     */
     public void setSearchQuery(String query) {
         if (TextUtils.isEmpty(query)) {
             mIsSearchResultView = false;
@@ -149,17 +105,6 @@ public class JoinContactsListFragment extends ListFragment implements
                     savedInstanceState.getInt(STATE_PREVIOUSLY_SELECTED_KEY, 0);
         }
 
-        /*
-         * An ImageLoader object loads and resizes an image in the background and binds it to the
-         * QuickContactBadge in each item layout of the ListView. ImageLoader implements memory
-         * caching for each image, which substantially improves refreshes of the ListView as the
-         * user scrolls through it.
-         *
-         * To learn more about downloading images asynchronously and caching the results, read the
-         * Android training class Displaying Bitmaps Efficiently.
-         *
-         * http://developer.android.com/training/displaying-bitmaps/
-         */
         mImageLoader = new ImageLoader(getActivity(), getListPreferredItemHeight(), true) {
             @Override
             protected Bitmap processBitmap(Object data) {
@@ -167,10 +112,6 @@ public class JoinContactsListFragment extends ListFragment implements
             }
         };
 
-        // Set a placeholder loading image for the image loader
-        //mImageLoader.setLoadingImage(R.drawable.ic_person_black_24dp);
-
-        // Add a cache to the image loader
         mImageLoader.addImageCache(getActivity().getSupportFragmentManager(), 0.1f);
     }
 
@@ -204,9 +145,6 @@ public class JoinContactsListFragment extends ListFragment implements
             public void onScroll(AbsListView absListView, int i, int i1, int i2) {}
         });
 
-        // If there's a previously selected search item from a saved state then don't bother
-        // initializing the loader as it will be restarted later when the query is populated into
-        // the action bar search view (see onQueryTextChange() in onCreateOptionsMenu()).
         if (mPreviouslySelectedSearchItem == 0) {
             // Initialize the loader, and create a loader identified by ContactsQuery.QUERY_ID
             getLoaderManager().initLoader(ContactsQuery.QUERY_ID, null, this);
@@ -218,11 +156,6 @@ public class JoinContactsListFragment extends ListFragment implements
         super.onAttach(activity);
 
         try {
-            // Assign callback listener which the holding activity must implement. This is used
-            // so that when a contact item is interacted with (selected by the user) the holding
-            // activity will be notified and can take further action such as populating the contact
-            // detail pane (if in multi-pane layout) or starting a new activity with the contact
-            // details (single pane layout).
             mOnContactSelectedListener = (OnContactsInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
@@ -251,11 +184,6 @@ public class JoinContactsListFragment extends ListFragment implements
         final Uri uri = Contacts.getLookupUri(
                 cursor.getLong(ContactsQuery.ID),
                 cursor.getString(ContactsQuery.LOOKUP_KEY));
-
-        // Notifies the parent activity that the user selected a contact. In a two-pane layout, the
-        // parent activity loads a ContactDetailFragment that displays the details for the selected
-        // contact. In a single-pane layout, the parent activity starts a new activity that
-        // displays contact details in its own Fragment.
         mOnContactSelectedListener.onContactSelected(uri);
     }
 
@@ -272,9 +200,6 @@ public class JoinContactsListFragment extends ListFragment implements
         getListView().clearChoices();
     }
 
-    // This method uses APIs from newer OS versions than the minimum that this app supports. This
-    // annotation tells Android lint that they are properly guarded so they won't run on older OS
-    // versions and can be ignored by lint.
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {

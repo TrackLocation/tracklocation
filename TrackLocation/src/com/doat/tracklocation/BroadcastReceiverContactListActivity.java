@@ -72,7 +72,7 @@ public class BroadcastReceiverContactListActivity extends BroadcastReceiverBase 
 							for (int i = 0; i < count; i++) {
 								ContactData item = adapter.getItem(i);
 								if(senderAccount.equals(item.getEmail())){
-									item.setContactStatus(BitmapFactory.decodeResource(activity.getResources(), R.drawable.green));
+									item.setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
 									adapter.notifyDataSetChanged();
 								}
 							}

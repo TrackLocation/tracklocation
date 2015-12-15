@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.doat.tracklocation;
 
 import java.io.UnsupportedEncodingException;
@@ -30,8 +14,6 @@ import com.doat.tracklocation.dialog.ICommonDialogNewOnClickListener;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
-import com.doat.tracklocation.utils.Utils;
-
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -46,10 +28,6 @@ import android.widget.Toast;
 
 
 public class JoinContactsListActivity extends FragmentActivity implements JoinContactsListFragment.OnContactsInteractionListener {
-
-    // True if this activity instance is a search result view (used on pre-HC devices that load
-    // search results in a separate instance of the activity rather than loading results in-line
-    // as the query is typed.
     private boolean isSearchResultView = false;
 	private BroadcastReceiver broadcastReceiver;
 	private String className = this.getClass().getName();	
@@ -59,30 +37,14 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
     @Override
     protected void onCreate(Bundle savedInstanceState) {
     	getActionBar().setDisplayShowHomeEnabled(false);
-        /*if (BuildConfig.DEBUG) {
-            Utils.enableStrictMode();
-        }*/
         super.onCreate(savedInstanceState);
-
-        // Set main content view. On smaller screen devices this is a single pane view with one
-        // fragment. One larger screen devices this is a two pane view with two fragments.
         setContentView(R.layout.join_activity_main);
 
-        // Check if this activity instance has been triggered as a result of a search query. This
-        // will only happen on pre-HC OS versions as from HC onward search is carried out using
-        // an ActionBar SearchView which carries out the search in-line without loading a new
-        // Activity.
         if (Intent.ACTION_SEARCH.equals(getIntent().getAction())) {
-
-            // Fetch query from intent and notify the fragment that it should display search
-            // results instead of all contacts.
             String searchQuery = getIntent().getStringExtra(SearchManager.QUERY);
             JoinContactsListFragment mContactsListFragment = (JoinContactsListFragment)
                     getSupportFragmentManager().findFragmentById(R.id.contact_list);
 
-            // This flag notes that the Activity is doing a search, and so the result will be
-            // search results rather than all contacts. This prevents the Activity and Fragment
-            // from trying to a search on search results.
             isSearchResultView = true;
             mContactsListFragment.setSearchQuery(searchQuery);
 
@@ -93,12 +55,6 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
         initBroadcastReceiver();
     }
 
-    /**
-     * This interface callback lets the main contacts list fragment notify
-     * this activity that a contact has been selected.
-     *
-     * @param contactUri The contact Uri to the selected contact.
-     */
     @Override
     public void onContactSelected(Uri contactUri) {
        Intent intent = new Intent(this, JoinContactDetailActivity.class);

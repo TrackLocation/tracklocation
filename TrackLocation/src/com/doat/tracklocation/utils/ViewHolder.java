@@ -10,13 +10,6 @@ public class ViewHolder
     public ViewHolder()
     {
     }
-
-    /**
-     * 
-     * @param view
-     *            The view to add; to reference this view later, simply refer to its id.
-     * @return This instance to allow for chaining.
-     */
     public ViewHolder addView(View view)
     {
         int id = view.getId();

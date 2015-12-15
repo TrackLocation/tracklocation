@@ -3,24 +3,22 @@
 	    android:layout_width="fill_parent"
 	    android:layout_height="fill_parent"
 	    android:layout_alignParentLeft="true">
-
-    <ImageView
-        android:id="@+id/icon"
-        android:layout_width="50sp"
-        android:layout_height="50sp"
-        android:layout_marginLeft="5sp"
-        android:layout_marginRight="20sp"
-        android:contentDescription="ConstentDescription"
-        android:layout_marginTop="2sp"
-        android:src="@drawable/ic_launcher" />
+        
+	<com.doat.tracklocation.controls.StatusImage             
+    	android:id="@+id/status_image_ctrl"
+        android:layout_marginLeft="2sp"
+        android:layout_width="80sp"                        
+		android:layout_height="80sp"
+		android:layout_marginRight="10sp"
+		android:layout_gravity ="center"
+	/>
 	 
     <TextView
         android:id="@+id/contact"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="9sp"
-        android:text="@+id/label"
+        android:layout_height="wrap_content"        
+        android:text="@+id/label"        
+		android:layout_gravity ="center"
         android:textSize="25sp" >
-
     </TextView>
 </LinearLayout>

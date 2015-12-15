@@ -3,6 +3,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.doat.tracklocation.R;
+import com.doat.tracklocation.controls.StatusImage;
 import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.PermissionsData;
 import com.doat.tracklocation.db.DBConst;
@@ -13,9 +14,6 @@ import com.doat.tracklocation.utils.Utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,7 +22,6 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -37,6 +34,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 	private String className;
 	private String methodName;
 	private String logMessage;
+	private boolean bActiveStatusDraw = false;
 	
 	public ContactListArrayAdapter(Context context, int resource, List<ContactData> values, 
 			List<Boolean> checkBoxValues, List<String> emailList, List<String> macAddressList) {
@@ -62,10 +60,10 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 	// View lookup cache
     private static class ViewHolder {
         TextView textView;
-        ImageView imageView;
+        //ImageView imageView;
+        StatusImage statusImage;
         CheckBox checkBox;
-        ToggleButton toggleButton; 
-        ImageView statusView;
+        ToggleButton toggleButton;        
     }
     
 	@Override
@@ -79,10 +77,12 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);	      	
 			convertView = inflater.inflate(res, parent, false);
       		viewHolder.textView = (TextView) convertView.findViewById(R.id.contact);
-      		viewHolder.imageView = (ImageView) convertView.findViewById(R.id.icon);
+      	
+      		viewHolder.statusImage = (StatusImage) convertView.findViewById(R.id.status_image_ctrl);
+      		viewHolder.statusImage.setStatusDrawVisible( this.bActiveStatusDraw);
+      		
       		viewHolder.checkBox = (CheckBox) convertView.findViewById(R.id.check_share_location);
-      		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);
-      		viewHolder.statusView = (ImageView) convertView.findViewById(R.id.status_image);
+      		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);      		
       		if (viewHolder.toggleButton != null){
 	      		viewHolder.toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 	    			@Override
@@ -151,18 +151,12 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 		else{
 			bmp = Utils.getRoundedCornerImage(bmp, false);
 		}
-		Drawable contactPhoto = new BitmapDrawable(convertView.getResources(), bmp);
-		contactPhoto.setBounds( 0, 0, 120, 120 );
-		viewHolder.imageView.setImageDrawable(contactPhoto);
-
-		if (viewHolder.statusView != null){
-			Bitmap statusBmp = contactData.getContactStatus();
-			if (statusBmp == null){			
-				statusBmp = BitmapFactory.decodeResource(convertView.getResources(), R.drawable.red);
-			}
-			Drawable contactStatus = new BitmapDrawable(convertView.getResources(), statusBmp);
-			contactStatus.setBounds( 0, 0, 120, 120 );
-			viewHolder.statusView.setImageDrawable(contactStatus);
+		viewHolder.statusImage.setBitmap(bmp);
+		if (this.bActiveStatusDraw){
+			int contactStatus = contactData.getContactStatus();
+			if (contactStatus != CommonConst.CONTACT_STATUS_PENDING){				
+				viewHolder.statusImage.setCompleted(CommonConst.CONTACT_STATUS_CONNECTED);
+			}			
 		}
 		
 		// Action on Row click 
@@ -181,4 +175,8 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 		}
 		return convertView;
 	}
+
+	public void setActiveStatusDraw(boolean bActiveStatusDraw) {
+		this.bActiveStatusDraw = bActiveStatusDraw;
+	}	
 }

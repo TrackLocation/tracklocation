@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2013 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.doat.tracklocation.utils;
 
 import android.content.Context;
@@ -64,15 +48,6 @@ public abstract class ImageLoader {
         return mImageSize;
     }
 
-    /**
-     * Load an image specified by the data parameter into an ImageView (override
-     * {@link ImageLoader#processBitmap(Object)} to define the processing logic). If the image is
-     * found in the memory cache, it is set immediately, otherwise an {@link AsyncTask} will be
-     * created to asynchronously load the bitmap.
-     *
-     * @param data The URL of the image to download.
-     * @param imageView The ImageView to bind the downloaded image to.
-     */
     public void loadImage(Object data, ImageView imageView) {
         if (data == null) {        	
         	imageView.setImageBitmap( isRoundImages ? Utils.getRoundedCornerImage(mLoadingBitmap, true) : mLoadingBitmap);        	
@@ -97,22 +72,6 @@ public abstract class ImageLoader {
         }
     }
 
-    /**
-     * Set placeholder bitmap that shows when the the background thread is running.
-     *
-     * @param resId Resource ID of loading image.
-     */
-/*    public void setLoadingImage(int resId) {
-        mLoadingBitmap = BitmapFactory.decodeResource(mResources, resId);        
-    }
-*/
-    /**
-     * Adds an {@link ImageCache} to this image loader.
-     *
-     * @param fragmentManager A FragmentManager to use to retain the cache over configuration
-     *                        changes such as an orientation change.
-     * @param memCacheSizePercent The cache size as a percent of available app memory.
-     */
     public void addImageCache(FragmentManager fragmentManager, float memCacheSizePercent) {
         mImageCache = ImageCache.getInstance(fragmentManager, memCacheSizePercent);
     }
@@ -124,20 +83,8 @@ public abstract class ImageLoader {
         mFadeInBitmap = fadeIn;
     }
 
-    /**
-     * Subclasses should override this to define any processing or work that must happen to produce
-     * the final bitmap. This will be executed in a background thread and be long running. For
-     * example, you could resize a large bitmap here, or pull down an image from the network.
-     *
-     * @param data The data to identify which image to process, as provided by
-     *            {@link ImageLoader#loadImage(Object, ImageView)}
-     * @return The processed bitmap
-     */
     protected abstract Bitmap processBitmap(Object data);
 
-    /**
-     * Cancels any pending work attached to the provided ImageView.
-     */
     public static void cancelWork(ImageView imageView) {
         final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
         if (bitmapWorkerTask != null) {
@@ -149,12 +96,6 @@ public abstract class ImageLoader {
         }
     }
 
-    /**
-     * Returns true if the current work has been canceled or if there was no work in
-     * progress on this image view.
-     * Returns false if the work in progress deals with the same data. The work is not
-     * stopped in that case.
-     */
     public static boolean cancelPotentialWork(Object data, ImageView imageView) {
         final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
 

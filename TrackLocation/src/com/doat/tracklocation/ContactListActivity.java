@@ -80,6 +80,7 @@ public class ContactListActivity extends BaseActivity {
 			lv = (ListView) findViewById(R.id.contact_list_view);
 			
 	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, values, null, null, null);
+	        ((ContactListArrayAdapter) adapter).setActiveStatusDraw(true);
 	    	lv.setAdapter(adapter);	    		         
 	    } else {
 	    	// There can be a case when data is not provided.

@@ -75,5 +75,11 @@
     </style>
 
     <style name="joinButton"/>
+    
+    <style name="round_contact_image">        
+        <item name="android:layout_width">50sp</item>
+        <item name="android:layout_height">50sp</item>
+        <item name="android:layout_gravity">center</item>              
+    </style>
 
 </resources>

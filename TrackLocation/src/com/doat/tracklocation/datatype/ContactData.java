@@ -8,6 +8,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import com.doat.tracklocation.Controller;
+import com.doat.tracklocation.utils.CommonConst;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ContactData implements Parcelable{
@@ -18,7 +19,7 @@ public class ContactData implements Parcelable{
 	@JsonIgnore
 	private transient Bitmap contactPhoto;
 	@JsonIgnore
-	private transient Bitmap contactStatus;
+	private transient int contactStatus = CommonConst.CONTACT_STATUS_PENDING;
 	private final List<String> phoneNumbersList = new ArrayList<String>();
 	
 	public ContactData() {}
@@ -81,11 +82,11 @@ public class ContactData implements Parcelable{
 		this.contactPhoto = contactPhoto;
 	}
 
-	public Bitmap getContactStatus() {
+	public int getContactStatus() {
 		return contactStatus;
 	}
 
-	public void setContactStatus(Bitmap contactStatus) {
+	public void setContactStatus(int contactStatus) {
 		this.contactStatus = contactStatus;
 	}
 
