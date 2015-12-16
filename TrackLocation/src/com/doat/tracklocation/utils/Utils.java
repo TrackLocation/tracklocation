@@ -11,7 +11,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
-import android.annotation.TargetApi;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -30,12 +31,9 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Environment;
-import android.os.StrictMode;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
-import com.doat.tracklocation.JoinContactDetailActivity;
-import com.doat.tracklocation.JoinContactsListActivity;
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.datatype.CommandEnum;
 import com.doat.tracklocation.datatype.ContactData;
@@ -52,6 +50,7 @@ import com.google.gson.JsonSyntaxException;
 public class Utils {
 	
 	private final static String COMMA = ",";
+	private final static String className = "Utils";
 
 	public static List<String> splitLine(String line, String delimiter){
 		String[] inputArray;
@@ -90,16 +89,16 @@ public class Utils {
 				inputParamsList.add(splitLine(sCurrentLine, COMMA));
 			}
 		} catch (IOException e) {
-//			LogManager.LogErrorMsg("Utils", "readCustomerDataFromFile", "Unable to read file: " + 
+//			LogManager.LogErrorMsg(className, "readCustomerDataFromFile", "Unable to read file: " + 
 //				fileName + ". Error message: " + e.getMessage());
-			LogManager.LogException(e, "Utils", "readCustomerDataFromFile");
+			LogManager.LogException(e, className, "readCustomerDataFromFile");
 		} finally {
 			try {
 				if (br != null)br.close();
 			} catch (IOException ex) {
-//				LogManager.LogErrorMsg("Utils", "readCustomerDataFromFile", "Unable to read file: " + 
+//				LogManager.LogErrorMsg(className, "readCustomerDataFromFile", "Unable to read file: " + 
 //					fileName + ". Error message: " + ex.getMessage());
-				LogManager.LogException(ex, "Utils", "readCustomerDataFromFile");
+				LogManager.LogException(ex, className, "readCustomerDataFromFile");
 			}
 		}
 		return inputParamsList;
@@ -124,8 +123,8 @@ public class Utils {
 				}
 			}			
 		} catch (FileNotFoundException e) {
-			LogManager.LogException(e, "Utils", "readInputFile");
-			//LogErrorMsg("Utils", "readFile", "Unable to read file: " + 
+			LogManager.LogException(e, className, "readInputFile");
+			//LogErrorMsg(className, "readFile", "Unable to read file: " + 
 			//	fileName + ". Error message: " + e.getMessage());
 		}
 		return fileContent;
@@ -243,7 +242,7 @@ public class Utils {
 			ContactDeviceDataList contactDeviceDataList = gson.fromJson(jsonDataString, ContactDeviceDataList.class);
 			return contactDeviceDataList;
 		} catch (JsonSyntaxException e) {
-    		LogManager.LogException(e, "Utils", "fillContactDeviceDataFromJSON");
+    		LogManager.LogException(e, className, "fillContactDeviceDataFromJSON");
 			return null;
 		}
 	}
@@ -413,5 +412,15 @@ public class Utils {
     public static Bitmap getDefaultContactBitmap(Resources resources){
     	Bitmap bmp = BitmapFactory.decodeResource(resources, R.drawable.ic_person_black_24dp);
     	return getRoundedCornerImage(bmp, true);    	
+    }
+    
+    public static boolean isServiceRunning(Context context, Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+        for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }

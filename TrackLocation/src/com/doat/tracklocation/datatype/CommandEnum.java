@@ -8,8 +8,6 @@ public enum CommandEnum {
 	stop("stop"), 
 	setinterval("setinterval"),
 	location("location"), 
-	status_request("status_request"), 
-	status_response("status_response"), 
 	join_approval("join_approval"),
 	join_rejected("join_rejected"),
 	track_location_service_keep_alive("track_location_service_keep_alive"),
