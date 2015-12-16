@@ -69,25 +69,14 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED"/>
             </intent-filter>
         </receiver>
-        <!--
-		<receiver android:name=".service.TrackingAutostarter">
-	        <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-                <category android:name="android.intent.category.HOME" />
-	        </intent-filter>
-		</receiver>
 	
-        -->
         <service android:exported="false" android:name=".service.GcmIntentService">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
             </intent-filter>
         </service>
         <service android:name="com.doat.tracklocation.service.TrackLocationService"/>
-        <!--  
-        <service android:name=".service.TrackingAutostarter" >
-        </service>
-        -->
+          
         <activity android:label="@string/app_name"
             android:launchMode="singleTask" android:name=".MainActivity" android:screenOrientation="unspecified">
             <intent-filter>
