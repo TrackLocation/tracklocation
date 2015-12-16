@@ -422,7 +422,7 @@ public class GcmIntentService extends IntentService {
 	}
 	
 	private void handleCommandIsOnline(Bundle extras){
-		String methodName = "handleCommandStartTrackLocationService";
+		String methodName = "handleCommandIsOnline";
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 	
@@ -519,6 +519,21 @@ public class GcmIntentService extends IntentService {
 		
         String notificationKey;
         String notificationValue;
+        boolean isTrckLocationServiceRunning = Utils.isServiceRunning(context, TrackLocationService.class);
+        if(isTrckLocationServiceRunning == true){
+        	logMessage = "TrackLocationService is already started";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + logMessage);
+			notificationKey = CommandKeyEnum.starting_status.toString();
+			notificationValue = CommandValueEnum.success.toString();
+			sendNotificationCommand(
+					senderMessageDataContactDetails,
+					logMessage, 
+					notificationKey, 
+					notificationValue);
+			return;
+        }
+
         // ===========================================================
 		// Start TrackLocation service to get current location
 		// ===========================================================
