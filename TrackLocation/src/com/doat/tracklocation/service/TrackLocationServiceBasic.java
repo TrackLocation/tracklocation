@@ -7,6 +7,7 @@ import com.doat.tracklocation.datatype.AppInfo;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
+import com.google.gson.Gson;
 
 import android.app.Service;
 import android.content.Context;
@@ -17,6 +18,8 @@ import android.os.IBinder;
 import android.util.Log;
 
 public class TrackLocationServiceBasic extends Service {
+
+    protected static Gson gson = new Gson();
 
 	protected static String className;
 	protected static Context context;
@@ -102,10 +105,11 @@ public class TrackLocationServiceBasic extends Service {
         }
     }  
 
-    @Override          
-	public void onStart(Intent intent, int startId)           
-	{                  
-    	// INMPLEMENTAT IN CERTAIN IMPLEMENTATION OF TRACK_LOCATION_SERVICE...		
+    @Override 
+    public int onStartCommand(Intent intent, int flags, int startId)
+	{
+    	// INMPLEMENT IN CERTAIN IMPLEMENTATION OF TRACK_LOCATION_SERVICE...		
+		return START_STICKY;                  
 	}
 	
 	public void requestLocation(boolean forceGps) {

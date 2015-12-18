@@ -1,5 +1,6 @@
 package com.doat.tracklocation.utils;
 
+import java.util.List;
 import java.util.TimerTask;
 
 import android.content.Context;
@@ -23,6 +24,7 @@ public class MapKeepAliveTimerJob extends TimerTask {
 	private ContactDeviceDataList selectedContactDeviceDataList;
 	private String methodName = "MapKeepAliveTimerJob";
 	private String className;
+	private String logMessage;
 	
 	public void setContext(Context context){
 		this.context = context;
@@ -36,8 +38,12 @@ public class MapKeepAliveTimerJob extends TimerTask {
 	@Override
 	public void run() {
 		className = this.getClass().getName();
-		methodName = "MapKeepAliveTimerJob->run";
+		methodName = "run";
 		
+		logMessage = "MapKeepAliveTimerJob waked up. ThreadID: " + Thread.currentThread().getId();
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + Thread.currentThread().getId());
+
 		if(context != null && selectedContactDeviceDataList != null){
 			
 			String ownerEmail = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
@@ -50,6 +56,8 @@ public class MapKeepAliveTimerJob extends TimerTask {
 				new MessageDataContactDetails(ownerEmail, ownerMacAddress, ownerPhoneNumber, ownerRegId, batteryPercentage);
 			MessageDataLocation location = null;
 			AppInfo appInfo = Controller.getAppInfo(context);
+			
+			List<String> accountList = Controller.getAccountListFromContactDeviceDataList(selectedContactDeviceDataList);
 			
 			CommandDataBasic commandDataBasic;
 			try {
@@ -65,16 +73,22 @@ public class MapKeepAliveTimerJob extends TimerTask {
 					appInfo
 				);
 				commandDataBasic.sendCommand();
+				
+				logMessage = "KeepAlive command sent to trackLocationService of [" + accountList.toString() + "] from mapKeepAliveTimerJob by [" + ownerEmail + "]";
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 			} catch (UnableToSendCommandException e) {
 				LogManager.LogException(e, className, methodName);
 				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 			}
 	   		
-	    	Log.i(CommonConst.LOG_TAG, "KeepAlive command sent to trackLocationService from mapKeepAliveTimerJob");
 		} else {
-			// TODO: error to log 
 			// Cannot start MapKeepAliveTimerJob - no context provided
-			Log.e(CommonConst.LOG_TAG, "Cannot start MapKeepAliveTimerJob - no context or selectedContactDeviceDataList provided");
+			logMessage = "Cannot start MapKeepAliveTimerJob - no context or selectedContactDeviceDataList provided";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 		}
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 }

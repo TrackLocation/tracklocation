@@ -207,17 +207,6 @@ public class MainActivityController {
         	initWithRegID(registrationId);
         }
     
-// 		IMPORTANT: Preparation for tracking option - start tracking autostarter service        
-//		Intent trackingService = new Intent(context, TrackingAutostarter.class);
-//		ComponentName componentName = context.startService(trackingService); 
-//		if(componentName != null){
-//			logMessage = "TrackingAutostarter is STARTED";
-//			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-//		} else {
-//			logMessage = "TrackingAutostarter FAILED TO START";
-//			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-//		}
-		
 		// Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
         SMSUtils.checkJoinRequestBySMSInBackground(context, mainActivity);
  

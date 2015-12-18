@@ -79,8 +79,6 @@ public class GcmIntentService extends IntentService {
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
-
-	
 	
 	@Override
 	public void onCreate() {
@@ -180,10 +178,6 @@ public class GcmIntentService extends IntentService {
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.is_online.toString())){ // COMMAND IS_ONLINE
             		
-            		logMessage = "Catched push notification message (GCM): [IS_ONLINE]";
-            		LogManager.LogInfoMsg(className, methodName, logMessage);
-            		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
         			handleCommandIsOnline(extras);
     	    		
             	// ============================================
@@ -199,10 +193,6 @@ public class GcmIntentService extends IntentService {
             			extras.getString(CommandTagEnum.command.toString()).
             			equals(CommandEnum.start.toString())){ // COMMAND START
             		
-            		logMessage = "Catched push notification message (GCM): [START TrackLocation Service]";
-        			LogManager.LogInfoMsg(className, "Start Track Location Service", logMessage);
-        			Log.i(CommonConst.LOG_TAG, "[INFO] {" +className + "} -> " + logMessage);
-            		
         			handleCommandStartTrackLocationService(extras);
     	    		                		
                 // ============================================
@@ -215,10 +205,6 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.location.toString())){ // COMMAND LOCATION
             		
-            		logMessage = "Catched push notification message (GCM): [LOCATION_UPDATE]";
-        			LogManager.LogInfoMsg(className, "Location Update", logMessage);
-        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
             		handleCommandLocationUpdate(extras);
 
                 // ============================================
@@ -228,11 +214,7 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.join_approval.toString())){ // COMMAND JOIN_APPROVAL
             		
-            		logMessage = "Catched push notification message (GCM): [JOIN_APPROVAL]";
-        			LogManager.LogInfoMsg(className, "Join Approval", logMessage);
-        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-            		
-        			handleCommandJoinApproval(extras);            		
+            		handleCommandJoinApproval(extras);            		
                 		
                 // ======================================================
                 // ====  COMMAND: TRACK_LOCATION_SERVICE_KEEP_ALIVE  ====
@@ -246,10 +228,6 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.track_location_service_keep_alive.toString())){ // COMMAND TRACK_LOCATION_SERVICE_KEEP_ALIVE
             		
-            		logMessage = "Catched push notification message (GCM): [TRACK_LOCATION_SERVICE_KEEP_ALIVE]";
-        			LogManager.LogInfoMsg(className, "TrackLocation Service Keep Alive", logMessage);
-        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
         			handleCommandTrackLocationKeepAlive(extras);
 					
     	        // ============================================
@@ -259,10 +237,6 @@ public class GcmIntentService extends IntentService {
                     		extras.getString(CommandTagEnum.command.toString()).
                     		equals(CommandEnum.update_reg_id.toString())){ // COMMAND UPDATE_REGISTARTION_ID
                 		
-                	logMessage = "Catched push notification message (GCM): [UPDATE_REGISTARTION_ID]";
-            		LogManager.LogInfoMsg(className, "Update registration ID", logMessage);
-            		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
             		handleCommandUpdateRegistartionID(extras);
 
             	// ============================================
@@ -272,10 +246,6 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.notification.toString())){ // COMMAND NOTIFICATION
             		
-            		logMessage = "Catched push notification message (GCM): [NOTIFICATION]";
-        			LogManager.LogInfoMsg(className, "Notification", logMessage);
-        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
         			handleCommandNotification(extras);
             	// ============================================
 	            // ====  COMMAND: RING_DEVICE  ===============
@@ -284,10 +254,6 @@ public class GcmIntentService extends IntentService {
                 			extras.getString(CommandTagEnum.command.toString()).
                 			equals(CommandEnum.ring_device.toString())){ // COMMAND RING_DEVICE
             		
-            		logMessage = "Catched push notification message (GCM): [RING_DEVICE]";
-        			LogManager.LogInfoMsg(className, "RingDevice", logMessage);
-        			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
         			handleCommandRingDevice(extras);
             	} 
         	
@@ -305,7 +271,8 @@ public class GcmIntentService extends IntentService {
         // Release the wake lock provided by the WakefulBroadcastReceiver.
         GcmBroadcastReceiver.completeWakefulIntent(intent);
         
-        LogManager.LogFunctionExit(className, "onHandleIntent");
+        LogManager.LogFunctionExit(className, methodName);
+        Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
         
 	} // onHandleIntent(...
 	
@@ -432,13 +399,19 @@ public class GcmIntentService extends IntentService {
 		try {
 			senderMessageDataContactDetails = initCommand(extras);
 			senderAccount = senderMessageDataContactDetails.getAccount();
+    		logMessage = "Catched push notification message (GCM): [IS_ONLINE]" +
+    			"from [" + senderAccount + "]";
+    		LogManager.LogInfoMsg(className, methodName, logMessage);
+    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		} catch (NoSentContactFromException e) {
-			logMessage = "Failed to check online status - NoSentContactFrom details";
+			logMessage = "Catched push notification message (GCM): [IS_ONLINE]" +
+	    		"Failed to check online status - NoSentContactFrom details";
 			LogManager.LogException(e, logMessage, methodName);
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
 			return;
 		} catch (NoSentContactFromAccountException e) {
-			logMessage = "Failed to check online status - NoSentContactFromAccount details";
+			logMessage = "Catched push notification message (GCM): [IS_ONLINE]" +
+				"Failed to check online status - NoSentContactFromAccount details";
 			LogManager.LogException(e, logMessage, methodName);
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
 			return;
@@ -470,13 +443,19 @@ public class GcmIntentService extends IntentService {
 		try {
 			senderMessageDataContactDetails = initCommand(extras);
 			senderAccount = senderMessageDataContactDetails.getAccount();
+    		logMessage = "Catched push notification message (GCM): [START TrackLocation Service] " + 
+    			"from [" + senderAccount + "]";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		} catch (NoSentContactFromException e) {
-			logMessage = "Failed to start TrackLocationService - NoSentContactFrom details";
+			logMessage = "Catched push notification message (GCM): [START TrackLocation Service]. " + 
+				"Failed to start TrackLocationService - NoSentContactFrom details";
 			LogManager.LogException(e, logMessage, methodName);
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
 			return;
 		} catch (NoSentContactFromAccountException e) {
-			logMessage = "Failed to start TrackLocationService - NoSentContactFromAccount details";
+			logMessage = "Catched push notification message (GCM): [START TrackLocation Service]. " + 
+				"Failed to start TrackLocationService - NoSentContactFromAccount details";
 			LogManager.LogException(e, logMessage, methodName);
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
 			return;
@@ -519,8 +498,8 @@ public class GcmIntentService extends IntentService {
 		
         String notificationKey;
         String notificationValue;
-        boolean isTrckLocationServiceRunning = Utils.isServiceRunning(context, TrackLocationService.class);
-        if(isTrckLocationServiceRunning == true){
+        boolean isTrackLocationServiceRunning = Utils.isServiceRunning(context, TrackLocationService.class);
+        if(isTrackLocationServiceRunning == true){
         	logMessage = "TrackLocationService is already started";
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + logMessage);
@@ -631,12 +610,42 @@ public class GcmIntentService extends IntentService {
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
 		String jsonContactDetails = extras.getString(CommandTagEnum.contactDetails.toString());
+		if(jsonContactDetails == null){
+			logMessage = "Command LocationUpdate failed. No SentFrom contact details in extras.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+            return;
+		}
+		
 		String jsonLocation = extras.getString("location");
 
 		MessageDataContactDetails contactDetails = 
 			gson.fromJson(jsonContactDetails, MessageDataContactDetails.class);
+		if(contactDetails == null){
+			logMessage = "Command LocationUpdate failed. Unable to retrieve sender's contact details...";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			LogManager.LogFunctionExit(className, methodName);
+			Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+			return;
+		}
 		MessageDataLocation location = 
 			gson.fromJson(jsonLocation, MessageDataLocation.class);
+		if(location == null){
+			logMessage = "Command LocationUpdate failed. Unable to retrieve sender's location details...";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			LogManager.LogFunctionExit(className, methodName);
+			Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+			return;
+		}
+		
+		logMessage = "Catched push notification message (GCM): [LOCATION_UPDATE]" +
+			"from [" + contactDetails.getAccount() + "]";
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
 		logMessage = "Location of [" + contactDetails.getAccount() + "]: " + jsonLocation;
 		LogManager.LogInfoMsg(className, methodName, logMessage);
@@ -672,12 +681,22 @@ public class GcmIntentService extends IntentService {
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 		
 		String jsonContactDetailsSentFrom = extras.getString(CommandTagEnum.contactDetails.toString());
+		if(jsonContactDetailsSentFrom == null){
+			logMessage = "Join approval request failed. No SentFrom contact details in extras.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+            return;
+		}
 		
 		MessageDataContactDetails contactDetailsSentFrom = gson.fromJson(jsonContactDetailsSentFrom, MessageDataContactDetails.class);
 		if(contactDetailsSentFrom == null){
 			logMessage = "Join approval request failed. No SentFrom contact details.";
             Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
             LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
             return;
 		}
 		
@@ -687,8 +706,15 @@ public class GcmIntentService extends IntentService {
 			logMessage = "Join approval request failed. No account/email.";
             Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
             LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
             return;
 		}
+
+		logMessage = "Catched push notification message (GCM): [JOIN_APPROVAL]" +
+			"from [" + accountCommandSentFrom + "]";
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
 		String registrationIdJoinApproval = null;
 		registrationIdJoinApproval = contactDetailsSentFrom.getRegId();
@@ -696,6 +722,8 @@ public class GcmIntentService extends IntentService {
 			logMessage = "Join approval request failed. No registrationID.";
             Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
             LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
             return;
 		}
 		
@@ -770,8 +798,31 @@ public class GcmIntentService extends IntentService {
 		String value = extras.getString(CommandTagEnum.value.toString());
 		
 		String jsonContactDetails = extras.getString(CommandTagEnum.contactDetails.toString());
+		if(jsonContactDetails == null){
+			logMessage = "Command TrackLocationKeepAlive failed. No SentFrom contact details in extras.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+            return;
+		}
+		
 		MessageDataContactDetails contactDetails = 
 				gson.fromJson(jsonContactDetails, MessageDataContactDetails.class);
+		if(contactDetails == null){
+			logMessage = "Command TrackLocationKeepAlive failed. No SentFrom contact details.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+            return;
+		}
+
+		logMessage = "Catched push notification message (GCM): [TRACK_LOCATION_SERVICE_KEEP_ALIVE]" +
+				"from [" + contactDetails.getAccount() + "]";
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 		MessageDataLocation location = null;
 		BroadcastData broadcastData = new BroadcastData();
 		broadcastData.setContactDetails(contactDetails);
@@ -819,20 +870,37 @@ public class GcmIntentService extends IntentService {
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		
 		String jsonContactDetails = extras.getString(CommandTagEnum.contactDetails.toString());
+		if(jsonContactDetails == null){
+			logMessage = "Command Notification failed. No SentFrom contact details in extras.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+            return;
+		}
 		MessageDataContactDetails contactDetails = gson.fromJson(jsonContactDetails, MessageDataContactDetails.class);
 		String senderAccount = null;
 		if(contactDetails == null){
-			logMessage = "[contactDetails]: not defined";
-			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-			return;
+			logMessage = "Command Notification failed. No SentFrom contact details in extras.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+            return;
 		} else {
 			senderAccount = contactDetails.getAccount();
+			logMessage = "Catched push notification message (GCM): [NOTIFICATION]" +
+				"from [" + senderAccount + "]";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		}
+		
 		if(senderAccount == null || senderAccount.isEmpty()){
 			logMessage = "[senderAccount]: not defined";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			LogManager.LogFunctionExit(className, methodName);
+			Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 			return;
 		}		
 		
@@ -840,27 +908,28 @@ public class GcmIntentService extends IntentService {
 		LogManager.LogInfoMsg(className, methodName, "");
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
-		String jsonListAccounts = Preferences.getPreferencesString(context, 
-        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-		logMessage = "Recipients accounts list: [" + jsonListAccounts + "]";
-		LogManager.LogInfoMsg(className, methodName, logMessage);
-		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
 		// ============================================================
 		// Contact is online - notification received
 		// ============================================================
 		if(CommandKeyEnum.online_status.toString().equals(key) && 
 				CommandValueEnum.online.toString().equals(value)){
 			
+			String jsonListAccounts = Preferences.getPreferencesString(context, 
+	        		CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS);
+			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - ONLINE_STATUS." +
+				"Recipients accounts list: [" + jsonListAccounts + "]";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 			Controller.removeSenderAccountFromSendCommandList(context, 
-				jsonListAccounts, senderAccount);
+				CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS, jsonListAccounts, senderAccount);
 			logMessage = "Removed sender: " + senderAccount;
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
 			// TODO: For test only:
 			jsonListAccounts = Preferences.getPreferencesString(context, 
-	        	CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+	        	CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS);
 		
 			// TODO: Broadcast - the following recipients are not available
 			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
@@ -874,8 +943,15 @@ public class GcmIntentService extends IntentService {
 		} else if(CommandKeyEnum.start_status.toString().equals(key) && 
 				CommandValueEnum.success.toString().equals(value)){
 			
+			String jsonListAccounts = Preferences.getPreferencesString(context, 
+	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - START_STATUS: SUCCESS." +
+				"Recipients accounts list: [" + jsonListAccounts + "]";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 			Controller.removeSenderAccountFromSendCommandList(context, 
-				jsonListAccounts, senderAccount);
+				CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
 
 			// TODO: For test only:
 			jsonListAccounts = Preferences.getPreferencesString(context, 
@@ -892,16 +968,38 @@ public class GcmIntentService extends IntentService {
 		// ============================================================
 		} else if (CommandKeyEnum.permissions.toString().equals(key) && 
 				CommandValueEnum.not_defined.toString().equals(value)){
+			String jsonListAccounts = Preferences.getPreferencesString(context, 
+	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - PERMISSIONS: NOT_DEFINED." +
+				"Recipients accounts list: [" + jsonListAccounts + "]";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 			Controller.removeSenderAccountFromSendCommandList(context, 
-					jsonListAccounts, senderAccount);
+				CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
 			Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
 		} else if (CommandKeyEnum.permissions.toString().equals(key) && 
 				CommandValueEnum.not_permitted.toString().equals(value)){
+			String jsonListAccounts = Preferences.getPreferencesString(context, 
+	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - PERMISSIONS: NOT_PERMITTED." +
+				"Recipients accounts list: [" + jsonListAccounts + "]";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 			Controller.removeSenderAccountFromSendCommandList(context, 
-					jsonListAccounts, senderAccount);
+				CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
 			Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
 		} else if (CommandKeyEnum.start_status.toString().equals(key) && 
 				CommandValueEnum.start_track_location_service_received.toString().equals(value)){
+
+			String jsonListAccounts = Preferences.getPreferencesString(context, 
+	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - START_STATUS: START_TRACK_LOCATION_SERVICE_RECEIVED " +
+				"Recipients accounts list: [" + jsonListAccounts + "]";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+				
 			Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
 		}
 
@@ -932,35 +1030,51 @@ public class GcmIntentService extends IntentService {
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		
 		String jsonContactDetails = extras.getString(CommandTagEnum.contactDetails.toString());
+		if(jsonContactDetails == null){
+			logMessage = "Command UpdateRegistartionID failed. No SentFrom contact details in extras.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+            return;
+		}
+		
 		MessageDataContactDetails contactDetails = gson.fromJson(jsonContactDetails, MessageDataContactDetails.class);
+
 		String senderAccount = null;
 		String senderMacAddress = null;
 		if(contactDetails == null){
-			logMessage = "Failed to update RegistartionID - [contactDetails]: not defined";
-			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-			return;
+			logMessage = "Command UpdateRegistartionID failed. No SentFrom contact details.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+            return;
 		} else {
 			senderAccount = contactDetails.getAccount();
+    		logMessage = "Catched push notification message (GCM): [UPDATE_REGISTARTION_ID]" +
+    			"from [" + senderAccount + "]";
+    		LogManager.LogInfoMsg(className, methodName, logMessage);
+    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 			senderMacAddress = contactDetails.getMacAddress();
 		}
 		if(senderAccount == null || senderAccount.isEmpty()){
-			logMessage = "Failed to update RegistartionID - [senderAccount]: not defined";
+			logMessage = "Command UpdateRegistartionID failed - [senderAccount]: not defined";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 			return;
 		}		
 		if(senderMacAddress == null || senderMacAddress.isEmpty()){
-			logMessage = "Failed to update RegistartionID - [senderMacAddress]: not defined";
+			logMessage = "Command UpdateRegistartionID failed - [senderMacAddress]: not defined";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 			return;
 		}		
 		
-		logMessage = "Sent by [" + senderAccount + "]";
-		LogManager.LogInfoMsg(className, methodName, "");
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
-
 		// Update registrationID - sent by contact,
 		// that registered its application against Google Cloud Message
 		// Input parameters: value(as RegistrationID), senderAccount, senderMacAddress
@@ -978,18 +1092,32 @@ public class GcmIntentService extends IntentService {
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 		
 		String jsonContactDetailsSentFrom = extras.getString(CommandTagEnum.contactDetails.toString());
+		if(jsonContactDetailsSentFrom == null){
+			logMessage = "Command RingDevice failed. No SentFrom contact details in extras.";
+            Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+            LogManager.LogErrorMsg(className, methodName, logMessage);
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+            return;
+		}
 		
 		MessageDataContactDetails contactDetailsSentFrom = 
 			gson.fromJson(jsonContactDetailsSentFrom, MessageDataContactDetails.class);
 		if(contactDetailsSentFrom == null){
-			logMessage = "No SentFrom contact details. Cannot start TrackLocation Service.";
-            Log.e(CommonConst.LOG_TAG, logMessage);
-            LogManager.LogErrorMsg(className, "GcmIntentService->onHandleIntent->[COMMAND:start]", logMessage);
+			logMessage = "Command RingDevice failed. No SentFrom contact details.";
+	        Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "." + methodName + "} -> " + logMessage);
+	        LogManager.LogErrorMsg(className, methodName, logMessage);
+			LogManager.LogFunctionExit(className, methodName);
+			Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	        return;
 		}
 		
-		String accountCommandSentFrom = null;
-		accountCommandSentFrom = contactDetailsSentFrom.getAccount();
-		
+		String accountCommandSentFrom = contactDetailsSentFrom.getAccount();
+		logMessage = "Catched push notification message (GCM): [RING_DEVICE]" +
+				"from [" + accountCommandSentFrom + "]";
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 		/* TODO: continue development - DAVID		
 		
 		Intent intent = new Intent(this, NotificationReceiver.class);

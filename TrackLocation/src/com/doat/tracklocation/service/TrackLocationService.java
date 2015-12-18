@@ -18,7 +18,7 @@ import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
-import com.doat.tracklocation.utils.TimerJob;
+import com.doat.tracklocation.utils.TrackLocationServiceStopTimerJob;
 import com.google.gson.Gson;
 
 import android.content.BroadcastReceiver;
@@ -32,7 +32,7 @@ import android.util.Log;
 // This service notifies location while tracking contact/s on map ("Locate" button)
 public class TrackLocationService extends TrackLocationServiceBasic {
 
-	protected TimerJob timerJob;
+	protected TrackLocationServiceStopTimerJob trackLocationServiceStopTimerJob;
 	protected Timer timer;
 	protected long repeatPeriod;
 	protected long trackLocationServiceStartTime;
@@ -65,30 +65,38 @@ public class TrackLocationService extends TrackLocationServiceBasic {
     public void onDestroy()           
     {                  
         super.onDestroy();
-    	LogManager.LogFunctionCall(className, "onDestroy");
+        methodName = "onDestroy";
+    	LogManager.LogFunctionCall(className, methodName);
     	Log.i(CommonConst.LOG_TAG, "[INFO]  {" + className + "} -> onDestroy - Start");
 
     	// Stop TrackLocationServiceStopTimer
-    	Log.i(CommonConst.LOG_TAG, "[INFO]  {" + className + "} -> Stop TrackLocationService TimerJob");
-    	timerJob.cancel();
-    	Log.i(CommonConst.LOG_TAG, "[INFO]  {" + className + "} -> Timer with TimerJob that stops TrackLocationService - stopped");
+    	logMessage = "Stopping TrackLocationService TimerJob...";
+    	LogManager.LogInfoMsg(className, methodName, logMessage);
+    	Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
+    	trackLocationServiceStopTimerJob.cancel();
+
+    	logMessage = "Stopped TrackLocationService TimerJob";
+    	LogManager.LogInfoMsg(className, methodName, logMessage);
+    	Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
+    	LogManager.LogFunctionExit(className, methodName);
+    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
     }  
 
-    @Override          
-	public void onStart(Intent intent, int startId)           
+    @Override  
+    public int onStartCommand(Intent intent, int flags, int startId)
 	{             
-    	super.onStart(intent, startId);
-    	methodName = "onStart";
+    	methodName = "onStartCommand";
 		try{
 			LogManager.LogFunctionCall(className, "onStart");
             Log.i(CommonConst.LOG_TAG, "{" + className + "} onStart - Start");
             
-            Gson gson = new Gson();
             if(intent == null){
-            	logMessage = "TrackLocation service failed to start.";
-        		LogManager.LogErrorMsg(className, methodName, logMessage);
-        		Log.i(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-            	return;
+            	logMessage = "TrackLocation service has been restarted.";
+        		LogManager.LogInfoMsg(className, methodName, logMessage);
+        		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+            	return START_STICKY;
             }
             Bundle extras = intent.getExtras();
             String jsonSenderMessageDataContactDetails = null;
@@ -106,11 +114,17 @@ public class TrackLocationService extends TrackLocationServiceBasic {
     		}
             
             // Start TrackLocationServiceStopTimer
-        	Log.i(CommonConst.LOG_TAG, "{" + className + "} Start TrackLocationService TimerJob with repeat period = " + 
-        		repeatPeriod/1000/60 + " min");
+        	logMessage = "Start TrackLocationService TimerJob with repeat period = " + 
+            		repeatPeriod/1000 + " seconds.";
+        	LogManager.LogInfoMsg(className, methodName, logMessage);
+        	Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
             try {
             	if(timer != null){
-            		timer.schedule(timerJob, 0, repeatPeriod);
+            		timer.schedule(trackLocationServiceStopTimerJob, 0, repeatPeriod);
+                	logMessage = "Started TrackLocationService TimerJob with repeat period = " + 
+                    		repeatPeriod/1000 + " seconds.";
+                	LogManager.LogInfoMsg(className, methodName, logMessage);
+                	Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
             	}
 			} catch (IllegalStateException e) {
 				String ecxeptionMessage = "TimerTask is scheduled already";
@@ -167,6 +181,7 @@ public class TrackLocationService extends TrackLocationServiceBasic {
 		} catch (Exception e) {
 			LogManager.LogException(e, className, "onStart");
 		}
+		return START_STICKY;
 	}
 
     protected boolean providerAvailable(List<String> providers) {
@@ -274,8 +289,8 @@ public class TrackLocationService extends TrackLocationServiceBasic {
 
     public void prepareTrackLocationServiceStopTimer(){
         timer = new Timer();
-        timerJob = new TimerJob();
-        timerJob.setTrackLocationServiceObject(this);
+        trackLocationServiceStopTimerJob = new TrackLocationServiceStopTimerJob();
+        trackLocationServiceStopTimerJob.setTrackLocationServiceObject(this);
         repeatPeriod = CommonConst.REPEAT_PERIOD_DEFAULT; // 2 minutes
         trackLocationServiceStartTime = System.currentTimeMillis();
     }

@@ -134,7 +134,7 @@ public class CommandDataBasic {
 
 		Gson gson = new Gson();
 		notificationMessage = 	"Sending command [" + command.toString() + "] to the following recipients: " +
-						gson.toJson(listAccounts);
+			gson.toJson(listAccounts) + " from [" + senderMessageDataContactDetails.getAccount() + "]";
 		LogManager.LogInfoMsg(className, methodName, notificationMessage);
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + notificationMessage);
 		

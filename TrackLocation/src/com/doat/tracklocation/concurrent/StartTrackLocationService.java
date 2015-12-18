@@ -115,7 +115,10 @@ public class StartTrackLocationService implements Runnable {
         // Set list of recipients' accounts list 
         Preferences.setPreferencesString(context, 
         		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
-        Log.i(CommonConst.LOG_TAG, "Saved recipients: " + jsonListAccounts);
+        logMessage = "Saved recipients: " + jsonListAccounts;
+        LogManager.LogInfoMsg(className, methodName, logMessage);
+        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
         List<String> listAccounts = null;
 		for (int i = 0; i < retryTimes; i++) {
 			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
@@ -164,7 +167,13 @@ public class StartTrackLocationService implements Runnable {
 
 		// Reset list of recipients' accounts list to be empty
         Preferences.setPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, "");
-        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> : Recipients list after loop: " + jsonListAccounts);
+        logMessage = "Reset recipients list after loop to be empty.";
+        LogManager.LogInfoMsg(className, methodName, logMessage);
+        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
+        logMessage = "Recipients list that are unavailable: " + jsonListAccounts;
+        LogManager.LogInfoMsg(className, methodName, logMessage);
+        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
         tempListAccounts = gson.fromJson(jsonListAccounts, List.class);
         String broadcastMessage = "\nCurrently unavailable:\n\n";
         for (String currentAccount : tempListAccounts) {

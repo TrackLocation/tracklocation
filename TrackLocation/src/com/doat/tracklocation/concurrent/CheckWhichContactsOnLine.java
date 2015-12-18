@@ -83,10 +83,12 @@ public class CheckWhichContactsOnLine implements Runnable {
         String jsonListAccounts = gson.toJson(commandDataBasic.getListAccounts());
         // Set list of recipients' accounts list 
         Preferences.setPreferencesString(context, 
-        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
-        Log.i(CommonConst.LOG_TAG, "Saved recipients: " + jsonListAccounts);
+        		CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS, jsonListAccounts);
+        logMessage = "Saved recipients: " + jsonListAccounts;
+        LogManager.LogInfoMsg(className, methodName, logMessage);
+        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
         List<String> listAccounts = null;
-        
         while(true){
 			
 			if(jsonListAccounts == null || jsonListAccounts.isEmpty()){

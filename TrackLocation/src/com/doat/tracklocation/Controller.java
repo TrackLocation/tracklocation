@@ -64,7 +64,6 @@ import com.doat.tracklocation.exception.CheckPlayServicesException;
 import com.doat.tracklocation.exception.UnableToSendCommandException;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
-import com.doat.tracklocation.utils.MapKeepAliveTimerJob;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.Utils;
 import com.google.android.gms.common.ConnectionResult;
@@ -76,25 +75,7 @@ public class Controller {
 
 	private final static String CLASS_NAME = "com.dagrest.tracklocation.Controller";
 	
-	private Timer timer;
-	private MapKeepAliveTimerJob mapKeepAliveTimerJob;
 	private static final String className = "Controller";
-
-	public void keepAliveTrackLocationService(Context context, ContactDeviceDataList selectedContactDeviceDataList, long startDelay){
-        timer = new Timer();
-        mapKeepAliveTimerJob = new MapKeepAliveTimerJob();
-        mapKeepAliveTimerJob.setContext(context);
-        mapKeepAliveTimerJob.setSelectedContactDeviceDataList(selectedContactDeviceDataList);
-    	Log.i(CommonConst.LOG_TAG, "Start KeepAliveTrackLocationService TimerJob with repeat period = " + 
-        		(CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700)/1000/60 + " min");
-        timer.schedule(mapKeepAliveTimerJob, startDelay, 
-        	CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700);
-    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - started");
-	}
-	
-	public void stopKeepAliveTrackLocationService(){
-		timer.cancel();
-	}
 	
 	// =======================
 	// STATIC FUNCTIONS:
@@ -793,6 +774,7 @@ public class Controller {
 	}
 
 	public static void removeSenderAccountFromSendCommandList(Context context, 
+			String preferencesListAccountsbyCommand,
 			String jsonListAccounts, String senderAccount){
         String methodName = "showNotificationDialog";
         Gson gson = new Gson();
@@ -805,7 +787,7 @@ public class Controller {
         		jsonListAccounts = "";
         	}	        
         	Preferences.setPreferencesString(context, 
-	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
+	        		preferencesListAccountsbyCommand, jsonListAccounts);
         	String logMessage = "Updated recipients accounts list: [" + jsonListAccounts + "]";
     		LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
     		Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + methodName + ": "+ logMessage);

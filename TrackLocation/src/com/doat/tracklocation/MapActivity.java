@@ -59,6 +59,7 @@ import android.widget.Toast;
 
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.concurrent.StartTrackLocationService;
+import com.doat.tracklocation.controller.MapActivityController;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastConstEnum;
 import com.doat.tracklocation.datatype.BroadcastData;
@@ -124,8 +125,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	
 	private TextView notificationView;
 	
-	private Controller controller;
-	
 	private TextView info_preview;
 	private TextView title_text;
 	
@@ -147,6 +146,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private final Handler handler = new Handler();
 	private Timer timer;
 	private boolean bLockMapNothOnly;
+	
+	private MapActivityController mapActivityController;
 	
 	private enum DialogStatus{
 		Opened, Closed
@@ -457,8 +458,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        }
 	    });
 		
-        controller = new Controller();
-        controller.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
+		if(mapActivityController == null){
+			mapActivityController = new MapActivityController();
+		}
+		mapActivityController.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
         	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);       
 	}		
 		
@@ -871,7 +874,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	
 		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
-    	controller.stopKeepAliveTrackLocationService();
+		mapActivityController.stopKeepAliveTrackLocationService();
     	String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
     	Preferences.clearPreferencesReturnToContactMap(context, account);
     	
