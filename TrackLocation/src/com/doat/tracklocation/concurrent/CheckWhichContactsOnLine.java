@@ -91,6 +91,9 @@ public class CheckWhichContactsOnLine implements Runnable {
         List<String> listAccounts = null;
         while(true){
 			
+			jsonListAccounts = Preferences.getPreferencesString(context, 
+	        	CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS);
+
 			if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
 				LogManager.LogFunctionExit(className, methodName);
 				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
