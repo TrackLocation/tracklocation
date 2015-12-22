@@ -423,7 +423,7 @@ public class GcmIntentService extends IntentService {
         // Notify caller by GCM (push notification)
 		sendNotificationCommand(
 			senderMessageDataContactDetails,
-			"Start Track Location Service command received by '" + senderAccount + "'", 
+			"Online status received from '" + senderAccount + "'", 
 			CommandKeyEnum.online_status.toString(), 
 			CommandValueEnum.online.toString());
 
@@ -495,43 +495,68 @@ public class GcmIntentService extends IntentService {
 	            	CommonConst.LOCATION_SERVICE_INTERVAL, intervalString);
 			}
 		}
-		
-        String notificationKey;
-        String notificationValue;
+
+		logMessage = "Location update interval: " + Preferences.getPreferencesString(getApplicationContext(), 
+            CommonConst.LOCATION_SERVICE_INTERVAL);
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
+        String notificationKey = "";
+        String notificationValue = "";
         boolean isTrackLocationServiceRunning = Utils.isServiceRunning(context, TrackLocationService.class);
         if(isTrackLocationServiceRunning == true){
         	logMessage = "TrackLocationService is already started";
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + logMessage);
-			notificationKey = CommandKeyEnum.starting_status.toString();
+			notificationKey = CommandKeyEnum.start_status.toString();
 			notificationValue = CommandValueEnum.success.toString();
 			sendNotificationCommand(
 					senderMessageDataContactDetails,
 					logMessage, 
 					notificationKey, 
 					notificationValue);
+			
+			
+			MessageDataLocation location = null;
+			BroadcastData broadcastData = new BroadcastData();
+			broadcastData.setContactDetails(senderMessageDataContactDetails);
+			broadcastData.setLocation(location);
+			broadcastData.setKey(BroadcastKeyEnum.restart_tls.toString());
+			broadcastData.setValue(gson.toJson(senderMessageDataContactDetails, MessageDataContactDetails.class));
+			String jsonBroadcastData = gson.toJson(broadcastData);
+
+			Controller.broadcastMessage(GcmIntentService.this, 
+				BroadcastActionEnum.BROADCAST_MESSAGE.toString(),
+				"GcmIntentServicefrom from [" + senderMessageDataContactDetails.getAccount() + "]",
+				jsonBroadcastData, 
+				BroadcastKeyEnum.restart_tls.toString(),  
+				"value");
+
+	    	logMessage = "TrackLocation service got restart request from [" + senderMessageDataContactDetails.getAccount() + "]";
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
+			
 			return;
         }
 
         // ===========================================================
 		// Start TrackLocation service to get current location
 		// ===========================================================
+        
+        logMessage = "Starting of TrackLocationService";
+        LogManager.LogInfoMsg(className, methodName, logMessage);
+        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+        
 		Intent trackLocationService = new Intent(context, TrackLocationService.class);
 		String jsonSenderMessageDataContactDetails = gson.toJson(senderMessageDataContactDetails);
 		//String jsonContactDetailsSentFrom = gson.toJson(contactDetailsSentFrom, MessageDataContactDetails.class);
 		trackLocationService.putExtra(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS, jsonSenderMessageDataContactDetails);
 		ComponentName componentName = context.startService(trackLocationService); 
-		if(componentName != null){
-			// Notify that TrackLoactionService was started - by GCM (push notification)
-			logMessage = "TrackLocationService is starting by [" + messageDataContactDetails.getAccount() + "]";
-			notificationKey = CommandKeyEnum.starting_status.toString();
-			notificationValue = CommandValueEnum.success.toString();
-			LogManager.LogInfoMsg(className, methodName, logMessage);
-			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + logMessage);
-		} else {
+		if(componentName == null){
 			// Notify that TrackLoactionService was not started - by GCM (push notification)
 			logMessage = "Failed to start TrackLocationService on [" + messageDataContactDetails.getAccount() + "]";
-			notificationKey = CommandKeyEnum.starting_status.toString();
+			notificationKey = CommandKeyEnum.start_status.toString();
 			notificationValue = CommandValueEnum.error.toString();		
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
@@ -658,7 +683,7 @@ public class GcmIntentService extends IntentService {
 		
 		Controller.broadcastMessage(GcmIntentService.this, 
 			BroadcastActionEnum.BROADCAST_LOCATION_UPDATED.toString(), 
-			"GcmIntentService",
+			"GcmIntentService from [" + contactDetails.getAccount() + "]",
 			jsonBroadcastData,	
 			null, //BroadcastKeyEnum.location_updated.toString(), 
 			key + CommonConst.DELIMITER_STRING + value + CommonConst.DELIMITER_STRING + currentDateTime);
@@ -833,7 +858,7 @@ public class GcmIntentService extends IntentService {
 
 		Controller.broadcastMessage(GcmIntentService.this, 
 			BroadcastActionEnum.BROADCAST_LOCATION_KEEP_ALIVE.toString(),
-			"GcmIntentService",
+			"GcmIntentServicefrom from [" + contactDetails.getAccount() + "]",
 			jsonBroadcastData, 
 			BroadcastKeyEnum.keep_alive.toString(),  
 			value);
@@ -917,24 +942,30 @@ public class GcmIntentService extends IntentService {
 			String jsonListAccounts = Preferences.getPreferencesString(context, 
 	        		CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS);
 			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - ONLINE_STATUS." +
-				"Recipients accounts list: [" + jsonListAccounts + "]";
+				"Recipients accounts list: " + jsonListAccounts;
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-			Controller.removeSenderAccountFromSendCommandList(context, 
-				CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS, jsonListAccounts, senderAccount);
-			logMessage = "Removed sender: " + senderAccount;
-			LogManager.LogInfoMsg(className, methodName, logMessage);
-			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
-			// TODO: For test only:
-			jsonListAccounts = Preferences.getPreferencesString(context, 
-	        	CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS);
-		
-			// TODO: Broadcast - the following recipients are not available
 			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
-				Controller.broadcsatMessage(context, contactDetails, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
-					msg + " by " + senderAccount, key, value);
+				Controller.removeAccountFromList(context, 
+					CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS, jsonListAccounts, senderAccount);
+				logMessage = "Removed sender: " + senderAccount;
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+	
+				// TODO: For test only:
+				jsonListAccounts = Preferences.getPreferencesString(context, 
+		        	CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS);
+			
+				// TODO: Broadcast - the following recipients are not available
+				if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
+					Controller.broadcsatMessage(context, contactDetails, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+						msg + " by " + senderAccount, key, value);
+				}
+			} else {
+				logMessage = "\"Check Which Contact Is Online thread\" is not stopped!";
+				LogManager.LogWarnMsg(className, methodName, logMessage);
+				Log.w(CommonConst.LOG_TAG, "[WARN] {" + className + "} -> " + logMessage);
 			}
 			
 		// ============================================================
@@ -950,21 +981,26 @@ public class GcmIntentService extends IntentService {
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-			Controller.removeSenderAccountFromSendCommandList(context, 
-				CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
-
-			// TODO: For test only:
-			jsonListAccounts = Preferences.getPreferencesString(context, 
-	        	CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-			
-//			// TODO: Broadcast - the following recipients are not available
-//			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
-//				String broadcastMessage = "The following recipients are unavailable: " + jsonListAccounts;
-//				broadcsatMessage(broadcastMessage, key, value);
-//			}
+			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
+				Controller.removeAccountFromList(context, 
+					CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
+	
+				// TODO: For test only:
+				jsonListAccounts = Preferences.getPreferencesString(context, 
+		        	CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+				// TODO: Broadcast - the following recipients are not available
+				if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
+					Controller.broadcsatMessage(context, contactDetails, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+						msg + " by " + senderAccount, key, value);
+				}
+			} else {
+				logMessage = "\"Start TrackLocation Service thread\" is not stopped!";
+				LogManager.LogWarnMsg(className, methodName, logMessage);
+				Log.w(CommonConst.LOG_TAG, "[WARN] {" + className + "} -> " + logMessage);
+			}
 			
 		// ============================================================
-		//  - notification received
+		// Permissions - notification received
 		// ============================================================
 		} else if (CommandKeyEnum.permissions.toString().equals(key) && 
 				CommandValueEnum.not_defined.toString().equals(value)){
@@ -975,28 +1011,40 @@ public class GcmIntentService extends IntentService {
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-			Controller.removeSenderAccountFromSendCommandList(context, 
-				CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
-			Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
+			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
+				Controller.removeAccountFromList(context, 
+					CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
+				Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
+			} else {
+				logMessage = "\"Check Permissions Not Defined thread\" is not stopped!";
+				LogManager.LogWarnMsg(className, methodName, logMessage);
+				Log.w(CommonConst.LOG_TAG, "[WARN] {" + className + "} -> " + logMessage);
+			}
 		} else if (CommandKeyEnum.permissions.toString().equals(key) && 
 				CommandValueEnum.not_permitted.toString().equals(value)){
 			String jsonListAccounts = Preferences.getPreferencesString(context, 
 	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
 			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - PERMISSIONS: NOT_PERMITTED." +
-				"Recipients accounts list: [" + jsonListAccounts + "]";
+				"Recipients accounts list: " + jsonListAccounts;
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-			Controller.removeSenderAccountFromSendCommandList(context, 
-				CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
-			Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
+			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
+				Controller.removeAccountFromList(context, 
+					CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
+				Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
+			} else {
+				logMessage = "\"Check Permissions Not Permitted thread\" is not stopped!";
+				LogManager.LogWarnMsg(className, methodName, logMessage);
+				Log.w(CommonConst.LOG_TAG, "[WARN] {" + className + "} -> " + logMessage);
+			}
 		} else if (CommandKeyEnum.start_status.toString().equals(key) && 
 				CommandValueEnum.start_track_location_service_received.toString().equals(value)){
 
 			String jsonListAccounts = Preferences.getPreferencesString(context, 
 	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
 			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - START_STATUS: START_TRACK_LOCATION_SERVICE_RECEIVED " +
-				"Recipients accounts list: [" + jsonListAccounts + "]";
+				"Recipients accounts list: " + jsonListAccounts;
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 				

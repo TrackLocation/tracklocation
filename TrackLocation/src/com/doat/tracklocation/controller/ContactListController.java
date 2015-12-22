@@ -60,6 +60,7 @@ public class ContactListController {
 		try {
 			checkWhichContactsOnLineThread = new Thread(checkWhichContactsOnLineService);
 			checkWhichContactsOnLineThread.start();
+			
 			LogManager.LogFunctionExit(className, methodName);
 			Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 		} catch (IllegalThreadStateException e) {

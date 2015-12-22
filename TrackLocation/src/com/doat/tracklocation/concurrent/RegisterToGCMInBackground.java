@@ -177,13 +177,11 @@ public class RegisterToGCMInBackground implements Runnable {
 	    					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + SLEEP_TIME / 1000 + " sec");
 	    					Thread.sleep(SLEEP_TIME);
 	    				} catch (InterruptedException e) {
-	    					//if(exitNow == true){
 	    					logMessage = "Failed the thread with loop for Google Cloud Message Registration. ThreadID = " + 
 	    						Thread.currentThread().getId();
 	    					LogManager.LogInfoMsg(className, methodName, logMessage);
 	    					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 	    					break;
-	    					//}
 	    				}
 	    				// SLEEP END - SLEEP_TIME in milliseconds
 	            	}

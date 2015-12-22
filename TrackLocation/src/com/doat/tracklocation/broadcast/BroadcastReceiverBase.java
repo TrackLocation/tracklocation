@@ -1,11 +1,14 @@
-package com.doat.tracklocation;
+package com.doat.tracklocation.broadcast;
 
+import com.doat.tracklocation.BaseActivity;
+import com.doat.tracklocation.TrackLocationApplication;
 import com.doat.tracklocation.datatype.BroadcastConstEnum;
 import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.SMSUtils;
+
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -21,6 +24,7 @@ public class BroadcastReceiverBase extends BroadcastReceiver {
     protected Activity activity;
 	
 	public BroadcastReceiverBase(Activity activity) {
+		this.className = this.getClass().getName();
 		this.activity = activity;
 		((BaseActivity)activity).getMainApp().getCurrentActivity();
 	}

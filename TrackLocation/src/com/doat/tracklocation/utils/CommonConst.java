@@ -96,6 +96,7 @@ public class CommonConst {
  	public static final String	START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS = "SenderMessageDataContactDetails";
  	public static final String	PREFERENCES_SEND_COMMAND_TO_ACCOUNTS = "send_command_to_accounts";
  	public static final String	PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS = "send_is_online_to_accounts";
+ 	public static final String	PREFERENCES_SEND_LOCATION_TO_ACCOUNTS = "send_location_to_accounts";
 
  	public static final int 	MAX_RINGTIME_WITH_MAX_VOLUME = 1; // [minutes]
  	public static final String	NOBODY_RESPONDED = "nobody_responded";

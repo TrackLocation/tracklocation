@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum BroadcastKeyEnum {
-	starting_status("starting_status"), 
+//	starting_status("starting_status"), 
 	start_status("start_status"),
 	location_updated("location_updated"), 
 	gcm_status("gcm_status"),
@@ -15,7 +15,8 @@ public enum BroadcastKeyEnum {
 	message("message"),
 	join_sms("join_sms"),
 	turn_off("turn_off"),
-	finish("finish");
+	finish("finish"),
+	restart_tls("restart_tls");
 	
 	private final String name;       
 	private static Map<String, BroadcastKeyEnum> valueMap;

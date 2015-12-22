@@ -1,8 +1,10 @@
 package com.doat.tracklocation;
 
+import com.doat.tracklocation.broadcast.BroadcastReceiverBase;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
+import com.google.gson.Gson;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.Menu;
 
 public class BaseActivity extends Activity {
+	protected final static Gson gson = new Gson();
 	protected String className;    
     protected String methodName;
     protected Context context;

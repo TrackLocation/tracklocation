@@ -10,7 +10,6 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -73,6 +72,7 @@ import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
+import com.doat.tracklocation.dialog.CommonDialogNew;
 import com.doat.tracklocation.dialog.ICommonDialogNewOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
@@ -91,15 +91,12 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.gson.Gson;
 
 public class MapActivity extends BaseActivity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, OnTouchListener{
 	private String logMessage;	
-	// Max time of waiting dialog displaying - 30 seconds
-	private final static int MAX_SHOW_TIME_WAITING_DIALOG = 30000; 
 	private final static float DEFAULT_CAMERA_UPDATE = 15;
-	//private static final int POPUP_POSITION_REFRESH_INTERVAL = 16;
 	private static final int ANIMATION_DURATION = 500;
+	private final static int RETRY_DELAY_TO_START_TLS_MS = 20000; // [milliseconds]
 	
 	private LocationManager locationManager;
 	private LatLng lastKnownLocation;
@@ -113,8 +110,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
 	private boolean isMapInMovingState = false;;
-	private ProgressDialog waitingDialog;
-	private Gson gson;
 	private Context context;
 	private Thread startTrackLocationServerThread;
 	private Runnable startTrackLocationService;
@@ -153,35 +148,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		Opened, Closed
 	}
 	
-	public void launchWaitingDialog() {
-        waitingDialog = new ProgressDialog(MapActivity.this);
-        waitingDialog.setTitle("Tracking location");
-        waitingDialog.setMessage("Please wait ...");
-        waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        //progressDialog.setProgress(0);
-        //progressDialog.setMax(contactsQuantity);
-        //waitingDialog.setCancelable(false);
-        waitingDialog.setIndeterminate(true);
-        waitingDialog.show();
-        waitingDialog.setCanceledOnTouchOutside(true);
-        
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-            	if(mapMarkerDetailsList.size() >= contactsQuantity) {
-            		waitingDialog.dismiss();
-            		notificationView.setVisibility(View.INVISIBLE);
-            	}
-            	try {
-					Thread.sleep(MAX_SHOW_TIME_WAITING_DIALOG); 
-					waitingDialog.dismiss();
-				} catch (InterruptedException e) {
-					waitingDialog.dismiss();
-				}
-            }
-        }).start();
-	}
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -194,17 +160,15 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
-		notificationView = (TextView) findViewById(R.id.textViewMap);
-		notificationView.setVisibility(0); // 0 - visible / 4 - invisible
-		notificationView.setText("Tracking for contacts\nPlease wait...");
-		
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
 		context = getApplicationContext();
 
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
-		gson = new Gson();
-		
-		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST); 
+		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST);
+		List<String> recipientList = new ArrayList<String>();
 		if(selectedContactDeviceDataListEx != null){
 			selectedContactDeviceDataList = new ContactDeviceDataList();
 			selectedContactDeviceDataList.addAll(selectedContactDeviceDataListEx);
@@ -215,9 +179,14 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
 					ContactData contactData = contactDeviceData.getContactData();
 					if(contactData != null){
-						selectedAccountList.put(contactData.getEmail(), contactData);				
+						selectedAccountList.put(contactData.getEmail(), contactData);	
+						recipientList.add(contactData.getEmail());
 					}
 				}
+				
+				logMessage = "Selected accounts to get their location: " + gson.toJson(recipientList);
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 				
 				String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 				String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
@@ -227,34 +196,71 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 						new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
 							Controller.getBatteryLevel(context));
 
-				final int retryTimes = 5;
-				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> BEGIN of LOOP: CMD START TrackLocationService");
-				LogManager.LogInfoMsg(className, methodName, "BEGIN of LOOP: CMD START TrackLocationService");
 				startTrackLocationService = new StartTrackLocationService(
 					context,
 					selectedContactDeviceDataList,
 					senderMessageDataContactDetails,
-					retryTimes,
-					20000); // retry delay in milliseconds to start TrackLocation Service for all recipients
+					RETRY_DELAY_TO_START_TLS_MS); // retry delay in milliseconds to start TrackLocation Service for all recipients
 				// ===========================================================================
 				// Start TrackLocation Service for all requested recipients
 				// ===========================================================================
 				try {
-					startTrackLocationServerThread = new Thread(startTrackLocationService);//.start();
+					startTrackLocationServerThread = new Thread(startTrackLocationService);
 					startTrackLocationServerThread.start();
+					logMessage = "Send COMMAND: START TrackLocationService in separate thread " +
+						"to the following recipients: " + gson.toJson(recipientList);
+					LogManager.LogInfoMsg(className, methodName, logMessage);
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 				} catch (IllegalThreadStateException e) {
-					logMessage = "LOOP: CMD START TrackLocationService was started already";
-					LogManager.LogErrorMsg(className, methodName, logMessage);
+					logMessage = "Failed to Send COMMAND: START TrackLocationService in separate thread " +
+						"to the following recipients: " + gson.toJson(recipientList);
+					LogManager.LogException(e, className, methodName);
 					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
 				}
-				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> FINISH of LOOP: CMD START TrackLocationService");
-				LogManager.LogInfoMsg(className, methodName, "FINISH of LOOP: CMD START TrackLocationService");
 			}
-		}
-		isShowAllMarkersEnabled = true;
+		} else {
+			CommonDialogNew noContactsSelectedDialog = new CommonDialogNew(this, new ICommonDialogNewOnClickListener(){
+				@Override
+				public void doOnPositiveButton(Object data) {
+					finish();
+				}
+				@Override
+				public void doOnNegativeButton(Object data) {
+					// TODO Auto-generated method stub
+				}				
+				@Override
+				public void doOnChooseItem(int which) {
+					// TODO Auto-generated method stub
+				}
+			});
 
-		launchWaitingDialog();
+			noContactsSelectedDialog.setDialogMessage("Select at least one contact to locate it.");
+			noContactsSelectedDialog.setDialogTitle("No contacts selected");
+			noContactsSelectedDialog.setPositiveButtonText("Ok");
+			noContactsSelectedDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+			noContactsSelectedDialog.showDialog();
+			noContactsSelectedDialog.setCancelable(false);
+		}
 		
+		isShowAllMarkersEnabled = true;
+		
+// TODO: - Should be removed when new UI will be ready		
+		String accountsListMsg = "";
+		if(selectedAccountList != null && !selectedAccountList.isEmpty()){
+			for (ContactData contcatData : selectedAccountList.values()) {
+				String contcatName = contcatData.getNick() == null ? contcatData.getEmail() : contcatData.getNick();
+				accountsListMsg = " - " + contcatName + "\n" + accountsListMsg;
+			}
+		} else {
+			accountsListMsg  = "Not provided recipients list...";
+		}
+		notificationView = (TextView) findViewById(R.id.textViewMap);
+		notificationView.setVisibility(0); // 0 - visible / 4 - invisible
+		notificationView.setText("Tracking for contacts:\n" +
+			accountsListMsg +
+			"\nPlease wait...");
+// TODO: - Should be removed when new UI will be ready		
+
 		// Get a handle to the Map Fragment
         MyMapFragment myMapFragment = (MyMapFragment) getFragmentManager().findFragmentById(R.id.map);
         myMapFragment.setOnDragListener(new MapWrapperLayout.OnDragListener() {
@@ -297,23 +303,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         });
         
         map = myMapFragment.getMap();
-        
 
         setupLocation();
-
-		String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-        Log.i(CommonConst.LOG_TAG, "Inside loop for recipients: " + jsonListAccounts);
-
-        String accountsListMsg = "Waiting for:\n\n";
-		if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
-			accountsListMsg = "All contacts found.";
-		} else {
-			List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
-			for (String account : listAccounts) {
-				accountsListMsg = accountsListMsg + selectedAccountList.get(account).getNick() + "\n";
-			}
-		}        
-        waitingDialog.setMessage(accountsListMsg);
         
         zoom = DEFAULT_CAMERA_UPDATE;
         if(lastKnownLocation != null){
@@ -463,15 +454,25 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}
 		mapActivityController.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
         	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);       
+
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}		
 		
 	@Override
 	protected void onStart() {	
 		super.onStart();
+		methodName = "onStart";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
 		initGcmLocationUpdatedBroadcastReceiver();
 		initNotificationBroadcastReceiver();
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 		bLockMapNothOnly = sharedPref.getBoolean("pref_map_lock", false);
+
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 	private void goToMyLocation(){
@@ -494,7 +495,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					location.getLongitude());
 		} 
 		else {
-			Toast.makeText(MapActivity.this, "getString(R.string.err_load_location)",
+			Toast.makeText(MapActivity.this, getString(R.string.err_load_location),
 					Toast.LENGTH_LONG).show();
 		}
 
@@ -570,16 +571,44 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     				// RECEIVED - some recipient received request
 	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.start_track_location_service_received.toString().equals(value)){
 	    				displayNotification(bundle);
-	    				notificationView.setVisibility(0);
-	    				notificationView.setText(broadcastData.getMessage());
+	    				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+    					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+// TODO: - Should be removed when new UI will be ready		
+    					String accountsListMsg = "";
+    					if(listAccounts != null && !listAccounts.isEmpty()){
+	    					for (String account : listAccounts) {
+	    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
+	    					}
+	    					notificationView.setText("Tracking for contacts:\n" +
+	    							accountsListMsg +
+	    							"\nPlease wait...");
+		    				notificationView.setVisibility(0);
+    					} else {
+    						notificationView.setVisibility(4);
+    					}
+// TODO: - Should be removed when new UI will be ready		
 	    			}
 
 	    			// Notification about command: Start TrackLocation Service
     				// PLEASE WAIT - some recipients are not responding
 	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.wait.toString().equals(value)){
 	    				displayNotification(bundle);
-	    				notificationView.setVisibility(0);
-	    				notificationView.setText(broadcastData.getMessage());
+	    				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+    					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+// TODO: - Should be removed when new UI will be ready		
+    					String accountsListMsg = "";
+    					if(listAccounts != null && !listAccounts.isEmpty()){
+	    					for (String account : listAccounts) {
+	    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
+	    					}
+	    					notificationView.setText("Tracking for contacts:\n" +
+	    							accountsListMsg +
+	    							"\nPlease wait...");
+		    				notificationView.setVisibility(0);
+    					} else {
+    						notificationView.setVisibility(4);
+    					}
+// TODO: - Should be removed when new UI will be ready		
 	    			}
 	    			
     				// Notification about command: Start TrackLocation Service 
@@ -589,26 +618,27 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    				String title = "Warning";
 	    				String dialogMessage = broadcastData.getMessage();
 	    				new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
-	    				notificationView.setText(broadcastData.getMessage());
-	    				notificationView.setVisibility(4);
 	    			}
 	    			
     				// Notification about command: Start TrackLocation Service 
     				// SUCCESS for some recipients
 	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.success.toString().equals(value)){
-	    				notificationView.setText(broadcastData.getMessage());
-	    				notificationView.setVisibility(4);
-	    		        String accountsListMsg = "Waiting for:\n\n";
+// TODO: - Should be removed when new UI will be ready		
+	    		        String accountsListMsg = "";
 	    				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-	    				if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
-	    					accountsListMsg = "All contacts found.";
-	    				} else {
-	    					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+    					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+    					if(listAccounts != null && !listAccounts.isEmpty()){
 	    					for (String account : listAccounts) {
-	    						accountsListMsg = accountsListMsg + selectedAccountList.get(account).getNick() + "\n";
+	    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
 	    					}
-	    				}
-	    				waitingDialog.setMessage(accountsListMsg);
+	    					notificationView.setText("Tracking for contacts:\n" +
+	    							accountsListMsg +
+	    							"\nPlease wait...");
+		    				notificationView.setVisibility(0);
+    					} else {
+    						notificationView.setVisibility(4);
+    					}
+// TODO: - Should be removed when new UI will be ready		
 	    			}
 	    			
 	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_defined.toString().equals(value)){
@@ -618,7 +648,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    	        		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
 		    				isPermissionDialogShown = true;
 	    				}
-	    				waitingDialog.dismiss();
 	    			}
 
 	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_permitted.toString().equals(value)){
@@ -628,7 +657,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    	        		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
 		    				isPermissionDialogShown = true;
 	    				}
-	    				waitingDialog.dismiss();
 	    			}
 	    		}
 			}
@@ -696,8 +724,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		    		
 		    		mapAnimateCameraForMarkers(prevLocationDetails, updatingAccount);
 		    		if(mapMarkerDetailsList != null && mapMarkerDetailsList.size() == contactsQuantity){
-		    			waitingDialog.dismiss();
-		    			notificationView.setVisibility(4);
+		    			notificationView.setVisibility(4); // 0 - visible / 4 - invisible
 		    		}
 	    			// ================================================		    		
 	    		}	    		
@@ -810,7 +837,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		ContactDeviceData contactDeviceData = selectedContactDeviceDataList.getContactDeviceDataByContactData(contactDetails.getAccount());
 		
-		Bitmap bmpContact = contactDeviceData.getContactData().getContactPhoto() == null ? Utils.getDefaultContactBitmap(getResources()) : contactDeviceData.getContactData().getContactPhoto();
+		Bitmap bmpContact = null;
+		if(contactDeviceData != null && contactDeviceData.getContactData() != null){
+			bmpContact = contactDeviceData.getContactData().getContactPhoto() == null ? Utils.getDefaultContactBitmap(getResources()) : contactDeviceData.getContactData().getContactPhoto();
+		}
 		
 		Marker marker = map.addMarker(new MarkerOptions()
 			.icon(BitmapDescriptorFactory.fromBitmap(drawMarker(bmpContact)))

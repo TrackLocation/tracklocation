@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Timer;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -773,26 +772,72 @@ public class Controller {
 		);
 	}
 
-	public static void removeSenderAccountFromSendCommandList(Context context, 
+	public static void addAccountToList(Context context, 
 			String preferencesListAccountsbyCommand,
-			String jsonListAccounts, String senderAccount){
-        String methodName = "showNotificationDialog";
+			String senderAccount){
+        String methodName = "addAccountToList";
+        String logMessage;
+        if(senderAccount == null || senderAccount.isEmpty()){
+        	logMessage = "Mandatory parameter 'senderAccount' has not been provided.";
+        	LogManager.LogErrorMsg(className, methodName, logMessage);
+        	Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+        }
         Gson gson = new Gson();
-        @SuppressWarnings("unchecked")
-		List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
-        if(listAccounts != null && listAccounts.contains(senderAccount)){
-        	listAccounts.remove(senderAccount);
+        String jsonListAccounts = Preferences.getPreferencesString(context, 
+        		preferencesListAccountsbyCommand);
+        if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
+            @SuppressWarnings("unchecked")
+    		List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+            if(listAccounts != null && !listAccounts.contains(senderAccount)){
+            	if(!listAccounts.contains(senderAccount)){
+	            	listAccounts.add(senderAccount);
+	            	jsonListAccounts = gson.toJson(listAccounts);
+	            	if(jsonListAccounts == null){
+	            		jsonListAccounts = "";
+	            	}	        
+	            	Preferences.setPreferencesString(context, 
+	    	        		preferencesListAccountsbyCommand, jsonListAccounts);
+	            	logMessage = "Updated recipients accounts list: " + jsonListAccounts;
+	        		LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
+	        		Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + methodName + ": "+ logMessage);
+            	} else {
+            		logMessage = "Account : [" + senderAccount + "] already exists in the list: " + jsonListAccounts;
+	        		LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
+	        		Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + methodName + ": "+ logMessage);
+            	}
+            }
+        } else {
+        	List<String> listAccounts = new ArrayList<String>();
+        	listAccounts.add(senderAccount);
         	jsonListAccounts = gson.toJson(listAccounts);
-        	if(jsonListAccounts == null){
-        		jsonListAccounts = "";
-        	}	        
         	Preferences.setPreferencesString(context, 
-	        		preferencesListAccountsbyCommand, jsonListAccounts);
-        	String logMessage = "Updated recipients accounts list: [" + jsonListAccounts + "]";
-    		LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
-    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + methodName + ": "+ logMessage);
+	        	preferencesListAccountsbyCommand, jsonListAccounts);
         }
 	}
+
+	public static void removeAccountFromList(Context context, 
+			String preferencesListAccountsbyCommand,
+			String jsonListAccounts, String senderAccount){
+        String methodName = "removeAccountFromList";
+        Gson gson = new Gson();
+        if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
+            @SuppressWarnings("unchecked")
+    		List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+            if(listAccounts != null && listAccounts.contains(senderAccount)){
+            	listAccounts.remove(senderAccount);
+            	jsonListAccounts = gson.toJson(listAccounts);
+            	if(jsonListAccounts == null){
+            		jsonListAccounts = "";
+            	}	        
+            	Preferences.setPreferencesString(context, 
+    	        		preferencesListAccountsbyCommand, jsonListAccounts);
+            	String logMessage = "Updated recipients accounts list: " + jsonListAccounts;
+        		LogManager.LogInfoMsg(CLASS_NAME, methodName, logMessage);
+        		Log.i(CommonConst.LOG_TAG, "[INFO] {" + CLASS_NAME + "} -> " + methodName + ": "+ logMessage);
+            }
+        }
+	}
+	
 	public static String hideRealRegID(String regID){
 		return (regID == null || regID.isEmpty()) ? "EMPTY" : "NON-EMPTY";
 	}

@@ -1,5 +1,6 @@
 package com.doat.tracklocation.concurrent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
@@ -9,10 +10,10 @@ import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.CommandData;
-import com.doat.tracklocation.datatype.CommandDataBasic;
 import com.doat.tracklocation.datatype.CommandEnum;
 import com.doat.tracklocation.datatype.CommandTagEnum;
 import com.doat.tracklocation.datatype.CommandValueEnum;
+import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
@@ -31,14 +32,14 @@ import com.google.gson.Gson;
  */
 public class StartTrackLocationService implements Runnable {
 
+	private final static String LOCATION_UPDATE_INTERVAL = "1000"; // [millisconds]
+	private static Gson gson = new Gson();
 	private Context context;
-	private ContactDeviceDataList selectedContactDeviceDataList;
+	private volatile ContactDeviceDataList selectedContactDeviceDataList;
 	private MessageDataContactDetails senderMessageDataContactDetails;
-	private int retryTimes;
 	private int retrySendCommandDelay; // in milliseconds
 	private String className;
 	private List<String> tempListAccounts;
-	private volatile boolean exitNow;
 	private String methodName;
 	private String logMessage;
 
@@ -46,33 +47,21 @@ public class StartTrackLocationService implements Runnable {
         	Context context,
         	ContactDeviceDataList selectedContactDeviceDataList,
         	MessageDataContactDetails senderMessageDataContactDetails,
-        	int retryTimes,
         	int delay) {
-		exitNow = false;
 		this.context = context;
 		this.selectedContactDeviceDataList = selectedContactDeviceDataList;
 		this.senderMessageDataContactDetails = senderMessageDataContactDetails;
-		this.retryTimes = retryTimes;
 		this.retrySendCommandDelay = delay; // in milliseconds
 		className = this.getClass().getName();
 	}
 	
-	public boolean isExitNow() {
-		return exitNow;
-	}
-
-	public void setExitNow(boolean exitNow) {
-		this.exitNow = exitNow;
-	}
-
 	@Override
 	public void run() {
 		
-		methodName = "Create a new thread [ID = " + Thread.currentThread().getId() + 
-			"] with loop for sending of the command to start TrackLocationService -> run()";
+		methodName = "run";
 		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
-				
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
         if(senderMessageDataContactDetails == null){
         	logMessage = "Failed to send GCM command to start Track Location Service" +
         		" - no sender contact details provided.";
@@ -89,9 +78,9 @@ public class StartTrackLocationService implements Runnable {
         	return;
         }
 
-        CommandDataBasic commandDataBasic = null;
+        CommandData commandData = null;
 		try {
-			commandDataBasic = new CommandData(
+			commandData = new CommandData(
 					context, 
 					selectedContactDeviceDataList, 
 					CommandEnum.start,					// [START]	
@@ -99,7 +88,7 @@ public class StartTrackLocationService implements Runnable {
 					senderMessageDataContactDetails, 
 					null,								// location
 					CommandTagEnum.interval.toString(),	// key: location update interval
-					"1000", 							// value: location update interval = 1 second
+					LOCATION_UPDATE_INTERVAL, 			// value: location update interval = 1 second
 					null 								// appInfo
 			);
 		} catch (UnableToSendCommandException e) {
@@ -107,42 +96,51 @@ public class StartTrackLocationService implements Runnable {
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 			return;
 		}
-			        
-        // String currentAccount = senderMessageDataContactDetails.getAccount();
-        
-        Gson gson = new Gson();
-        String jsonListAccounts = gson.toJson(commandDataBasic.getListAccounts());
-        // Set list of recipients' accounts list 
+		
+        String jsonListAccounts = gson.toJson(commandData.getListAccounts());
+        // Save list of recipients' accounts list 
         Preferences.setPreferencesString(context, 
         		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
-        logMessage = "Saved recipients: " + jsonListAccounts;
-        LogManager.LogInfoMsg(className, methodName, logMessage);
-        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
         List<String> listAccounts = null;
-		for (int i = 0; i < retryTimes; i++) {
+		while (true) {
 			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-	        Log.i(CommonConst.LOG_TAG, "Inside loop for recipients: " + jsonListAccounts);
-
-			if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
+	        if((jsonListAccounts == null || jsonListAccounts.isEmpty())){
+				// exit from loop - stop sending Start TrackLoccation Service command
 				break;
 			}
-			listAccounts = gson.fromJson(jsonListAccounts, List.class);
+	        logMessage = "Send COMMAND: START TrackLocation Service in separate thread " +
+					"to the following SAVED TO PREFERENCES RECIPIENTS: " + jsonListAccounts;
+	        LogManager.LogInfoMsg(className, methodName, logMessage);
+	        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
+	        listAccounts = gson.fromJson(jsonListAccounts, List.class);
 			if(listAccounts == null || listAccounts.isEmpty()){
+				// exit from loop - stop sending Start TrackLoccation Service command
 				break;
 			}
-
-			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> LOOP: " + (i+1) + 
-				" ThreadID: " + Thread.currentThread().getId());
-			commandDataBasic.sendCommand();
-			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> LOOP: " + (i+1) + 
-				" [START] command sent to recipients: " + jsonListAccounts);
+		
+			// update selectedContactDeviceDataList
+			commandData.setContactDeviceDataList(selectedContactDeviceDataList);
+			commandData.sendCommand();
+	
+			// DEBUG
+			List<String> tempContacts = new ArrayList<String>();
+			for (ContactDeviceData entry : selectedContactDeviceDataList) {
+				tempContacts.add(entry.getContactData().getEmail());
+			}
+			logMessage = "START TLS: selectedContactDeviceDataList: " + gson.toJson(tempContacts);
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			logMessage = "START TLS: jsonListAccounts: " + jsonListAccounts;
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			// DEBUG
 			
 			try {
-				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + retrySendCommandDelay / 1000 + " sec");
 				Thread.sleep(retrySendCommandDelay);
 			} catch (InterruptedException e) {
-				logMessage = "Finish the thread with loop for starting of TrackLocation Service. ThreadID = " + 
+				logMessage = "Finish the thread of TrackLocation Service starting. ThreadID = " + 
 					Thread.currentThread().getId();
 				LogManager.LogInfoMsg(className, methodName, logMessage);
 				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
@@ -153,8 +151,7 @@ public class StartTrackLocationService implements Runnable {
 			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
 				tempListAccounts = gson.fromJson(jsonListAccounts, List.class);
 				if(!tempListAccounts.isEmpty()){
-			        String broadcastMessage = "Retry " + (i+1) + " from " + retryTimes + 
-			        	":\nCurrently unavailable:\n\n";
+			        String broadcastMessage = "Currently unavailable:\n\n";
 			        for (String currentAccount : tempListAccounts) {
 			        	broadcastMessage = broadcastMessage + currentAccount + "\n";
 					}
@@ -162,28 +159,16 @@ public class StartTrackLocationService implements Runnable {
 				    broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), CommandValueEnum.wait.toString());
 				}
 			}
-
 		}
-
 		// Reset list of recipients' accounts list to be empty
         Preferences.setPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, "");
         logMessage = "Reset recipients list after loop to be empty.";
         LogManager.LogInfoMsg(className, methodName, logMessage);
         Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-        logMessage = "Recipients list that are unavailable: " + jsonListAccounts;
-        LogManager.LogInfoMsg(className, methodName, logMessage);
-        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-        tempListAccounts = gson.fromJson(jsonListAccounts, List.class);
-        String broadcastMessage = "\nCurrently unavailable:\n\n";
-        for (String currentAccount : tempListAccounts) {
-        	broadcastMessage = broadcastMessage + currentAccount + "\n";
-		}
-        broadcastMessage += "\n";
-        if(tempListAccounts != null && !tempListAccounts.isEmpty()){
-	        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), CommandValueEnum.error.toString());
-        } else {
-	        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), CommandValueEnum.success.toString());
+        String broadcastMessage = "";
+        if(tempListAccounts == null && tempListAccounts.isEmpty()){
+	        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), CommandValueEnum.wait.toString());
         }
 	}
 
@@ -198,7 +183,7 @@ public class StartTrackLocationService implements Runnable {
 		// Broadcast corresponding message
 		Controller.broadcastMessage(context, 
 			BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
-			"GcmIntentService",
+			className,
 			jsonNotificationBroadcastData, 
 			key, // BroadcastKeyEnum.message.toString(),  
 			value
@@ -206,13 +191,3 @@ public class StartTrackLocationService implements Runnable {
 	}
 
 }
-
-//Way to run the function:
-//Runnable startTrackLocationService = new StartTrackLocationService(
-//	context,
-//	selectedContactDeviceDataList,
-//	contactDetails,
-//	retryTimes,
-//	delay);
-//new Thread(startTrackLocationService).start();
-

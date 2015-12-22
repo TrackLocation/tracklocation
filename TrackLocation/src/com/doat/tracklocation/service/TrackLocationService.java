@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Timer;
 
 import com.doat.tracklocation.Controller;
+import com.doat.tracklocation.broadcast.BroadcastReceiverTrackLocationService;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastConstEnum;
 import com.doat.tracklocation.datatype.BroadcastKeyEnum;
@@ -38,6 +39,9 @@ public class TrackLocationService extends TrackLocationServiceBasic {
 	protected long trackLocationServiceStartTime;
 	protected String trackLocationKeepAliveRequester;
 	protected BroadcastReceiver gcmKeepAliveBroadcastReceiver;
+//	protected boolean isUpdateRunnungService;
+	protected MessageDataContactDetails senderMessageDataContactDetails;
+	protected BroadcastReceiver notificationBroadcastReceiver;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -52,11 +56,17 @@ public class TrackLocationService extends TrackLocationServiceBasic {
         methodName = "onCreate";
         className = this.getClass().getName();
         timer = null;
+//        isUpdateRunnungService = false;
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
         
 		
 		initBroadcastReceiver(BroadcastActionEnum.BROADCAST_LOCATION_KEEP_ALIVE.toString(), "ContactConfiguration");
+		
+		if(notificationBroadcastReceiver == null){
+			notificationBroadcastReceiver = new BroadcastReceiverTrackLocationService(this);
+		}
+		initNotificationBroadcastReceiver(notificationBroadcastReceiver);
         
         prepareTrackLocationServiceStopTimer();
 	}   
@@ -84,34 +94,65 @@ public class TrackLocationService extends TrackLocationServiceBasic {
     	Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
     }  
 
+    public void updateService(MessageDataContactDetails senderMessageDataContactDetails){
+    	LogManager.LogFunctionCall(className, methodName);
+    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
+//    	isUpdateRunnungService = true;
+    	this.senderMessageDataContactDetails = senderMessageDataContactDetails;
+    	onStartCommand(null, 0, START_STICKY);
+
+    	LogManager.LogFunctionExit(className, methodName);
+    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+    }
+    
     @Override  
     public int onStartCommand(Intent intent, int flags, int startId)
 	{             
     	methodName = "onStartCommand";
 		try{
-			LogManager.LogFunctionCall(className, "onStart");
-            Log.i(CommonConst.LOG_TAG, "{" + className + "} onStart - Start");
+			LogManager.LogFunctionCall(className, methodName);
+			Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
             
             if(intent == null){
-            	logMessage = "TrackLocation service has been restarted.";
+            	logMessage = "TrackLocation service - has been restarted.";
         		LogManager.LogInfoMsg(className, methodName, logMessage);
         		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-            	return START_STICKY;
-            }
-            Bundle extras = intent.getExtras();
-            String jsonSenderMessageDataContactDetails = null;
-            MessageDataContactDetails senderMessageDataContactDetails = null;
-    		if(extras.containsKey(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS)){
-    			jsonSenderMessageDataContactDetails = extras.getString(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS);
-	            senderMessageDataContactDetails = 
-	            	gson.fromJson(jsonSenderMessageDataContactDetails, MessageDataContactDetails.class);
-	            if(senderMessageDataContactDetails != null){
-	            	trackLocationKeepAliveRequester = senderMessageDataContactDetails.getAccount();
-	            	logMessage = "TrackLocation service has been started by [" + trackLocationKeepAliveRequester + "]";
+            	// return START_STICKY;
+            } else {
+	            Bundle extras = intent.getExtras();
+	            String jsonSenderMessageDataContactDetails = null;
+//	            if(isUpdateRunnungService == false){
+	    		if(extras.containsKey(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS)){
+	    			jsonSenderMessageDataContactDetails = extras.getString(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS);
+		            senderMessageDataContactDetails = 
+		            	gson.fromJson(jsonSenderMessageDataContactDetails, MessageDataContactDetails.class);
+		            String senderAccount = senderMessageDataContactDetails == null ? "NOT PROVIDED SENDER DETAILS..." : senderMessageDataContactDetails.getAccount();
+	            	logMessage = "TrackLocation service - first start requested by  [" + senderAccount + "]";
 	        		LogManager.LogInfoMsg(className, methodName, logMessage);
 	        		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-	            }
-    		}
+	    		}
+            }
+//            }
+            if(senderMessageDataContactDetails != null){
+            	trackLocationKeepAliveRequester = senderMessageDataContactDetails.getAccount();
+            	logMessage = "TrackLocation service - start requested by [" + trackLocationKeepAliveRequester + "]";
+        		LogManager.LogInfoMsg(className, methodName, logMessage);
+        		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+            } else {
+            	logMessage = "Unable to start TrackLocation service - no SenderMessageDataContactDetails has been provided.";
+        		LogManager.LogErrorMsg(className, methodName, logMessage);
+        		Log.e(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+            	return START_STICKY;
+            }
+            
+            Controller.addAccountToList(context, CommonConst.PREFERENCES_SEND_LOCATION_TO_ACCOUNTS, trackLocationKeepAliveRequester);
+            String jsonListAccounts = Preferences.getPreferencesString(context, 
+            	CommonConst.PREFERENCES_SEND_LOCATION_TO_ACCOUNTS);
+            logMessage = "Updated accounts to send Location updates: " + jsonListAccounts;
+    		LogManager.LogInfoMsg(className, methodName, logMessage);
+    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+            
             
             // Start TrackLocationServiceStopTimer
         	logMessage = "Start TrackLocationService TimerJob with repeat period = " + 
@@ -143,7 +184,13 @@ public class TrackLocationService extends TrackLocationServiceBasic {
 			}
     		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Timer with TimerJob that stops TrackLocationService - started");
 
-            requestLocation(true);
+    		// **********************************************
+    		// *             REQUEST LOCATION				*
+    		// *											*
+    		requestLocation(true); //						*
+    		// *											*
+    		// *											*					
+    		// **********************************************
 
             // Notify to caller by GCM (push notification) - TrackLocationServiceStarted
     		clientBatteryLevel = Controller.getBatteryLevel(context);
@@ -174,12 +221,15 @@ public class TrackLocationService extends TrackLocationServiceBasic {
     		);
             commandDataBasic.sendCommand();
             
-            Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} TrackLocationService - send NOTIFICATION Command performed");
+            logMessage = "TrackLocationService - send NOTIFICATION TrackLocation Strat succeeded from [" + senderMessageDataContactDetails.getAccount() + "]";
+            LogManager.LogInfoMsg(className, methodName, logMessage);
+    		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-            LogManager.LogFunctionExit(className, "onStart");
-            Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} onStart - End");
+    		LogManager.LogFunctionExit(className, methodName);
+    		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 		} catch (Exception e) {
-			LogManager.LogException(e, className, "onStart");
+			LogManager.LogException(e, className, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
 		}
 		return START_STICKY;
 	}
@@ -193,13 +243,21 @@ public class TrackLocationService extends TrackLocationServiceBasic {
 
     public void stopTrackLocationService(){
     	methodName = "stopTrackLocationService";
-    	Log.i(CommonConst.LOG_TAG, "Stop TrackLocationService");
+    	LogManager.LogFunctionCall(className, methodName);
+    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
 	    unregisterReceiver(gcmKeepAliveBroadcastReceiver);
+	    unregisterReceiver(notificationBroadcastReceiver);
     	stopSelf();
-    	Preferences.clearPreferencesReturnToContactMap(context);
+
+//   	Preferences.clearPreferencesReturnToContactMap(context);
+    	
     	logMessage = "Track Location Service has been stopped.";
     	LogManager.LogInfoMsg(className, methodName, logMessage);
     	Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+    	
+    	LogManager.LogFunctionExit(className, methodName);
+    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
     }
 
 	public long getTrackLocationServiceStartTime() {
@@ -294,6 +352,19 @@ public class TrackLocationService extends TrackLocationServiceBasic {
         repeatPeriod = CommonConst.REPEAT_PERIOD_DEFAULT; // 2 minutes
         trackLocationServiceStartTime = System.currentTimeMillis();
     }
+
+	// Initialize BROADCAST_MESSAGE broadcast receiver
+	private void initNotificationBroadcastReceiver(BroadcastReceiver broadcastReceiver) {
+		methodName = "initNotificationBroadcastReceiver";
+		LogManager.LogFunctionCall(className, methodName);
+		
+		IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
+	    
+	    registerReceiver(broadcastReceiver, intentFilter);
+	    
+		LogManager.LogFunctionExit(className, methodName);
+	}
 
 }
 

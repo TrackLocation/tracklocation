@@ -1,5 +1,6 @@
 package com.doat.tracklocation.concurrent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
@@ -8,6 +9,7 @@ import android.util.Log;
 import com.doat.tracklocation.datatype.CommandData;
 import com.doat.tracklocation.datatype.CommandDataBasic;
 import com.doat.tracklocation.datatype.CommandEnum;
+import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.exception.UnableToSendCommandException;
@@ -44,7 +46,11 @@ public class CheckWhichContactsOnLine implements Runnable {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
-        if(senderMessageDataContactDetails == null){
+		logMessage = "CheckWhichContactsOnLineThread has been started.";
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
+		if(senderMessageDataContactDetails == null){
         	logMessage = "Failed to start thread to check which contacts are online" +
         		" - no sender contact details provided.";
         	LogManager.LogWarnMsg(className, methodName, logMessage);
@@ -95,18 +101,39 @@ public class CheckWhichContactsOnLine implements Runnable {
 	        	CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS);
 
 			if(jsonListAccounts == null || jsonListAccounts.isEmpty()){
+				logMessage = "No contcats - CheckWhichContactsOnLineThread has been finished.";
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 				LogManager.LogFunctionExit(className, methodName);
 				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 				return;
 			}
 			listAccounts = gson.fromJson(jsonListAccounts, List.class);
 			if(listAccounts == null || listAccounts.isEmpty()){
+				logMessage = "No contcats - CheckWhichContactsOnLineThread has been finished.";
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 				LogManager.LogFunctionExit(className, methodName);
 				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 				return;
 			}
 
 			commandDataBasic.sendCommand();
+
+			// DEBUG
+			List<String> tempContacts = new ArrayList<String>();
+			for (ContactDeviceData entry : selectedContactDeviceDataList) {
+				tempContacts.add(entry.getContactData().getEmail());
+			}
+			logMessage = "DEBUG CHECK ONLINE STATUS: selectedContactDeviceDataList: " + gson.toJson(tempContacts);
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			logMessage = "DEBUG CHECK ONLINE STATUS: jsonListAccounts: " + gson.toJson(jsonListAccounts);
+			LogManager.LogInfoMsg(className, methodName, logMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+			// DEBUG
 
 			// Send command to each contact to check if online
 			logMessage = "Send command to each contact to check if online. ThreadID = " + 
@@ -126,6 +153,10 @@ public class CheckWhichContactsOnLine implements Runnable {
 				LogManager.LogInfoMsg(className, methodName, logMessage);
 				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 				
+				logMessage = "CheckWhichContactsOnLineThread has been finished.";
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 				// Stop and exit the thread if interrupted
 				LogManager.LogFunctionExit(className, methodName);
 				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);

@@ -1,6 +1,7 @@
 package com.doat.tracklocation;
 
 import com.doat.tracklocation.R;
+import com.doat.tracklocation.broadcast.BroadcastReceiverBase;
 import com.doat.tracklocation.controller.MainActivityController;
 import com.doat.tracklocation.datatype.BackupDataOperations;
 import com.doat.tracklocation.db.DBHelper;

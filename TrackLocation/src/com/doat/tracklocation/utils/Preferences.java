@@ -147,6 +147,11 @@ public class Preferences {
 		}
 	}
 
+	private static void synchronyzed() {
+		// TODO Auto-generated method stub
+		
+	}
+
 	@SuppressWarnings("unchecked")
 	public static Map<String, String> getPreferencesReturnToContactMap(
 			Context context) {

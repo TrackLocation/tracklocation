@@ -113,6 +113,7 @@ public class TrackLocationServiceBasic extends Service {
 	}
 	
 	public void requestLocation(boolean forceGps) {
+		
         try{
         	LogManager.LogFunctionCall(className, "requestLocation");
         	if(locationListenerGPS != null){
@@ -140,21 +141,22 @@ public class TrackLocationServiceBasic extends Service {
                 }
                 
                 String objectName = TrackLocationServiceBasic.className.toString();
-                if (containsGPS && forceGps) {
-                	LogManager.LogInfoMsg(className, "requestLocation", "GPS_PROVIDER selected.");
                 
-	            	locationListenerGPS = new LocationListenerBasic(context, this, "LocationListenerGPS", CommonConst.GPS, objectName);
-	            	locationListenerNetwork = new LocationListenerBasic(context, this, "LocationListenerNetwork", CommonConst.NETWORK, objectName);
-
+                ILocationListener locationListener = new TrackLocationServiceLocationListener(context);                
+                if (containsGPS && forceGps) {
+                    logMessage = "GPS_PROVIDER selected.";
+                    LogManager.LogInfoMsg(className, methodName, logMessage);
+                    Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+                
+	            	locationListenerGPS = new LocationListenerBasic(context, this, "LocationListenerGPS", CommonConst.GPS, objectName, locationListener);
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerGPS);
-                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
-                } else if (containsNetwork) {
-                	LogManager.LogInfoMsg(className, "requestLocation", "NETWORK_PROVIDER selected.");
-                	
-            		locationListenerNetwork = new LocationListenerBasic(context, this, "LocationListenerNetwork", CommonConst.NETWORK, objectName);
-
-            		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
                 }
+                logMessage = "NETWORK_PROVIDER selected.";
+                LogManager.LogInfoMsg(className, methodName, logMessage);
+                Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+            	locationListenerNetwork = new LocationListenerBasic(context, this, "LocationListenerNetwork", CommonConst.NETWORK, objectName, locationListener);
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, Integer.parseInt(intervalString), 0, locationListenerNetwork);
+                
 	        } else {
 		        LogManager.LogInfoMsg(className, "requestLocation", "No location providers available.");
 	        }

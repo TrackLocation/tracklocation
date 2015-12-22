@@ -34,6 +34,7 @@ import android.os.Environment;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
+import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.datatype.CommandEnum;
 import com.doat.tracklocation.datatype.ContactData;
@@ -43,6 +44,7 @@ import com.doat.tracklocation.datatype.DeviceData;
 import com.doat.tracklocation.datatype.DeviceTypeEnum;
 import com.doat.tracklocation.datatype.Message;
 import com.doat.tracklocation.datatype.MessageData;
+import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.log.LogManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -299,6 +301,9 @@ public class Utils {
 	}
 	
 	public static Bitmap getRoundedCornerImage(Bitmap bitmap, Boolean bDefaultImage) {
+		if(bitmap == null){
+			return null;
+		}
 		return getRoundedCornerImage(bitmap, bitmap.getWidth(), bitmap.getHeight(), bDefaultImage);
 	}
 	
@@ -423,4 +428,14 @@ public class Utils {
         }
         return false;
     }
+    
+	public static MessageDataContactDetails initLocalRecipientData(Context context){
+		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+		String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+		String regId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+		int batteryLevel = Controller.getBatteryLevel(context);
+		return new MessageDataContactDetails(account, macAddress, phoneNumber, regId, batteryLevel); 
+	}
+
 }

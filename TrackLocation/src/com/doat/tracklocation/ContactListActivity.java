@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.doat.tracklocation.R;
+import com.doat.tracklocation.broadcast.BroadcastReceiverContactListActivity;
 import com.doat.tracklocation.controller.ContactListController;
 import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
@@ -13,6 +14,7 @@ import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;

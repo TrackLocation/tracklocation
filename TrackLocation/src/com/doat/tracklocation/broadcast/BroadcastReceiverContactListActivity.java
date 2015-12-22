@@ -1,7 +1,11 @@
-package com.doat.tracklocation;
+package com.doat.tracklocation.broadcast;
 
 import java.util.List;
 
+import com.doat.tracklocation.Controller;
+import com.doat.tracklocation.R;
+import com.doat.tracklocation.TrackLocationApplication;
+import com.doat.tracklocation.R.id;
 import com.doat.tracklocation.datatype.BroadcastConstEnum;
 import com.doat.tracklocation.datatype.CommandKeyEnum;
 import com.doat.tracklocation.datatype.CommandValueEnum;
