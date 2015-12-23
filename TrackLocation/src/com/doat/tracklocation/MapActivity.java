@@ -167,99 +167,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
-		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST);
-		List<String> recipientList = new ArrayList<String>();
-		if(selectedContactDeviceDataListEx != null){
-			selectedContactDeviceDataList = new ContactDeviceDataList();
-			selectedContactDeviceDataList.addAll(selectedContactDeviceDataListEx);
-			if(!selectedContactDeviceDataList.isEmpty()){
-				contactsQuantity = selectedContactDeviceDataList.size();
-				// Create and fill all requested accounts that should be shown on the location map
-				selectedAccountList = new HashMap<String, ContactData>();
-				for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
-					ContactData contactData = contactDeviceData.getContactData();
-					if(contactData != null){
-						selectedAccountList.put(contactData.getEmail(), contactData);	
-						recipientList.add(contactData.getEmail());
-					}
-				}
-				
-				logMessage = "Selected accounts to get their location: " + gson.toJson(recipientList);
-				LogManager.LogInfoMsg(className, methodName, logMessage);
-				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-				
-				String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-				String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
-				String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
-				String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-				MessageDataContactDetails senderMessageDataContactDetails = // sender contact details
-						new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
-							Controller.getBatteryLevel(context));
 
-				startTrackLocationService = new StartTrackLocationService(
-					context,
-					selectedContactDeviceDataList,
-					senderMessageDataContactDetails,
-					RETRY_DELAY_TO_START_TLS_MS); // retry delay in milliseconds to start TrackLocation Service for all recipients
-				// ===========================================================================
-				// Start TrackLocation Service for all requested recipients
-				// ===========================================================================
-				try {
-					startTrackLocationServerThread = new Thread(startTrackLocationService);
-					startTrackLocationServerThread.start();
-					logMessage = "Send COMMAND: START TrackLocationService in separate thread " +
-						"to the following recipients: " + gson.toJson(recipientList);
-					LogManager.LogInfoMsg(className, methodName, logMessage);
-					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-				} catch (IllegalThreadStateException e) {
-					logMessage = "Failed to Send COMMAND: START TrackLocationService in separate thread " +
-						"to the following recipients: " + gson.toJson(recipientList);
-					LogManager.LogException(e, className, methodName);
-					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
-				}
-			}
-		} else {
-			CommonDialogNew noContactsSelectedDialog = new CommonDialogNew(this, new ICommonDialogNewOnClickListener(){
-				@Override
-				public void doOnPositiveButton(Object data) {
-					finish();
-				}
-				@Override
-				public void doOnNegativeButton(Object data) {
-					// TODO Auto-generated method stub
-				}				
-				@Override
-				public void doOnChooseItem(int which) {
-					// TODO Auto-generated method stub
-				}
-			});
-
-			noContactsSelectedDialog.setDialogMessage("Select at least one contact to locate it.");
-			noContactsSelectedDialog.setDialogTitle("No contacts selected");
-			noContactsSelectedDialog.setPositiveButtonText("Ok");
-			noContactsSelectedDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-			noContactsSelectedDialog.showDialog();
-			noContactsSelectedDialog.setCancelable(false);
-		}
-		
 		isShowAllMarkersEnabled = true;
-		
-// TODO: - Should be removed when new UI will be ready		
-		String accountsListMsg = "";
-		if(selectedAccountList != null && !selectedAccountList.isEmpty()){
-			for (ContactData contcatData : selectedAccountList.values()) {
-				String contcatName = contcatData.getNick() == null ? contcatData.getEmail() : contcatData.getNick();
-				accountsListMsg = " - " + contcatName + "\n" + accountsListMsg;
-			}
-		} else {
-			accountsListMsg  = "Not provided recipients list...";
-		}
-		notificationView = (TextView) findViewById(R.id.textViewMap);
-		notificationView.setVisibility(0); // 0 - visible / 4 - invisible
-		notificationView.setText("Tracking for contacts:\n" +
-			accountsListMsg +
-			"\nPlease wait...");
-// TODO: - Should be removed when new UI will be ready		
 
 		// Get a handle to the Map Fragment
         MyMapFragment myMapFragment = (MyMapFragment) getFragmentManager().findFragmentById(R.id.map);
@@ -471,6 +380,110 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 		bLockMapNothOnly = sharedPref.getBoolean("pref_map_lock", false);
 
+		startTrackLocationService();
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	}
+	
+	private void startTrackLocationService(){
+		methodName = "startTrackLocationService";
+		
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
+		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST);
+		List<String> recipientList = new ArrayList<String>();
+		if(selectedContactDeviceDataListEx != null){
+			selectedContactDeviceDataList = new ContactDeviceDataList();
+			selectedContactDeviceDataList.addAll(selectedContactDeviceDataListEx);
+			if(!selectedContactDeviceDataList.isEmpty()){
+				contactsQuantity = selectedContactDeviceDataList.size();
+				// Create and fill all requested accounts that should be shown on the location map
+				selectedAccountList = new HashMap<String, ContactData>();
+				for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
+					ContactData contactData = contactDeviceData.getContactData();
+					if(contactData != null){
+						selectedAccountList.put(contactData.getEmail(), contactData);	
+						recipientList.add(contactData.getEmail());
+					}
+				}
+				
+				logMessage = "Selected accounts to get their location: " + gson.toJson(recipientList);
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+				
+				String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+				String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+				String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+				String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+				MessageDataContactDetails senderMessageDataContactDetails = // sender contact details
+						new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
+							Controller.getBatteryLevel(context));
+
+				startTrackLocationService = new StartTrackLocationService(
+					context,
+					selectedContactDeviceDataList,
+					senderMessageDataContactDetails,
+					RETRY_DELAY_TO_START_TLS_MS); // retry delay in milliseconds to start TrackLocation Service for all recipients
+				// ===========================================================================
+				// Start TrackLocation Service for all requested recipients
+				// ===========================================================================
+				try {
+					startTrackLocationServerThread = new Thread(startTrackLocationService);
+					startTrackLocationServerThread.start();
+					logMessage = "Send COMMAND: START TrackLocationService in separate thread " +
+						"to the following recipients: " + gson.toJson(recipientList);
+					LogManager.LogInfoMsg(className, methodName, logMessage);
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+				} catch (IllegalThreadStateException e) {
+					logMessage = "Failed to Send COMMAND: START TrackLocationService in separate thread " +
+						"to the following recipients: " + gson.toJson(recipientList);
+					LogManager.LogException(e, className, methodName);
+					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+				}
+			}
+		} else {
+			CommonDialogNew noContactsSelectedDialog = new CommonDialogNew(this, new ICommonDialogNewOnClickListener(){
+				@Override
+				public void doOnPositiveButton(Object data) {
+					finish();
+				}
+				@Override
+				public void doOnNegativeButton(Object data) {
+					// TODO Auto-generated method stub
+				}				
+				@Override
+				public void doOnChooseItem(int which) {
+					// TODO Auto-generated method stub
+				}
+			});
+
+			noContactsSelectedDialog.setDialogMessage("Select at least one contact to locate it.");
+			noContactsSelectedDialog.setDialogTitle("No contacts selected");
+			noContactsSelectedDialog.setPositiveButtonText("Ok");
+			noContactsSelectedDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+			noContactsSelectedDialog.showDialog();
+			noContactsSelectedDialog.setCancelable(false);
+		}
+		
+		// TODO: - Should be removed when new UI will be ready		
+				String accountsListMsg = "";
+				if(selectedAccountList != null && !selectedAccountList.isEmpty()){
+					for (ContactData contcatData : selectedAccountList.values()) {
+						String contcatName = contcatData.getNick() == null ? contcatData.getEmail() : contcatData.getNick();
+						accountsListMsg = " - " + contcatName + "\n" + accountsListMsg;
+					}
+				} else {
+					accountsListMsg  = "Not provided recipients list...";
+				}
+				notificationView = (TextView) findViewById(R.id.textViewMap);
+				notificationView.setVisibility(0); // 0 - visible / 4 - invisible
+				notificationView.setText("Tracking for contacts:\n" +
+					accountsListMsg +
+					"\nPlease wait...");
+		// TODO: - Should be removed when new UI will be ready		
+				
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
