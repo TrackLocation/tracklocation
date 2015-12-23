@@ -38,6 +38,8 @@ import android.provider.ContactsContract;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Patterns;
+
+import com.doat.tracklocation.datatype.ActionMenuObj;
 import com.doat.tracklocation.datatype.AppInfo;
 import com.doat.tracklocation.datatype.BroadcastConstEnum;
 import com.doat.tracklocation.datatype.CommandData;
@@ -547,7 +549,7 @@ public class Controller {
 	    return  isRounded ? Utils.getRoundedCornerImage(photo, false) : photo;
 	}
 	
-	public static List<ContactData> fillContactListWithContactDeviceData(Context context, ContactDeviceDataList contactDeviceDataCollection,
+	/*public static List<ContactData> fillContactListWithContactDeviceData(Context context, ContactDeviceDataList contactDeviceDataCollection,
 			List<Boolean> checkBoxesShareLocation, List<String> emailList, List<String> macAddressList){
 		List<ContactData> values = null;
 	    
@@ -621,6 +623,71 @@ public class Controller {
 		}
 	    
 	    return values;
+	}*/
+	
+	public static void fillContactDeviceData(Context context, ContactDeviceDataList contactDeviceDataCollection,
+			List<Boolean> checkBoxesShareLocation, List<String> emailList, List<String> macAddressList){
+		if(contactDeviceDataCollection == null){			
+			return ;
+		} 	   	    
+	    
+	    int i = 0;
+	    for (ContactDeviceData contactDeviceData : contactDeviceDataCollection) {
+	    	ContactData contactData = contactDeviceData.getContactData();
+	  
+	    	contactData.setContactPhoto(contactData.getContactPhoto() == null ? Controller.getContactPhotoByEmail(context, contactData.getEmail()) : contactData.getContactPhoto());
+	    	
+	    	DeviceData deviceData = contactDeviceData.getDeviceData();
+	    	if(contactData != null && deviceData != null) {
+	    		String nick = contactData.getNick();
+	    		if(nick != null && !nick.isEmpty()){	    			
+	    			if(checkBoxesShareLocation != null){
+	    				checkBoxesShareLocation.add(isLocationSharingEnabled(contactData));
+	    			}
+	    			if(emailList != null){
+	    				emailList.add(contactData.getEmail());
+	    			}
+	    			if(macAddressList != null){
+	    				macAddressList.add(deviceData.getDeviceMac());
+	    			}
+	    		} 
+	    		else{
+	    			String email = contactData.getEmail();
+	    			if(email != null && !email.isEmpty()) {	    				
+		    			if(checkBoxesShareLocation != null){
+		    				checkBoxesShareLocation.add(isLocationSharingEnabled(contactData));
+		    			}
+		    			if(emailList != null){
+		    				emailList.add(contactData.getEmail());
+		    			}
+	    			} else {		    			
+		    			if(checkBoxesShareLocation != null){
+		    				checkBoxesShareLocation.add(false);
+		    			}
+		    			if(emailList != null){
+		    				emailList.add("unknown@unknown.com");
+		    			}
+		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided username is null - check JSON input file, element :" + (i+1));
+	    			}
+	    			String macAddress = deviceData.getDeviceMac();
+	    			if(macAddress != null && !macAddress.isEmpty()) {	    				
+		    			if(macAddressList != null){
+		    				macAddressList.add(contactData.getEmail());
+		    			}
+	    			} else {		    			
+		    			if(macAddressList != null){
+		    				macAddressList.add(contactData.getEmail());
+		    			}
+		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided macAddress is null - check JSON input file, element :" + (i+1));
+	    			}
+	    		}
+
+	    	} else {
+	    		LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Contact Data provided incorrectly - check JSON input file, element :" + (i+1));
+	    		return ;
+	    	}
+	    	i++;
+		}
 	}
 	
 	private static boolean isLocationSharingEnabled(ContactData contactData){
@@ -923,5 +990,15 @@ public class Controller {
 		String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 		return new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
 			Controller.getBatteryLevel(context));
+	}
+	
+	public static ArrayList<ActionMenuObj> getActionMenuList(Context context) {
+		ArrayList<ActionMenuObj> alResult = new ArrayList<ActionMenuObj>();
+		alResult.add(new ActionMenuObj(0, context.getString(R.string.action_join_contact), R.drawable.ic_compare_arrows_black_36dp));
+		alResult.add(new ActionMenuObj(1, context.getString(R.string.action_location_sharing), -1));
+		alResult.add(new ActionMenuObj(2, context.getString(R.string.action_tracking), R.drawable.ic_track_changes_black_24dp));
+		alResult.add(new ActionMenuObj(3, context.getString(R.string.action_settings), android.R.drawable.ic_menu_preferences));
+		alResult.add(new ActionMenuObj(4, context.getString(R.string.action_about), android.R.drawable.btn_star));
+		return alResult;
 	}
 }

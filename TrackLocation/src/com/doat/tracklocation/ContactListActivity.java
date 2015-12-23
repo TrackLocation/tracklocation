@@ -41,7 +41,7 @@ public class ContactListActivity extends BaseActivity {
 	// ---------------------------------------
 	// /*private EditText inputSearch; */
 	// ---------------------------------------
-	private ArrayAdapter<ContactData> adapter;
+	private ArrayAdapter<ContactDeviceData> adapter;
 	private List<Boolean> isSelected;
 	private ContactDeviceDataList contactDeviceDataList;
 	private List<String> selectedContcatList;
@@ -71,8 +71,8 @@ public class ContactListActivity extends BaseActivity {
 		contactDeviceDataList = new ContactDeviceDataList();
 		contactDeviceDataList.addAll(selectedContactDeviceDataListEx);		
 		
-		values = Controller.fillContactListWithContactDeviceData(ContactListActivity.this, contactDeviceDataList, null, null, null);
-	    if(values != null){
+		Controller.fillContactDeviceData(ContactListActivity.this, contactDeviceDataList, null, null, null);
+	    if(contactDeviceDataList != null){
 	    	// TODO: move to init isSelected list:
 	    	isSelected = new ArrayList<Boolean>(values.size());
 	    	for (int i = 0; i < values.size(); i++) {
@@ -81,7 +81,7 @@ public class ContactListActivity extends BaseActivity {
 	    	
 			lv = (ListView) findViewById(R.id.contact_list_view);
 			
-	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, values, null, null, null);
+	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, contactDeviceDataList, null, null, null);
 	        ((ContactListArrayAdapter) adapter).setActiveStatusDraw(true);
 	    	lv.setAdapter(adapter);	    		         
 	    } else {
@@ -100,7 +100,7 @@ public class ContactListActivity extends BaseActivity {
 
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-	        	final ContactData selectedValue = (ContactData)adapter.getItem(position);
+	        	final ContactData selectedValue = ((ContactDeviceData)adapter.getItem(position)).getContactData();
 	        	
 	        	if(selectedContcatList == null){
 	        		selectedContcatList = new ArrayList<String>();
@@ -226,7 +226,7 @@ public class ContactListActivity extends BaseActivity {
 	protected void onStart() {
 		super.onStart();
 		if(broadcastReceiver == null){
-			broadcastReceiver = new BroadcastReceiverContactListActivity(ContactListActivity.this);
+			broadcastReceiver = new BroadcastReceiverContactListActivity(ContactListActivity.this, R.id.contact_list_view);
 		}
 		initNotificationBroadcastReceiver(broadcastReceiver);
 		
@@ -284,7 +284,7 @@ public class ContactListActivity extends BaseActivity {
 	}
 	
 	private void editContact(int position) {
-		final ContactData editContact = adapter.getItem(position);
+		final ContactDeviceData editContact = adapter.getItem(position);
 		Intent contactEditIntent = new Intent(this, ContactEditActivity.class);	
 		contactEditIntent.putExtra(CommonConst.JSON_STRING_CONTACT_DATA, editContact);
 		contactEditIntent.putExtra(CommonConst.CONTACT_LIST_SELECTED_VALUE, position);
@@ -298,35 +298,35 @@ public class ContactListActivity extends BaseActivity {
 		 if(requestCode==2){
 			// Make sure the request was successful
 	        if (resultCode == RESULT_OK) {	        	 			        	
-	    		ContactData contactData = data.getExtras().getParcelable(CommonConst.JSON_STRING_CONTACT_DATA);  	    		
+	    		ContactDeviceData contactData = data.getExtras().getParcelable(CommonConst.JSON_STRING_CONTACT_DATA);  	    		
 	    		int contactPosition = data.getExtras().getInt(CommonConst.CONTACT_LIST_SELECTED_VALUE);
 	    		adapter.remove(adapter.getItem(contactPosition));
 	    		adapter.insert(contactData, contactPosition);
 	    		adapter.notifyDataSetChanged(); 	
-	    		LogManager.LogInfoMsg(className, "onActivityResult", "ContactData of " + contactData.getNick() + " was updated");
-	    		Toast.makeText(ContactListActivity.this, "The contact " + contactData.getNick() + " was updated", Toast.LENGTH_SHORT).show();    		
+	    		LogManager.LogInfoMsg(className, "onActivityResult", "ContactData of " + contactData.getContactData().getNick() + " was updated");
+	    		Toast.makeText(ContactListActivity.this, "The contact " + contactData.getContactData().getNick() + " was updated", Toast.LENGTH_SHORT).show();    		
 	        }
 		}
 	}
 
 	private void removeContact(int deletePosition){
-		final ContactData deleteContact = adapter.getItem(deletePosition);
+		final ContactDeviceData deleteContact = adapter.getItem(deletePosition);
 		AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ContactListActivity.this); 
 		// set title
 		alertDialogBuilder.setTitle(getString(R.string.delete_menu_operation));
  
 		// set dialog message
 		alertDialogBuilder
-			.setMessage("The contact " + deleteContact.getNick() + " will be removed from the application")
+			.setMessage("The contact " + deleteContact.getContactData().getNick() + " will be removed from the application")
 			.setCancelable(false)
 			.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog,int id) {
-					ContactDeviceData contactDeviceData = contactDeviceDataList.getContactDeviceDataByContactData(deleteContact.getEmail());
+					ContactDeviceData contactDeviceData = contactDeviceDataList.getContactDeviceDataByContactData(deleteContact.getContactData().getEmail());
 					if (contactDeviceData != null ){
 						if (DBLayer.getInstance().removeContactDataDeviceDetail(contactDeviceData) != -1){
 							values.remove(deleteContact);
 							adapter.notifyDataSetChanged(); 
-							Toast.makeText(ContactListActivity.this, "The contact " + deleteContact.getNick() + " was removed", Toast.LENGTH_SHORT).show();
+							Toast.makeText(ContactListActivity.this, "The contact " + deleteContact.getContactData().getNick() + " was removed", Toast.LENGTH_SHORT).show();
 						}
 					}
 				}

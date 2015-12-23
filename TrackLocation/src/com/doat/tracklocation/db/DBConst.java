@@ -13,7 +13,7 @@ public final class DBConst {
     // CONTACT_DEVICE_LOCATION_SHARING and CONTACT_DEVICE_TRACKING
     // DATABASE_VERSION = 3 until application version ...
     // Added a new field to TABLE_CONTACT: CONTACT_PHOTO
-    public static final int 	DATABASE_VERSION = 3;
+    public static final int 	DATABASE_VERSION = 4;
  	public static final String 	LOG_TAG_DB = "TrackLocationDB";
  	
  	public static final String TIMESTAMP = "DATETIME";
@@ -40,6 +40,7 @@ public final class DBConst {
     public static final String CONTACT_DEVICE_GUID = "contact_device_guid";					// generated 
     public static final String CONTACT_DEVICE_LOCATION_SHARING = "contact_device_location_sharing";
     public static final String CONTACT_DEVICE_TRACKING = "contact_device_tracking";
+    public static final String CONTACT_DEVICE_IS_FAVORITE = "is_favorite";
 
 
     public static final String TABLE_SEND_JOIN_REQUEST = "TABLE_SEND_JOIN_REQUEST";
@@ -111,6 +112,7 @@ public final class DBConst {
 		  CONTACT_DEVICE_LOCATION_SHARING + " integer, " +
 		  CONTACT_DEVICE_TRACKING + " integer, " +
 		  CONTACT_DEVICE_GUID + " text not null unique," +
+		  CONTACT_DEVICE_IS_FAVORITE + " integer, " +
 		  "PRIMARY KEY (" + CONTACT_DEVICE_MAC + ", " + 
 		  CONTACT_DEVICE_EMAIL + ")" +
 		  ");";

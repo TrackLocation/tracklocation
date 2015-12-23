@@ -37,9 +37,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.view.MotionEventCompat;
+import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -50,15 +53,23 @@ import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import com.doat.tracklocation.R;
+import com.doat.tracklocation.broadcast.BroadcastReceiverBase;
+import com.doat.tracklocation.broadcast.BroadcastReceiverContactListActivity;
 import com.doat.tracklocation.concurrent.StartTrackLocationService;
+import com.doat.tracklocation.controller.MainActivityController;
 import com.doat.tracklocation.controller.MapActivityController;
+import com.doat.tracklocation.datatype.ActionMenuObj;
+import com.doat.tracklocation.datatype.BackupDataOperations;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastConstEnum;
 import com.doat.tracklocation.datatype.BroadcastData;
@@ -72,10 +83,11 @@ import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
-import com.doat.tracklocation.dialog.CommonDialog;
+import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.model.MainModel;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
@@ -105,7 +117,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private GoogleMap map;
 
 	private float zoom;
-	private ContactDeviceDataList selectedContactDeviceDataList;
+	private ContactDeviceDataList selectedContactDeviceDataList = new ContactDeviceDataList();
+	private ContactDeviceDataList contactDeviceDataList;
 	private HashMap<String, ContactData> selectedAccountList;
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
@@ -140,9 +153,23 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	//we are going to use a handler to be able to run in our TimerTask
 	private final Handler handler = new Handler();
 	private Timer timer;
-	private boolean bLockMapNothOnly;
+	private boolean bLockMapNothOnly;	
+	
+	private BroadcastReceiverContactListActivity broadcastReceiverContacts;
+	private BroadcastReceiverContactListActivity broadcastReceiverFavorites;	
+	private ContactListArrayAdapter adapterFavorites;
+	private ListView lvFavorites;
+	private ContactDeviceDataList favContactsDeviceDataList;
+	
+	private ListView lvContacts;		
+	private DrawerLayout mDrawerLayout;
+	private ListView mDrawerList;
+	private ArrayList<ActionMenuObj> mActionMenuList;
 	
 	private MapActivityController mapActivityController;
+	
+	private MainActivityController mainActivityController;
+	private MainModel mainModel;
 	
 	private enum DialogStatus{
 		Opened, Closed
@@ -166,6 +193,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		context = getApplicationContext();
 
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
+		mainActivityController = new MainActivityController(MapActivity.this, context);
+		
+		loadActionMenu();
+		
+		loadFavoritsForLocateContacts();
 		
 
 		isShowAllMarkersEnabled = true;
@@ -366,7 +399,126 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	}		
+	}	
+	
+	private void loadActionMenu() {
+		mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);       
+        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+        mActionMenuList = Controller.getActionMenuList(this);
+        mDrawerList.setAdapter(new MenuActionListAdapter(this, mActionMenuList));        
+//        mDrawerList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);;
+        ImageButton btnMenu = (ImageButton) findViewById(R.id.menu_view_btn);
+        btnMenu.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if (mDrawerLayout.isActivated()){
+					mDrawerLayout.closeDrawer(Gravity.LEFT);
+				}
+				else{
+					mDrawerLayout.openDrawer(Gravity.LEFT);
+				}
+				
+			}
+		});
+	}	
+	
+	private void loadFavoritsForLocateContacts(){
+		
+		contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null); 
+		for (ContactDeviceData cdData : contactDeviceDataList) {
+			if (cdData.getContactData().getEmail().equals("olegt1971@gmail.com")){
+				cdData.setFavorite(true);
+			}
+		}
+		
+		final ContactListArrayAdapter adapterContacts;
+		Controller.fillContactDeviceData(MapActivity.this, contactDeviceDataList, null, null, null);
+	    if(contactDeviceDataList != null){
+	    	lvContacts = (ListView) findViewById(R.id.contacts_list);
+			
+	    	adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList, null, null, null);
+	        ((ContactListArrayAdapter) adapterContacts).setActiveStatusDraw(true);
+	        ((ContactListArrayAdapter) adapterContacts).setBuildMapContactList(true);
+	        lvContacts.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+	        lvContacts.setAdapter(adapterContacts);
+	    }
+	    else{
+	    	return;
+	    }
+	    
+	    lvContacts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+	        @Override
+	        public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
+	        	final ContactDeviceData selectedValue = (ContactDeviceData)adapterContacts.getItem(position);
+	        	
+	        	SparseBooleanArray checked = lvContacts.getCheckedItemPositions();
+	        	if (checked.get(position)){
+	        		selectedContactDeviceDataList.add(contactDeviceDataList.get(position));
+	        		selectedAccountList.put(selectedValue.getContactData().getEmail(), selectedValue.getContactData());
+	        		((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), true);
+	        	}
+	        	else{
+	        		selectedContactDeviceDataList.remove(contactDeviceDataList.get(position));
+	        		selectedAccountList.remove(selectedValue.getContactData().getEmail());
+	        		if (mapMarkerDetailsList.containsKey(selectedValue.getContactData().getEmail())){
+	        			mapMarkerDetailsList.get(selectedValue.getContactData().getEmail()).getLocationCircle().remove();
+	    				mapMarkerDetailsList.get(selectedValue.getContactData().getEmail()).getMarker().remove();
+	    				mapMarkerDetailsList.remove(selectedValue.getContactData().getEmail());
+	    			}
+	        		((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), false);
+	        	}	     
+	        	if(startTrackLocationServerThread.isAlive()){
+	        		startTrackLocationServerThread.interrupt(); 
+	        	}
+	        	startTrackLocationServerThread = new Thread(startTrackLocationService);//.start();	        	
+	        	startTrackLocationServerThread.start();
+	        }
+	    });
+	    
+	    //registerForContextMenu(lvContacts);
+	    
+	    selectedContactDeviceDataList.clear();
+	    for (int i = 0; i < contactDeviceDataList.size(); i++) {
+			ContactDeviceData cdData = contactDeviceDataList.get(i);
+			if (cdData.isFavorite()){
+				selectedContactDeviceDataList.add(cdData);				
+				lvContacts.setItemChecked(i, true);				
+			}
+		}
+	    
+		Controller.fillContactDeviceData(MapActivity.this, selectedContactDeviceDataList, null, null, null);
+		favContactsDeviceDataList = (ContactDeviceDataList) selectedContactDeviceDataList.clone();
+	    if(favContactsDeviceDataList != null){
+	    	lvFavorites = (ListView) findViewById(R.id.favorites_list);
+			
+	    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList, null, null, null);
+	        ((ContactListArrayAdapter) adapterFavorites).setActiveStatusDraw(true);
+	    
+	    	lvFavorites.setAdapter(adapterFavorites);
+	    }	    
+	    	    
+	    	    
+	    ImageButton btnContacts = (ImageButton) findViewById(R.id.contacts_view_btn);
+	    btnContacts.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if (favContactsDeviceDataList != null){
+					favContactsDeviceDataList.removeAll(favContactsDeviceDataList);
+					favContactsDeviceDataList = null;
+					adapterFavorites.notifyDataSetChanged();
+				}				
+				if (lvContacts.getVisibility() == View.GONE  || lvContacts.getVisibility() == View.INVISIBLE){						
+					lvContacts.setVisibility(View.VISIBLE);
+				}else{					
+					lvContacts.setVisibility(View.GONE);
+				}				
+			}
+		});
+	}
 		
 	@Override
 	protected void onStart() {	
@@ -379,6 +531,22 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		initNotificationBroadcastReceiver();
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 		bLockMapNothOnly = sharedPref.getBoolean("pref_map_lock", false);
+		
+		if(broadcastReceiverContacts == null){
+			broadcastReceiverContacts = new BroadcastReceiverContactListActivity(MapActivity.this, R.id.contacts_list);
+		}
+		initNotificationBroadcastReceiver(broadcastReceiverContacts);
+		
+		if(broadcastReceiverFavorites == null){
+			broadcastReceiverFavorites = new BroadcastReceiverContactListActivity(MapActivity.this, R.id.favorites_list);
+		}
+		initNotificationBroadcastReceiver(broadcastReceiverFavorites);
+		
+		
+		if(broadcastReceiver == null){
+			broadcastReceiver = new BroadcastReceiverBase(MapActivity.this);
+		}
+		initNotificationBroadcastReceiver(broadcastReceiver);
 
 		startTrackLocationService();
 		
@@ -392,11 +560,11 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
-		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST);
+		//ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST);
 		List<String> recipientList = new ArrayList<String>();
-		if(selectedContactDeviceDataListEx != null){
-			selectedContactDeviceDataList = new ContactDeviceDataList();
-			selectedContactDeviceDataList.addAll(selectedContactDeviceDataListEx);
+		//if(selectedContactDeviceDataListEx != null){
+			//selectedContactDeviceDataList = new ContactDeviceDataList();
+			//selectedContactDeviceDataList.addAll(selectedContactDeviceDataListEx);
 			if(!selectedContactDeviceDataList.isEmpty()){
 				contactsQuantity = selectedContactDeviceDataList.size();
 				// Create and fill all requested accounts that should be shown on the location map
@@ -429,21 +597,23 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				// ===========================================================================
 				// Start TrackLocation Service for all requested recipients
 				// ===========================================================================
-				try {
-					startTrackLocationServerThread = new Thread(startTrackLocationService);
-					startTrackLocationServerThread.start();
-					logMessage = "Send COMMAND: START TrackLocationService in separate thread " +
-						"to the following recipients: " + gson.toJson(recipientList);
-					LogManager.LogInfoMsg(className, methodName, logMessage);
-					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-				} catch (IllegalThreadStateException e) {
-					logMessage = "Failed to Send COMMAND: START TrackLocationService in separate thread " +
-						"to the following recipients: " + gson.toJson(recipientList);
-					LogManager.LogException(e, className, methodName);
-					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+				if (selectedContactDeviceDataList != null && !selectedContactDeviceDataList.isEmpty() ){
+					try {
+						startTrackLocationServerThread = new Thread(startTrackLocationService);
+						startTrackLocationServerThread.start();
+						logMessage = "Send COMMAND: START TrackLocationService in separate thread " +
+							"to the following recipients: " + gson.toJson(recipientList);
+						LogManager.LogInfoMsg(className, methodName, logMessage);
+						Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+					} catch (IllegalThreadStateException e) {
+						logMessage = "Failed to Send COMMAND: START TrackLocationService in separate thread " +
+							"to the following recipients: " + gson.toJson(recipientList);
+						LogManager.LogException(e, className, methodName);
+						Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+					}
 				}
 			}
-		} else {
+		/*} else {
 			CommonDialog noContactsSelectedDialog = new CommonDialog(this, new ICommonDialogOnClickListener(){
 				@Override
 				public void doOnPositiveButton(Object data) {
@@ -465,7 +635,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			noContactsSelectedDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
 			noContactsSelectedDialog.showDialog();
 			noContactsSelectedDialog.setCancelable(false);
-		}
+		}*/
 		
 		// TODO: - Should be removed when new UI will be ready		
 				String accountsListMsg = "";
@@ -478,7 +648,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					accountsListMsg  = "Not provided recipients list...";
 				}
 				notificationView = (TextView) findViewById(R.id.textViewMap);
-				notificationView.setVisibility(0); // 0 - visible / 4 - invisible
+				notificationView.setVisibility(4); // 0 - visible / 4 - invisible
 				notificationView.setText("Tracking for contacts:\n" +
 					accountsListMsg +
 					"\nPlease wait...");
@@ -487,6 +657,22 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
+		
+		
+	@Override
+	protected void onPause() {	
+		super.onPause();
+		methodName = "onPause";
+
+        BackupDataOperations backupData = new BackupDataOperations();
+		boolean isBackUpSuccess = backupData.backUp();
+		if(isBackUpSuccess != true){
+			logMessage = methodName + " -> Backup process failed.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
+		}
+	}
+
 	
 	private void goToMyLocation(){
 		stoptimertask();
@@ -745,7 +931,30 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		    			MapMarkerDetails  mapMarkerDetails = createMapMarker(contactDetails, locationDetails);
 		    			if (mapMarkerDetails != null){
 		    				mapMarkerDetailsList.put(updatingAccount, mapMarkerDetails);
-		    			}	    			
+		    			}
+		    			if (favContactsDeviceDataList != null){
+			    			try {
+			    				int indexToRemove = -1;
+			    				for (int i = 0; i < favContactsDeviceDataList.size(); i++) {
+			    					ContactDeviceData cData = favContactsDeviceDataList.get(i);
+			    					if (cData.getContactData().getEmail().equals(updatingAccount)){
+			    						indexToRemove = i;	
+			    					}
+								}
+			    				if (indexToRemove > -1){
+			    					favContactsDeviceDataList.remove(indexToRemove);
+									adapterFavorites.notifyDataSetChanged();
+			    				}
+								
+								if (favContactsDeviceDataList != null && favContactsDeviceDataList.isEmpty()){
+									favContactsDeviceDataList = null;
+									lvFavorites.setVisibility(View.INVISIBLE);									
+								}														
+							} catch (Exception e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+		    			}
 		    		}
 		    		
 		    		mapAnimateCameraForMarkers(prevLocationDetails, updatingAccount);
@@ -947,6 +1156,32 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	
     	isPermissionDialogShown = false;
     	
+    	if(broadcastReceiver != null){
+    		unregisterReceiver(broadcastReceiver);
+    	}
+    	
+    	if(broadcastReceiverContacts != null){
+    		unregisterReceiver(broadcastReceiverContacts);
+    	}
+    	
+    	if(broadcastReceiverFavorites != null){
+    		unregisterReceiver(broadcastReceiverFavorites);
+    	}
+    	
+      	Thread registerToGCMInBackgroundThread = 
+              	mainActivityController.getRegisterToGCMInBackgroundThread();
+     	if(registerToGCMInBackgroundThread != null){
+     		registerToGCMInBackgroundThread.interrupt();
+     	}
+
+ 		BackupDataOperations backupData = new BackupDataOperations();
+ 		boolean isBackUpSuccess = backupData.backUp();
+ 		if(isBackUpSuccess != true){
+ 			logMessage = methodName + " -> Backup process failed.";
+ 			LogManager.LogErrorMsg(className, methodName, logMessage);
+ 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+ 		}
+    	
 		LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_Stop] {" + className + "} -> " + methodName);
 
@@ -1005,12 +1240,17 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-  
+    	super.onCreateContextMenu(menu, v, menuInfo);	    	    
+	    menu.add(0, 0, 0, "Add to favorites");	    
     }
 
    @Override
-   public boolean onContextItemSelected(MenuItem item) {
-       return super.onContextItemSelected(item);
+   public boolean onContextItemSelected(MenuItem item) {       
+       AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+       int position = info.position;
+       contactDeviceDataList.get(position).setFavorite(!contactDeviceDataList.get(position).isFavorite());
+       
+       return true;
    }
 
 	@Override
@@ -1147,4 +1387,75 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	super.onBackPressed();
     	finish();
     }
+
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        	setActionItem(position);
+        }
+
+		private void setActionItem(int position) {			
+        	int iAction =  mActionMenuList.get(position).getKey();
+            switch (iAction) {
+			case 0:
+				String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+	        	if(account == null || account.isEmpty()){
+	    	    	Toast.makeText(MapActivity.this, "Please register your application.\nPress Locate button at first.", 
+	        	    		Toast.LENGTH_SHORT).show();
+	        		LogManager.LogErrorMsg(className, "onClick -> JOIN button", "Unable to join contacts - application is not registred yet.");
+	        	} else {
+	        		
+	        		Intent joinContactsListIntent = new Intent(MapActivity.this, JoinContactsListActivity.class);
+	        		//startActivity(joinContactsListIntent);
+	        		startActivity(joinContactsListIntent);
+	        	}
+				break;
+			case 1 : 
+				LogManager.LogInfoMsg(className, "onClick -> Location Sharing Management button", 
+		    			"ContactList activity started.");
+		    		    		
+	    		if(contactDeviceDataList != null){
+		    		Intent intentContactList = new Intent(MapActivity.this, LocationSharingListActivity.class);
+		    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, contactDeviceDataList);
+		    		startActivity(intentContactList);
+	    		} else {
+	    	    	Toast.makeText(MapActivity.this, "There is no any contact.\nJoin some contact at first.", 
+	    	    		Toast.LENGTH_SHORT).show();
+	        		LogManager.LogInfoMsg(className, "onClick -> LOCATION SHARING MANAGEMENT button", 
+	                    "There is no any contact. Some contact must be joined at first.");
+	    		}
+				break;
+			case 2 :
+				LogManager.LogInfoMsg(className, "onClick -> Tracking button", 
+		    			"TrackingList activity started.");
+		    		    		
+	    		if(contactDeviceDataList != null){
+		    		Intent intentContactList = new Intent(MapActivity.this, TrackingListActivity.class);
+		    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, contactDeviceDataList);
+		    		startActivity(intentContactList);
+	    		} else {
+	    	    	Toast.makeText(MapActivity.this, "There is no any contact.\nJoin some contact at first.", 
+	    	    		Toast.LENGTH_SHORT).show();
+	        		LogManager.LogInfoMsg(className, "onClick -> TRACKING button", 
+	                    "There is no any contact. Some contact must be joined at first.");
+	    		}
+				break;
+			case 3 :
+				Intent settingsIntent = new Intent(MapActivity.this, SettingsActivity.class);
+	    		startActivity(settingsIntent);
+	    		//startActivityForResult(settingsIntent, 2);
+				break;
+			case 4:
+				String title = "About";
+	        	String dialogMessage = String.format(getResources().getString(R.string.about_dialog_text), 
+	        		Preferences.getPreferencesString(context, CommonConst.PREFERENCES_VERSION_NAME));
+	        	InfoDialog dlg = new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
+	        	break;
+
+			default:
+				break;
+			}
+            mDrawerLayout.closeDrawer(mDrawerList);
+		}
+    }   
 }

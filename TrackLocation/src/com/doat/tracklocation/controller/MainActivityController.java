@@ -82,12 +82,7 @@ public class MainActivityController {
 		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
 
 		BackupDataOperations backupData = new BackupDataOperations();
-//		boolean isBackUpSuccess = backupData.backUp();
-//		if(isBackUpSuccess != true){
-//			logMessage = methodName + " -> Backup process failed.";
-//			LogManager.LogErrorMsg(className, methodName, logMessage);
-//			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-//		}
+
 		boolean isBackUpRestoreSuccess = backupData.restore();
 		if(isBackUpRestoreSuccess != true){
 			logMessage = methodName + " -> Restore process failed.";

@@ -57,6 +57,15 @@ public class StartTrackLocationService implements Runnable {
 		className = this.getClass().getName();
 	}
 	
+	public void updateTrackLocation(ContactDeviceData contactDeviceData, boolean bAdd){
+		if (bAdd){
+			this.selectedContactDeviceDataList.add(contactDeviceData);
+		}
+		else{
+			this.selectedContactDeviceDataList.remove(contactDeviceData);
+		}		
+	}
+
 	@Override
 	public void run() {
 		
@@ -204,5 +213,7 @@ public class StartTrackLocationService implements Runnable {
 			value
 		);
 	}
+	
+	
 
 }

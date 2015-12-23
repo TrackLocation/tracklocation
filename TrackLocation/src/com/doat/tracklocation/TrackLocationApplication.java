@@ -3,6 +3,10 @@ package com.doat.tracklocation;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.doat.tracklocation.controller.MainActivityController;
+import com.doat.tracklocation.db.DBHelper;
+import com.doat.tracklocation.db.DBManager;
+import com.doat.tracklocation.model.MainModel;
 import com.google.gson.Gson;
 
 import android.app.Activity;
@@ -16,7 +20,7 @@ public class TrackLocationApplication extends Application {
 	private String className;    
 	private String methodName;
 	private Activity currentActivity;
-	private static Context context;
+	private static Context context;	
 
 	public static Gson gson = new Gson();
 	
@@ -47,8 +51,16 @@ public class TrackLocationApplication extends Application {
        	
 		className = this.getClass().getName();
 		context = getApplicationContext();
+		DBManager.initDBManagerInstance(new DBHelper(context));		
 		registerActivityLifecycleCallbacks(new MyActivityLifecycleCallbacks());
     }
+	
+	@Override
+	public void onTerminate() {
+		// TODO Auto-generated method stub
+		super.onTerminate();
+	}
+	
     
     private final class MyActivityLifecycleCallbacks implements ActivityLifecycleCallbacks {
     	private Timer mActivityTransitionTimer;

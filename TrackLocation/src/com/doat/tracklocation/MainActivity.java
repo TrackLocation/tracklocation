@@ -84,7 +84,7 @@ public class MainActivity extends BaseActivity {
 		}
 		if(mainActivityController == null){
 			mainActivityController = new MainActivityController(this, context);
-		}
+		}		
 	}
 
 	@Override
@@ -258,27 +258,4 @@ public class MainActivity extends BaseActivity {
 	       }
 		}
 	}
-
-/*	
-	IDialogOnClickAction dialogActionsAboutDialog = new IDialogOnClickAction() {
-		@Override
-		public void doOnPositiveButton() {
-		}
-		@Override
-		public void doOnNegativeButton() {
-		}
-		@Override
-		public void setActivity(Activity activity) {
-		}
-		@Override
-		public void setContext(Context context) {
-		}
-		@Override
-		public void setParams(Object[]... objects) {
-		}
-		@Override
-		public void doOnChooseItem(int which) {
-		}
-	};
-*/	
 }

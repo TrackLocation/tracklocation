@@ -658,6 +658,7 @@ public class DBLayer {
             cVal.put(DBConst.CONTACT_DEVICE_REG_ID, contactDeviceData.getRegistration_id());
             cVal.put(DBConst.CONTACT_DEVICE_IMEI, contactDeviceData.getImei());
             cVal.put(DBConst.CONTACT_DEVICE_GUID, contactDeviceData.getGuid());
+            cVal.put(DBConst.CONTACT_DEVICE_IS_FAVORITE, contactDeviceData.isFavorite() ? 1 : 0);
             
             db.insert(DBConst.TABLE_CONTACT_DEVICE, null, cVal);
         } catch (Throwable t) {
@@ -703,6 +704,7 @@ public class DBLayer {
             cVal.put(DBConst.CONTACT_DEVICE_REG_ID, contactDeviceData.getRegistration_id());
             cVal.put(DBConst.CONTACT_DEVICE_IMEI, contactDeviceData.getImei());
             cVal.put(DBConst.CONTACT_DEVICE_GUID, contactDeviceData.getGuid());
+            cVal.put(DBConst.CONTACT_DEVICE_IS_FAVORITE, contactDeviceData.isFavorite() ? 1 : 0);
             
             db.update(DBConst.TABLE_CONTACT_DEVICE, cVal, 
             	DBConst.CONTACT_DEVICE_EMAIL + " = ? and " + 
@@ -935,6 +937,7 @@ public class DBLayer {
 						String registrationId = contactDeviceData.getRegistration_id();
 						String imei = contactDeviceData.getImei();
 						String guid = contactDeviceData.getGuid();
+						boolean isFavorite = contactDeviceData.isFavorite();
 						
 						String email = null;
 						if(contactData != null){
@@ -1151,18 +1154,9 @@ public class DBLayer {
     	ContactDeviceDataList contactDeviceDataList = null;
     	ContactDeviceData contactDeviceData = null;
     	String selectQuery = null;
-    	
-    	// According to columns quantity in SQL query that was in use until
-    	// DB version 1 and application version 5/0.0.5
-    	int columnIndex = 11; 
-    	// Are LocationSharing and Tracking columns exist
-    	int locationSharingIndex = -1;
-    	int trackingIndex = -1;
-    	
+    	    	
 		try{
 	        String selectClause = "select " +		
-	        DBConst.CONTACT_FIRST_NAME + ", " + 
-	        DBConst.CONTACT_LAST_NAME + ", " + 
 	        DBConst.CONTACT_NICK + ", " + 
 	        DBConst.CONTACT_EMAIL + ", " +
 	        DBConst.CONTACT_PHOTO + ", " +
@@ -1172,15 +1166,11 @@ public class DBLayer {
 	        DBConst.CONTACT_DEVICE_IMEI + ", " + 
 	        DBConst.CONTACT_DEVICE_PHONE_NUMBER + ", " + 
 	        DBConst.CONTACT_DEVICE_REG_ID + ", " + 
-	        DBConst.CONTACT_DEVICE_GUID;
-	        if(isColumnExistsInTable(DBConst.TABLE_CONTACT_DEVICE, DBConst.CONTACT_DEVICE_LOCATION_SHARING, db)){
-	        	selectClause = selectClause + ", " + DBConst.CONTACT_DEVICE_LOCATION_SHARING;
-	        	locationSharingIndex = ++columnIndex;
-	        }
-	        if(isColumnExistsInTable(DBConst.TABLE_CONTACT_DEVICE, DBConst.CONTACT_DEVICE_TRACKING, db)){
-	        	selectClause = selectClause + ", " + DBConst.CONTACT_DEVICE_TRACKING;
-	        	trackingIndex = ++columnIndex;
-	        }
+	        DBConst.CONTACT_DEVICE_GUID + ", " + 
+	        DBConst.CONTACT_DEVICE_LOCATION_SHARING + ", " + 
+	        DBConst.CONTACT_DEVICE_TRACKING + ", " + 
+	        DBConst.CONTACT_DEVICE_IS_FAVORITE;
+	        
 	        
 	        String fromClause = " from " + DBConst.TABLE_CONTACT_DEVICE + " as CD " +
 	        " join " + DBConst.TABLE_CONTACT + " as C " +
@@ -1206,31 +1196,22 @@ public class DBLayer {
 	            do {
 	            	contactDeviceData = new ContactDeviceData();
 	            	
-	            	String contact_first_name = cursor.getString(0);
-	            	String contact_last_name = cursor.getString(1);
-	            	String contact_nick = cursor.getString(2);
-	            	String contact_email = cursor.getString(3);
-	            	byte[] contact_photo = cursor.getBlob(4);
-	            	String device_mac = cursor.getString(5);
-	            	String device_name = cursor.getString(6);
-	            	String device_type = cursor.getString(7);
-	            	String contact_device_imei = cursor.getString(8);
-	            	String contact_device_phone_number = cursor.getString(9);
-	            	String registration_id = cursor.getString(10);
-	            	String guid = cursor.getString(11);
-	            	int locationSharing = -1;
-	            	int tracking = -1;
-	    	        if(locationSharingIndex > 0){
-	    	        	locationSharing = cursor.getInt(locationSharingIndex);
-	    	        }
-	    	        if(trackingIndex > 0){
-	    	        	tracking = cursor.getInt(trackingIndex);
-	    	        }
-	            	
+	            	String contact_nick = cursor.getString(0);
+	            	String contact_email = cursor.getString(1);
+	            	byte[] contact_photo = cursor.getBlob(2);
+	            	String device_mac = cursor.getString(3);
+	            	String device_name = cursor.getString(4);
+	            	String device_type = cursor.getString(5);
+	            	String contact_device_imei = cursor.getString(6);
+	            	String contact_device_phone_number = cursor.getString(7);
+	            	String registration_id = cursor.getString(8);
+	            	String guid = cursor.getString(9);
+	            	int locationSharing = cursor.getInt(10);
+	    	        int tracking = cursor.getInt(11);
+	    	        boolean is_favorite = cursor.getInt(12) == 1;  
+	    	        
 	            	ContactData contactData = new ContactData();
 	            	contactData.setEmail(contact_email);
-	            	contactData.setFirstName(contact_first_name);
-	            	contactData.setLastName(contact_last_name);
 	            	contactData.setNick(contact_nick);
 	            	contactData.setContactPhoto(contact_photo != null ? DbBitmapUtility.getImage(contact_photo) : null);
 	            	
@@ -1245,12 +1226,9 @@ public class DBLayer {
 	            	contactDeviceData.setContactData(contactData);
 	            	contactDeviceData.setDeviceData(deviceData);
 	            	contactDeviceData.setGuid(guid);
-	    	        if(locationSharingIndex > 0){
-		            	contactDeviceData.setLocationSharing(locationSharing);
-	    	        }
-	    	        if(trackingIndex > 0){
-		            	contactDeviceData.setTracking(tracking);
-	    	        }
+	            	contactDeviceData.setLocationSharing(locationSharing);
+	    	        contactDeviceData.setTracking(tracking);
+	    	        contactDeviceData.setFavorite(is_favorite);
 
 	            	contactDeviceDataList.add(contactDeviceData);
 	            	

@@ -19,7 +19,7 @@ import android.widget.ListView;
 
 public class TrackingListActivity extends BaseActivity {
 	private ListView lv;
-	private ArrayAdapter<ContactData> adapter;
+	private ArrayAdapter<ContactDeviceData> adapter;
 	private List<Boolean> isSelected;
 	private List<String> selectedContcatList;
 	
@@ -40,19 +40,19 @@ public class TrackingListActivity extends BaseActivity {
 		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
 		List<String> emailList = new ArrayList<String>();
 		List<String> macAddressList = new ArrayList<String>();
-		List<ContactData> values = Controller.fillContactListWithContactDeviceData(TrackingListActivity.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+		Controller.fillContactDeviceData(TrackingListActivity.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
 		
-	    if(values != null){
+	    if(contactDeviceDataList != null){
 	    	// TODO: move to init isSelected list:
-	    	isSelected = new ArrayList<Boolean>(values.size());
-	    	for (int i = 0; i < values.size(); i++) {
+	    	isSelected = new ArrayList<Boolean>(contactDeviceDataList.size());
+	    	for (int i = 0; i < contactDeviceDataList.size(); i++) {
 	    		isSelected.add(false);
 	    	}
 	    	
 			lv = (ListView) findViewById(R.id.tracking_contact_list_view);
 			
 	        adapter = new ContactListArrayAdapter(this, R.layout.tracking_contact_list_item, 
-	        	R.id.contact, values, checkBoxesShareLocation, emailList, macAddressList);
+	        	R.id.contact, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
 	    	lv.setAdapter(adapter);
 	    	
 	    } else {

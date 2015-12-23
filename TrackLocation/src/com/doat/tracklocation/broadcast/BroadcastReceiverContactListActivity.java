@@ -10,6 +10,8 @@ import com.doat.tracklocation.datatype.BroadcastConstEnum;
 import com.doat.tracklocation.datatype.CommandKeyEnum;
 import com.doat.tracklocation.datatype.CommandValueEnum;
 import com.doat.tracklocation.datatype.ContactData;
+import com.doat.tracklocation.datatype.ContactDeviceData;
+import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.db.DBLayer;
@@ -19,16 +21,16 @@ import com.doat.tracklocation.utils.CommonConst;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 public class BroadcastReceiverContactListActivity extends BroadcastReceiverBase {
-
-	public BroadcastReceiverContactListActivity(Activity activity) {
+	private int contactsListId;
+	public BroadcastReceiverContactListActivity(Activity activity, int contactsListId) {
 		super(activity);
+		this.contactsListId = contactsListId;
 	}
 
 	@Override
@@ -66,17 +68,19 @@ public class BroadcastReceiverContactListActivity extends BroadcastReceiverBase 
 			if(CommandKeyEnum.online_status.toString().equals(key)) {
 				String value = broadcastData.getValue();
 				if(CommandValueEnum.online.toString().equals(value)){
-					ListView lv = (ListView) activity.findViewById (R.id.contact_list_view);
-					ArrayAdapter<ContactData> adapter = (ArrayAdapter<ContactData>) lv.getAdapter();
+					//R.id.contact_list_view
+					
+					ListView lv = (ListView) activity.findViewById(this.contactsListId);
+					ArrayAdapter<ContactDeviceData> adapter = (ArrayAdapter<ContactDeviceData>) lv.getAdapter();
 					MessageDataContactDetails contactDetails = broadcastData.getContactDetails();
 					if(contactDetails != null){
 						String senderAccount = contactDetails.getAccount();
 						if(adapter != null && senderAccount != null){
 							int count = adapter.getCount();
 							for (int i = 0; i < count; i++) {
-								ContactData item = adapter.getItem(i);
-								if(senderAccount.equals(item.getEmail())){
-									item.setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
+								ContactDeviceData item = adapter.getItem(i);
+								if(senderAccount.equals(item.getContactData().getEmail())){
+									item.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
 									adapter.notifyDataSetChanged();
 								}
 							}
@@ -88,17 +92,17 @@ public class BroadcastReceiverContactListActivity extends BroadcastReceiverBase 
 			if(CommandKeyEnum.update_contact_list.toString().equals(key)) {
 				
 				ListView lv = (ListView) activity.findViewById (R.id.contact_list_view);
-				ArrayAdapter<ContactData> adapter = (ArrayAdapter<ContactData>) lv.getAdapter();
+				ArrayAdapter<ContactDeviceData> adapter = (ArrayAdapter<ContactDeviceData>) lv.getAdapter();
 
-				// Get all joined contacts from DB
-				DBLayer.getInstance().getContactDeviceDataList(null);
-				List<ContactData> values = Controller.fillContactListWithContactDeviceData(activity, DBLayer.getInstance().getContactDeviceDataList(null), null, null, null);
+				// Get all joined contacts from DB				
+				ContactDeviceDataList contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
+				Controller.fillContactDeviceData(activity, contactDeviceDataList, null, null, null);
 
 				// Get details of contact that sent join request by SMS from broadcast
 				MessageDataContactDetails contactSentJoinRequest = broadcastData.getContactDetails();
 				
-				for (ContactData jonedContact : values) {
-					if(jonedContact.getEmail().equals(contactSentJoinRequest.getAccount())){
+				for (ContactDeviceData jonedContact : contactDeviceDataList) {
+					if(jonedContact.getContactData().getEmail().equals(contactSentJoinRequest.getAccount())){
 						int position = adapter.getPosition(jonedContact);
 						// if joined contact still not shown in Contact List - add it and show it
 						if(position < 0){

@@ -28,22 +28,28 @@ public class StatusImage extends FrameLayout {
 
 	public StatusImage(Context context) {
 		super(context);
-		init(context,null, 0);
+		if (!isInEditMode()){ 
+			init(context,null, 0);
+		}
     }
 
     public StatusImage(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init(context,attrs, 0);
+        if (!isInEditMode()){
+        	init(context,attrs, 0);
+        }
     }
 
     public StatusImage(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        init(context,attrs, defStyle);
+        if (!isInEditMode()){
+        	init(context,attrs, defStyle);
+        }
     }
 
     protected void init(Context context,AttributeSet attrs, int defStyle) {
         View v = View.inflate(context, R.layout.status_image_layout,this);
-        setClipChildren(false);
+        setClipChildren(false);        
         progressBar = (ProgressBar) v.findViewById(R.id.progress_bar);
         imageView = (ImageView) v.findViewById(R.id.icon);	
            
@@ -63,7 +69,8 @@ public class StatusImage extends FrameLayout {
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {	
 		super.onSizeChanged(w, h, oldw, oldh);	
-		//progressBar.getLayoutParams()
+		
+		//progressBar.getLayoutParams().height
 		//progressBar.get
 	}
 	

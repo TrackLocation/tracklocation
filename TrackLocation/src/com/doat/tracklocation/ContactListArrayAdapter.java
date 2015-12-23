@@ -1,10 +1,12 @@
 package com.doat.tracklocation;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.controls.StatusImage;
 import com.doat.tracklocation.datatype.ContactData;
+import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.PermissionsData;
 import com.doat.tracklocation.db.DBConst;
 import com.doat.tracklocation.db.DBLayer;
@@ -17,16 +19,18 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
 
-public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
+public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	private final Context context;
 	private final List<String> emailList;
 	private final List<String> macAddressList;
@@ -35,8 +39,9 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 	private String methodName;
 	private String logMessage;
 	private boolean bActiveStatusDraw = false;
+	private boolean bBuildMapContactList = false;
 	
-	public ContactListArrayAdapter(Context context, int resource, List<ContactData> values, 
+	public ContactListArrayAdapter(Context context, int resource, List<ContactDeviceData> values, 
 			List<Boolean> checkBoxValues, List<String> emailList, List<String> macAddressList) {
 		super(context, resource, values);
 		this.context = context;
@@ -47,7 +52,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 	}
  
 	public ContactListArrayAdapter(Context context, int resource, int textViewResourceId, 
-			List<ContactData> values, List<Boolean> checkBoxValues, List<String> emailList,
+			List<ContactDeviceData> values, List<Boolean> checkBoxValues, List<String> emailList,
 			List<String> macAddressList) {
 		super(context, resource, textViewResourceId, values);
 		
@@ -57,29 +62,35 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 		this.macAddressList = macAddressList;
 	}
 	
-	// View lookup cache
     private static class ViewHolder {
         TextView textView;
-        //ImageView imageView;
         StatusImage statusImage;
         CheckBox checkBox;
-        ToggleButton toggleButton;        
+        ToggleButton toggleButton; 
+        RelativeLayout contact_add_panel;
     }
     
 	@Override
 	public View getView(final int position, View convertView, ViewGroup parent) {
-		// Get the data item for this position
-		ContactData contactData = getItem(position);    
-	       // Check if an existing view is being reused, otherwise inflate the view
+		ContactData contactData = ((ContactDeviceData)getItem(position)).getContactData();    
 		final ViewHolder viewHolder; // view lookup cache stored in tag
 		if (convertView == null) {
 			viewHolder = new ViewHolder();
 			LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);	      	
 			convertView = inflater.inflate(res, parent, false);
       		viewHolder.textView = (TextView) convertView.findViewById(R.id.contact);
-      	
+      		//viewHolder.contact_add_panel = (RelativeLayout) convertView.findViewById(R.id.contact_add_panel);
       		viewHolder.statusImage = (StatusImage) convertView.findViewById(R.id.status_image_ctrl);
       		viewHolder.statusImage.setStatusDrawVisible( this.bActiveStatusDraw);
+      		/*if (bBuildMapContactList){
+	      		viewHolder.statusImage.setOnLongClickListener(new OnLongClickListener() {				
+					@Override
+					public boolean onLongClick(View v) {
+						viewHolder.contact_add_panel.setVisibility(View.VISIBLE);
+						return false;
+					}
+				});
+      		}*/
       		
       		viewHolder.checkBox = (CheckBox) convertView.findViewById(R.id.check_share_location);
       		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);      		
@@ -108,9 +119,8 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 							int isChecked = viewHolder.checkBox.isChecked() == true ? 0 : 1;
 							PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
 							if (p != null) {
-								DBLayer.getInstance().updatePermissions(p.getEmail(), isChecked,
-										p.getCommand(), p.getAdminCommand());
-								java.util.Map<String, Object> m = new HashMap<String, Object>();
+								DBLayer.getInstance().updatePermissions(p.getEmail(), isChecked, p.getCommand(), p.getAdminCommand());
+								Map<String, Object> m = new HashMap<String, Object>();
 								m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
 								DBLayer.getInstance().updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
 								viewHolder.checkBox.setChecked(viewHolder.checkBox.isChecked() == true ? false : true);
@@ -126,9 +136,8 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 						int isChecked = cb.isChecked() == true ? 1 : 0;
 						PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
 						if (p != null) {
-							DBLayer.getInstance().updatePermissions(p.getEmail(), isChecked,
-									p.getCommand(), p.getAdminCommand());
-							java.util.Map<String, Object> m = new HashMap<String, Object>();
+							DBLayer.getInstance().updatePermissions(p.getEmail(), isChecked, p.getCommand(), p.getAdminCommand());
+							Map<String, Object> m = new HashMap<String, Object>();
 							m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
 							DBLayer.getInstance().updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
 						}
@@ -141,8 +150,9 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 		else {
 			viewHolder = (ViewHolder) convertView.getTag();
 		}
-	
-		viewHolder.textView.setText(contactData.getNick());
+		if (viewHolder.textView != null){
+			viewHolder.textView.setText(contactData.getNick());
+		}
 		
 		Bitmap bmp = contactData.getContactPhoto();
 		if (bmp == null){			
@@ -159,7 +169,6 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 			}			
 		}
 		
-		// Action on Row click 
 		if (viewHolder.checkBox != null) {								
 			if(emailList != null){
 				PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
@@ -178,5 +187,9 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactData> {
 
 	public void setActiveStatusDraw(boolean bActiveStatusDraw) {
 		this.bActiveStatusDraw = bActiveStatusDraw;
+	}
+
+	public void setBuildMapContactList(boolean bBuildMapContactList) {
+		this.bBuildMapContactList = bBuildMapContactList;
 	}	
 }

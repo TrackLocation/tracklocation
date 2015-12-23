@@ -1,6 +1,5 @@
 package com.doat.tracklocation.datatype;
 
-import android.graphics.Bitmap;
 import android.os.Parcel;
 import android.os.Parcelable;
 
@@ -15,6 +14,7 @@ public class ContactDeviceData implements Parcelable{
 	private String guid;
 	private int locationSharing;
 	private int tracking;
+	private boolean isFavorite = false;
 	
 	public ContactDeviceData() {}
 	
@@ -35,6 +35,7 @@ public class ContactDeviceData implements Parcelable{
 		guid = in.readString();
 		locationSharing = in.readInt();
 		tracking = in.readInt();
+		isFavorite = in.readInt() == 1 ? true : false;
 		contactData = in.readParcelable(ContactData.class.getClassLoader());
 		deviceData = in.readParcelable(DeviceData.class.getClassLoader());
     }
@@ -102,10 +103,19 @@ public class ContactDeviceData implements Parcelable{
 		dest.writeString(guid);
 		dest.writeInt(locationSharing);
 		dest.writeInt(tracking);
+		dest.writeInt(isFavorite ? 1 : 0);
 		dest.writeParcelable(contactData, flags);
 		dest.writeParcelable(deviceData, flags);
 	}
 	
+	public boolean isFavorite() {
+		return isFavorite;
+	}
+
+	public void setFavorite(boolean isFavorite) {
+		this.isFavorite = isFavorite;
+	}
+
 	public static final Parcelable.Creator CREATOR = new Parcelable.Creator() {
         public ContactDeviceData createFromParcel(Parcel in ) {
             return new ContactDeviceData( in );

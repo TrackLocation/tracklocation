@@ -20,7 +20,17 @@
     <ImageView
         style="@style/round_contact_image"              
         android:id="@+id/icon"
-        android:src="@drawable/ic_launcher" 
-        
+        android:src="@drawable/ic_launcher"         
     />
+    
+    <ImageView
+        android:id="@+id/favorite_button"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="bottom|right"
+        android:visibility="gone"
+        android:src="@android:drawable/btn_star_big_on" />
+
 </merge>
