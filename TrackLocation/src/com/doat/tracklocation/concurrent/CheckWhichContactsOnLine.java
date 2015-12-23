@@ -9,6 +9,7 @@ import android.util.Log;
 import com.doat.tracklocation.datatype.CommandData;
 import com.doat.tracklocation.datatype.CommandDataBasic;
 import com.doat.tracklocation.datatype.CommandEnum;
+import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
@@ -67,9 +68,9 @@ public class CheckWhichContactsOnLine implements Runnable {
         }
 
 		// Prepare command 
-        CommandDataBasic commandDataBasic = null;
+        CommandData commandData = null;
 		try {
-			commandDataBasic = new CommandData(
+			commandData = new CommandData(
 					context, 
 					selectedContactDeviceDataList, 
 					CommandEnum.is_online,	// [IS_ONLINE]	
@@ -86,7 +87,7 @@ public class CheckWhichContactsOnLine implements Runnable {
 			return;
 		}
 		
-        String jsonListAccounts = gson.toJson(commandDataBasic.getListAccounts());
+        String jsonListAccounts = gson.toJson(commandData.getListAccounts());
         // Set list of recipients' accounts list 
         Preferences.setPreferencesString(context, 
         		CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS, jsonListAccounts);
@@ -96,6 +97,7 @@ public class CheckWhichContactsOnLine implements Runnable {
 
         List<String> listAccounts = null;
         while(true){
+        	ContactDeviceDataList updatedSelectedContactDeviceDataList = new ContactDeviceDataList();
 			
 			jsonListAccounts = Preferences.getPreferencesString(context, 
 	        	CommonConst.PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS);
@@ -120,17 +122,31 @@ public class CheckWhichContactsOnLine implements Runnable {
 				return;
 			}
 
-			commandDataBasic.sendCommand();
+			for (int i = 0; i < selectedContactDeviceDataList.size(); i++) {
+				ContactDeviceData contactDeviceData  = selectedContactDeviceDataList.get(i);
+				if(contactDeviceData != null){
+					ContactData contactData = contactDeviceData.getContactData();
+					if(contactData != null){
+						if(listAccounts.contains(contactData.getEmail())){
+							updatedSelectedContactDeviceDataList.add(contactDeviceData);
+						}
+					}
+				}
+			}
+
+			// update selectedContactDeviceDataList
+			commandData.setContactDeviceDataList(updatedSelectedContactDeviceDataList);
+			commandData.sendCommand();
 
 			// DEBUG
 			List<String> tempContacts = new ArrayList<String>();
-			for (ContactDeviceData entry : selectedContactDeviceDataList) {
+			for (ContactDeviceData entry : updatedSelectedContactDeviceDataList) {
 				tempContacts.add(entry.getContactData().getEmail());
 			}
-			logMessage = "DEBUG CHECK ONLINE STATUS: selectedContactDeviceDataList: " + gson.toJson(tempContacts);
+			logMessage = "CHECK ONLINE STATUS: updatedSelectedContactDeviceDataList: " + gson.toJson(tempContacts);
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-			logMessage = "DEBUG CHECK ONLINE STATUS: jsonListAccounts: " + gson.toJson(jsonListAccounts);
+			logMessage = "CHECK ONLINE STATUS: jsonListAccounts: " + gson.toJson(jsonListAccounts);
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 			// DEBUG

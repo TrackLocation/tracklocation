@@ -13,6 +13,7 @@ import com.doat.tracklocation.datatype.CommandData;
 import com.doat.tracklocation.datatype.CommandEnum;
 import com.doat.tracklocation.datatype.CommandTagEnum;
 import com.doat.tracklocation.datatype.CommandValueEnum;
+import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
@@ -35,7 +36,8 @@ public class StartTrackLocationService implements Runnable {
 	private final static String LOCATION_UPDATE_INTERVAL = "1000"; // [millisconds]
 	private static Gson gson = new Gson();
 	private Context context;
-	private volatile ContactDeviceDataList selectedContactDeviceDataList;
+	private ContactDeviceDataList selectedContactDeviceDataList;
+//	private ContactDeviceDataList updatedSelectedContactDeviceDataList;
 	private MessageDataContactDetails senderMessageDataContactDetails;
 	private int retrySendCommandDelay; // in milliseconds
 	private String className;
@@ -104,6 +106,7 @@ public class StartTrackLocationService implements Runnable {
 
         List<String> listAccounts = null;
 		while (true) {
+			ContactDeviceDataList updatedSelectedContactDeviceDataList = new ContactDeviceDataList();
 			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
 	        if((jsonListAccounts == null || jsonListAccounts.isEmpty())){
 				// exit from loop - stop sending Start TrackLoccation Service command
@@ -120,16 +123,28 @@ public class StartTrackLocationService implements Runnable {
 				break;
 			}
 		
+			for (int i = 0; i < selectedContactDeviceDataList.size(); i++) {
+				ContactDeviceData contactDeviceData  = selectedContactDeviceDataList.get(i);
+				if(contactDeviceData != null){
+					ContactData contactData = contactDeviceData.getContactData();
+					if(contactData != null){
+						if(listAccounts.contains(contactData.getEmail())){
+							updatedSelectedContactDeviceDataList.add(contactDeviceData);
+						}
+					}
+				}
+			}
+			
 			// update selectedContactDeviceDataList
-			commandData.setContactDeviceDataList(selectedContactDeviceDataList);
+			commandData.setContactDeviceDataList(updatedSelectedContactDeviceDataList);
 			commandData.sendCommand();
 	
 			// DEBUG
 			List<String> tempContacts = new ArrayList<String>();
-			for (ContactDeviceData entry : selectedContactDeviceDataList) {
+			for (ContactDeviceData entry : updatedSelectedContactDeviceDataList) {
 				tempContacts.add(entry.getContactData().getEmail());
 			}
-			logMessage = "START TLS: selectedContactDeviceDataList: " + gson.toJson(tempContacts);
+			logMessage = "START TLS: updatedSelectedContactDeviceDataList: " + gson.toJson(tempContacts);
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 			logMessage = "START TLS: jsonListAccounts: " + jsonListAccounts;

@@ -974,13 +974,13 @@ public class GcmIntentService extends IntentService {
 		} else if(CommandKeyEnum.start_status.toString().equals(key) && 
 				CommandValueEnum.success.toString().equals(value)){
 			
-			String jsonListAccounts = Preferences.getPreferencesString(context, 
-	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
 			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - START_STATUS: SUCCESS." +
-				"Recipients accounts list: [" + jsonListAccounts + "]";
+				"From recipient account[" + senderAccount + "]";
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
+			String jsonListAccounts = Preferences.getPreferencesString(context, 
+	        	CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
 			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
 				Controller.removeAccountFromList(context, 
 					CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
@@ -991,7 +991,7 @@ public class GcmIntentService extends IntentService {
 				// TODO: Broadcast - the following recipients are not available
 				if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
 					Controller.broadcsatMessage(context, contactDetails, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
-						msg + " by " + senderAccount, key, value);
+						senderAccount, key, value);
 				}
 			} else {
 				logMessage = "\"Start TrackLocation Service thread\" is not stopped!";

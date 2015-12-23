@@ -557,9 +557,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 	// Initialize BROADCAST_MESSAGE broadcast receiver
 	private void initNotificationBroadcastReceiver() {
-		String methodName = "initNotificationBroadcastReceiver";
+		methodName = "initNotificationBroadcastReceiver";
+		
 		LogManager.LogFunctionCall(className, methodName);
-	    IntentFilter intentFilter = new IntentFilter();
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
+		IntentFilter intentFilter = new IntentFilter();
 	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
 	    notificationBroadcastReceiver = new BroadcastReceiver() {
 
@@ -570,10 +573,14 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    			    			
 	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
 	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
+	    				LogManager.LogFunctionExit(className, methodName);
+	    				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	    				return;
 	    			}
 	    			NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
 	    			if(broadcastData == null){
+	    				LogManager.LogFunctionExit(className, methodName);
+	    				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	    				return;
 	    			}
 	    			
@@ -636,6 +643,11 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     				// Notification about command: Start TrackLocation Service 
     				// SUCCESS for some recipients
 	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.success.toString().equals(value)){
+	    				String senderAccount  = broadcastData.getMessage();
+	    				logMessage = "TrackLocation Service has been strated on [" + senderAccount + "].";
+	    				LogManager.LogInfoMsg(className, methodName, logMessage);
+	    				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
 // TODO: - Should be removed when new UI will be ready		
 	    		        String accountsListMsg = "";
 	    				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
@@ -677,7 +689,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    
 	    registerReceiver(notificationBroadcastReceiver, intentFilter);
 	    
-		LogManager.LogFunctionExit(className, methodName);
+	    LogManager.LogFunctionExit(className, methodName);
+	    Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 	private void initGcmLocationUpdatedBroadcastReceiver() {
