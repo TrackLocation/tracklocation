@@ -12,7 +12,7 @@ import com.doat.tracklocation.datatype.BackupDataOperations;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.ChooseAccountDialog;
-import com.doat.tracklocation.dialog.ICommonDialogNewOnClickListener;
+import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.exception.CheckPlayServicesException;
 import com.doat.tracklocation.log.LogManager;
@@ -226,7 +226,7 @@ public class MainActivityController {
 				initCont();
 			} else {
         		ChooseAccountDialog chooseAccountDialog =
-        				new ChooseAccountDialog(mainActivity, new ICommonDialogNewOnClickListener(){
+        				new ChooseAccountDialog(mainActivity, new ICommonDialogOnClickListener(){
         			@Override
         			public void doOnChooseItem(int which) {
         				account = accountList.get(which);

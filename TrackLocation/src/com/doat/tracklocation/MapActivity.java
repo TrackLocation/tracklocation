@@ -72,8 +72,8 @@ import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
 import com.doat.tracklocation.datatype.NotificationBroadcastData;
-import com.doat.tracklocation.dialog.CommonDialogNew;
-import com.doat.tracklocation.dialog.ICommonDialogNewOnClickListener;
+import com.doat.tracklocation.dialog.CommonDialog;
+import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
@@ -444,7 +444,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				}
 			}
 		} else {
-			CommonDialogNew noContactsSelectedDialog = new CommonDialogNew(this, new ICommonDialogNewOnClickListener(){
+			CommonDialog noContactsSelectedDialog = new CommonDialog(this, new ICommonDialogOnClickListener(){
 				@Override
 				public void doOnPositiveButton(Object data) {
 					finish();
@@ -1073,7 +1073,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		return bmp;
 	}
 
-	ICommonDialogNewOnClickListener InfoDialogOnClickListener = new ICommonDialogNewOnClickListener(){
+	ICommonDialogOnClickListener InfoDialogOnClickListener = new ICommonDialogOnClickListener(){
 
 		@Override
 		public void doOnPositiveButton(Object data) {

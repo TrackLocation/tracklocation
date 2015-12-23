@@ -9,8 +9,8 @@ import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.JoinRequestStatusEnum;
 import com.doat.tracklocation.datatype.SentJoinRequestData;
 import com.doat.tracklocation.db.DBLayer;
-import com.doat.tracklocation.dialog.CommonDialogNew;
-import com.doat.tracklocation.dialog.ICommonDialogNewOnClickListener;
+import com.doat.tracklocation.dialog.CommonDialog;
+import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
@@ -131,7 +131,7 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 		    			contactName = args[0];
 		    			phoneNumber = args[1];
 		    			
-		    			CommonDialogNew joinRequestDialog;
+		    			CommonDialog joinRequestDialog;
 		    			SentJoinRequestData joinRequestData = DBLayer.getInstance().getSentJoinRequestByPhone(phoneNumber);
 		    			if( joinRequestData == null ) {
 		    				if (!toSendAddJoinRequest){
@@ -222,10 +222,10 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 		return "";   	
     }
     
-	private CommonDialogNew joinRequestDialog(String contactName, String phoneNumber, String message, ICommonDialogNewOnClickListener onClickListener) {
+	private CommonDialog joinRequestDialog(String contactName, String phoneNumber, String message, ICommonDialogOnClickListener onClickListener) {
     	String dialogMessage = String.format(message, contactName, phoneNumber) ;
     	
-		CommonDialogNew aboutDialog = new CommonDialogNew(this, onClickListener);
+		CommonDialog aboutDialog = new CommonDialog(this, onClickListener);
 		aboutDialog.setDialogMessage(dialogMessage);
 		aboutDialog.setDialogTitle("Join contact");
 		aboutDialog.setPositiveButtonText("Yes");
@@ -241,7 +241,7 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 		super.onDestroy();
 	}
     
-    ICommonDialogNewOnClickListener onClickListener = new ICommonDialogNewOnClickListener(){
+    ICommonDialogOnClickListener onClickListener = new ICommonDialogOnClickListener(){
 
 		@Override
 		public void doOnPositiveButton(Object data) {

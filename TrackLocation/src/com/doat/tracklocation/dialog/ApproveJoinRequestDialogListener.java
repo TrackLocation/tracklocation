@@ -21,7 +21,7 @@ import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 
 public class ApproveJoinRequestDialogListener implements
-		ICommonDialogNewOnClickListener {
+		ICommonDialogOnClickListener {
 
 	private String message = null, key = null, value = null;
 	private MessageDataLocation location = null;

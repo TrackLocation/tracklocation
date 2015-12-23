@@ -5,11 +5,11 @@ import com.doat.tracklocation.utils.CommonConst;
 import android.app.Activity;
 import android.content.Context;
 
-public class InfoDialog extends CommonDialogNew {
+public class InfoDialog extends CommonDialog {
 
 	public InfoDialog(Activity activity, Context context,
 			String title, String infoMessage,
-			ICommonDialogNewOnClickListener onClickListener) {
+			ICommonDialogOnClickListener onClickListener) {
 		super(activity, onClickListener);
 		showInfoDialog(activity, context, title, infoMessage);
 	}

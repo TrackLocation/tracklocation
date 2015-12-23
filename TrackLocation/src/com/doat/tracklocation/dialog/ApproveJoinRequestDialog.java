@@ -8,10 +8,10 @@ import com.doat.tracklocation.datatype.SMSMessage;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 
-public class ApproveJoinRequestDialog extends CommonDialogNew {
+public class ApproveJoinRequestDialog extends CommonDialog {
 	
 	public ApproveJoinRequestDialog(Activity activity, Context context,
-			ICommonDialogNewOnClickListener onClickListener) {
+			ICommonDialogOnClickListener onClickListener) {
 		super(activity, onClickListener);
 	}
 
@@ -26,7 +26,7 @@ public class ApproveJoinRequestDialog extends CommonDialogNew {
 		String dialogMessage = "Approve join request from " +
 			account + "\n[" + phoneNumber + "]";
 	  	
-		CommonDialogNew approveJoinRequestDialog = new CommonDialogNew(activity, onClickListener);
+		CommonDialog approveJoinRequestDialog = new CommonDialog(activity, onClickListener);
 	
 		approveJoinRequestDialog.setDialogMessage(dialogMessage);
 		approveJoinRequestDialog.setDialogTitle("Join request approval");

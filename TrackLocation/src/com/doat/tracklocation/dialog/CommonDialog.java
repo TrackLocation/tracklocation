@@ -13,15 +13,15 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 
-public class CommonDialogNew extends DialogFragment {
+public class CommonDialog extends DialogFragment {
 	
 	protected AlertDialog.Builder builder;
 	protected String dialogMessage = null;
 	protected String dialogTitle = null;
 	protected String positiveButtonText = null;
 	protected String negativeButtonText = null;
-	protected ICommonDialogNewOnClickListener onClickListener;
-	protected ICommonDialogNewOnClickListener onClickListenerDefault;
+	protected ICommonDialogOnClickListener onClickListener;
+	protected ICommonDialogOnClickListener onClickListenerDefault;
 	protected FragmentManager fm;
 	protected String[] itemsList;
 	protected String className;    
@@ -30,7 +30,7 @@ public class CommonDialogNew extends DialogFragment {
     protected Object data;
     protected boolean selectionStatus; // positive or negative button chosen
 
-	public CommonDialogNew(Activity activity, ICommonDialogNewOnClickListener onClickListener) {
+	public CommonDialog(Activity activity, ICommonDialogOnClickListener onClickListener) {
 		
 		className = this.getClass().getName();
 		methodName = "CommonDialogNew";
@@ -141,8 +141,8 @@ public class CommonDialogNew extends DialogFragment {
         return builder.create();
     }
 
-    private ICommonDialogNewOnClickListener getDialogOnClickActionDefault(){
-    	onClickListenerDefault = new ICommonDialogNewOnClickListener() {
+    private ICommonDialogOnClickListener getDialogOnClickActionDefault(){
+    	onClickListenerDefault = new ICommonDialogOnClickListener() {
 			@Override
 			public void doOnChooseItem(int which) {
 				// TODO Auto-generated method stub
