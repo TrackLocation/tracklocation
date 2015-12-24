@@ -508,6 +508,10 @@ public class GcmIntentService extends IntentService {
         	logMessage = "TrackLocationService is already started";
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> ThreadID: " + logMessage);
+			// ===========================================================
+			// ===  NOTIFICATION: START COMMAND STATUS - success  ========
+			// ===========================================================
+			// Notify caller by GCM (push notification)
 			notificationKey = CommandKeyEnum.start_status.toString();
 			notificationValue = CommandValueEnum.success.toString();
 			sendNotificationCommand(
@@ -553,6 +557,8 @@ public class GcmIntentService extends IntentService {
 		//String jsonContactDetailsSentFrom = gson.toJson(contactDetailsSentFrom, MessageDataContactDetails.class);
 		trackLocationService.putExtra(CommonConst.START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS, jsonSenderMessageDataContactDetails);
 		ComponentName componentName = context.startService(trackLocationService); 
+		notificationKey = CommandKeyEnum.start_status.toString();
+		notificationValue = CommandValueEnum.success.toString();
 		if(componentName == null){
 			// Notify that TrackLoactionService was not started - by GCM (push notification)
 			logMessage = "Failed to start TrackLocationService on [" + messageDataContactDetails.getAccount() + "]";
@@ -563,7 +569,7 @@ public class GcmIntentService extends IntentService {
 		}
 		
 		// ===========================================================
-		// ===  NOTIFICATION: START COMMAND STATUS  ==================
+		// ===  NOTIFICATION: START COMMAND STATUS                 ===
 		// ===========================================================
 		// Notify caller by GCM (push notification)
 		
