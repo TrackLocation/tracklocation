@@ -191,7 +191,10 @@ public class StartTrackLocationService implements Runnable {
         Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
         String broadcastMessage = "";
-        if(tempListAccounts == null && tempListAccounts.isEmpty()){
+        if (selectedContactDeviceDataList.isEmpty()){
+        	broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), CommandValueEnum.success.toString());
+        }
+        else if(tempListAccounts == null || tempListAccounts.isEmpty()){
 	        broadcsatMessage(context, broadcastMessage, BroadcastKeyEnum.start_status.toString(), CommandValueEnum.wait.toString());
         }
 	}

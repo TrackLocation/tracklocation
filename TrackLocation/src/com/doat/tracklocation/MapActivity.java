@@ -195,7 +195,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
 		mainActivityController = new MainActivityController(MapActivity.this, context);
-		
+				
 		loadActionMenu();
 		
 		loadFavoritsForLocateContacts();
@@ -203,46 +203,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		isShowAllMarkersEnabled = true;
 
-		// Get a handle to the Map Fragment
-        MyMapFragment myMapFragment = (MyMapFragment) getFragmentManager().findFragmentById(R.id.map);
-        myMapFragment.setOnDragListener(new MapWrapperLayout.OnDragListener() {
-        	
-            @Override
-            public void onDrag(MotionEvent motionEvent){
-            	final int action = MotionEventCompat.getActionMasked(motionEvent); 
-                
-                switch (action) { 
-	                case MotionEvent.ACTION_DOWN: {
-	                    final int pointerIndex = MotionEventCompat.getActionIndex(motionEvent); 
-	                    mLastTouchX = MotionEventCompat.getX(motionEvent, pointerIndex); 
-	                    mLastTouchY = MotionEventCompat.getY(motionEvent, pointerIndex); 
-	                        
-	                    // Save the ID of this pointer (for dragging)
-	                    mActivePointerId = MotionEventCompat.getPointerId(motionEvent, 0);
-	                    break;
-	                }
-	                        
-	                case MotionEvent.ACTION_MOVE: {
-	                    // Find the index of the active pointer and fetch its position
-	                    final int pointerIndex = MotionEventCompat.findPointerIndex(motionEvent, mActivePointerId);  
-	                    if (pointerIndex >= 0){	                   
-		                    final float x = MotionEventCompat.getX(motionEvent, pointerIndex);
-		                    final float y = MotionEventCompat.getY(motionEvent, pointerIndex);
-		                        
-		                    // Calculate the distance moved
-		                    if (Math.abs(x - mLastTouchX) > 5 || Math.abs(y - mLastTouchY) > 5){
-		                    	if (mapMarkerDetailsList.size() > 0){
-		    						isMapInMovingState = true;
-		    						startTimer();
-		    					}
-		                    }                    
-	                    } 
-	                    break;
-	                }                                                            
-                }       
-                Log.d("ON_DRAG", String.format("ME: %s", motionEvent));                                
-            }			
-        });
+		MyMapFragment myMapFragment = getHandleToMapFragment();
         
         map = myMapFragment.getMap();
 
@@ -256,7 +217,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         
         map.setOnMapClickListener(this);
         map.setOnMarkerClickListener(this);         
-
 
         map.clear();                
         
@@ -282,6 +242,19 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
             }
         });
 		
+		loadBottomActionPanel();
+		
+		if(mapActivityController == null){
+			mapActivityController = new MapActivityController();
+		}
+		mapActivityController.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
+        	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);       
+
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	}
+
+	private void loadBottomActionPanel() {
 		map_popup_first = (LinearLayout) findViewById(R.id.map_popup_first);
 		
 		map_popup_second = (LinearLayout) findViewById(R.id.map_popup_second);
@@ -390,15 +363,50 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        	}
 	        }
 	    });
-		
-		if(mapActivityController == null){
-			mapActivityController = new MapActivityController();
-		}
-		mapActivityController.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
-        	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);       
+	}
 
-		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	private MyMapFragment getHandleToMapFragment() {
+		// Get a handle to the Map Fragment
+        MyMapFragment myMapFragment = (MyMapFragment) getFragmentManager().findFragmentById(R.id.map);
+        myMapFragment.setOnDragListener(new MapWrapperLayout.OnDragListener() {
+        	
+            @Override
+            public void onDrag(MotionEvent motionEvent){
+            	final int action = MotionEventCompat.getActionMasked(motionEvent); 
+                
+                switch (action) { 
+	                case MotionEvent.ACTION_DOWN: {
+	                    final int pointerIndex = MotionEventCompat.getActionIndex(motionEvent); 
+	                    mLastTouchX = MotionEventCompat.getX(motionEvent, pointerIndex); 
+	                    mLastTouchY = MotionEventCompat.getY(motionEvent, pointerIndex); 
+	                        
+	                    // Save the ID of this pointer (for dragging)
+	                    mActivePointerId = MotionEventCompat.getPointerId(motionEvent, 0);
+	                    break;
+	                }
+	                        
+	                case MotionEvent.ACTION_MOVE: {
+	                    // Find the index of the active pointer and fetch its position
+	                    final int pointerIndex = MotionEventCompat.findPointerIndex(motionEvent, mActivePointerId);  
+	                    if (pointerIndex >= 0){	                   
+		                    final float x = MotionEventCompat.getX(motionEvent, pointerIndex);
+		                    final float y = MotionEventCompat.getY(motionEvent, pointerIndex);
+		                        
+		                    // Calculate the distance moved
+		                    if (Math.abs(x - mLastTouchX) > 5 || Math.abs(y - mLastTouchY) > 5){
+		                    	if (mapMarkerDetailsList.size() > 0){
+		    						isMapInMovingState = true;
+		    						startTimer();
+		    					}
+		                    }                    
+	                    } 
+	                    break;
+	                }                                                            
+                }       
+                Log.d("ON_DRAG", String.format("ME: %s", motionEvent));                                
+            }			
+        });
+		return myMapFragment;
 	}	
 	
 	private void loadActionMenu() {
@@ -425,7 +433,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	}	
 	
 	private void loadFavoritsForLocateContacts(){
-		
 		contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null); 
 		for (ContactDeviceData cdData : contactDeviceDataList) {
 			if (cdData.getContactData().getEmail().equals("olegt1971@gmail.com")){
@@ -433,20 +440,38 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			}
 		}
 		
-		final ContactListArrayAdapter adapterContacts;
-		Controller.fillContactDeviceData(MapActivity.this, contactDeviceDataList, null, null, null);
-	    if(contactDeviceDataList != null){
-	    	lvContacts = (ListView) findViewById(R.id.contacts_list);
+		ImageButton btnContacts = (ImageButton) findViewById(R.id.contacts_view_btn);
+	    btnContacts.setOnClickListener(new OnClickListener() {
 			
-	    	adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList, null, null, null);
-	        ((ContactListArrayAdapter) adapterContacts).setActiveStatusDraw(true);
-	        ((ContactListArrayAdapter) adapterContacts).setBuildMapContactList(true);
-	        lvContacts.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-	        lvContacts.setAdapter(adapterContacts);
-	    }
-	    else{
+			@Override
+			public void onClick(View v) {
+				if (favContactsDeviceDataList != null){
+					favContactsDeviceDataList.removeAll(favContactsDeviceDataList);
+					favContactsDeviceDataList = null;
+					adapterFavorites.notifyDataSetChanged();
+				}
+					        	
+				if (lvContacts.getVisibility() == View.GONE  || lvContacts.getVisibility() == View.INVISIBLE){						
+					lvContacts.setVisibility(View.VISIBLE);
+				}else{					
+					lvContacts.setVisibility(View.GONE);
+				}				
+			}
+		});
+		
+		Controller.fillContactDeviceData(MapActivity.this, contactDeviceDataList, null, null, null);
+	    if(contactDeviceDataList == null){
+	    	//TODO need create message
 	    	return;
 	    }
+	    			
+    	lvContacts = (ListView) findViewById(R.id.contacts_list);
+		
+    	final ContactListArrayAdapter adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList, null, null, null);
+        ((ContactListArrayAdapter) adapterContacts).setActiveStatusDraw(true);
+        ((ContactListArrayAdapter) adapterContacts).setBuildMapContactList(true);
+        lvContacts.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+        lvContacts.setAdapter(adapterContacts);
 	    
 	    lvContacts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -488,36 +513,21 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				lvContacts.setItemChecked(i, true);				
 			}
 		}
-	    
-		Controller.fillContactDeviceData(MapActivity.this, selectedContactDeviceDataList, null, null, null);
-		favContactsDeviceDataList = (ContactDeviceDataList) selectedContactDeviceDataList.clone();
-	    if(favContactsDeviceDataList != null){
-	    	lvFavorites = (ListView) findViewById(R.id.favorites_list);
-			
-	    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList, null, null, null);
-	        ((ContactListArrayAdapter) adapterFavorites).setActiveStatusDraw(true);
-	    
-	    	lvFavorites.setAdapter(adapterFavorites);
-	    }	    
-	    	    
-	    	    
-	    ImageButton btnContacts = (ImageButton) findViewById(R.id.contacts_view_btn);
-	    btnContacts.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if (favContactsDeviceDataList != null){
-					favContactsDeviceDataList.removeAll(favContactsDeviceDataList);
-					favContactsDeviceDataList = null;
-					adapterFavorites.notifyDataSetChanged();
-				}				
-				if (lvContacts.getVisibility() == View.GONE  || lvContacts.getVisibility() == View.INVISIBLE){						
-					lvContacts.setVisibility(View.VISIBLE);
-				}else{					
-					lvContacts.setVisibility(View.GONE);
-				}				
-			}
-		});
+	    if (!selectedContactDeviceDataList.isEmpty()){
+			Controller.fillContactDeviceData(MapActivity.this, selectedContactDeviceDataList, null, null, null);
+			favContactsDeviceDataList = (ContactDeviceDataList) selectedContactDeviceDataList.clone();
+		    if(favContactsDeviceDataList != null){
+		    	lvFavorites = (ListView) findViewById(R.id.favorites_list);
+				
+		    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList, null, null, null);
+		        ((ContactListArrayAdapter) adapterFavorites).setActiveStatusDraw(true);
+		    
+		    	lvFavorites.setAdapter(adapterFavorites);
+		    }	    
+	    }
+	    /*else{	    	
+	    	btnContacts.callOnClick();
+	    }*/
 	}
 		
 	@Override
@@ -547,8 +557,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			broadcastReceiver = new BroadcastReceiverBase(MapActivity.this);
 		}
 		initNotificationBroadcastReceiver(broadcastReceiver);
-
-		startTrackLocationService();
+		
+		startTrackLocationService();		
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -560,104 +570,75 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
-		//ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST);
 		List<String> recipientList = new ArrayList<String>();
-		//if(selectedContactDeviceDataListEx != null){
-			//selectedContactDeviceDataList = new ContactDeviceDataList();
-			//selectedContactDeviceDataList.addAll(selectedContactDeviceDataListEx);
-			if(!selectedContactDeviceDataList.isEmpty()){
-				contactsQuantity = selectedContactDeviceDataList.size();
-				// Create and fill all requested accounts that should be shown on the location map
-				selectedAccountList = new HashMap<String, ContactData>();
-				for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
-					ContactData contactData = contactDeviceData.getContactData();
-					if(contactData != null){
-						selectedAccountList.put(contactData.getEmail(), contactData);	
-						recipientList.add(contactData.getEmail());
-					}
-				}
-				
-				logMessage = "Selected accounts to get their location: " + gson.toJson(recipientList);
+			//if(!selectedContactDeviceDataList.isEmpty()){
+		contactsQuantity = selectedContactDeviceDataList.size();
+		// Create and fill all requested accounts that should be shown on the location map
+		selectedAccountList = new HashMap<String, ContactData>();
+		for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
+			ContactData contactData = contactDeviceData.getContactData();
+			if(contactData != null){
+				selectedAccountList.put(contactData.getEmail(), contactData);	
+				recipientList.add(contactData.getEmail());
+			}
+		}
+		
+		logMessage = "Selected accounts to get their location: " + gson.toJson(recipientList);
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		
+		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
+		String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
+		String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+		MessageDataContactDetails senderMessageDataContactDetails = // sender contact details
+				new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
+					Controller.getBatteryLevel(context));
+
+		startTrackLocationService = new StartTrackLocationService(
+			context,
+			selectedContactDeviceDataList,
+			senderMessageDataContactDetails,
+			RETRY_DELAY_TO_START_TLS_MS); // retry delay in milliseconds to start TrackLocation Service for all recipients
+		// ===========================================================================
+		// Start TrackLocation Service for all requested recipients
+		// ===========================================================================
+		
+		try {
+			startTrackLocationServerThread = new Thread(startTrackLocationService);
+			//if (!selectedContactDeviceDataList.isEmpty() ){
+				startTrackLocationServerThread.start();
+				logMessage = "Send COMMAND: START TrackLocationService in separate thread " +
+					"to the following recipients: " + gson.toJson(recipientList);
 				LogManager.LogInfoMsg(className, methodName, logMessage);
 				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-				
-				String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-				String macAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
-				String phoneNumber = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER);
-				String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-				MessageDataContactDetails senderMessageDataContactDetails = // sender contact details
-						new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
-							Controller.getBatteryLevel(context));
-
-				startTrackLocationService = new StartTrackLocationService(
-					context,
-					selectedContactDeviceDataList,
-					senderMessageDataContactDetails,
-					RETRY_DELAY_TO_START_TLS_MS); // retry delay in milliseconds to start TrackLocation Service for all recipients
-				// ===========================================================================
-				// Start TrackLocation Service for all requested recipients
-				// ===========================================================================
-				if (selectedContactDeviceDataList != null && !selectedContactDeviceDataList.isEmpty() ){
-					try {
-						startTrackLocationServerThread = new Thread(startTrackLocationService);
-						startTrackLocationServerThread.start();
-						logMessage = "Send COMMAND: START TrackLocationService in separate thread " +
-							"to the following recipients: " + gson.toJson(recipientList);
-						LogManager.LogInfoMsg(className, methodName, logMessage);
-						Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-					} catch (IllegalThreadStateException e) {
-						logMessage = "Failed to Send COMMAND: START TrackLocationService in separate thread " +
-							"to the following recipients: " + gson.toJson(recipientList);
-						LogManager.LogException(e, className, methodName);
-						Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
-					}
-				}
+			//}
+		} catch (IllegalThreadStateException e) {
+			logMessage = "Failed to Send COMMAND: START TrackLocationService in separate thread " +
+				"to the following recipients: " + gson.toJson(recipientList);
+			LogManager.LogException(e, className, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+		}
+		// TODO: - Should be removed when new UI will be ready		
+		String accountsListMsg = "";
+		if(selectedAccountList != null && !selectedAccountList.isEmpty()){
+			for (ContactData contcatData : selectedAccountList.values()) {
+				String contcatName = contcatData.getNick() == null ? contcatData.getEmail() : contcatData.getNick();
+				accountsListMsg = " - " + contcatName + "\n" + accountsListMsg;
 			}
-		/*} else {
-			CommonDialog noContactsSelectedDialog = new CommonDialog(this, new ICommonDialogOnClickListener(){
-				@Override
-				public void doOnPositiveButton(Object data) {
-					finish();
-				}
-				@Override
-				public void doOnNegativeButton(Object data) {
-					// TODO Auto-generated method stub
-				}				
-				@Override
-				public void doOnChooseItem(int which) {
-					// TODO Auto-generated method stub
-				}
-			});
-
-			noContactsSelectedDialog.setDialogMessage("Select at least one contact to locate it.");
-			noContactsSelectedDialog.setDialogTitle("No contacts selected");
-			noContactsSelectedDialog.setPositiveButtonText("Ok");
-			noContactsSelectedDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-			noContactsSelectedDialog.showDialog();
-			noContactsSelectedDialog.setCancelable(false);
-		}*/
-		
-		// TODO: - Should be removed when new UI will be ready		
-				String accountsListMsg = "";
-				if(selectedAccountList != null && !selectedAccountList.isEmpty()){
-					for (ContactData contcatData : selectedAccountList.values()) {
-						String contcatName = contcatData.getNick() == null ? contcatData.getEmail() : contcatData.getNick();
-						accountsListMsg = " - " + contcatName + "\n" + accountsListMsg;
-					}
-				} else {
-					accountsListMsg  = "Not provided recipients list...";
-				}
-				notificationView = (TextView) findViewById(R.id.textViewMap);
-				notificationView.setVisibility(4); // 0 - visible / 4 - invisible
-				notificationView.setText("Tracking for contacts:\n" +
-					accountsListMsg +
-					"\nPlease wait...");
-		// TODO: - Should be removed when new UI will be ready		
+		} else {
+			accountsListMsg  = "Not provided recipients list...";
+		}
+		notificationView = (TextView) findViewById(R.id.textViewMap);
+		notificationView.setVisibility(4); // 0 - visible / 4 - invisible
+		notificationView.setText("Tracking for contacts:\n" +
+			accountsListMsg +
+			"\nPlease wait...");
+// TODO: - Should be removed when new UI will be ready		
 				
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	}
-		
+	}		
 		
 	@Override
 	protected void onPause() {	
@@ -672,7 +653,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
 		}
 	}
-
 	
 	private void goToMyLocation(){
 		stoptimertask();
@@ -775,83 +755,63 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    			
 	    			// Notification about command: Start TrackLocation Service
     				// RECEIVED - some recipient received request
-	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.start_track_location_service_received.toString().equals(value)){
-	    				displayNotification(bundle);
+	    			if(BroadcastKeyEnum.start_status.toString().equals(key)){
 	    				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
     					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
-// TODO: - Should be removed when new UI will be ready		
     					String accountsListMsg = "";
-    					if(listAccounts != null && !listAccounts.isEmpty()){
-	    					for (String account : listAccounts) {
-	    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
+	    				switch (CommandValueEnum.getValue(value)) {
+						case start_track_location_service_received:
+						case wait:
+							// Notification about command: Start TrackLocation Service
+		    				// PLEASE WAIT - some recipients are not responding
+		    				displayNotification(bundle);		    				
+	    					// TODO: - Should be removed when new UI will be ready		
+	    					accountsListMsg = "";
+	    					if(listAccounts != null && !listAccounts.isEmpty()){
+		    					for (String account : listAccounts) {
+		    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
+		    					}
+		    					notificationView.setText("Tracking for contacts:\n" +
+		    							accountsListMsg +
+		    							"\nPlease wait...");
+			    				notificationView.setVisibility(0);
+	    					} else {
+	    						notificationView.setVisibility(4);
 	    					}
-	    					notificationView.setText("Tracking for contacts:\n" +
-	    							accountsListMsg +
-	    							"\nPlease wait...");
-		    				notificationView.setVisibility(0);
-    					} else {
-    						notificationView.setVisibility(4);
-    					}
-// TODO: - Should be removed when new UI will be ready		
-	    			}
+							break;
+						case error:
+		    				// Notification about command: Start TrackLocation Service 
+		    				// FAILED for some recipients
+							String title = "Warning";
+		    				String dialogMessage = broadcastData.getMessage();
+		    				new InfoDialog(MapActivity.this, context, title, dialogMessage, null);	
+							break;						
+	    				case success:
+	    					// Notification about command: Start TrackLocation Service 
+	        				// SUCCESS for some recipients
+	    					String senderAccount  = broadcastData.getMessage();
+		    				logMessage = "TrackLocation Service has been strated on [" + senderAccount + "].";
+		    				LogManager.LogInfoMsg(className, methodName, logMessage);
+		    				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-	    			// Notification about command: Start TrackLocation Service
-    				// PLEASE WAIT - some recipients are not responding
-	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.wait.toString().equals(value)){
-	    				displayNotification(bundle);
-	    				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-    					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
-// TODO: - Should be removed when new UI will be ready		
-    					String accountsListMsg = "";
-    					if(listAccounts != null && !listAccounts.isEmpty()){
-	    					for (String account : listAccounts) {
-	    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
+		    				// TODO: - Should be removed when new UI will be ready		
+		    				accountsListMsg = "";
+	    					if(listAccounts != null && !listAccounts.isEmpty()){
+		    					for (String account : listAccounts) {
+		    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
+		    					}
+		    					notificationView.setText("Tracking for contacts:\n" +
+		    							accountsListMsg +
+		    							"\nPlease wait...");
+			    				notificationView.setVisibility(0);
+	    					} else {
+	    						notificationView.setVisibility(4);
 	    					}
-	    					notificationView.setText("Tracking for contacts:\n" +
-	    							accountsListMsg +
-	    							"\nPlease wait...");
-		    				notificationView.setVisibility(0);
-    					} else {
-    						notificationView.setVisibility(4);
-    					}
-// TODO: - Should be removed when new UI will be ready		
+	
+	    					break;
+	    				}
 	    			}
-	    			
-    				// Notification about command: Start TrackLocation Service 
-    				// FAILED for some recipients
-	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.error.toString().equals(value)){
-	    				//showNotificationDialog(broadcastData.getMessage());
-	    				String title = "Warning";
-	    				String dialogMessage = broadcastData.getMessage();
-	    				new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
-	    			}
-	    			
-    				// Notification about command: Start TrackLocation Service 
-    				// SUCCESS for some recipients
-	    			if(BroadcastKeyEnum.start_status.toString().equals(key) && CommandValueEnum.success.toString().equals(value)){
-	    				String senderAccount  = broadcastData.getMessage();
-	    				logMessage = "TrackLocation Service has been strated on [" + senderAccount + "].";
-	    				LogManager.LogInfoMsg(className, methodName, logMessage);
-	    				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
-// TODO: - Should be removed when new UI will be ready		
-	    		        String accountsListMsg = "";
-	    				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-    					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
-    					if(listAccounts != null && !listAccounts.isEmpty()){
-	    					for (String account : listAccounts) {
-	    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
-	    					}
-	    					notificationView.setText("Tracking for contacts:\n" +
-	    							accountsListMsg +
-	    							"\nPlease wait...");
-		    				notificationView.setVisibility(0);
-    					} else {
-    						notificationView.setVisibility(4);
-    					}
-// TODO: - Should be removed when new UI will be ready		
-	    			}
-	    			
+    					    			
 	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_defined.toString().equals(value)){
 	    				if(isPermissionDialogShown == false){
 	    					String title = "Warning";
@@ -946,7 +906,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 									adapterFavorites.notifyDataSetChanged();
 			    				}
 								
-								if (favContactsDeviceDataList != null && favContactsDeviceDataList.isEmpty()){
+								if (favContactsDeviceDataList.isEmpty()){
 									favContactsDeviceDataList = null;
 									lvFavorites.setVisibility(View.INVISIBLE);									
 								}														
