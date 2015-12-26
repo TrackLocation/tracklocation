@@ -196,7 +196,11 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		context = getApplicationContext();
 
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if(mainActivityController == null){
+        	mainActivityController = new MainActivityController(MapActivity.this, context);
+        }	
+
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		loadActionMenu();
 		
 		loadFavoritsForLocateContacts();
@@ -245,9 +249,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		loadBottomActionPanel();
 		
-        if(mainActivityController == null){
-        	mainActivityController = new MainActivityController(MapActivity.this, context);
-        }	
 		if(contactListController == null){
 			contactListController = new ContactListController(this, getApplicationContext());
 		}
@@ -447,7 +448,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			}
 		}*/
 		
-		ImageButton btnContacts = (ImageButton) findViewById(R.id.contacts_view_btn);
+    	lvContacts = (ListView) findViewById(R.id.contacts_list);
+
+    	ImageButton btnContacts = (ImageButton) findViewById(R.id.contacts_view_btn);
 	    btnContacts.setOnClickListener(new OnClickListener() {
 			
 			@Override
@@ -481,8 +484,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    	return;
 	    }
 	    			
-    	lvContacts = (ListView) findViewById(R.id.contacts_list);
-		
     	final ContactListArrayAdapter adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList, null, null, null);
         ((ContactListArrayAdapter) adapterContacts).setActiveStatusDraw(true);
         ((ContactListArrayAdapter) adapterContacts).setBuildMapContactList(true);
