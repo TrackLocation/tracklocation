@@ -77,7 +77,9 @@ public class ContactListController {
 		LogManager.LogInfoMsg(className, methodName, logMessage);
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		
-		checkWhichContactsOnLineThread.interrupt();
+		if(checkWhichContactsOnLineThread != null){
+			checkWhichContactsOnLineThread.interrupt();
+		}
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
