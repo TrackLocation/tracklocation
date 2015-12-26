@@ -449,6 +449,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}*/
 		
     	lvContacts = (ListView) findViewById(R.id.contacts_list);
+	    lvFavorites = (ListView) findViewById(R.id.favorites_list);
 
     	ImageButton btnContacts = (ImageButton) findViewById(R.id.contacts_view_btn);
 	    btnContacts.setOnClickListener(new OnClickListener() {
@@ -530,7 +531,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				lvContacts.setItemChecked(i, true);				
 			}
 		}
-	    lvFavorites = (ListView) findViewById(R.id.favorites_list);
+	    
 	    if (!selectedContactDeviceDataList.isEmpty()){
 			Controller.fillContactDeviceData(MapActivity.this, selectedContactDeviceDataList, null, null, null);
 			favContactsDeviceDataList = (ContactDeviceDataList) selectedContactDeviceDataList.clone();
