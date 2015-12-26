@@ -441,11 +441,11 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	
 	private void loadFavoritsForLocateContacts(){
 		contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null); 
-		for (ContactDeviceData cdData : contactDeviceDataList) {
+		/*for (ContactDeviceData cdData : contactDeviceDataList) {
 			if (cdData.getContactData().getEmail().equals("olegt1971@gmail.com")){
 				cdData.setFavorite(true);
 			}
-		}
+		}*/
 		
 		ImageButton btnContacts = (ImageButton) findViewById(R.id.contacts_view_btn);
 	    btnContacts.setOnClickListener(new OnClickListener() {
@@ -529,21 +529,21 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				lvContacts.setItemChecked(i, true);				
 			}
 		}
+	    lvFavorites = (ListView) findViewById(R.id.favorites_list);
 	    if (!selectedContactDeviceDataList.isEmpty()){
 			Controller.fillContactDeviceData(MapActivity.this, selectedContactDeviceDataList, null, null, null);
 			favContactsDeviceDataList = (ContactDeviceDataList) selectedContactDeviceDataList.clone();
 		    if(favContactsDeviceDataList != null){
-		    	lvFavorites = (ListView) findViewById(R.id.favorites_list);
-				
 		    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList, null, null, null);
 		        ((ContactListArrayAdapter) adapterFavorites).setActiveStatusDraw(true);
 		    
 		    	lvFavorites.setAdapter(adapterFavorites);
 		    }	    
 	    }
-	    /*else{	    	
+	    else{
+	    	lvFavorites.setVisibility(View.GONE);
 	    	btnContacts.callOnClick();
-	    }*/
+	    }
 	}
 		
 	@Override
