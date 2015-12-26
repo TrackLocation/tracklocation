@@ -19,7 +19,7 @@ public class ContactData implements Parcelable{
 	@JsonIgnore
 	private transient Bitmap contactPhoto;
 	@JsonIgnore
-	private transient int contactStatus = CommonConst.CONTACT_STATUS_PENDING;
+	private transient int contactStatus = CommonConst.CONTACT_STATUS_START_CONNECT;
 	private final List<String> phoneNumbersList = new ArrayList<String>();
 	
 	public ContactData() {}
