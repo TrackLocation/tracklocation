@@ -1,6 +1,7 @@
 package com.doat.tracklocation;
 
 import java.io.IOException;
+import java.lang.Thread.State;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -66,6 +67,7 @@ import com.doat.tracklocation.R;
 import com.doat.tracklocation.broadcast.BroadcastReceiverBase;
 import com.doat.tracklocation.broadcast.BroadcastReceiverContactListActivity;
 import com.doat.tracklocation.concurrent.StartTrackLocationService;
+import com.doat.tracklocation.controller.ContactListController;
 import com.doat.tracklocation.controller.MainActivityController;
 import com.doat.tracklocation.controller.MapActivityController;
 import com.doat.tracklocation.datatype.ActionMenuObj;
@@ -170,7 +172,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	
 	private MainActivityController mainActivityController;
 	private MainModel mainModel;
-	
+
+	private ContactListController contactListController;
+
 	private enum DialogStatus{
 		Opened, Closed
 	}
@@ -193,9 +197,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		context = getApplicationContext();
 
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		
-		mainActivityController = new MainActivityController(MapActivity.this, context);
-				
 		loadActionMenu();
 		
 		loadFavoritsForLocateContacts();
@@ -244,6 +245,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		loadBottomActionPanel();
 		
+        if(mainActivityController == null){
+        	mainActivityController = new MainActivityController(MapActivity.this, context);
+        }	
+		if(contactListController == null){
+			contactListController = new ContactListController(this, getApplicationContext());
+		}
 		if(mapActivityController == null){
 			mapActivityController = new MapActivityController();
 		}
@@ -453,8 +460,17 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					        	
 				if (lvContacts.getVisibility() == View.GONE  || lvContacts.getVisibility() == View.INVISIBLE){						
 					lvContacts.setVisibility(View.VISIBLE);
+					// Start thread to check which contacts are online
+					if(contactListController != null){
+						State state = contactListController.getThreadState();
+						contactListController.checkWhichContactsOnLine(contactDeviceDataList);
+					}
 				}else{					
 					lvContacts.setVisibility(View.GONE);
+			    	// Stop thread that checking which contacts are online
+			        if(contactListController != null){
+			        	contactListController.stopCheckWhichContactsOnLine();
+			        }
 				}				
 			}
 		});
@@ -1417,5 +1433,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			}
             mDrawerLayout.closeDrawer(mDrawerList);
 		}
-    }   
+    }  
+    
+    public ContactListController getContactListController() {
+		return contactListController;
+	}
+
 }
