@@ -43,7 +43,7 @@ public class ContactListController {
 	}
 	
 	// Start thread to check which contacts are online
-	public void checkWhichContactsOnLine(ContactDeviceDataList contactDeviceDataList){
+	public void startCheckWhichContactsOnLineThread(ContactDeviceDataList contactDeviceDataList){
 		methodName = "checkWhichContactsOnLine";
 		logMessage = "Start thread to check which contacts are online";
 		LogManager.LogInfoMsg(className, methodName, logMessage);
@@ -71,7 +71,7 @@ public class ContactListController {
 	}
 	
 	// Stop thread that checking which contacts are online
-	public void stopCheckWhichContactsOnLine(){
+	public void stopCheckWhichContactsOnLineThread(){
 		methodName = "stopCheckWhichContactsOnLine";
 		logMessage = "Stop thread that checking which contacts are online";
 		LogManager.LogInfoMsg(className, methodName, logMessage);
@@ -85,7 +85,7 @@ public class ContactListController {
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	public State getThreadState(){
+	public State getCheckWhichContactsOnLineThreadState(){
 		if(checkWhichContactsOnLineThread != null){
 			return checkWhichContactsOnLineThread.getState();
 		} else {

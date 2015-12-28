@@ -199,7 +199,7 @@ public class ContactListActivity extends BaseActivity {
 				
             	// Stop thread that checking which contacts are online
                 if(contactListController != null){
-                	contactListController.stopCheckWhichContactsOnLine();
+                	contactListController.stopCheckWhichContactsOnLineThread();
                 }
 
                 // Start Map activity to see locations of selected contacts
@@ -232,8 +232,8 @@ public class ContactListActivity extends BaseActivity {
 		
 		// Start thread to check which contacts are online
 		if(contactListController != null){
-			State state = contactListController.getThreadState();
-			contactListController.checkWhichContactsOnLine(contactDeviceDataList);
+			State state = contactListController.getCheckWhichContactsOnLineThreadState();
+			contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
 		}
 	}
 
@@ -245,7 +245,7 @@ public class ContactListActivity extends BaseActivity {
     	}
     	// Stop thread that checking which contacts are online
         if(contactListController != null){
-        	contactListController.stopCheckWhichContactsOnLine();
+        	contactListController.stopCheckWhichContactsOnLineThread();
         }
 	}
 

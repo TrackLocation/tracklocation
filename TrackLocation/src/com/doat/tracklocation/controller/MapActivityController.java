@@ -66,7 +66,14 @@ public class MapActivityController {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 		
-		mapKeepAliveTimer.cancel();
+		if(mapKeepAliveTimer != null){
+			mapKeepAliveTimer.cancel();
+		} else {
+			// Unexpected state
+			logMessage = "Unexpected state...";
+			LogManager.LogWarnMsg(className, methodName, logMessage);
+			Log.w(CommonConst.LOG_TAG, "[WARN] {" + className + "} -> " + logMessage);
+		}
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);

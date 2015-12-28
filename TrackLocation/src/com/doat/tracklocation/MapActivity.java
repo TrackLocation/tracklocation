@@ -89,7 +89,6 @@ import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
-import com.doat.tracklocation.model.MainModel;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
@@ -171,7 +170,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private MapActivityController mapActivityController;
 	
 	private MainActivityController mainActivityController;
-	private MainModel mainModel;
 
 	private ContactListController contactListController;
 
@@ -195,10 +193,17 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
 		context = getApplicationContext();
+		selectedAccountList = new HashMap<String, ContactData>();
 
         if(mainActivityController == null){
         	mainActivityController = new MainActivityController(MapActivity.this, context);
         }	
+		if(contactListController == null){
+			contactListController = new ContactListController(this, getApplicationContext());
+		}
+		if(mapActivityController == null){
+			mapActivityController = new MapActivityController();
+		}
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		loadActionMenu();
@@ -248,20 +253,124 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         });
 		
 		loadBottomActionPanel();
-		
-		if(contactListController == null){
-			contactListController = new ContactListController(this, getApplicationContext());
-		}
-		if(mapActivityController == null){
-			mapActivityController = new MapActivityController();
-		}
-		mapActivityController.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
-        	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);       
+
+//		mapActivityController.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
+//	        	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);       
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 
+	@Override
+	protected void onStart() {	
+		super.onStart();
+		methodName = "onStart";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
+		initGcmLocationUpdatedBroadcastReceiver();
+		initNotificationBroadcastReceiver();
+		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+		bLockMapNothOnly = sharedPref.getBoolean("pref_map_lock", false);
+		
+		if(broadcastReceiverContacts == null){
+			broadcastReceiverContacts = new BroadcastReceiverContactListActivity(MapActivity.this, R.id.contacts_list);
+		}
+		initNotificationBroadcastReceiver(broadcastReceiverContacts);
+		
+		if(broadcastReceiverFavorites == null){
+			broadcastReceiverFavorites = new BroadcastReceiverContactListActivity(MapActivity.this, R.id.favorites_list);
+		}
+		initNotificationBroadcastReceiver(broadcastReceiverFavorites);
+		
+		
+		if(broadcastReceiver == null){
+			broadcastReceiver = new BroadcastReceiverBase(MapActivity.this);
+		}
+		initNotificationBroadcastReceiver(broadcastReceiver);
+		
+//		startTrackLocationService();		
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	}
+
+	@Override
+	protected void onPause() {	
+		super.onPause();
+		methodName = "onPause";
+
+        BackupDataOperations backupData = new BackupDataOperations();
+		boolean isBackUpSuccess = backupData.backUp();
+		if(isBackUpSuccess != true){
+			logMessage = methodName + " -> Backup process failed.";
+			LogManager.LogErrorMsg(className, methodName, logMessage);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
+		}
+	}
+
+    @Override
+    protected void onStop() {
+    	methodName = "onStop";
+    	
+		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+		if(mapActivityController != null){
+			mapActivityController.stopKeepAliveTrackLocationService();
+		}
+    	String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+    	Preferences.clearPreferencesReturnToContactMap(context, account);
+    	
+    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - stopped");
+    	if(gcmLocationUpdatedWatcher != null){
+    		unregisterReceiver(gcmLocationUpdatedWatcher);
+    	}
+    	if(notificationBroadcastReceiver != null){
+    		unregisterReceiver(notificationBroadcastReceiver);
+    	}
+    	if(startTrackLocationServerThread != null){
+    		startTrackLocationServerThread.interrupt();
+    	}
+    	
+    	isPermissionDialogShown = false;
+    	
+    	if(broadcastReceiver != null){
+    		unregisterReceiver(broadcastReceiver);
+    	}
+    	
+    	if(broadcastReceiverContacts != null){
+    		unregisterReceiver(broadcastReceiverContacts);
+    	}
+    	
+    	if(broadcastReceiverFavorites != null){
+    		unregisterReceiver(broadcastReceiverFavorites);
+    	}
+    	
+      	Thread registerToGCMInBackgroundThread = 
+              	mainActivityController.getRegisterToGCMInBackgroundThread();
+     	if(registerToGCMInBackgroundThread != null){
+     		registerToGCMInBackgroundThread.interrupt();
+     	}
+
+ 		BackupDataOperations backupData = new BackupDataOperations();
+ 		boolean isBackUpSuccess = backupData.backUp();
+ 		if(isBackUpSuccess != true){
+ 			logMessage = methodName + " -> Backup process failed.";
+ 			LogManager.LogErrorMsg(className, methodName, logMessage);
+ 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+ 		}
+    	
+		LogManager.LogActivityDestroy(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_Stop] {" + className + "} -> " + methodName);
+
+    	super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+    	super.onDestroy();
+    }
+    
 	private void loadBottomActionPanel() {
 		map_popup_first = (LinearLayout) findViewById(R.id.map_popup_first);
 		
@@ -349,7 +458,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        	if (selectedMarkerDetails != null){
 	        		String title = "Ring to chosen contact.";
 	        		String dialogMessage = "Are you sure?";
-	        		InfoDialog joinRequestDialog = new InfoDialog(MapActivity.this, context, title, dialogMessage, InfoDialogOnClickListener);
+	        		InfoDialog joinRequestDialog = new InfoDialog(MapActivity.this, context, title, dialogMessage, infoDialogOnClickListener);
 	        		if(joinRequestDialog.isSelectionStatus()){
 	        			Controller.RingDevice(context, className, selectedMarkerDetails.getContactDetails());
 	        		}
@@ -456,7 +565,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			
 			@Override
 			public void onClick(View v) {
-				if (favContactsDeviceDataList != null){
+		    	// Stop thread that checking which contacts are online
+		        if(contactListController != null){
+		        	contactListController.stopCheckWhichContactsOnLineThread();
+		        }
+
+		        if (favContactsDeviceDataList != null){
 					favContactsDeviceDataList.removeAll(favContactsDeviceDataList);
 					favContactsDeviceDataList = null;
 					adapterFavorites.notifyDataSetChanged();
@@ -464,24 +578,38 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					        	
 				if (lvContacts.getVisibility() == View.GONE  || lvContacts.getVisibility() == View.INVISIBLE){						
 					lvContacts.setVisibility(View.VISIBLE);
-					// Start thread to check which contacts are online
-					if(contactListController != null){
-						State state = contactListController.getThreadState();
-						contactListController.checkWhichContactsOnLine(contactDeviceDataList);
-					}
+//					// Start thread to check which contacts are online
+//					if(contactListController != null){
+//						State state = contactListController.getCheckWhichContactsOnLineThreadState();
+//						if(state == null || state.equals(Thread.State.TERMINATED)){
+//							contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
+//						}
+//					}
 				}else{					
 					lvContacts.setVisibility(View.GONE);
-			    	// Stop thread that checking which contacts are online
-			        if(contactListController != null){
-			        	contactListController.stopCheckWhichContactsOnLine();
-			        }
-				}				
+//			    	// Stop thread that checking which contacts are online
+//			        if(contactListController != null){
+//			        	contactListController.stopCheckWhichContactsOnLineThread();
+//			        }
+				}
+				
+				// Start thread to check which contacts are online
+				if(contactListController != null){
+					State state = contactListController.getCheckWhichContactsOnLineThreadState();
+					if(state == null || state.equals(Thread.State.TERMINATED)){
+						contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
+					}
+				}
+
 			}
 		});
 		
 		Controller.fillContactDeviceData(MapActivity.this, contactDeviceDataList, null, null, null);
 	    if(contactDeviceDataList == null){
 	    	//TODO need create message
+	    	logMessage = "Unexpected state - no contacts.";
+	    	LogManager.LogErrorMsg(className, methodName, logMessage);
+	    	Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 	    	return;
 	    }
 	    			
@@ -496,12 +624,14 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
 	        	final ContactDeviceData selectedValue = (ContactDeviceData)adapterContacts.getItem(position);
+	        	boolean isAdd = false;
 	        	
 	        	SparseBooleanArray checked = lvContacts.getCheckedItemPositions();
 	        	if (checked.get(position)){
 	        		selectedContactDeviceDataList.add(contactDeviceDataList.get(position));
 	        		selectedAccountList.put(selectedValue.getContactData().getEmail(), selectedValue.getContactData());
-	        		((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), true);
+	        		isAdd = true;
+	        		//((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), true);
 	        	}
 	        	else{
 	        		selectedContactDeviceDataList.remove(contactDeviceDataList.get(position));
@@ -511,13 +641,21 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    				mapMarkerDetailsList.get(selectedValue.getContactData().getEmail()).getMarker().remove();
 	    				mapMarkerDetailsList.remove(selectedValue.getContactData().getEmail());
 	    			}
-	        		((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), false);
-	        	}	     
-	        	if(startTrackLocationServerThread.isAlive()){
-	        		startTrackLocationServerThread.interrupt(); 
-	        	}
-	        	startTrackLocationServerThread = new Thread(startTrackLocationService);//.start();	        	
-	        	startTrackLocationServerThread.start();
+	        		isAdd = false;
+	        		//((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), false);
+	        	}	   
+				if(startTrackLocationServerThread == null){
+					if(startTrackLocationService == null){
+						startTrackLocationService();
+					}
+					startTrackLocationServerThread = new Thread(startTrackLocationService);	        	
+					startTrackLocationServerThread.start();
+	        		((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), isAdd);
+				}
+	        	// TODO: what is this stop for?
+//	        	if(startTrackLocationServerThread.isAlive()){
+//	        		startTrackLocationServerThread.interrupt(); 
+//	        	}
 	        }
 	    });
 	    
@@ -545,43 +683,14 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    else{
 	    	lvFavorites.setVisibility(View.GONE);
 	    	btnContacts.callOnClick();
+			// Start thread to check which contacts are online
+			if(contactListController != null){
+				State state = contactListController.getCheckWhichContactsOnLineThreadState();
+				contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
+			}
 	    }
 	}
 		
-	@Override
-	protected void onStart() {	
-		super.onStart();
-		methodName = "onStart";
-		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
-
-		initGcmLocationUpdatedBroadcastReceiver();
-		initNotificationBroadcastReceiver();
-		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-		bLockMapNothOnly = sharedPref.getBoolean("pref_map_lock", false);
-		
-		if(broadcastReceiverContacts == null){
-			broadcastReceiverContacts = new BroadcastReceiverContactListActivity(MapActivity.this, R.id.contacts_list);
-		}
-		initNotificationBroadcastReceiver(broadcastReceiverContacts);
-		
-		if(broadcastReceiverFavorites == null){
-			broadcastReceiverFavorites = new BroadcastReceiverContactListActivity(MapActivity.this, R.id.favorites_list);
-		}
-		initNotificationBroadcastReceiver(broadcastReceiverFavorites);
-		
-		
-		if(broadcastReceiver == null){
-			broadcastReceiver = new BroadcastReceiverBase(MapActivity.this);
-		}
-		initNotificationBroadcastReceiver(broadcastReceiver);
-		
-		startTrackLocationService();		
-		
-		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	}
-	
 	private void startTrackLocationService(){
 		methodName = "startTrackLocationService";
 		
@@ -592,7 +701,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			//if(!selectedContactDeviceDataList.isEmpty()){
 		contactsQuantity = selectedContactDeviceDataList.size();
 		// Create and fill all requested accounts that should be shown on the location map
-		selectedAccountList = new HashMap<String, ContactData>();
+		selectedAccountList.clear();
 		for (ContactDeviceData contactDeviceData : selectedContactDeviceDataList) {
 			ContactData contactData = contactDeviceData.getContactData();
 			if(contactData != null){
@@ -657,20 +766,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}		
-		
-	@Override
-	protected void onPause() {	
-		super.onPause();
-		methodName = "onPause";
-
-        BackupDataOperations backupData = new BackupDataOperations();
-		boolean isBackUpSuccess = backupData.backUp();
-		if(isBackUpSuccess != true){
-			logMessage = methodName + " -> Backup process failed.";
-			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
-		}
-	}
 	
 	private void goToMyLocation(){
 		stoptimertask();
@@ -825,8 +920,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    					} else {
 	    						notificationView.setVisibility(4);
 	    					}
-	
 	    					break;
+						default:
+							break;
 	    				}
 	    			}
     					    			
@@ -1106,66 +1202,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}
 	}
 	
-    @Override
-    protected void onDestroy() {
-    	super.onDestroy();
-    }
-    
-    @Override
-    protected void onStop() {
-    	methodName = "onStop";
-    	
-		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
-		mapActivityController.stopKeepAliveTrackLocationService();
-    	String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-    	Preferences.clearPreferencesReturnToContactMap(context, account);
-    	
-    	Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - stopped");
-    	if(gcmLocationUpdatedWatcher != null){
-    		unregisterReceiver(gcmLocationUpdatedWatcher);
-    	}
-    	if(notificationBroadcastReceiver != null){
-    		unregisterReceiver(notificationBroadcastReceiver);
-    	}
-    	if(startTrackLocationServerThread != null){
-    		startTrackLocationServerThread.interrupt();
-    	}
-    	
-    	isPermissionDialogShown = false;
-    	
-    	if(broadcastReceiver != null){
-    		unregisterReceiver(broadcastReceiver);
-    	}
-    	
-    	if(broadcastReceiverContacts != null){
-    		unregisterReceiver(broadcastReceiverContacts);
-    	}
-    	
-    	if(broadcastReceiverFavorites != null){
-    		unregisterReceiver(broadcastReceiverFavorites);
-    	}
-    	
-      	Thread registerToGCMInBackgroundThread = 
-              	mainActivityController.getRegisterToGCMInBackgroundThread();
-     	if(registerToGCMInBackgroundThread != null){
-     		registerToGCMInBackgroundThread.interrupt();
-     	}
-
- 		BackupDataOperations backupData = new BackupDataOperations();
- 		boolean isBackUpSuccess = backupData.backUp();
- 		if(isBackUpSuccess != true){
- 			logMessage = methodName + " -> Backup process failed.";
- 			LogManager.LogErrorMsg(className, methodName, logMessage);
- 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
- 		}
-    	
-		LogManager.LogActivityDestroy(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_Stop] {" + className + "} -> " + methodName);
-
-    	super.onStop();
-    }
-
 	private void displayNotification(Bundle bundle){
 		String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
 		if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
@@ -1304,7 +1340,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		return bmp;
 	}
 
-	ICommonDialogOnClickListener InfoDialogOnClickListener = new ICommonDialogOnClickListener(){
+	ICommonDialogOnClickListener infoDialogOnClickListener = new ICommonDialogOnClickListener(){
 
 		@Override
 		public void doOnPositiveButton(Object data) {
