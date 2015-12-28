@@ -66,7 +66,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.broadcast.BroadcastReceiverBase;
 import com.doat.tracklocation.broadcast.BroadcastReceiverContactListActivity;
-import com.doat.tracklocation.concurrent.StartTrackLocationService;
+import com.doat.tracklocation.concurrent.TrackLocationServiceLauncher;
 import com.doat.tracklocation.controller.ContactListController;
 import com.doat.tracklocation.controller.MainActivityController;
 import com.doat.tracklocation.controller.MapActivityController;
@@ -125,8 +125,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private boolean isShowAllMarkersEnabled;
 	private boolean isMapInMovingState = false;;
 	private Context context;
-	private Thread startTrackLocationServerThread;
-	private Runnable startTrackLocationService;
+	private Thread trackLocationServiceLauncherThread;
+	private TrackLocationServiceLauncher trackLocationServiceLauncher;
 	private boolean isPermissionDialogShown;
 
 	private LinkedHashMap<String, MapMarkerDetails> mapMarkerDetailsList = new LinkedHashMap<String, MapMarkerDetails>();
@@ -329,8 +329,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	if(notificationBroadcastReceiver != null){
     		unregisterReceiver(notificationBroadcastReceiver);
     	}
-    	if(startTrackLocationServerThread != null){
-    		startTrackLocationServerThread.interrupt();
+    	if(trackLocationServiceLauncherThread != null){
+    		trackLocationServiceLauncherThread.interrupt();
     	}
     	
     	isPermissionDialogShown = false;
@@ -634,7 +634,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        		selectedContactDeviceDataList.add(cdd);
 	        		selectedAccountList.put(selectedValue.getContactData().getEmail(), selectedValue.getContactData());
 	        		isAdd = true;
-	        		//((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), true);
 	        	}
 	        	else{
 	        		cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
@@ -646,25 +645,13 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    				mapMarkerDetailsList.remove(selectedValue.getContactData().getEmail());
 	    			}
 	        		isAdd = false;
-	        		//((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), false);
 	        	}	   
-				if(startTrackLocationServerThread == null){
-					if(startTrackLocationService == null){
-						startTrackLocationService();
-					}
-					startTrackLocationServerThread = new Thread(startTrackLocationService);	        	
-					startTrackLocationServerThread.start();
-					isAdd = false;
-	        		//((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), isAdd);
-				}
-	        	// TODO: what is this stop for?
-//	        	if(startTrackLocationServerThread.isAlive()){
-//	        		startTrackLocationServerThread.interrupt(); 
-//	        	}
-
-				((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), false);
 	        	isShowAllMarkersEnabled = true;
 	        	adapterContacts.notifyDataSetChanged();
+				if(trackLocationServiceLauncherThread != null){
+					trackLocationServiceLauncherThread.interrupt();
+				}
+				startTrackLocationServiceLauncher(contactDeviceDataList.get(position), isAdd);
 	        }
 	    });
 	    
@@ -700,11 +687,18 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    }
 	}
 		
-	private void startTrackLocationService(){
+	private void startTrackLocationServiceLauncher(ContactDeviceData inContactDeviceData, boolean isAddAction){
 		methodName = "startTrackLocationService";
 		
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
+		if (isAddAction){
+			selectedContactDeviceDataList.add(inContactDeviceData);
+		}
+		else{
+			selectedContactDeviceDataList.remove(inContactDeviceData);
+		}		
 
 		List<String> recipientList = new ArrayList<String>();
 			//if(!selectedContactDeviceDataList.isEmpty()){
@@ -731,7 +725,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				new MessageDataContactDetails(account, macAddress, phoneNumber, registrationId, 
 					Controller.getBatteryLevel(context));
 
-		startTrackLocationService = new StartTrackLocationService(
+		trackLocationServiceLauncher = new TrackLocationServiceLauncher(
 			context,
 			selectedContactDeviceDataList,
 			senderMessageDataContactDetails,
@@ -741,9 +735,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		// ===========================================================================
 		
 		try {
-			startTrackLocationServerThread = new Thread(startTrackLocationService);
+			trackLocationServiceLauncherThread = new Thread(trackLocationServiceLauncher);
 			//if (!selectedContactDeviceDataList.isEmpty() ){
-				startTrackLocationServerThread.start();
+				trackLocationServiceLauncherThread.start();
 				logMessage = "Send COMMAND: START TrackLocationService in separate thread " +
 					"to the following recipients: " + gson.toJson(recipientList);
 				LogManager.LogInfoMsg(className, methodName, logMessage);

@@ -31,7 +31,7 @@ import com.google.gson.Gson;
  * @author dagrest@gmail.com
  *
  */
-public class StartTrackLocationService implements Runnable {
+public class TrackLocationServiceLauncher implements Runnable {
 
 	private final static String LOCATION_UPDATE_INTERVAL = "1000"; // [millisconds]
 	private static Gson gson = new Gson();
@@ -45,7 +45,7 @@ public class StartTrackLocationService implements Runnable {
 	private String methodName;
 	private String logMessage;
 
-	public StartTrackLocationService(
+	public TrackLocationServiceLauncher(
         	Context context,
         	ContactDeviceDataList selectedContactDeviceDataList,
         	MessageDataContactDetails senderMessageDataContactDetails,
@@ -57,14 +57,14 @@ public class StartTrackLocationService implements Runnable {
 		className = this.getClass().getName();
 	}
 	
-	public void updateTrackLocation(ContactDeviceData contactDeviceData, boolean bAdd){
-		if (bAdd){
-			this.selectedContactDeviceDataList.add(contactDeviceData);
-		}
-		else{
-			this.selectedContactDeviceDataList.remove(contactDeviceData);
-		}		
-	}
+//	public void updateTrackLocation(ContactDeviceData contactDeviceData, boolean bAdd){
+//		if (bAdd){
+//			this.selectedContactDeviceDataList.add(contactDeviceData);
+//		}
+//		else{
+//			this.selectedContactDeviceDataList.remove(contactDeviceData);
+//		}		
+//	}
 
 	@Override
 	public void run() {
