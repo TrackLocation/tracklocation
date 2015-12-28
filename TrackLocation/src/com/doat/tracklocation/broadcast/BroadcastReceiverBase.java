@@ -8,6 +8,7 @@ import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.SMSUtils;
+import com.google.gson.Gson;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -18,6 +19,7 @@ import android.util.Log;
 
 public class BroadcastReceiverBase extends BroadcastReceiver {
 
+	protected static Gson gson = new Gson();
 	protected String className;    
     protected String methodName;
     protected String logMessage;

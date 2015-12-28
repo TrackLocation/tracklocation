@@ -30,6 +30,7 @@ public class MainActivity extends BaseActivity {
     private final static int JOIN_REQUEST = 1;      
     protected MainActivityController mainActivityController;
     protected MainModel mainModel;
+    BroadcastReceiverBase broadcastReceiver;
     
     public static volatile boolean isTrackLocationRunning; // Used in SMSReceiver.class
     

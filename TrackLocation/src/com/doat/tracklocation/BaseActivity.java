@@ -19,9 +19,7 @@ public class BaseActivity extends Activity {
 	protected String className;    
     protected String methodName;
     protected Context context;
-//    protected BroadcastReceiver notificationBroadcastReceiver;
     protected String logMessage;
-    protected BroadcastReceiverBase broadcastReceiver;
 	
 	public TrackLocationApplication getMainApp() {
 		return (TrackLocationApplication) getApplication();

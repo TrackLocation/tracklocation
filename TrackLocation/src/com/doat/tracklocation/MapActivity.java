@@ -55,6 +55,7 @@ import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -64,8 +65,7 @@ import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import com.doat.tracklocation.R;
-import com.doat.tracklocation.broadcast.BroadcastReceiverBase;
-import com.doat.tracklocation.broadcast.BroadcastReceiverContactListActivity;
+import com.doat.tracklocation.broadcast.BroadcastReceiverMapActivity;
 import com.doat.tracklocation.concurrent.TrackLocationServiceLauncher;
 import com.doat.tracklocation.controller.ContactListController;
 import com.doat.tracklocation.controller.MainActivityController;
@@ -75,9 +75,6 @@ import com.doat.tracklocation.datatype.BackupDataOperations;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastConstEnum;
 import com.doat.tracklocation.datatype.BroadcastData;
-import com.doat.tracklocation.datatype.BroadcastKeyEnum;
-import com.doat.tracklocation.datatype.CommandKeyEnum;
-import com.doat.tracklocation.datatype.CommandValueEnum;
 import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
@@ -156,8 +153,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private Timer timer;
 	private boolean bLockMapNothOnly;	
 	
-	private BroadcastReceiverContactListActivity broadcastReceiverContacts;
-	private BroadcastReceiverContactListActivity broadcastReceiverFavorites;	
 	private ContactListArrayAdapter adapterFavorites;
 	private ListView lvFavorites;
 	private ContactDeviceDataList favContactsDeviceDataList;
@@ -255,9 +250,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		loadBottomActionPanel();
 
-//		mapActivityController.keepAliveTrackLocationService(context, selectedContactDeviceDataList, 
-//	        	CommonConst.KEEP_ALIVE_TIMER_REQUEST_FROM_MAP_DELAY);       
-
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
@@ -270,27 +262,14 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
 		initGcmLocationUpdatedBroadcastReceiver();
-		initNotificationBroadcastReceiver();
+//		initNotificationBroadcastReceiver();
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 		bLockMapNothOnly = sharedPref.getBoolean("pref_map_lock", false);
 		
-		if(broadcastReceiverContacts == null){
-			broadcastReceiverContacts = new BroadcastReceiverContactListActivity(MapActivity.this, R.id.contacts_list);
+		if(notificationBroadcastReceiver == null){
+			notificationBroadcastReceiver = new BroadcastReceiverMapActivity(MapActivity.this);
 		}
-		initNotificationBroadcastReceiver(broadcastReceiverContacts);
-		
-		if(broadcastReceiverFavorites == null){
-			broadcastReceiverFavorites = new BroadcastReceiverContactListActivity(MapActivity.this, R.id.favorites_list);
-		}
-		initNotificationBroadcastReceiver(broadcastReceiverFavorites);
-		
-		
-		if(broadcastReceiver == null){
-			broadcastReceiver = new BroadcastReceiverBase(MapActivity.this);
-		}
-		initNotificationBroadcastReceiver(broadcastReceiver);
-		
-//		startTrackLocationService();		
+		initNotificationBroadcastReceiver(notificationBroadcastReceiver);
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -316,6 +295,11 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	
 		getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
+    	// Stop thread that checking which contacts are online
+        if(contactListController != null){
+        	contactListController.stopCheckWhichContactsOnLineThread();
+        }
+
 		if(mapActivityController != null){
 			mapActivityController.stopKeepAliveTrackLocationService();
 		}
@@ -326,6 +310,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	if(gcmLocationUpdatedWatcher != null){
     		unregisterReceiver(gcmLocationUpdatedWatcher);
     	}
+    	
     	if(notificationBroadcastReceiver != null){
     		unregisterReceiver(notificationBroadcastReceiver);
     	}
@@ -335,25 +320,13 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	
     	isPermissionDialogShown = false;
     	
-    	if(broadcastReceiver != null){
-    		unregisterReceiver(broadcastReceiver);
-    	}
-    	
-    	if(broadcastReceiverContacts != null){
-    		unregisterReceiver(broadcastReceiverContacts);
-    	}
-    	
-    	if(broadcastReceiverFavorites != null){
-    		unregisterReceiver(broadcastReceiverFavorites);
-    	}
-    	
       	Thread registerToGCMInBackgroundThread = 
               	mainActivityController.getRegisterToGCMInBackgroundThread();
      	if(registerToGCMInBackgroundThread != null){
      		registerToGCMInBackgroundThread.interrupt();
      	}
 
- 		BackupDataOperations backupData = new BackupDataOperations();
+     	BackupDataOperations backupData = new BackupDataOperations();
  		boolean isBackUpSuccess = backupData.backUp();
  		if(isBackUpSuccess != true){
  			logMessage = methodName + " -> Backup process failed.";
@@ -579,19 +552,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					        	
 				if (lvContacts.getVisibility() == View.GONE  || lvContacts.getVisibility() == View.INVISIBLE){						
 					lvContacts.setVisibility(View.VISIBLE);
-//					// Start thread to check which contacts are online
-//					if(contactListController != null){
-//						State state = contactListController.getCheckWhichContactsOnLineThreadState();
-//						if(state == null || state.equals(Thread.State.TERMINATED)){
-//							contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
-//						}
-//					}
 				}else{					
 					lvContacts.setVisibility(View.GONE);
-//			    	// Stop thread that checking which contacts are online
-//			        if(contactListController != null){
-//			        	contactListController.stopCheckWhichContactsOnLineThread();
-//			        }
 				}
 				
 				// Start thread to check which contacts are online
@@ -607,7 +569,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		Controller.fillContactDeviceData(MapActivity.this, contactDeviceDataList, null, null, null);
 	    if(contactDeviceDataList == null){
-	    	//TODO need create message
 	    	logMessage = "Unexpected state - no contacts.";
 	    	LogManager.LogErrorMsg(className, methodName, logMessage);
 	    	Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
@@ -682,7 +643,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			// Start thread to check which contacts are online
 			if(contactListController != null){
 				State state = contactListController.getCheckWhichContactsOnLineThreadState();
-				contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
+				if(state == null || state.equals(Thread.State.TERMINATED)){
+					contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
+				}
 			}
 	    }
 	}
@@ -837,124 +800,124 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 	}
 
-	// Initialize BROADCAST_MESSAGE broadcast receiver
-	private void initNotificationBroadcastReceiver() {
-		methodName = "initNotificationBroadcastReceiver";
-		
-		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
-
-		IntentFilter intentFilter = new IntentFilter();
-	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
-	    notificationBroadcastReceiver = new BroadcastReceiver() {
-
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				Bundle bundle = intent.getExtras();
-	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
-	    			    			
-	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
-	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
-	    				LogManager.LogFunctionExit(className, methodName);
-	    				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	    				return;
-	    			}
-	    			NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
-	    			if(broadcastData == null){
-	    				LogManager.LogFunctionExit(className, methodName);
-	    				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	    				return;
-	    			}
-	    			
-	    			String key  = broadcastData.getKey();
-	    			String value = broadcastData.getValue();
-	    			
-	    			// Notification about command: Start TrackLocation Service
-    				// RECEIVED - some recipient received request
-	    			if(BroadcastKeyEnum.start_status.toString().equals(key)){
-	    				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
-    					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
-    					String accountsListMsg = "";
-	    				switch (CommandValueEnum.getValue(value)) {
-						case start_track_location_service_received:
-						case wait:
-							// Notification about command: Start TrackLocation Service
-		    				// PLEASE WAIT - some recipients are not responding
-		    				displayNotification(bundle);		    				
-	    					// TODO: - Should be removed when new UI will be ready		
-	    					accountsListMsg = "";
-	    					if(listAccounts != null && !listAccounts.isEmpty()){
-		    					for (String account : listAccounts) {
-		    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
-		    					}
-		    					notificationView.setText("Tracking for contacts:\n" +
-		    							accountsListMsg +
-		    							"\nPlease wait...");
-			    				notificationView.setVisibility(0);
-	    					} else {
-	    						notificationView.setVisibility(4);
-	    					}
-							break;
-						case error:
-		    				// Notification about command: Start TrackLocation Service 
-		    				// FAILED for some recipients
-							String title = "Warning";
-		    				String dialogMessage = broadcastData.getMessage();
-		    				new InfoDialog(MapActivity.this, context, title, dialogMessage, null);	
-							break;						
-	    				case success:
-	    					// Notification about command: Start TrackLocation Service 
-	        				// SUCCESS for some recipients
-	    					String senderAccount  = broadcastData.getMessage();
-		    				logMessage = "TrackLocation Service has been strated on [" + senderAccount + "].";
-		    				LogManager.LogInfoMsg(className, methodName, logMessage);
-		    				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-
-		    				// TODO: - Should be removed when new UI will be ready		
-		    				accountsListMsg = "";
-	    					if(listAccounts != null && !listAccounts.isEmpty()){
-		    					for (String account : listAccounts) {
-		    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
-		    					}
-		    					notificationView.setText("Tracking for contacts:\n" +
-		    							accountsListMsg +
-		    							"\nPlease wait...");
-			    				notificationView.setVisibility(0);
-	    					} else {
-	    						notificationView.setVisibility(4);
-	    					}
-	    					break;
-						default:
-							break;
-	    				}
-	    			}
-    					    			
-	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_defined.toString().equals(value)){
-	    				if(isPermissionDialogShown == false){
-	    					String title = "Warning";
-	    					String dialogMessage = broadcastData.getMessage();
-	    	        		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
-		    				isPermissionDialogShown = true;
-	    				}
-	    			}
-
-	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_permitted.toString().equals(value)){
-	    				if(isPermissionDialogShown == false){
-	    					String title = "Warning";
-	    					String dialogMessage = broadcastData.getMessage();
-	    	        		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
-		    				isPermissionDialogShown = true;
-	    				}
-	    			}
-	    		}
-			}
-	    };
-	    
-	    registerReceiver(notificationBroadcastReceiver, intentFilter);
-	    
-	    LogManager.LogFunctionExit(className, methodName);
-	    Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	}
+//	// Initialize BROADCAST_MESSAGE broadcast receiver
+//	private void initNotificationBroadcastReceiver() {
+//		methodName = "initNotificationBroadcastReceiver";
+//		
+//		LogManager.LogFunctionCall(className, methodName);
+//		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+//
+//		IntentFilter intentFilter = new IntentFilter();
+//	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
+//	    notificationBroadcastReceiver = new BroadcastReceiver() {
+//
+//			@Override
+//			public void onReceive(Context context, Intent intent) {
+//				Bundle bundle = intent.getExtras();
+//	    		if(bundle != null && bundle.containsKey(BroadcastConstEnum.data.toString())){
+//	    			    			
+//	    			String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
+//	    			if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
+//	    				LogManager.LogFunctionExit(className, methodName);
+//	    				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+//	    				return;
+//	    			}
+//	    			NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
+//	    			if(broadcastData == null){
+//	    				LogManager.LogFunctionExit(className, methodName);
+//	    				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+//	    				return;
+//	    			}
+//	    			
+//	    			String key  = broadcastData.getKey();
+//	    			String value = broadcastData.getValue();
+//	    			
+//	    			// Notification about command: Start TrackLocation Service
+//    				// RECEIVED - some recipient received request
+//	    			if(BroadcastKeyEnum.start_status.toString().equals(key)){
+//	    				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+//    					List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
+//    					String accountsListMsg = "";
+//	    				switch (CommandValueEnum.getValue(value)) {
+//						case start_track_location_service_received:
+//						case wait:
+//							// Notification about command: Start TrackLocation Service
+//		    				// PLEASE WAIT - some recipients are not responding
+//		    				displayNotification(bundle);		    				
+//	    					// TODO: - Should be removed when new UI will be ready		
+//	    					accountsListMsg = "";
+//	    					if(listAccounts != null && !listAccounts.isEmpty()){
+//		    					for (String account : listAccounts) {
+//		    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
+//		    					}
+//		    					notificationView.setText("Tracking for contacts:\n" +
+//		    							accountsListMsg +
+//		    							"\nPlease wait...");
+//			    				notificationView.setVisibility(0);
+//	    					} else {
+//	    						notificationView.setVisibility(4);
+//	    					}
+//							break;
+//						case error:
+//		    				// Notification about command: Start TrackLocation Service 
+//		    				// FAILED for some recipients
+//							String title = "Warning";
+//		    				String dialogMessage = broadcastData.getMessage();
+//		    				new InfoDialog(MapActivity.this, context, title, dialogMessage, null);	
+//							break;						
+//	    				case success:
+//	    					// Notification about command: Start TrackLocation Service 
+//	        				// SUCCESS for some recipients
+//	    					String senderAccount  = broadcastData.getMessage();
+//		    				logMessage = "TrackLocation Service has been strated on [" + senderAccount + "].";
+//		    				LogManager.LogInfoMsg(className, methodName, logMessage);
+//		    				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+//
+//		    				// TODO: - Should be removed when new UI will be ready		
+//		    				accountsListMsg = "";
+//	    					if(listAccounts != null && !listAccounts.isEmpty()){
+//		    					for (String account : listAccounts) {
+//		    						accountsListMsg = " - " + account + "\n" + accountsListMsg;
+//		    					}
+//		    					notificationView.setText("Tracking for contacts:\n" +
+//		    							accountsListMsg +
+//		    							"\nPlease wait...");
+//			    				notificationView.setVisibility(0);
+//	    					} else {
+//	    						notificationView.setVisibility(4);
+//	    					}
+//	    					break;
+//						default:
+//							break;
+//	    				}
+//	    			}
+//    					    			
+//	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_defined.toString().equals(value)){
+//	    				if(isPermissionDialogShown == false){
+//	    					String title = "Warning";
+//	    					String dialogMessage = broadcastData.getMessage();
+//	    	        		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
+//		    				isPermissionDialogShown = true;
+//	    				}
+//	    			}
+//
+//	    			if(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_permitted.toString().equals(value)){
+//	    				if(isPermissionDialogShown == false){
+//	    					String title = "Warning";
+//	    					String dialogMessage = broadcastData.getMessage();
+//	    	        		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
+//		    				isPermissionDialogShown = true;
+//	    				}
+//	    			}
+//	    		}
+//			}
+//	    };
+//	    
+//	    registerReceiver(notificationBroadcastReceiver, intentFilter);
+//	    
+//	    LogManager.LogFunctionExit(className, methodName);
+//	    Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+//	}
 	
 	private void initGcmLocationUpdatedBroadcastReceiver() {
 		
@@ -1487,6 +1450,47 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     
     public ContactListController getContactListController() {
 		return contactListController;
+	}
+    
+	public void updateContactStatusInListView(String senderAccount){
+		ArrayAdapter<ContactDeviceData> adapter = null;
+    	if(lvContacts.getVisibility() == View.VISIBLE){
+    		adapter = (ArrayAdapter<ContactDeviceData>) lvContacts.getAdapter();
+    	} else {
+    		adapter = (ArrayAdapter<ContactDeviceData>) lvFavorites.getAdapter();
+    	}
+		
+		if(adapter != null && senderAccount != null){
+			int count = adapter.getCount();
+			for (int i = 0; i < count; i++) {
+				ContactDeviceData item = adapter.getItem(i);
+				if(senderAccount.equals(item.getContactData().getEmail())){
+					item.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
+					adapter.notifyDataSetChanged();
+				}
+			}
+		}
+	}
+
+	public void showPermissionsInfoDialog(String dialogMessage){
+		if(isPermissionDialogShown == false){
+			String title = "Warning";
+    		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
+			isPermissionDialogShown = true;
+		}
+	}
+	
+	// Initialize BROADCAST_MESSAGE broadcast receiver
+	private void initNotificationBroadcastReceiver(BroadcastReceiver broadcastReceiver) {
+		methodName = "initNotificationBroadcastReceiver";
+		LogManager.LogFunctionCall(className, methodName);
+		
+		IntentFilter intentFilter = new IntentFilter();
+	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
+	    
+	    registerReceiver(broadcastReceiver, intentFilter);
+	    
+		LogManager.LogFunctionExit(className, methodName);
 	}
 
 }
