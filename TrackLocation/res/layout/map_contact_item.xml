@@ -31,7 +31,7 @@
         android:textSize="15sp" >
     </TextView>            
     
-	<com.doat.tracklocation.controls.StatusImage             
+	<com.doat.tracklocation.controls.ContactStatusControl             
     	android:id="@+id/status_image_ctrl"        
         android:layout_width="80sp"                        
 		android:layout_height="80sp"

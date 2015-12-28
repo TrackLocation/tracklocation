@@ -4,7 +4,7 @@
 	    android:layout_height="fill_parent"
 	    android:layout_alignParentLeft="true">
         
-	<com.doat.tracklocation.controls.StatusImage             
+	<com.doat.tracklocation.controls.ContactStatusControl             
     	android:id="@+id/status_image_ctrl"        
         android:layout_width="80sp"                        
 		android:layout_height="80sp"

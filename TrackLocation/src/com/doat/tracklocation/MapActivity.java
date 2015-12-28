@@ -206,6 +206,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}
 
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        
 		loadActionMenu();
 		
 		loadFavoritsForLocateContacts();
@@ -627,14 +628,17 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        	boolean isAdd = false;
 	        	
 	        	SparseBooleanArray checked = lvContacts.getCheckedItemPositions();
-	        	if (checked.get(position)){
-	        		selectedContactDeviceDataList.add(contactDeviceDataList.get(position));
+	        	ContactDeviceData cdd = contactDeviceDataList.get(position);
+	        	if (checked.get(position)){	        		
+	        		cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_PENDING);
+	        		selectedContactDeviceDataList.add(cdd);
 	        		selectedAccountList.put(selectedValue.getContactData().getEmail(), selectedValue.getContactData());
 	        		isAdd = true;
 	        		//((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), true);
 	        	}
 	        	else{
-	        		selectedContactDeviceDataList.remove(contactDeviceDataList.get(position));
+	        		cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
+	        		selectedContactDeviceDataList.remove(cdd);
 	        		selectedAccountList.remove(selectedValue.getContactData().getEmail());
 	        		if (mapMarkerDetailsList.containsKey(selectedValue.getContactData().getEmail())){
 	        			mapMarkerDetailsList.get(selectedValue.getContactData().getEmail()).getLocationCircle().remove();
@@ -650,12 +654,17 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					}
 					startTrackLocationServerThread = new Thread(startTrackLocationService);	        	
 					startTrackLocationServerThread.start();
-	        		((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), isAdd);
+					isAdd = false;
+	        		//((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), isAdd);
 				}
 	        	// TODO: what is this stop for?
 //	        	if(startTrackLocationServerThread.isAlive()){
 //	        		startTrackLocationServerThread.interrupt(); 
 //	        	}
+
+				((StartTrackLocationService)startTrackLocationService).updateTrackLocation(contactDeviceDataList.get(position), false);
+	        	isShowAllMarkersEnabled = true;
+	        	adapterContacts.notifyDataSetChanged();
 	        }
 	    });
 	    
@@ -1001,6 +1010,13 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		    				mapMarkerDetailsList.get(updatingAccount).getMarker().remove();
 		    				mapMarkerDetailsList.remove(updatingAccount);
 		    			}
+		    			for (int i = 0; i < contactDeviceDataList.size(); i++) {
+	    					ContactDeviceData cData = contactDeviceDataList.get(i);
+	    					if (cData.getContactData().getEmail().equals(updatingAccount)){
+	    						cData.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);	
+	    					}
+						}
+		    			
 		    			
 		    			MapMarkerDetails  mapMarkerDetails = createMapMarker(contactDetails, locationDetails);
 		    			if (mapMarkerDetails != null){
@@ -1045,15 +1061,15 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     }
 	
 	private void mapAnimateCameraForMarkers(MessageDataLocation prevLocationDetails, String updatingAccount) {
-		if (!isMapInMovingState && selectedAccountList.size() == mapMarkerDetailsList.size()){
+		if (!isMapInMovingState /*&& selectedAccountList.size() == mapMarkerDetailsList.size()*/){
 			if(mapMarkerDetailsList.size() > 1 && isShowAllMarkersEnabled == true) {
 				// put camera to show all markers
 				CameraUpdate cu = MapUtils.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
 				map.animateCamera(cu);
 				if(mapMarkerDetailsList.size() >= contactsQuantity){
 					// put camera to show all markers
-					cu = MapUtils.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
-					map.animateCamera(cu); // or map.moveCamera(cu); 
+					//cu = MapUtils.createCameraUpdateLatLngBounds(mapMarkerDetailsList);
+					//map.animateCamera(cu); // or map.moveCamera(cu); 
 					isShowAllMarkersEnabled = false;
 				}
 			} 
@@ -1465,8 +1481,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        		Preferences.getPreferencesString(context, CommonConst.PREFERENCES_VERSION_NAME));
 	        	InfoDialog dlg = new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
 	        	break;
-
-			default:
+			case 5 :
+				Intent intentContactList = new Intent(MapActivity.this, ContactListActivity.class);
+	    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, contactDeviceDataList);
+	    		startActivity(intentContactList);
 				break;
 			}
             mDrawerLayout.closeDrawer(mDrawerList);

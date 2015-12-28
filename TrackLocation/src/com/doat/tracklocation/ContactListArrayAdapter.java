@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.doat.tracklocation.R;
-import com.doat.tracklocation.controls.StatusImage;
+import com.doat.tracklocation.controls.ContactStatusControl;
 import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.PermissionsData;
@@ -64,7 +64,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	
     private static class ViewHolder {
         TextView textView;
-        StatusImage statusImage;
+        ContactStatusControl statusImage;
         CheckBox checkBox;
         ToggleButton toggleButton; 
         RelativeLayout contact_add_panel;
@@ -80,17 +80,8 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 			convertView = inflater.inflate(res, parent, false);
       		viewHolder.textView = (TextView) convertView.findViewById(R.id.contact);
       		//viewHolder.contact_add_panel = (RelativeLayout) convertView.findViewById(R.id.contact_add_panel);
-      		viewHolder.statusImage = (StatusImage) convertView.findViewById(R.id.status_image_ctrl);
-      		viewHolder.statusImage.setStatusDrawVisible( this.bActiveStatusDraw);
-      		/*if (bBuildMapContactList){
-	      		viewHolder.statusImage.setOnLongClickListener(new OnLongClickListener() {				
-					@Override
-					public boolean onLongClick(View v) {
-						viewHolder.contact_add_panel.setVisibility(View.VISIBLE);
-						return false;
-					}
-				});
-      		}*/
+      		viewHolder.statusImage = (ContactStatusControl) convertView.findViewById(R.id.status_image_ctrl);
+      		viewHolder.statusImage.setStatusDrawVisible(this.bActiveStatusDraw);      		
       		
       		viewHolder.checkBox = (CheckBox) convertView.findViewById(R.id.check_share_location);
       		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);      		
@@ -162,11 +153,9 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 			bmp = Utils.getRoundedCornerImage(bmp, false);
 		}
 		viewHolder.statusImage.setBitmap(bmp);
-		if (this.bActiveStatusDraw){
-			int contactStatus = contactData.getContactStatus();
-			if (contactStatus != CommonConst.CONTACT_STATUS_PENDING){				
-				viewHolder.statusImage.setCompleted(CommonConst.CONTACT_STATUS_CONNECTED);
-			}			
+		viewHolder.statusImage.setContactStatus(contactData.getContactStatus());
+		if (contactData.getContactStatus() == CommonConst.CONTACT_STATUS_START_CONNECT){
+			viewHolder.statusImage.setEnabled(false);
 		}
 		
 		if (viewHolder.checkBox != null) {								

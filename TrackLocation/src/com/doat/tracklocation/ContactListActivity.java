@@ -42,9 +42,9 @@ public class ContactListActivity extends BaseActivity {
 	// /*private EditText inputSearch; */
 	// ---------------------------------------
 	private ArrayAdapter<ContactDeviceData> adapter;
-	private List<Boolean> isSelected;
+	//private List<Boolean> isSelected;
 	private ContactDeviceDataList contactDeviceDataList;
-	private List<String> selectedContcatList;
+	//private List<String> selectedContcatList;
 	private ContactListController contactListController;
 
 	List<ContactData> values;
@@ -74,15 +74,13 @@ public class ContactListActivity extends BaseActivity {
 		Controller.fillContactDeviceData(ContactListActivity.this, contactDeviceDataList, null, null, null);
 	    if(contactDeviceDataList != null){
 	    	// TODO: move to init isSelected list:
-	    	isSelected = new ArrayList<Boolean>(values.size());
+	    	/*isSelected = new ArrayList<Boolean>(values.size());
 	    	for (int i = 0; i < values.size(); i++) {
 	    		isSelected.add(false);
-	    	}
+	    	}*/
 	    	
-			lv = (ListView) findViewById(R.id.contact_list_view);
-			
+			lv = (ListView) findViewById(R.id.contact_list_view);			
 	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, contactDeviceDataList, null, null, null);
-	        ((ContactListArrayAdapter) adapter).setActiveStatusDraw(true);
 	    	lv.setAdapter(adapter);	    		         
 	    } else {
 	    	// There can be a case when data is not provided.
@@ -96,7 +94,7 @@ public class ContactListActivity extends BaseActivity {
 	    registerForContextMenu(lv);
 
 	    	    
-	    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+/*	    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
@@ -126,9 +124,9 @@ public class ContactListActivity extends BaseActivity {
 	        	}	        
 	        }
 
-	    });
+	    });*/
 	    
-	    lv.setOnScrollListener(new OnScrollListener(){
+	    /*lv.setOnScrollListener(new OnScrollListener(){
 	        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
 	          // TODO Auto-generated method stub
 	        }
@@ -157,7 +155,7 @@ public class ContactListActivity extends BaseActivity {
 					}
 	        	}
 			}
-	    });
+	    });*/
 
 	}
 	
@@ -180,11 +178,7 @@ public class ContactListActivity extends BaseActivity {
 		return super.onOptionsItemSelected(item);
 	}
 	
-	public void onClick(final View view) {
-		
-    	// ========================================
-    	// TrackLocation button
-    	// ========================================
+/*	public void onClick(final View view) {
         if (view == findViewById(R.id.btnTrackLocation)) {
         	
         	LogManager.LogFunctionCall(className, "onClick->[BUTTON:TrackLocation]");
@@ -216,23 +210,20 @@ public class ContactListActivity extends BaseActivity {
         	
         	LogManager.LogFunctionExit(className, "onClick->[BUTTON:TrackLocation]");
 
-    	// ========================================
-    	// ... button
-    	// ========================================
         }
-	}
+	}*/
 
  	@Override
 	protected void onStart() {
 		super.onStart();
-		if(broadcastReceiver == null){
+		/*if(broadcastReceiver == null){
 			broadcastReceiver = new BroadcastReceiverContactListActivity(ContactListActivity.this, R.id.contact_list_view);
 		}
 		initNotificationBroadcastReceiver(broadcastReceiver);
 		
 		// Start thread to check which contacts are online
 		if(contactListController != null){
-			State state = contactListController.getCheckWhichContactsOnLineThreadState();
+			State state = contactListController.getThreadState();
 			contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
 		}
 	}
@@ -240,14 +231,14 @@ public class ContactListActivity extends BaseActivity {
 	@Override
 	protected void onStop() {
 		super.onStop();
-        if(broadcastReceiver != null){
+/*        if(broadcastReceiver != null){
     		unregisterReceiver(broadcastReceiver);
     	}
     	// Stop thread that checking which contacts are online
         if(contactListController != null){
         	contactListController.stopCheckWhichContactsOnLineThread();
         }
-	}
+*/	}
 
 	@Override
     protected void onDestroy() {
