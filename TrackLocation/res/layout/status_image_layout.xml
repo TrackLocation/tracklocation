@@ -22,15 +22,15 @@
         android:id="@+id/icon"
         android:src="@drawable/ic_launcher"         
     />
-    
+
     <ImageView
-        android:id="@+id/favorite_button"
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_gravity="bottom|right"
-        android:visibility="gone"
-        android:src="@android:drawable/btn_star_big_on" />
+        android:id="@+id/favorite_image"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_gravity="top|right"
+        android:layout_marginTop="0dp"
+        android:layout_marginRight="0dp"
+        android:src="@android:drawable/btn_star_big_on"
+        android:visibility="gone" />
 
 </merge>

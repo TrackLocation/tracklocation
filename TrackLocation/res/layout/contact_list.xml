@@ -13,7 +13,7 @@
     
     <ImageButton
         android:id="@+id/btnTrackLocation"
-        android:src ="@drawable/ic_track_changes_black_24dp"
+        android:src ="@drawable/ic_done_black_24dp"
         android:layout_alignParentBottom = "true"
         android:layout_centerHorizontal= "true"
         android:layout_gravity ="bottom|center"

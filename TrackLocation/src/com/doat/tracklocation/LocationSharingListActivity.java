@@ -8,6 +8,7 @@ import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
 
 import android.os.Bundle;
@@ -22,7 +23,7 @@ import android.widget.ListView;
 public class LocationSharingListActivity extends BaseActivity {
 
 	private ListView lv;
-	private ArrayAdapter<ContactDeviceData> adapter;
+	private ContactListArrayAdapter adapter;
 	private List<Boolean> isSelected;	
 	
 	@Override
@@ -34,9 +35,7 @@ public class LocationSharingListActivity extends BaseActivity {
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
-		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = this.getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST); 
-		ContactDeviceDataList contactDeviceDataList = new ContactDeviceDataList();
-		contactDeviceDataList.addAll(selectedContactDeviceDataListEx);
+		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
 	
 		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
 		List<String> emailList = new ArrayList<String>();
@@ -53,6 +52,7 @@ public class LocationSharingListActivity extends BaseActivity {
 			lv = (ListView) findViewById(R.id.location_sharing_list_view);
 			
 	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, R.id.contact, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+	        ContactDeviceDataListModel.getInstance().setAdapter("locationSharingAdapter", adapter);
 	    	lv.setAdapter(adapter);
 	    	
 	    } else {

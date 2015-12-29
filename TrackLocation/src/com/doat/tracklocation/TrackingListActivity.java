@@ -4,22 +4,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.doat.tracklocation.R;
-import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 public class TrackingListActivity extends BaseActivity {
 	private ListView lv;
-	private ArrayAdapter<ContactDeviceData> adapter;
+	private ContactListArrayAdapter adapter;
 	private List<Boolean> isSelected;
 	private List<String> selectedContcatList;
 	
@@ -32,10 +31,8 @@ public class TrackingListActivity extends BaseActivity {
 		
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
-
-		ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = this.getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST); 
-		ContactDeviceDataList contactDeviceDataList = new ContactDeviceDataList();
-		contactDeviceDataList.addAll(selectedContactDeviceDataListEx);
+		 
+		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
 	
 		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
 		List<String> emailList = new ArrayList<String>();
@@ -53,6 +50,7 @@ public class TrackingListActivity extends BaseActivity {
 			
 	        adapter = new ContactListArrayAdapter(this, R.layout.tracking_contact_list_item, 
 	        	R.id.contact, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+	        ContactDeviceDataListModel.getInstance().setAdapter("TrackingAdapter", adapter);
 	    	lv.setAdapter(adapter);
 	    	
 	    } else {
@@ -81,7 +79,7 @@ public class TrackingListActivity extends BaseActivity {
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, final View view,
 	            int position, long id) {
-	        	final ContactData selectedValue = (ContactData) parent.getItemAtPosition(position);
+	        	final ContactDeviceData selectedValue = (ContactDeviceData) parent.getItemAtPosition(position);
 	        	
 	        	if(selectedContcatList == null){
 	        		selectedContcatList = new ArrayList<String>();
@@ -90,13 +88,13 @@ public class TrackingListActivity extends BaseActivity {
 	        	isSelected.set(position, !isSelectedVal);
 	        	if(isSelected.get(position) == false){
 	        		lv.getChildAt(position).setBackgroundColor(android.R.drawable.btn_default);
-	        		if(selectedContcatList.contains(selectedValue.getEmail())){
-	        			selectedContcatList.remove(selectedValue.getEmail());
+	        		if(selectedContcatList.contains(selectedValue.getContactData().getEmail())){
+	        			selectedContcatList.remove(selectedValue.getContactData().getEmail());
 	        		}
 	        	} else {
 	        		lv.getChildAt(position).setBackgroundColor(getResources().getColor(R.color.LightGrey));
-	        		if(!selectedContcatList.contains(selectedValue.getEmail())){
-	        			selectedContcatList.add(selectedValue.getEmail());
+	        		if(!selectedContcatList.contains(selectedValue.getContactData().getEmail())){
+	        			selectedContcatList.add(selectedValue.getContactData().getEmail());
 	        		}
 	        	}
 	        	

@@ -11,6 +11,7 @@ import com.doat.tracklocation.datatype.PermissionsData;
 import com.doat.tracklocation.db.DBConst;
 import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Utils;
 
@@ -19,13 +20,11 @@ import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -39,7 +38,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	private String methodName;
 	private String logMessage;
 	private boolean bActiveStatusDraw = false;
-	private boolean bBuildMapContactList = false;
+	private boolean mDrawFavorite = true;
 	
 	public ContactListArrayAdapter(Context context, int resource, List<ContactDeviceData> values, 
 			List<Boolean> checkBoxValues, List<String> emailList, List<String> macAddressList) {
@@ -66,13 +65,14 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
         TextView textView;
         ContactStatusControl statusImage;
         CheckBox checkBox;
+        CheckBox favButton;
         ToggleButton toggleButton; 
-        RelativeLayout contact_add_panel;
     }
     
 	@Override
 	public View getView(final int position, View convertView, ViewGroup parent) {
-		ContactData contactData = ((ContactDeviceData)getItem(position)).getContactData();    
+		final ContactDeviceData contactDeviceData = (ContactDeviceData)getItem(position); 
+		final ContactData contactData = contactDeviceData.getContactData();    
 		final ViewHolder viewHolder; // view lookup cache stored in tag
 		if (convertView == null) {
 			viewHolder = new ViewHolder();
@@ -81,7 +81,8 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
       		viewHolder.textView = (TextView) convertView.findViewById(R.id.contact);
       		//viewHolder.contact_add_panel = (RelativeLayout) convertView.findViewById(R.id.contact_add_panel);
       		viewHolder.statusImage = (ContactStatusControl) convertView.findViewById(R.id.status_image_ctrl);
-      		viewHolder.statusImage.setStatusDrawVisible(this.bActiveStatusDraw);      		
+      		viewHolder.statusImage.setStatusDrawVisible(this.bActiveStatusDraw);
+      		viewHolder.statusImage.setDrawFavorite(mDrawFavorite);      		
       		
       		viewHolder.checkBox = (CheckBox) convertView.findViewById(R.id.check_share_location);
       		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);      		
@@ -131,7 +132,22 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 							Map<String, Object> m = new HashMap<String, Object>();
 							m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
 							DBLayer.getInstance().updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
+							ContactDeviceDataListModel.getInstance().notifyDataSetChanged();							
 						}
+					}
+				});
+      		}
+      		viewHolder.favButton = (CheckBox) convertView.findViewById(R.id.favbutton);
+      		if (viewHolder.favButton != null){
+      			viewHolder.favButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+					
+					@Override
+					public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {						
+						Map<String, Object> m = new HashMap<String, Object>();
+						m.put(DBConst.CONTACT_DEVICE_IS_FAVORITE, isChecked ? 1 : 0);
+						DBLayer.getInstance().updateTableContactDevice(contactData.getEmail(), contactDeviceData.getDeviceData().getDeviceMac(), m);
+						contactDeviceData.setFavorite(isChecked);
+						ContactDeviceDataListModel.getInstance().notifyDataSetChanged();						
 					}
 				});
       		}
@@ -152,8 +168,10 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 		else{
 			bmp = Utils.getRoundedCornerImage(bmp, false);
 		}
+				
 		viewHolder.statusImage.setBitmap(bmp);
 		viewHolder.statusImage.setContactStatus(contactData.getContactStatus());
+		viewHolder.statusImage.setFavorite(contactDeviceData.isFavorite());
 		if (contactData.getContactStatus() == CommonConst.CONTACT_STATUS_START_CONNECT){
 			viewHolder.statusImage.setEnabled(false);
 		}
@@ -171,14 +189,28 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 				viewHolder.checkBox.setChecked(false);
 			}
 		}
+		if (viewHolder.favButton != null){
+			viewHolder.favButton.setChecked(((ContactDeviceData)getItem(position)).isFavorite());		
+		}
 		return convertView;
 	}
 
 	public void setActiveStatusDraw(boolean bActiveStatusDraw) {
 		this.bActiveStatusDraw = bActiveStatusDraw;
 	}
+	
+	@Override
+	public boolean isEnabled(int position) {
+		if (bActiveStatusDraw){
+			return ((ContactDeviceData)getItem(position)).getContactData().getContactStatus() != CommonConst.CONTACT_STATUS_START_CONNECT;
+		}
+		else{
+			return super.isEnabled(position);
+		}
+	}
 
-	public void setBuildMapContactList(boolean bBuildMapContactList) {
-		this.bBuildMapContactList = bBuildMapContactList;
-	}	
+	public void setDrawFavorite(boolean b) {
+		mDrawFavorite  = b;
+		
+	}
 }

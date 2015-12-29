@@ -85,6 +85,8 @@ import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.model.ContactDeviceDataListModel;
+import com.doat.tracklocation.model.MainModel;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
@@ -153,6 +155,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private boolean bLockMapNothOnly;	
 	
 	private ContactListArrayAdapter adapterFavorites;
+	private ContactListArrayAdapter adapterContacts;
 	private ListView lvFavorites;
 	private ContactDeviceDataList favContactsDeviceDataList;
 	
@@ -524,12 +527,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	}	
 	
 	private void loadFavoritsForLocateContacts(){
-		contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null); 
-		/*for (ContactDeviceData cdData : contactDeviceDataList) {
-			if (cdData.getContactData().getEmail().equals("olegt1971@gmail.com")){
-				cdData.setFavorite(true);
-			}
-		}*/
+		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false); 
 		
     	lvContacts = (ListView) findViewById(R.id.contacts_list);
 	    lvFavorites = (ListView) findViewById(R.id.favorites_list);
@@ -548,6 +546,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					favContactsDeviceDataList.removeAll(favContactsDeviceDataList);
 					favContactsDeviceDataList = null;
 					adapterFavorites.notifyDataSetChanged();
+					lvFavorites.setVisibility(View.INVISIBLE);
 				}
 					        	
 				if (lvContacts.getVisibility() == View.GONE  || lvContacts.getVisibility() == View.INVISIBLE){						
@@ -575,9 +574,11 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    	return;
 	    }
 	    			
-    	final ContactListArrayAdapter adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList, null, null, null);
-        ((ContactListArrayAdapter) adapterContacts).setActiveStatusDraw(true);
-        ((ContactListArrayAdapter) adapterContacts).setBuildMapContactList(true);
+    	adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList, null, null, null);    	
+        ((ContactListArrayAdapter) adapterContacts).setActiveStatusDraw(true);        
+        
+        ContactDeviceDataListModel.getInstance().setAdapter("adapterContacts", adapterContacts);
+        
         lvContacts.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         lvContacts.setAdapter(adapterContacts);
 	    
@@ -608,7 +609,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        		isAdd = false;
 	        	}	   
 	        	isShowAllMarkersEnabled = true;
-	        	adapterContacts.notifyDataSetChanged();
+
+	        	ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
 				if(trackLocationServiceLauncherThread != null){
 					trackLocationServiceLauncherThread.interrupt();
 				}
@@ -632,6 +634,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			favContactsDeviceDataList = (ContactDeviceDataList) selectedContactDeviceDataList.clone();
 		    if(favContactsDeviceDataList != null){
 		    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList, null, null, null);
+		    	ContactDeviceDataListModel.getInstance().setAdapter("adapterFovarites", adapterFavorites);
 		        ((ContactListArrayAdapter) adapterFavorites).setActiveStatusDraw(true);
 		    
 		    	lvFavorites.setAdapter(adapterFavorites);
@@ -845,7 +848,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		    			for (int i = 0; i < contactDeviceDataList.size(); i++) {
 	    					ContactDeviceData cData = contactDeviceDataList.get(i);
 	    					if (cData.getContactData().getEmail().equals(updatingAccount)){
-	    						cData.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);	
+	    						cData.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
+	    						ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
+	    						//adapterContacts.notifyDataSetChanged();
 	    					}
 						}
 		    			
@@ -1298,7 +1303,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        	break;
 			case 5 :
 				Intent intentContactList = new Intent(MapActivity.this, ContactListActivity.class);
-	    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, contactDeviceDataList);
+	    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, contactDeviceDataList);	    		
 	    		startActivity(intentContactList);
 				break;
 			}
@@ -1311,20 +1316,20 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	}
     
 	public void updateContactStatusInListView(String senderAccount){
-		ArrayAdapter<ContactDeviceData> adapter = null;
-    	if(lvContacts.getVisibility() == View.VISIBLE){
-    		adapter = (ArrayAdapter<ContactDeviceData>) lvContacts.getAdapter();
-    	} else {
-    		adapter = (ArrayAdapter<ContactDeviceData>) lvFavorites.getAdapter();
-    	}
 		
-		if(adapter != null && senderAccount != null){
-			int count = adapter.getCount();
-			for (int i = 0; i < count; i++) {
-				ContactDeviceData item = adapter.getItem(i);
-				if(senderAccount.equals(item.getContactData().getEmail())){
-					item.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
-					adapter.notifyDataSetChanged();
+		if(senderAccount != null){
+			for (ContactDeviceData cdd : contactDeviceDataList) {
+				if (senderAccount.equals(cdd.getContactData().getEmail())){
+					cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
+					adapterContacts.notifyDataSetChanged();
+				}
+			}
+			if (favContactsDeviceDataList != null){
+				for (ContactDeviceData cdd : favContactsDeviceDataList) {
+					if (senderAccount.equals(cdd.getContactData().getEmail())){
+						cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
+						adapterFavorites.notifyDataSetChanged();
+					}
 				}
 			}
 		}
@@ -1339,25 +1344,27 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	}
 	
 	public void updateContactsList(MessageDataContactDetails contactSentJoinRequest){
-		ArrayAdapter<ContactDeviceData> adapter = null;
+		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(true);
+		Controller.fillContactDeviceData(this, contactDeviceDataList, null, null, null); 
+		ContactDeviceDataListModel.getInstance().getAdapter("adapterContacts").notifyDataSetChanged();
+		/*ContactListArrayAdapter adapter = null;
     	if(lvContacts.getVisibility() == View.VISIBLE){
-    		adapter = (ArrayAdapter<ContactDeviceData>) lvContacts.getAdapter();
+    		adapter = (ContactListArrayAdapter) lvContacts.getAdapter();
     	} else {
-    		adapter = (ArrayAdapter<ContactDeviceData>) lvFavorites.getAdapter();
+    		adapter = (ContactListArrayAdapter) lvFavorites.getAdapter();
     	}
 
     	String newAccount = contactSentJoinRequest.getAccount();
-		// Get all joined contacts from DB				
-    	ContactDeviceDataList contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
+		
 		if(isAdapterContainsContact(adapter, newAccount) == false){
 			adapter.add(getContact(contactDeviceDataList, newAccount));
 			adapter.notifyDataSetChanged();
 		}
-		Controller.fillContactDeviceData(this, contactDeviceDataList, null, null, null);
+*/		
 	}
 
 	// Get contact device data from list according to account (email)
-	private ContactDeviceData getContact(ContactDeviceDataList contactDeviceDataList, String contcatAccount){
+/*	private ContactDeviceData getContact(ContactDeviceDataList contactDeviceDataList, String contcatAccount){
 		for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 			if(contcatAccount.equals(contactDeviceData.getContactData().getEmail())){
 				return contactDeviceData;
@@ -1365,11 +1372,11 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}
 		return null;
 	}
-	
+*/	
 	// Check is account exists in adapter's list
-	private boolean isAdapterContainsContact(ArrayAdapter<ContactDeviceData> adapter, String contcatAccount){
+	private boolean isAdapterContainsContact(ContactListArrayAdapter adapter, String contactAccount){
 		for (int i = 0; i < adapter.getCount(); i++) {
-			if(contcatAccount.equals(adapter.getItem(i).getContactData().getEmail())){
+			if(contactAccount.equals(adapter.getItem(i).getContactData().getEmail())){
 				return true;
 			}
 		}
@@ -1388,5 +1395,4 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    
 		LogManager.LogFunctionExit(className, methodName);
 	}
-
 }

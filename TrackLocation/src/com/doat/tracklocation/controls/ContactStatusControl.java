@@ -2,10 +2,14 @@ package com.doat.tracklocation.controls;
 
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.utils.CommonConst;
+import com.doat.tracklocation.utils.Utils;
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
+import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
@@ -13,14 +17,18 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+import android.support.v4.graphics.drawable.DrawableCompat;
 
 public class ContactStatusControl extends FrameLayout {
 	private ProgressBar progressBar;
 	private Bitmap bitmap;
 	private ImageView imageView;
+	private ImageView favView;
 	private boolean bStatusDrawVisible = false;
 		
 	private int mContactStatus = CommonConst.CONTACT_STATUS_START_CONNECT;
+	private boolean mIsFavorite = false;
+	private boolean mDrawFavorite = true;
 
 	public int getContactStatus() {
 		return mContactStatus;
@@ -62,7 +70,8 @@ public class ContactStatusControl extends FrameLayout {
         View v = View.inflate(context, R.layout.status_image_layout,this);
         setClipChildren(false);        
         progressBar = (ProgressBar) v.findViewById(R.id.progress_bar);
-        imageView = (ImageView) v.findViewById(R.id.icon);	
+        imageView = (ImageView) v.findViewById(R.id.icon);
+        favView = (ImageView) v.findViewById(R.id.favorite_image);
            
         if (attrs != null) {
             final TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.StatusImageView);            
@@ -73,16 +82,21 @@ public class ContactStatusControl extends FrameLayout {
     
 	public void setBitmap(Bitmap bitmap){
 		this.bitmap = bitmap;
-		Drawable contactPhoto = new BitmapDrawable(this.getResources(), bitmap);
-		imageView.setImageDrawable(contactPhoto);
+		Drawable normalDrawable = new BitmapDrawable(this.getResources(), bitmap);
+		/*	Drawable wrappedDrawable = DrawableCompat.wrap(normalDrawable);
+	
+		DrawableCompat.setTintList(wrappedDrawable, getResources().getColorStateList(R.drawable.drawable_selector));		
+		DrawableCompat.setTintMode(wrappedDrawable, Mode.SRC_IN);
+		imageView.setImageDrawable(wrappedDrawable);*/
+		//Drawable contactPhoto = new BitmapDrawable(this.getResources(), bitmap);
+		imageView.setImageDrawable(normalDrawable);
 	}
 	
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {	
 		super.onSizeChanged(w, h, oldw, oldh);	
-		
-		//progressBar.getLayoutParams().height
-		//progressBar.get
+		favView.setTop((int)(this.getHeight() *2 / 3));
+		favView.setLeft((int)(this.getWidth() *2 / 3));
 	}
 	
 	private void setCompleted(){	
@@ -95,7 +109,7 @@ public class ContactStatusControl extends FrameLayout {
 	private void setStartPending(){	
 		if (bStatusDrawVisible){
 			if (mContactStatus == CommonConst.CONTACT_STATUS_CONNECTED){
-				progressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.Green), android.graphics.PorterDuff.Mode.SRC_IN);									
+				progressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.Orange), android.graphics.PorterDuff.Mode.SRC_IN);									
 				progressBar.setIndeterminate(true);
 			}						
 		}
@@ -110,5 +124,34 @@ public class ContactStatusControl extends FrameLayout {
 	public void setEnabled(boolean enabled) {
 		super.setEnabled(enabled);
 		imageView.setEnabled(enabled);
+		/*Drawable contactPhoto = new BitmapDrawable(this.getResources(), bitmap);
+		Bitmap disBitmap = Utils.changeBitmapColor(bitmap);
+	    Drawable icon = enabled ? contactPhoto : new BitmapDrawable(this.getResources(), disBitmap);	    
+		imageView.setImageDrawable(icon);*/
+
+	}
+	
+/*	private static Drawable convertDrawableToGrayScale(Drawable drawable) {
+	    if (drawable == null) {
+	        return null;
+	    }
+	    Drawable res = drawable.mutate();
+	    res.setColorFilter(Color.GRAY, Mode.SRC_OVER);
+	    return res;
+	}
+*/	
+	public void setFavorite(boolean value){
+		mIsFavorite = value;
+		if (mDrawFavorite){
+			favView.setVisibility(mIsFavorite ? View.VISIBLE : View.GONE);
+		}
+	}
+	
+	public boolean isFavorite(){		
+		return mIsFavorite;
+	}
+	
+	public void setDrawFavorite(boolean value){		
+		mDrawFavorite  = value;		
 	}
 }

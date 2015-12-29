@@ -63,9 +63,7 @@ public class ContactEditActivity extends BaseActivity {
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
-		ContactData contactData = intent.getExtras().getParcelable(CommonConst.JSON_STRING_CONTACT_DATA);
-		
-		contactDeviceData = DBLayer.getInstance().getContactDeviceData(contactData.getEmail());
+		contactDeviceData = intent.getExtras().getParcelable(CommonConst.JSON_STRING_CONTACT_DATA);
 		
 		text_email = (EditText) findViewById(R.id.fld_email);
 		text_email.setText(contactDeviceData.getContactData().getEmail());
@@ -78,20 +76,14 @@ public class ContactEditActivity extends BaseActivity {
         btn_ChangeImage.setOnClickListener(imgButtonHandler); 
         
         Drawable contactPhoto = null;
-        Bitmap bmp = contactData.getContactPhoto();
+        Bitmap bmp = contactDeviceData.getContactData().getContactPhoto();
         if (bmp == null){
         	bmp = Utils.getDefaultContactBitmap(getResources());
         }
         
         contactPhoto = new BitmapDrawable(this.getResources(), bmp);			
         iv_photo.setImageDrawable(contactPhoto);        
-        
-        text_first_name = (EditText) findViewById(R.id.fld_first_name); 
-        text_first_name.setText(contactDeviceData.getContactData().getFirstName());
-        
-        text_last_name = (EditText) findViewById(R.id.fld_last_name); 
-        text_last_name.setText(contactDeviceData.getContactData().getLastName());        
-        
+                
         text_device_name = (EditText) findViewById(R.id.fld_devicename); 
         text_device_name.setText(contactDeviceData.getDeviceData().getDeviceName()); 
         

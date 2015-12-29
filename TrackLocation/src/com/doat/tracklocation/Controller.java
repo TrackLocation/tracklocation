@@ -995,10 +995,10 @@ public class Controller {
 	public static ArrayList<ActionMenuObj> getActionMenuList(Context context) {
 		ArrayList<ActionMenuObj> alResult = new ArrayList<ActionMenuObj>();
 		alResult.add(new ActionMenuObj(0, context.getString(R.string.action_join_contact), R.drawable.ic_compare_arrows_black_36dp));
-		alResult.add(new ActionMenuObj(5, context.getString(R.string.action_contacts), -1));
+		alResult.add(new ActionMenuObj(5, context.getString(R.string.action_contacts), android.R.drawable.sym_contact_card));
 		alResult.add(new ActionMenuObj(1, context.getString(R.string.action_location_sharing), -1));
 		alResult.add(new ActionMenuObj(2, context.getString(R.string.action_tracking), R.drawable.ic_track_changes_black_24dp));
-		alResult.add(new ActionMenuObj(3, context.getString(R.string.action_settings), android.R.drawable.ic_menu_preferences));
+		alResult.add(new ActionMenuObj(3, context.getString(R.string.action_settings), android.R.drawable.ic_menu_manage));
 		alResult.add(new ActionMenuObj(4, context.getString(R.string.action_about), android.R.drawable.btn_star));
 		return alResult;
 	}

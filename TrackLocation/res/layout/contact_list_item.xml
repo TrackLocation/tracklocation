@@ -16,7 +16,18 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_weight="0.9"
-            layout="@layout/user_data_fragment" />
+            layout="@layout/user_data_fragment" />                 
+            
+        <CheckBox
+            android:id="@+id/favbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="5sp"
+            android:layout_marginTop="5sp"
+            android:layout_weight="0.1"
+            android:button="@android:drawable/btn_star"
+            android:focusable="false" />
 
     </LinearLayout>
     
