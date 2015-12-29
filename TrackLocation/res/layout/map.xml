@@ -35,6 +35,7 @@
 	        android:paddingTop="25sp"
 	        android:text="TextView"
 	        android:textColor="#ff000000"
+	        android:visibility="invisible"
 	        android:textSize="18sp" />
 	
 	    <LinearLayout
