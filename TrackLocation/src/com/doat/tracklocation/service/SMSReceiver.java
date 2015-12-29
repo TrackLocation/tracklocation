@@ -4,7 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import com.doat.tracklocation.Controller;
-import com.doat.tracklocation.MainActivity;
+//import com.doat.tracklocation.MainActivity;
+import com.doat.tracklocation.MapActivity;
 import com.doat.tracklocation.crypto.CryptoUtils;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.BroadcastKeyEnum;
@@ -103,10 +104,10 @@ public class SMSReceiver extends BroadcastReceiver {
 	    		}
     			
 			    // Send a broadcast intent to update the SMS received in the activity
-				Intent intentMainActivity = getIntent(context, MainActivity.class);
-				Log.i(CommonConst.LOG_TAG, "intentMainActivity = " + intentMainActivity);
-				if(MainActivity.isTrackLocationRunning == false){
-		        	Intent mainActivity = new Intent(context, MainActivity.class);
+				Intent intentMapActivity = getIntent(context, MapActivity.class);
+				Log.i(CommonConst.LOG_TAG, "intentMainActivity = " + intentMapActivity);
+				if(MapActivity.isTrackLocationRunning == false){
+		        	Intent mainActivity = new Intent(context, MapActivity.class);
 		        	mainActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		    		context.startActivity(mainActivity);
 				} else {					

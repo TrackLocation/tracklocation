@@ -78,12 +78,6 @@ public class BroadcastReceiverMapActivity extends BroadcastReceiverBase {
     					for (String account : listAccounts) {
     						accountsListMsg = " - " + account + "\n" + accountsListMsg;
     					}
-//    					notificationView.setText("Tracking for contacts:\n" +
-//    							accountsListMsg +
-//    							"\nPlease wait...");
-//	    				notificationView.setVisibility(0);
-					} else {
-//						notificationView.setVisibility(4);
 					}
 					break;
 				case error:
@@ -107,12 +101,6 @@ public class BroadcastReceiverMapActivity extends BroadcastReceiverBase {
     					for (String account : listAccounts) {
     						accountsListMsg = " - " + account + "\n" + accountsListMsg;
     					}
-//    					notificationView.setText("Tracking for contacts:\n" +
-//    							accountsListMsg +
-//    							"\nPlease wait...");
-//	    				notificationView.setVisibility(0);
-					} else {
-//						notificationView.setVisibility(4);
 					}
 					break;
 				default:
@@ -134,67 +122,18 @@ public class BroadcastReceiverMapActivity extends BroadcastReceiverBase {
 						// update listView - notifyDataSetChanged
 						((MapActivity) this.activity).updateContactStatusInListView(senderAccount);
 					}
-
-//					ListView lv = (ListView) activity.findViewById(this.contactsListId);
-//					ArrayAdapter<ContactDeviceData> adapter = (ArrayAdapter<ContactDeviceData>) lv.getAdapter();
-//					MessageDataContactDetails contactDetails = broadcastData.getContactDetails();
-//					if(contactDetails != null){
-//						String senderAccount = contactDetails.getAccount();
-//						if(adapter != null && senderAccount != null){
-//							int count = adapter.getCount();
-//							for (int i = 0; i < count; i++) {
-//								ContactDeviceData item = adapter.getItem(i);
-//								if(senderAccount.equals(item.getContactData().getEmail())){
-//									item.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
-//									adapter.notifyDataSetChanged();
-//								}
-//							}
-//						}
-//					}
 				}
 			}
 			
-//			if(CommandKeyEnum.update_contact_list.toString().equals(key)) {
-//				
-//				ListView lv = (ListView) activity.findViewById (R.id.contact_list_view);
-//				ArrayAdapter<ContactDeviceData> adapter = (ArrayAdapter<ContactDeviceData>) lv.getAdapter();
-//
-//				// Get all joined contacts from DB				
-//				ContactDeviceDataList contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
-//				Controller.fillContactDeviceData(activity, contactDeviceDataList, null, null, null);
-//
-//				// Get details of contact that sent join request by SMS from broadcast
-//				MessageDataContactDetails contactSentJoinRequest = broadcastData.getContactDetails();
-//				
-//				for (ContactDeviceData jonedContact : contactDeviceDataList) {
-//					if(jonedContact.getContactData().getEmail().equals(contactSentJoinRequest.getAccount())){
-//						int position = adapter.getPosition(jonedContact);
-//						// if joined contact still not shown in Contact List - add it and show it
-//						if(position < 0){
-//							adapter.add(jonedContact);
-//							adapter.notifyDataSetChanged();
-//						}
-//						break;
-//					}
-//				}
-//			}
+			if(CommandKeyEnum.update_contact_list.toString().equals(key)) {
+				// Get details of contact that sent join request by SMS from broadcast
+				MessageDataContactDetails contactSentJoinRequest = broadcastData.getContactDetails();
+				((MapActivity) this.activity).updateContactsList(contactSentJoinRequest);
+			}
 		}
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
-
-//	private void displayNotification(Bundle bundle){
-//		String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
-//		if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
-//			return;
-//		}
-//		NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
-//		if(broadcastData == null){
-//			return;
-//		}
-//		
-//		Toast.makeText(activity, broadcastData.getMessage(), Toast.LENGTH_LONG).show();
-//	}
 
 }

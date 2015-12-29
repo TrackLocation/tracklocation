@@ -81,7 +81,6 @@ import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
-import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
@@ -140,6 +139,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private LinearLayout layoutAccountMenu;
 	private ImageButton btnMyLocation;
 	
+    public static volatile boolean isTrackLocationRunning; // Used in SMSReceiver.class
+	
 	float mLastTouchX = 0;
 	float mLastTouchY = 0;
 	private int mActivePointerId = -1;
@@ -185,6 +186,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
+		isTrackLocationRunning = true;
 		context = getApplicationContext();
 		selectedAccountList = new HashMap<String, ContactData>();
 
@@ -340,6 +342,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     @Override
     protected void onDestroy() {
     	super.onDestroy();
+        isTrackLocationRunning = false;
     }
     
 	private void loadBottomActionPanel() {
@@ -661,7 +664,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}		
 
 		List<String> recipientList = new ArrayList<String>();
-			//if(!selectedContactDeviceDataList.isEmpty()){
+		//if(!selectedContactDeviceDataList.isEmpty()){
 		contactsQuantity = selectedContactDeviceDataList.size();
 		// Create and fill all requested accounts that should be shown on the location map
 		selectedAccountList.clear();
@@ -1043,19 +1046,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}
 	}
 	
-	private void displayNotification(Bundle bundle){
-		String jsonNotificationData = bundle.getString(BroadcastConstEnum.data.toString());
-		if(jsonNotificationData == null || jsonNotificationData.isEmpty()){
-			return;
-		}
-		NotificationBroadcastData broadcastData = gson.fromJson(jsonNotificationData, NotificationBroadcastData.class);
-		if(broadcastData == null){
-			return;
-		}
-		
-		Toast.makeText(MapActivity.this, broadcastData.getMessage(), Toast.LENGTH_LONG).show();
-	}
-
 	@Override
 	public boolean onMarkerClick(Marker marker) {    	
         Projection projection = map.getProjection();
@@ -1346,6 +1336,44 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
 			isPermissionDialogShown = true;
 		}
+	}
+	
+	public void updateContactsList(MessageDataContactDetails contactSentJoinRequest){
+		ArrayAdapter<ContactDeviceData> adapter = null;
+    	if(lvContacts.getVisibility() == View.VISIBLE){
+    		adapter = (ArrayAdapter<ContactDeviceData>) lvContacts.getAdapter();
+    	} else {
+    		adapter = (ArrayAdapter<ContactDeviceData>) lvFavorites.getAdapter();
+    	}
+
+    	String newAccount = contactSentJoinRequest.getAccount();
+		// Get all joined contacts from DB				
+    	ContactDeviceDataList contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
+		if(isAdapterContainsContact(adapter, newAccount) == false){
+			adapter.add(getContact(contactDeviceDataList, newAccount));
+			adapter.notifyDataSetChanged();
+		}
+		Controller.fillContactDeviceData(this, contactDeviceDataList, null, null, null);
+	}
+
+	// Get contact device data from list according to account (email)
+	private ContactDeviceData getContact(ContactDeviceDataList contactDeviceDataList, String contcatAccount){
+		for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
+			if(contcatAccount.equals(contactDeviceData.getContactData().getEmail())){
+				return contactDeviceData;
+			}
+		}
+		return null;
+	}
+	
+	// Check is account exists in adapter's list
+	private boolean isAdapterContainsContact(ArrayAdapter<ContactDeviceData> adapter, String contcatAccount){
+		for (int i = 0; i < adapter.getCount(); i++) {
+			if(contcatAccount.equals(adapter.getItem(i).getContactData().getEmail())){
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	// Initialize BROADCAST_MESSAGE broadcast receiver
