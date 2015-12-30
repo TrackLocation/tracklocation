@@ -18,6 +18,7 @@ import com.doat.tracklocation.utils.Utils;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +26,7 @@ import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
@@ -82,8 +84,8 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
       		//viewHolder.contact_add_panel = (RelativeLayout) convertView.findViewById(R.id.contact_add_panel);
       		viewHolder.statusImage = (ContactStatusControl) convertView.findViewById(R.id.status_image_ctrl);
       		viewHolder.statusImage.setStatusDrawVisible(this.bActiveStatusDraw);
-      		viewHolder.statusImage.setDrawFavorite(mDrawFavorite);      		
-      		
+      		viewHolder.statusImage.setDrawFavorite(mDrawFavorite);
+      		      		
       		viewHolder.checkBox = (CheckBox) convertView.findViewById(R.id.check_share_location);
       		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);      		
       		if (viewHolder.toggleButton != null){
@@ -174,6 +176,13 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 		viewHolder.statusImage.setFavorite(contactDeviceData.isFavorite());
 		if (contactData.getContactStatus() == CommonConst.CONTACT_STATUS_START_CONNECT){
 			viewHolder.statusImage.setEnabled(false);
+		}
+		
+		if (parent != null && parent instanceof ListView){
+			SparseBooleanArray checked = ((ListView)parent).getCheckedItemPositions();
+			if (checked != null){
+				viewHolder.statusImage.setSelected(checked.get(position));
+			}
 		}
 		
 		if (viewHolder.checkBox != null) {								

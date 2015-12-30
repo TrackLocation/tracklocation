@@ -2,24 +2,19 @@ package com.doat.tracklocation.controls;
 
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.utils.CommonConst;
-import com.doat.tracklocation.utils.Utils;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.support.v4.graphics.drawable.DrawableCompat;
 
 public class ContactStatusControl extends FrameLayout {
 	private ProgressBar progressBar;
@@ -74,6 +69,7 @@ public class ContactStatusControl extends FrameLayout {
         setClipChildren(false);        
         progressBar = (ProgressBar) v.findViewById(R.id.progress_bar);
         imageView = (ImageView) v.findViewById(R.id.icon);
+        
         favView = (ImageView) v.findViewById(R.id.favorite_image);
            
         if (attrs != null) {
@@ -82,8 +78,9 @@ public class ContactStatusControl extends FrameLayout {
             a.recycle();
         }
         
-        imgAnimation = new AlphaAnimation(0.3f, 1.0f);
+        imgAnimation = new AlphaAnimation(1.0f, 0.3f);
 		imgAnimation.setDuration(1000);
+		imgAnimation.setRepeatMode(Animation.REVERSE);
 		imgAnimation.setRepeatCount(Animation.INFINITE);
 		imgAnimation.setFillAfter(true);
     }
@@ -132,22 +129,8 @@ public class ContactStatusControl extends FrameLayout {
 	public void setEnabled(boolean enabled) {
 		super.setEnabled(enabled);
 		imageView.setEnabled(enabled);
-		/*Drawable contactPhoto = new BitmapDrawable(this.getResources(), bitmap);
-		Bitmap disBitmap = Utils.changeBitmapColor(bitmap);
-	    Drawable icon = enabled ? contactPhoto : new BitmapDrawable(this.getResources(), disBitmap);	    
-		imageView.setImageDrawable(icon);*/
-
 	}
 	
-/*	private static Drawable convertDrawableToGrayScale(Drawable drawable) {
-	    if (drawable == null) {
-	        return null;
-	    }
-	    Drawable res = drawable.mutate();
-	    res.setColorFilter(Color.GRAY, Mode.SRC_OVER);
-	    return res;
-	}
-*/	
 	public void setFavorite(boolean value){
 		mIsFavorite = value;
 		if (mDrawFavorite){
@@ -161,5 +144,9 @@ public class ContactStatusControl extends FrameLayout {
 	
 	public void setDrawFavorite(boolean value){		
 		mDrawFavorite  = value;		
+	}
+	
+	public void setSelected(boolean bSelected){
+		imageView.setAlpha(bSelected ? 0.5f : 1f);
 	}
 }
