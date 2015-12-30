@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 import com.doat.tracklocation.R;
-import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.DeviceTypeEnum;
 import com.doat.tracklocation.db.DBLayer;

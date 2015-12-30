@@ -1362,42 +1362,17 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	
 	public void updateContactsList(MessageDataContactDetails contactSentJoinRequest){
 		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(true);
+		adapterContacts.clear();
+		adapterContacts.addAll(contactDeviceDataList);
 		Controller.fillContactDeviceData(this, contactDeviceDataList, null, null, null); 
-		ContactDeviceDataListModel.getInstance().getAdapter("adapterContacts").notifyDataSetChanged();
-		/*ContactListArrayAdapter adapter = null;
-    	if(lvContacts.getVisibility() == View.VISIBLE){
-    		adapter = (ContactListArrayAdapter) lvContacts.getAdapter();
-    	} else {
-    		adapter = (ContactListArrayAdapter) lvFavorites.getAdapter();
-    	}
-
-    	String newAccount = contactSentJoinRequest.getAccount();
-		
-		if(isAdapterContainsContact(adapter, newAccount) == false){
-			adapter.add(getContact(contactDeviceDataList, newAccount));
-			adapter.notifyDataSetChanged();
-		}
-*/		
-	}
-
-	// Get contact device data from list according to account (email)
-/*	private ContactDeviceData getContact(ContactDeviceDataList contactDeviceDataList, String contcatAccount){
-		for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
-			if(contcatAccount.equals(contactDeviceData.getContactData().getEmail())){
-				return contactDeviceData;
+		ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
+		// Start thread to check which contacts are online
+		if(contactListController != null){
+			State state = contactListController.getCheckWhichContactsOnLineThreadState();
+			if(state == null || state.equals(Thread.State.TERMINATED)){
+				contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
 			}
 		}
-		return null;
-	}
-*/	
-	// Check is account exists in adapter's list
-	private boolean isAdapterContainsContact(ContactListArrayAdapter adapter, String contactAccount){
-		for (int i = 0; i < adapter.getCount(); i++) {
-			if(contactAccount.equals(adapter.getItem(i).getContactData().getEmail())){
-				return true;
-			}
-		}
-		return false;
 	}
 	
 	// Initialize BROADCAST_MESSAGE broadcast receiver

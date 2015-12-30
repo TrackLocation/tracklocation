@@ -937,7 +937,6 @@ public class DBLayer {
 						String registrationId = contactDeviceData.getRegistration_id();
 						String imei = contactDeviceData.getImei();
 						String guid = contactDeviceData.getGuid();
-						boolean isFavorite = contactDeviceData.isFavorite();
 						
 						String email = null;
 						if(contactData != null){

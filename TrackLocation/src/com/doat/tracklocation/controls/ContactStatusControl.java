@@ -14,6 +14,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -29,6 +31,7 @@ public class ContactStatusControl extends FrameLayout {
 	private int mContactStatus = CommonConst.CONTACT_STATUS_START_CONNECT;
 	private boolean mIsFavorite = false;
 	private boolean mDrawFavorite = true;
+	private AlphaAnimation imgAnimation;
 
 	public int getContactStatus() {
 		return mContactStatus;
@@ -78,17 +81,16 @@ public class ContactStatusControl extends FrameLayout {
             setStatusDrawVisible(a.getBoolean(R.styleable.StatusImageView_siv_showStatus, false));
             a.recycle();
         }
+        
+        imgAnimation = new AlphaAnimation(0.3f, 1.0f);
+		imgAnimation.setDuration(1000);
+		imgAnimation.setRepeatCount(Animation.INFINITE);
+		imgAnimation.setFillAfter(true);
     }
     
 	public void setBitmap(Bitmap bitmap){
 		this.bitmap = bitmap;
 		Drawable normalDrawable = new BitmapDrawable(this.getResources(), bitmap);
-		/*	Drawable wrappedDrawable = DrawableCompat.wrap(normalDrawable);
-	
-		DrawableCompat.setTintList(wrappedDrawable, getResources().getColorStateList(R.drawable.drawable_selector));		
-		DrawableCompat.setTintMode(wrappedDrawable, Mode.SRC_IN);
-		imageView.setImageDrawable(wrappedDrawable);*/
-		//Drawable contactPhoto = new BitmapDrawable(this.getResources(), bitmap);
 		imageView.setImageDrawable(normalDrawable);
 	}
 	
@@ -101,6 +103,12 @@ public class ContactStatusControl extends FrameLayout {
 	
 	private void setCompleted(){	
 		if (bStatusDrawVisible){
+			if (mContactStatus == CommonConst.CONTACT_STATUS_PENDING){
+				imageView.clearAnimation();
+			}
+			else{
+				progressBar.setIndeterminate(false);
+			}
 			mContactStatus = CommonConst.CONTACT_STATUS_CONNECTED;
 			progressBar.setIndeterminate(false);
 		}
@@ -108,9 +116,9 @@ public class ContactStatusControl extends FrameLayout {
 	
 	private void setStartPending(){	
 		if (bStatusDrawVisible){
-			if (mContactStatus == CommonConst.CONTACT_STATUS_CONNECTED){
-				progressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.Orange), android.graphics.PorterDuff.Mode.SRC_IN);									
-				progressBar.setIndeterminate(true);
+			if (mContactStatus == CommonConst.CONTACT_STATUS_CONNECTED){				
+				imageView.startAnimation(imgAnimation);
+				mContactStatus = CommonConst.CONTACT_STATUS_PENDING;
 			}						
 		}
 	}

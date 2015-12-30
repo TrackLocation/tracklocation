@@ -1,11 +1,7 @@
 package com.doat.tracklocation;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.controller.ContactListController;
-import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.db.DBLayer;
@@ -25,7 +21,6 @@ import android.view.View;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -166,7 +161,7 @@ public class ContactListActivity extends BaseActivity {
 			// Make sure the request was successful
 	        if (resultCode == RESULT_OK) {	        	 			        	
 	    		ContactDeviceData contactData = data.getExtras().getParcelable(CommonConst.JSON_STRING_CONTACT_DATA);  	    		
-	    		int contactPosition = data.getExtras().getInt(CommonConst.CONTACT_LIST_SELECTED_VALUE);
+	    		int contactPosition = data.getExtras().getInt(CommonConst.CONTACT_LIST_SELECTED_VALUE);	    		
 	    		adapter.remove(adapter.getItem(contactPosition));
 	    		adapter.insert(contactData, contactPosition);
 	    		ContactDeviceDataListModel.getInstance().notifyDataSetChanged(); 	
@@ -188,10 +183,11 @@ public class ContactListActivity extends BaseActivity {
 			.setCancelable(false)
 			.setPositiveButton("Yes",new DialogInterface.OnClickListener() {
 				public void onClick(DialogInterface dialog,int id) {
-					ContactDeviceData contactDeviceData = contactDeviceDataList.getContactDeviceDataByContactData(deleteContact.getContactData().getEmail());
-					if (contactDeviceData != null ){
-						if (DBLayer.getInstance().removeContactDataDeviceDetail(contactDeviceData) != -1){
-							contactDeviceDataList.remove(contactDeviceData);	
+					//ContactDeviceData contactDeviceData = adapter.getItem(deletePosition);
+					//ContactDeviceData contactDeviceData = contactDeviceDataList.getContactDeviceDataByContactData(deleteContact.getContactData().getEmail());
+					if (deleteContact != null ){
+						if (DBLayer.getInstance().removeContactDataDeviceDetail(deleteContact) != -1){
+							adapter.remove(deleteContact);	
 							ContactDeviceDataListModel.getInstance().notifyDataSetChanged(); 
 							Toast.makeText(ContactListActivity.this, "The contact " + deleteContact.getContactData().getNick() + " was removed", Toast.LENGTH_SHORT).show();
 						}
