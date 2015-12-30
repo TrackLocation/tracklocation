@@ -55,7 +55,6 @@ import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -81,12 +80,10 @@ import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
-import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactDeviceDataListModel;
-import com.doat.tracklocation.model.MainModel;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
@@ -638,6 +635,20 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		        ((ContactListArrayAdapter) adapterFavorites).setActiveStatusDraw(true);
 		    
 		    	lvFavorites.setAdapter(adapterFavorites);
+		    	
+				// Start thread to check which contacts are online
+				if(contactListController != null){
+					State state = contactListController.getCheckWhichContactsOnLineThreadState();
+					if(state == null || state.equals(Thread.State.TERMINATED)){
+						contactListController.startCheckWhichContactsOnLineThread(favContactsDeviceDataList);
+					}
+				}
+				
+	        	ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
+				if(trackLocationServiceLauncherThread != null){
+					trackLocationServiceLauncherThread.interrupt();
+				}
+				startTrackLocationServiceLauncher(null, true);
 		    }	    
 	    }
 	    else{
@@ -659,12 +670,18 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
-		if (isAddAction){
-			selectedContactDeviceDataList.add(inContactDeviceData);
+		if(selectedContactDeviceDataList == null || selectedContactDeviceDataList.isEmpty()){
+			return;
 		}
-		else{
-			selectedContactDeviceDataList.remove(inContactDeviceData);
-		}		
+		
+		if(inContactDeviceData != null){
+			if (isAddAction){
+				selectedContactDeviceDataList.add(inContactDeviceData);
+			}
+			else{
+				selectedContactDeviceDataList.remove(inContactDeviceData);
+			}	
+		}
 
 		List<String> recipientList = new ArrayList<String>();
 		//if(!selectedContactDeviceDataList.isEmpty()){
