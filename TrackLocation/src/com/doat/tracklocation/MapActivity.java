@@ -80,6 +80,7 @@ import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
+import com.doat.tracklocation.dialog.CommonDialog;
 import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
@@ -1250,11 +1251,37 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     
     @Override
     public void onBackPressed() {
-    	// TODO Auto-generated method stub
-    	super.onBackPressed();
-    	finish();
+    	//super.onBackPressed();
+    	
+    	CommonDialog quitDialog = new CommonDialog(this, quitListener);
+    	quitDialog.setDialogMessage("Do you want to shut down TrackLocation?");
+    	quitDialog.setDialogTitle("Shut Down");
+    	quitDialog.setPositiveButtonText("Shut Down");
+    	quitDialog.setNegativeButtonText("No");
+    	quitDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+    	quitDialog.setCancelable(false);
+    	quitDialog.showDialog();
+    	
+    	//finish();
     }
 
+    ICommonDialogOnClickListener quitListener = new ICommonDialogOnClickListener(){
+		@Override
+		public void doOnPositiveButton(Object data) {
+	    	finish();
+		}
+
+		@Override
+		public void doOnNegativeButton(Object data) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public void doOnChooseItem(int which) {
+			// TODO Auto-generated method stub
+		}
+    };
+    
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
