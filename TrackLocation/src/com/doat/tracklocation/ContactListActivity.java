@@ -84,7 +84,7 @@ public class ContactListActivity extends BaseActivity {
 	        }
 	    });	    
 	    
-		adView = (AdView)this.findViewById(R.id.adView);
+		adView = (AdView)this.findViewById(R.id.adViewContacts);
 	    AdRequest adRequest = new AdRequest.Builder().build();
 	    adView.loadAd(adRequest);
 

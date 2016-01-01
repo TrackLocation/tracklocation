@@ -89,8 +89,9 @@ import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.Utils;
+import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -169,7 +170,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private MainActivityController mainActivityController;
 
 	private ContactListController contactListController;
-	private AdView adView;
+	private InterstitialAd mInterstitialAd;
 
 	private enum DialogStatus{
 		Opened, Closed
@@ -183,7 +184,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		methodName = "onCreate";
     	isPermissionDialogShown = false;
 		setContentView(R.layout.map);	
-
+		
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
@@ -254,9 +255,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		loadBottomActionPanel();
 		
-		adView = (AdView)this.findViewById(R.id.adView);
+/*		adView = (AdView)this.findViewById(R.id.adView);
 	    AdRequest adRequest = new AdRequest.Builder().build();
-	    adView.loadAd(adRequest);
+	    adView.loadAd(adRequest);*/
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -294,14 +295,14 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
 		}
 
-		adView.pause();
+//		adView.pause();
 		super.onPause();
 	}
 	
 	@Override
 	protected void onResume() {	
 		super.onResume();
-		adView.resume();
+//		adView.resume();
 	}
 	
 	
@@ -359,7 +360,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
     @Override
     protected void onDestroy() {
-    	adView.destroy();
     	isTrackLocationRunning = false;
     	super.onDestroy();        
     }

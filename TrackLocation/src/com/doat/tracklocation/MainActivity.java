@@ -1,71 +1,88 @@
 package com.doat.tracklocation;
 
-//import com.doat.tracklocation.R;
-//import com.doat.tracklocation.broadcast.BroadcastReceiverBase;
-//import com.doat.tracklocation.controller.MainActivityController;
-//import com.doat.tracklocation.datatype.BackupDataOperations;
-//import com.doat.tracklocation.db.DBHelper;
-//import com.doat.tracklocation.db.DBLayer;
-//import com.doat.tracklocation.db.DBManager;
-//import com.doat.tracklocation.dialog.InfoDialog;
-//import com.doat.tracklocation.log.LogManager;
-//import com.doat.tracklocation.model.MainModel;
-//import com.doat.tracklocation.utils.CommonConst;
-//import com.doat.tracklocation.utils.Preferences;
-//
-//import android.os.Bundle;
-//import android.annotation.SuppressLint;
-//import android.app.Notification;
-//import android.app.NotificationManager;
-//import android.app.PendingIntent;
-//import android.content.Context;
-//import android.content.Intent;
-//import android.support.v4.app.NotificationCompat;
-//import android.util.Log;
-//import android.view.Menu;
-//import android.view.View;
-//import android.widget.Toast;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.utils.CommonConst;
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.InterstitialAd;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 
 public class MainActivity extends BaseActivity {
-//    private final static int JOIN_REQUEST = 1;      
-//    protected MainActivityController mainActivityController;
-//    protected MainModel mainModel;
-//    BroadcastReceiverBase broadcastReceiver;
-//    
-//    public static volatile boolean isTrackLocationRunning; // Used in SMSReceiver.class
-//    
-//    public MainActivityController getMainActivityController() {
-//		return mainActivityController;
-//	}
-//
-//	@SuppressLint("ResourceAsColor")
-//	@Override
-//	protected void onCreate(Bundle savedInstanceState) {
-//		super.onCreate(savedInstanceState);
-//		
-//		className = this.getClass().getName();
-//		methodName = "onCreate";
-//		
-//		LogManager.LogActivityCreate(className, methodName);
-//		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
-//		
-//		setContentView(R.layout.activity_main);
-//				
-//		isTrackLocationRunning = true;
-//		
-//		context = getApplicationContext();
-//		NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
-//			.setSmallIcon(R.drawable.main_icon_96)
-//			.setContentTitle(getResources().getString(R.string.app_name));      
-//
-//		Intent intent = new Intent( context, MainActivity.class);
-//		PendingIntent pIntent = PendingIntent.getActivity(context, 1 , intent, 0);
-//		builder.setContentIntent(pIntent);
-//		NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//
-//		Notification notif = builder.build();
-//		mNotificationManager.notify(1, notif);
-//    }
+	private InterstitialAd mInterstitialAd;
+	private Handler handler = new Handler();
+	private Timer timer;
+
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		// Create the InterstitialAd and set the adUnitId.
+        mInterstitialAd = new InterstitialAd(this);
+        // Defined in res/values/strings.xml
+        mInterstitialAd.setAdUnitId("ca-app-pub-6783162973293781/6666323357");
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mInterstitialAd.loadAd(adRequest);
+        AdListener adListener = new AdListener() {
+        	@Override
+        	public void onAdLoaded() {        		
+        		super.onAdLoaded();
+        		mInterstitialAd.show();
+        		startTimer();
+        	}
+        	
+        	@Override
+        	public void onAdClosed() {        		
+        		super.onAdClosed();
+        		stoptimertask();
+        		Intent mapIntent = new Intent(MainActivity.this, MapActivity.class);
+        		startActivity(mapIntent);
+        		MainActivity.this.finish();
+        	}
+		};
+		
+        mInterstitialAd.setAdListener(adListener);        
+
+		
+		className = this.getClass().getName();
+		methodName = "onCreate";
+		
+		LogManager.LogActivityCreate(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
+		
+		setContentView(R.layout.activity_main);
+				
+    }
+	
+	private void startTimer() {
+    	timer = new Timer();
+        //initialize the TimerTask's job
+        TimerTask timerTask = new TimerTask() {
+            public void run() {            	
+                handler.post(new Runnable() {
+                    public void run() {
+                    	mInterstitialAd = null;
+                    }
+                });
+            }
+        };
+        
+         timer.schedule(timerTask, 5000); //
+    }
+	
+    private void stoptimertask() {
+        //stop the timer, if it's not already null
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
 //
 //	@Override
 //	protected void onStart() {
