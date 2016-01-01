@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.DrawerLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-6783162973293781/7822206551" >
+    </com.google.android.gms.ads.AdView>
     
 	<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	    xmlns:tools="http://schemas.android.com/tools"
@@ -18,26 +28,7 @@
 	        android:layout_height="match_parent"
 	        class="com.doat.tracklocation.MyMapFragment"
 	        android:scrollbars="vertical" />
-	
-	    <TextView
-	        android:id="@+id/textViewMap"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:layout_gravity="bottom"
-	        android:layout_marginBottom="15sp"
-	        android:layout_marginLeft="15sp"
-	        android:layout_marginRight="15sp"
-	        android:layout_marginTop="15sp"
-	        android:background="#cccccccc"
-	        android:paddingBottom="25sp"
-	        android:paddingLeft="25sp"
-	        android:paddingRight="25sp"
-	        android:paddingTop="25sp"
-	        android:text="TextView"
-	        android:textColor="#ff000000"
-	        android:visibility="invisible"
-	        android:textSize="18sp" />
-	
+	    	
 	    <LinearLayout
 	        android:id="@+id/layoutAccountMenu"
 	        android:layout_width="match_parent"

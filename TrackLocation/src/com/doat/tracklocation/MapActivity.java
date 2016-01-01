@@ -89,6 +89,8 @@ import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.Utils;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -167,6 +169,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private MainActivityController mainActivityController;
 
 	private ContactListController contactListController;
+	private AdView adView;
 
 	private enum DialogStatus{
 		Opened, Closed
@@ -250,6 +253,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         });
 		
 		loadBottomActionPanel();
+		
+		adView = (AdView)this.findViewById(R.id.adView);
+	    AdRequest adRequest = new AdRequest.Builder().build();
+	    adView.loadAd(adRequest);
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -276,8 +283,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	}
 
 	@Override
-	protected void onPause() {	
-		super.onPause();
+	protected void onPause() {
 		methodName = "onPause";
 
         BackupDataOperations backupData = new BackupDataOperations();
@@ -287,7 +293,18 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
 		}
+
+		adView.pause();
+		super.onPause();
 	}
+	
+	@Override
+	protected void onResume() {	
+		super.onResume();
+		adView.resume();
+	}
+	
+	
 
     @Override
     protected void onStop() {
@@ -342,8 +359,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
     @Override
     protected void onDestroy() {
-    	super.onDestroy();
-        isTrackLocationRunning = false;
+    	adView.destroy();
+    	isTrackLocationRunning = false;
+    	super.onDestroy();        
     }
     
 	private void loadBottomActionPanel() {

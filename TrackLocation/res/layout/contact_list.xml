@@ -1,14 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:orientation="vertical" >	
 
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adView"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-6783162973293781/7822206551" >
+
+    </com.google.android.gms.ads.AdView>
+    
     <ListView
         android:id="@+id/contact_list_view"
         android:layout_width="fill_parent"
-        android:layout_gravity="top|center"
-        android:layout_height="fill_parent">
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/adView"
+        android:layout_gravity="top|center" >
+
     </ListView>
     
     <ImageButton
@@ -18,7 +30,8 @@
         android:layout_centerHorizontal= "true"
         android:layout_gravity ="bottom|center"
         android:layout_margin ="@dimen/activity_horizontal_margin"
-        style="@style/flat_round_button"        
+        style="@style/flat_round_button"    
+        android:contentDescription="@string/app_name"    
         android:onClick="onClick" />
 
 </RelativeLayout>

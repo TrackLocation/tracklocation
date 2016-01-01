@@ -8,6 +8,8 @@ import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -32,6 +34,7 @@ public class ContactListActivity extends BaseActivity {
 	private ContactListArrayAdapter adapter;
 	private ContactDeviceDataList contactDeviceDataList;
 	private ContactListController contactListController;
+	private AdView adView;
  	
     public ContactListController getContactListController() {
 		return contactListController;
@@ -51,10 +54,6 @@ public class ContactListActivity extends BaseActivity {
 			contactListController = new ContactListController(this, getApplicationContext());
 		}
 
-		/*ArrayList<ContactDeviceData> selectedContactDeviceDataListEx = this.getIntent().getExtras().getParcelableArrayList(CommonConst.CONTACT_DEVICE_DATA_LIST); 
-		contactDeviceDataList = new ContactDeviceDataList();
-		contactDeviceDataList.addAll(selectedContactDeviceDataListEx);		*/
-		
 		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
 		
 		Controller.fillContactDeviceData(ContactListActivity.this, contactDeviceDataList, null, null, null);
@@ -74,7 +73,6 @@ public class ContactListActivity extends BaseActivity {
 	    }
 
 	    registerForContextMenu(lv);
-
 	    	    
 	    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -85,6 +83,11 @@ public class ContactListActivity extends BaseActivity {
 	        	ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
 	        }
 	    });	    
+	    
+		adView = (AdView)this.findViewById(R.id.adView);
+	    AdRequest adRequest = new AdRequest.Builder().build();
+	    adView.loadAd(adRequest);
+
 	}
 	
 	@Override
@@ -113,10 +116,10 @@ public class ContactListActivity extends BaseActivity {
 
 	@Override
     protected void onDestroy() {
-    	super.onDestroy();
-
+		adView.destroy();
     	LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
+    	super.onDestroy();
     }
 
 	@Override
@@ -202,6 +205,18 @@ public class ContactListActivity extends BaseActivity {
  
 		AlertDialog alertDialog = alertDialogBuilder.create();
 		alertDialog.show();
+	}
+	
+	@Override
+	protected void onPause() {
+		adView.pause();
+		super.onPause();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		adView.resume();
 	}
 }
 
