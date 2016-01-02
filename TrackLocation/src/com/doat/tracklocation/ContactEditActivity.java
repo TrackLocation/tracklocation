@@ -41,8 +41,6 @@ public class ContactEditActivity extends BaseActivity {
 	private int SELECT_FILE = 1;
 	private EditText text_nick;
 	private ContactDeviceData contactDeviceData;
-	private EditText text_first_name;
-	private EditText text_last_name;
 	private TextView text_email;
 	private EditText text_device_name;
 	private ImageView iv_photo;
@@ -100,8 +98,6 @@ public class ContactEditActivity extends BaseActivity {
 	public void submitUpdateResult(View V)
     {
 		contactDeviceData.getContactData().setNick(text_nick.getText().toString());
-		contactDeviceData.getContactData().setFirstName(text_first_name.getText().toString());
-		contactDeviceData.getContactData().setLastName(text_last_name.getText().toString());
 		BitmapDrawable drawable = (BitmapDrawable) iv_photo.getDrawable();
 		contactDeviceData.getContactData().setContactPhoto(drawable.getBitmap());
 		
@@ -109,7 +105,7 @@ public class ContactEditActivity extends BaseActivity {
 		contactDeviceData.getDeviceData().setDeviceTypeEnum((DeviceTypeEnum) spn_device_type.getSelectedItem());
 		if (DBLayer.getInstance().updateContactDeviceData(contactDeviceData) != -1){	
 			Intent data = new Intent();
-			data.putExtra(CommonConst.JSON_STRING_CONTACT_DATA, contactDeviceData.getContactData());
+			data.putExtra(CommonConst.JSON_STRING_CONTACT_DATA, contactDeviceData);
 			data.putExtra(CommonConst.CONTACT_LIST_SELECTED_VALUE, contactPosition);
 	        setResult(RESULT_OK, data);				
 		}

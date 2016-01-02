@@ -1,15 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical" >
+    
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adLocation"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-6783162973293781/7822206551" />
 
     <ListView
         android:id="@+id/location_sharing_list_view"
         android:layout_width="fill_parent"
-        android:layout_height="325dp"
-        >
-
-    </ListView>
+        android:layout_below="@+id/adLocation"
+        android:layout_height="325dp"/>
 
 </LinearLayout>

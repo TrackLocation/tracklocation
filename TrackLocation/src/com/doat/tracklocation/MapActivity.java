@@ -170,12 +170,11 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private MainActivityController mainActivityController;
 
 	private ContactListController contactListController;
-	private InterstitialAd mInterstitialAd;
-
 	private enum DialogStatus{
 		Opened, Closed
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -1312,13 +1311,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			case 0:
 				String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 	        	if(account == null || account.isEmpty()){
-	    	    	Toast.makeText(MapActivity.this, "Please register your application.\nPress Locate button at first.", 
-	        	    		Toast.LENGTH_SHORT).show();
+	    	    	Toast.makeText(MapActivity.this, "Please register your application.\nPress Locate button at first.", Toast.LENGTH_SHORT).show();
 	        		LogManager.LogErrorMsg(className, "onClick -> JOIN button", "Unable to join contacts - application is not registred yet.");
-	        	} else {
-	        		
+	        	} else {	        		
 	        		Intent joinContactsListIntent = new Intent(MapActivity.this, JoinContactsListActivity.class);
-	        		//startActivity(joinContactsListIntent);
 	        		startActivity(joinContactsListIntent);
 	        	}
 				break;
@@ -1384,6 +1380,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				if (senderAccount.equals(cdd.getContactData().getEmail())){
 					cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
 					adapterContacts.notifyDataSetChanged();
+					break;
 				}
 			}
 			if (favContactsDeviceDataList != null){
@@ -1391,6 +1388,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					if (senderAccount.equals(cdd.getContactData().getEmail())){
 						cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
 						adapterFavorites.notifyDataSetChanged();
+						break;
 					}
 				}
 			}

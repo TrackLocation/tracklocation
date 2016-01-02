@@ -9,6 +9,9 @@ import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -21,6 +24,7 @@ public class TrackingListActivity extends BaseActivity {
 	private ContactListArrayAdapter adapter;
 	private List<Boolean> isSelected;
 	private List<String> selectedContcatList;
+	private AdView adView;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,19 +65,7 @@ public class TrackingListActivity extends BaseActivity {
 	    			+ "- no joined contacts; or provided incorrectly - check JSON input file.");
 	    	return;
 	    }
-	
-//	    lv.setOnItemLongClickListener(new OnItemLongClickListener() {
-//			@Override
-//			public boolean onItemLongClick(AdapterView<?> parent, View view,
-//					int position, long id) {
-//				String selectedValue = (String) adapter.getItem(position);
-//				// Toast.makeText(ContactList.this, selectedValue + " is LONG_CLICKED", Toast.LENGTH_LONG).show();
-//				// Return true to consume the click event. In this case the
-//				// onListItemClick listener is not called anymore.
-//				return true;
-//			}
-//		});
-	    
+		    
 	    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	
 	        @Override
@@ -100,14 +92,9 @@ public class TrackingListActivity extends BaseActivity {
 	        	
 	        }
 	    });
-	    
-//	    ToggleButton toggle = (ToggleButton) findViewById(R.id.tracking_toggle_button);
-//	    toggle.setOnCheckedChangeListener(new OnCheckedChangeListener() {
-//
-//	    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//	                    Toast.makeText(getApplicationContext(), buttonView.isChecked()+"", Toast.LENGTH_SHORT).show();
-//	                }
-//	            });
+	    adView = (AdView)this.findViewById(R.id.adTracking);
+	    AdRequest adRequest = new AdRequest.Builder().build();
+	    adView.loadAd(adRequest);
 	
 	}
 
@@ -130,9 +117,6 @@ public class TrackingListActivity extends BaseActivity {
 		return super.onOptionsItemSelected(item);
 	}
 	
-//	public void onClick(final View view) {
-//	}
-
 //    public void onClick(View v) {
 //    	System.out.println("Test");
 //        SparseBooleanArray checked = lv.getCheckedItemPositions();
@@ -197,9 +181,23 @@ public class TrackingListActivity extends BaseActivity {
 	 
 	@Override
 	protected void onDestroy() {
-		super.onDestroy();
+		adView.destroy();
 		methodName = "onDestroy";
 		LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
+		super.onDestroy();		
 	}
+	
+	@Override
+	protected void onPause() {
+		adView.pause();
+		super.onPause();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		adView.resume();
+	}
+
 }

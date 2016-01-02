@@ -10,6 +10,8 @@ import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 
 import android.os.Bundle;
 import android.util.Log;
@@ -24,7 +26,8 @@ public class LocationSharingListActivity extends BaseActivity {
 
 	private ListView lv;
 	private ContactListArrayAdapter adapter;
-	private List<Boolean> isSelected;	
+	private List<Boolean> isSelected;
+	private AdView adView;	
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +88,9 @@ public class LocationSharingListActivity extends BaseActivity {
 	        }
 	    });
 	    
+	    adView = (AdView)this.findViewById(R.id.adLocation);
+	    AdRequest adRequest = new AdRequest.Builder().build();
+	    adView.loadAd(adRequest);
 	}
 
     @Override
@@ -173,10 +179,24 @@ public class LocationSharingListActivity extends BaseActivity {
 	 
 	 @Override
     protected void onDestroy() {
-    	super.onDestroy();
     	methodName = "onDestroy";
 		LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
+		adView.destroy();
+    	super.onDestroy();
     }
+	 
+	@Override
+	protected void onPause() {
+		adView.pause();
+		super.onPause();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		adView.resume();
+	}
+
 	 
 }

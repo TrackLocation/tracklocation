@@ -14,6 +14,9 @@ import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -32,6 +35,7 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 	private BroadcastReceiver broadcastReceiver;
 	private String className = this.getClass().getName();	
 	private boolean toSendAddJoinRequest = false;
+	private AdView adView;
 
 
     @Override
@@ -53,6 +57,9 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
             setTitle(title);
         }
         initBroadcastReceiver();
+        adView = (AdView)this.findViewById(R.id.adJoinContacts);
+	    AdRequest adRequest = new AdRequest.Builder().build();
+	    adView.loadAd(adRequest);
     }
 
     @Override
@@ -236,9 +243,23 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 		return aboutDialog;
     }
 	
+	@Override
 	protected void onDestroy() {
 		unregisterReceiver(broadcastReceiver);
+		adView.destroy();
 		super.onDestroy();
+	}
+	
+	@Override
+	protected void onPause() {
+		adView.pause();
+		super.onPause();
+	}
+	
+	@Override
+	protected void onResume() {
+		super.onResume();
+		adView.resume();
 	}
     
     ICommonDialogOnClickListener onClickListener = new ICommonDialogOnClickListener(){
