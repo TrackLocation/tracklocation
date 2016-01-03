@@ -1,11 +1,16 @@
-package com.doat.tracklocation;
+package com.doat.tracklocation.exception;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.util.Log;
 
+import com.doat.tracklocation.TrackLocationApplication;
 import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
-import com.doat.tracklocation.log.LogHelper;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 
@@ -23,24 +28,22 @@ public class DefaultExceptionHandler implements Thread.UncaughtExceptionHandler 
 		LogManager.LogUncaughtException(exception, "DefaultExceptionHandler", "uncaughtException");
 		Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + exception.getMessage());
 		
-    	String title = "Exception";
-		String errorMessage = "Unhandled exception catched.\n"
-				+ "Application will be closed.\n\nSee: sdcard\\TrackLocation\\TrackLocation.log\n";
     	activity = ((TrackLocationApplication) TrackLocationApplication.getContext()).getCurrentActivity();
-    	new InfoDialog(activity, TrackLocationApplication.getContext(), title, errorMessage, new ICommonDialogOnClickListener(){
 
-			@Override
-			public void doOnPositiveButton(Object data) {
-		    	activity.finish();
-			}
-
-			@Override
-			public void doOnNegativeButton(Object data) {
-			}
-
-			@Override
-			public void doOnChooseItem(int which) {
-			}
-    	});
+		String uriText =
+		    "mailto:dagrest@gmail.com" + 
+		    "?subject=" + Uri.encode("TrackLocation unhandled exception") + 
+		    "&body=" + Uri.encode(stackTraceToString(exception));
+		Uri uri = Uri.parse(uriText);
+		Intent sendIntent = new Intent(Intent.ACTION_SENDTO);
+		sendIntent.setData(uri);
+		activity.startActivity(Intent.createChooser(sendIntent, "Please send exception details to support mail")); 
+		
+	}
+	
+	private String stackTraceToString(Throwable exception){
+		StringWriter stackTrace = new StringWriter();
+		exception.printStackTrace(new PrintWriter(stackTrace));
+		return exception.getMessage() + ":\n"+ stackTrace.toString();
 	}
 }
