@@ -195,7 +195,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		context = getApplicationContext();
 		selectedAccountList = new HashMap<String, ContactData>();
 
-        if(mainActivityController == null){
+		Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler());
+		
+		if(mainActivityController == null){
         	mainActivityController = new MainActivityController(MapActivity.this, context);
         }	
 		if(contactListController == null){

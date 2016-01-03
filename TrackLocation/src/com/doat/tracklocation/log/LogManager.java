@@ -25,6 +25,16 @@ public class LogManager {
     		LogHelper.getLog().toLog(MessageType.EXCEPTION, className + "\n{" + methodName + "}\n" + 
     		exception.getMessage()+ ":\n" + stackTraceStr + "\n");          
     	}                    
+    	public static void LogUncaughtException(Throwable exception, String className, String methodName)          
+    	{ 
+    		StringWriter stackTrace = new StringWriter();
+    		exception.printStackTrace(new PrintWriter(stackTrace));
+    		String stackTraceStr = "";
+    		stackTraceStr = stackTrace.toString();
+    		
+    		LogHelper.getLogException().toLog(MessageType.EXCEPTION, className + "\n{" + methodName + "}\n" + 
+    		exception.getMessage()+ ":\n" + stackTraceStr + "\n");          
+    	}
     	public static void LogInfoMsg(String className, String methodName, String infoMessage)          
     	{                  
     		LogHelper.getLog().toLog(MessageType.INFO, className + "\n{" + methodName + "}\n" + infoMessage + "\n");          
