@@ -23,8 +23,6 @@ public class ContactDeviceDataList extends ArrayList<ContactDeviceData>{
 			ContactData contactData = contactDeviceData.getContactData();
 			if(contactData != null){
 				output += contactData.getEmail() + ";";
-				output += contactData.getFirstName() + ";";
-				output += contactData.getLastName() + ";";
 				output += contactData.getNick() + ";";
 			}
 			DeviceData deviceData = contactDeviceData.getDeviceData();
@@ -40,6 +38,7 @@ public class ContactDeviceDataList extends ArrayList<ContactDeviceData>{
 				tempRegId = "NON-EMPTY";
 			}
 			output += tempRegId + ";";
+			output += contactDeviceData.isFavorite() + ";";
 		}		
 		return output;
 	}

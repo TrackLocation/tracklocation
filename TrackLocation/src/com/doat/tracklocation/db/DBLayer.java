@@ -554,9 +554,7 @@ public class DBLayer {
 				db = DBManager.getDBManagerInstance().open();
 			}
 			
-			ContentValues cVal = new ContentValues();
-			cVal.put(DBConst.CONTACT_FIRST_NAME, contactData.getFirstName());
-			cVal.put(DBConst.CONTACT_LAST_NAME, contactData.getLastName());
+			ContentValues cVal = new ContentValues();			
 			cVal.put(DBConst.CONTACT_NICK, contactData.getNick());
 			cVal.put(DBConst.CONTACT_EMAIL, contactData.getEmail());
 			if (contactData.getContactPhoto() != null){
@@ -1029,8 +1027,7 @@ public class DBLayer {
 								LogManager.LogErrorMsg("DBLayer", methodName, errMsg);
 							}
 				    	}						
-			    	}
-					
+			    	}					
 				}
 				contactDeviceDataListInserted = getContactDeviceDataListInternal(null, db);
 				db.setTransactionSuccessful();
@@ -1070,9 +1067,7 @@ public class DBLayer {
 	            	String contact_email = cursor.getString(3);
 	            	byte[] contact_photo = cursor.getBlob(4);
 	            	
-	            	contactData.setEmail(contact_email);
-	            	contactData.setFirstName(contact_first_name);
-	            	contactData.setLastName(contact_last_name);
+	            	contactData.setEmail(contact_email);	            	
 	            	contactData.setNick(contact_nick);
 	            	contactData.setContactPhoto(DbBitmapUtility.getImage(contact_photo));
 	            	

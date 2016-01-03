@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical" >
+        
+    <com.google.android.gms.ads.AdView
+        android:id="@+id/adJoinContacts"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        ads:adSize="BANNER"
+        ads:adUnitId="ca-app-pub-6783162973293781/7822206551" />
 
-<fragment xmlns:android="http://schemas.android.com/apk/res/android"
-          android:name="com.doat.tracklocation.JoinContactsListFragment"
-          android:id="@+id/contact_list"
-          android:layout_height="match_parent"
-          android:layout_width="match_parent"/>
+	<fragment 
+    	android:name="com.doat.tracklocation.JoinContactsListFragment"
+        android:id="@+id/contact_list"
+        android:layout_below="@+id/adJoinContacts"
+        android:layout_height="match_parent"
+        android:layout_width="match_parent"/>
+</RelativeLayout>

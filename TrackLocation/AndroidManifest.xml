@@ -78,7 +78,7 @@
         <service android:name="com.doat.tracklocation.service.TrackLocationService"/>
           
         <activity android:label="@string/app_name"
-            android:launchMode="singleTask" android:name=".MainActivity" android:screenOrientation="unspecified">
+            android:launchMode="singleTask" android:name=".StartAppActivity" android:screenOrientation="unspecified">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
