@@ -90,9 +90,6 @@ import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.Utils;
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -654,6 +651,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList, null, null, null);
 		    	ContactDeviceDataListModel.getInstance().setAdapter("adapterFovarites", adapterFavorites);
 		        ((ContactListArrayAdapter) adapterFavorites).setActiveStatusDraw(true);
+		        ((ContactListArrayAdapter) adapterFavorites).setSecondaryContactStatus(CommonConst.CONTACT_STATUS_PENDING);
 		    
 		    	lvFavorites.setAdapter(adapterFavorites);
 		    	

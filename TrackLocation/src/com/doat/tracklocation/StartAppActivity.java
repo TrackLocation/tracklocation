@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.KeyEvent;
 
 public class StartAppActivity extends BaseActivity {
 	private InterstitialAd mInterstitialAd;
@@ -37,12 +38,12 @@ public class StartAppActivity extends BaseActivity {
         	}
         	
         	@Override
-        	public void onAdClosed() {        		
-        		super.onAdClosed();
+        	public void onAdClosed() {
+        		StartAppActivity.this.finish();
         		stoptimertask();
         		Intent mapIntent = new Intent(StartAppActivity.this, MapActivity.class);
         		startActivity(mapIntent);
-        		StartAppActivity.this.finish();
+        		super.onAdClosed();
         	}
 		};
 		
@@ -64,14 +65,14 @@ public class StartAppActivity extends BaseActivity {
         TimerTask timerTask = new TimerTask() {
             public void run() {            	
                 handler.post(new Runnable() {
-                    public void run() {
-                    	mInterstitialAd = null;
+                    public void run() { 
+                    	;
                     }
                 });
             }
         };
         
-         timer.schedule(timerTask, 5000); //
+         timer.schedule(timerTask, 3000); //
     }
 	
     private void stoptimertask() {

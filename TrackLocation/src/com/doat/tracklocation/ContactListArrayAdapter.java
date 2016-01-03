@@ -41,6 +41,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	private String logMessage;
 	private boolean bActiveStatusDraw = false;
 	private boolean mDrawFavorite = true;
+	private int mContactStatusPending = CommonConst.CONTACT_STATUS_START_CONNECT;
 	
 	public ContactListArrayAdapter(Context context, int resource, List<ContactDeviceData> values, 
 			List<Boolean> checkBoxValues, List<String> emailList, List<String> macAddressList) {
@@ -85,6 +86,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
       		viewHolder.statusImage = (ContactStatusControl) convertView.findViewById(R.id.status_image_ctrl);
       		viewHolder.statusImage.setStatusDrawVisible(this.bActiveStatusDraw);
       		viewHolder.statusImage.setDrawFavorite(mDrawFavorite);
+      		viewHolder.statusImage.setSecondaryContactStatus(mContactStatusPending);
       		      		
       		viewHolder.checkBox = (CheckBox) convertView.findViewById(R.id.check_share_location);
       		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);      		
@@ -221,5 +223,9 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	public void setDrawFavorite(boolean b) {
 		mDrawFavorite  = b;
 		
+	}
+
+	public void setSecondaryContactStatus(int contactStatusPending) {
+		mContactStatusPending = contactStatusPending;		
 	}
 }

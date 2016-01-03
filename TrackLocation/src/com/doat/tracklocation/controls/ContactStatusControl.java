@@ -24,6 +24,7 @@ public class ContactStatusControl extends FrameLayout {
 	private boolean bStatusDrawVisible = false;
 		
 	private int mContactStatus = CommonConst.CONTACT_STATUS_START_CONNECT;
+	private int mSecondaryContactStatus = CommonConst.CONTACT_STATUS_START_CONNECT;
 	private boolean mIsFavorite = false;
 	private boolean mDrawFavorite = true;
 	private AlphaAnimation imgAnimation;
@@ -100,6 +101,13 @@ public class ContactStatusControl extends FrameLayout {
 	
 	private void setCompleted(){	
 		if (bStatusDrawVisible){
+			if (this.mSecondaryContactStatus == CommonConst.CONTACT_STATUS_PENDING){
+				mSecondaryContactStatus = CommonConst.CONTACT_STATUS_START_CONNECT;
+				mContactStatus = CommonConst.CONTACT_STATUS_CONNECTED;
+				setStartPending();
+				return;
+			}
+				
 			if (mContactStatus == CommonConst.CONTACT_STATUS_PENDING){
 				imageView.clearAnimation();
 			}
@@ -148,5 +156,9 @@ public class ContactStatusControl extends FrameLayout {
 	
 	public void setSelected(boolean bSelected){
 		imageView.setAlpha(bSelected ? 0.5f : 1f);
+	}
+
+	public void setSecondaryContactStatus(int mSecondaryContactStatus) {
+		this.mSecondaryContactStatus = mSecondaryContactStatus;
 	}
 }
