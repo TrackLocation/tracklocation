@@ -9,8 +9,6 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.doat.tracklocation.TrackLocationApplication;
-import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
-import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 
