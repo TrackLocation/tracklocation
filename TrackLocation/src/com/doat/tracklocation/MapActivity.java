@@ -49,6 +49,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
@@ -56,14 +57,15 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 
-import com.doat.tracklocation.R;
 import com.doat.tracklocation.broadcast.BroadcastReceiverMapActivity;
 import com.doat.tracklocation.concurrent.TrackLocationServiceLauncher;
 import com.doat.tracklocation.controller.ContactListController;
@@ -89,6 +91,7 @@ import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
+import com.doat.tracklocation.utils.ResizeAnimation;
 import com.doat.tracklocation.utils.Utils;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -168,16 +171,22 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private MainActivityController mainActivityController;
 
 	private ContactListController contactListController;
-	private enum DialogStatus{
+
+	private LinearLayout contact_quick_info;
+	private CheckBox quick_info_fav;
+	private TextView quick_info_name;
+    private int iContactQuickInfoWidth = -1;
+
+    private enum DialogStatus{
 		Opened, Closed
 	}
 	
 	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+        getActionBar().hide();
 		super.onCreate(savedInstanceState);
 		className = this.getClass().getName();
-		getActionBar().hide();
 		methodName = "onCreate";
     	isPermissionDialogShown = false;
 		setContentView(R.layout.map);	
@@ -207,6 +216,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         
 		loadActionMenu();
+
+        loadContactQuickInfo();
 		
 		loadFavoritsForLocateContacts();
 		
@@ -460,60 +471,60 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		ImageButton nav_btn = (ImageButton) findViewById(R.id.nav_btn);			
 		nav_btn.setOnClickListener(new OnClickListener() {
-			 
-	        @Override
-	        public void onClick(View v) {
-	        	if (selectedMarkerDetails != null){
-	        		double lat = selectedMarkerDetails.getLocationDetails().getLat();
-	        		double lng = selectedMarkerDetails.getLocationDetails().getLng();
-	        		final String uri = String.format(Locale.getDefault(), "geo:%f,%f?q=%f,%f", lat, lng, lat, lng);
-	        		Intent intent = new Intent( Intent.ACTION_VIEW, Uri.parse( uri ) );
-	        		startActivity( intent );	
-	        	}
-	        }
-	    });
+
+            @Override
+            public void onClick(View v) {
+                if (selectedMarkerDetails != null) {
+                    double lat = selectedMarkerDetails.getLocationDetails().getLat();
+                    double lng = selectedMarkerDetails.getLocationDetails().getLng();
+                    final String uri = String.format(Locale.getDefault(), "geo:%f,%f?q=%f,%f", lat, lng, lat, lng);
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+                    startActivity(intent);
+                }
+            }
+        });
 	}
 
 	private MyMapFragment getHandleToMapFragment() {
 		// Get a handle to the Map Fragment
         MyMapFragment myMapFragment = (MyMapFragment) getFragmentManager().findFragmentById(R.id.map);
         myMapFragment.setOnDragListener(new MapWrapperLayout.OnDragListener() {
-        	
+
             @Override
-            public void onDrag(MotionEvent motionEvent){
-            	final int action = MotionEventCompat.getActionMasked(motionEvent); 
-                
-                switch (action) { 
-	                case MotionEvent.ACTION_DOWN: {
-	                    final int pointerIndex = MotionEventCompat.getActionIndex(motionEvent); 
-	                    mLastTouchX = MotionEventCompat.getX(motionEvent, pointerIndex); 
-	                    mLastTouchY = MotionEventCompat.getY(motionEvent, pointerIndex); 
-	                        
-	                    // Save the ID of this pointer (for dragging)
-	                    mActivePointerId = MotionEventCompat.getPointerId(motionEvent, 0);
-	                    break;
-	                }
-	                        
-	                case MotionEvent.ACTION_MOVE: {
-	                    // Find the index of the active pointer and fetch its position
-	                    final int pointerIndex = MotionEventCompat.findPointerIndex(motionEvent, mActivePointerId);  
-	                    if (pointerIndex >= 0){	                   
-		                    final float x = MotionEventCompat.getX(motionEvent, pointerIndex);
-		                    final float y = MotionEventCompat.getY(motionEvent, pointerIndex);
-		                        
-		                    // Calculate the distance moved
-		                    if (Math.abs(x - mLastTouchX) > 5 || Math.abs(y - mLastTouchY) > 5){
-		                    	if (mapMarkerDetailsList.size() > 0){
-		    						isMapInMovingState = true;
-		    						startTimer();
-		    					}
-		                    }                    
-	                    } 
-	                    break;
-	                }                                                            
-                }       
-                Log.d("ON_DRAG", String.format("ME: %s", motionEvent));                                
-            }			
+            public void onDrag(MotionEvent motionEvent) {
+                final int action = MotionEventCompat.getActionMasked(motionEvent);
+
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN: {
+                        final int pointerIndex = MotionEventCompat.getActionIndex(motionEvent);
+                        mLastTouchX = MotionEventCompat.getX(motionEvent, pointerIndex);
+                        mLastTouchY = MotionEventCompat.getY(motionEvent, pointerIndex);
+
+                        // Save the ID of this pointer (for dragging)
+                        mActivePointerId = MotionEventCompat.getPointerId(motionEvent, 0);
+                        break;
+                    }
+
+                    case MotionEvent.ACTION_MOVE: {
+                        // Find the index of the active pointer and fetch its position
+                        final int pointerIndex = MotionEventCompat.findPointerIndex(motionEvent, mActivePointerId);
+                        if (pointerIndex >= 0) {
+                            final float x = MotionEventCompat.getX(motionEvent, pointerIndex);
+                            final float y = MotionEventCompat.getY(motionEvent, pointerIndex);
+
+                            // Calculate the distance moved
+                            if (Math.abs(x - mLastTouchX) > 5 || Math.abs(y - mLastTouchY) > 5) {
+                                if (mapMarkerDetailsList.size() > 0) {
+                                    isMapInMovingState = true;
+                                    startTimer();
+                                }
+                            }
+                        }
+                        break;
+                    }
+                }
+                Log.d("ON_DRAG", String.format("ME: %s", motionEvent));
+            }
         });
 		return myMapFragment;
 	}	
@@ -523,18 +534,17 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         mDrawerList = (ListView) findViewById(R.id.left_drawer);       
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
         mActionMenuList = Controller.getActionMenuList(this);
-        mDrawerList.setAdapter(new MenuActionListAdapter(this, mActionMenuList));        
-//        mDrawerList.setChoiceMode(ListView.CHOICE_MODE_SINGLE);;
+        mDrawerList.setAdapter(new MenuActionListAdapter(this, mActionMenuList));
         ImageButton btnMenu = (ImageButton) findViewById(R.id.menu_view_btn);
         btnMenu.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				if (mDrawerLayout.isActivated()){
-					mDrawerLayout.closeDrawer(Gravity.LEFT);
-				}
-				else{
-					mDrawerLayout.openDrawer(Gravity.LEFT);
+
+            @Override
+            public void onClick(View v) {
+                closeQuickContactInfo();
+                if (mDrawerLayout.isActivated()) {
+                    mDrawerLayout.closeDrawer(Gravity.LEFT);
+                } else {
+                    mDrawerLayout.openDrawer(Gravity.LEFT);
 				}
 				
 			}
@@ -552,6 +562,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			
 			@Override
 			public void onClick(View v) {
+                closeQuickContactInfo();
 		    	// Stop thread that checking which contacts are online
 		        if(contactListController != null){
 		        	contactListController.stopCheckWhichContactsOnLineThread();
@@ -599,39 +610,66 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    
 	    lvContacts.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
-	        @Override
-	        public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
-	        	final ContactDeviceData selectedValue = (ContactDeviceData)adapterContacts.getItem(position);
-	        	boolean isAdd = false;
-	        	
-	        	SparseBooleanArray checked = lvContacts.getCheckedItemPositions();
-	        	ContactDeviceData cdd = contactDeviceDataList.get(position);
-	        	if (checked.get(position)){	        		
-	        		cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_PENDING);
-	        		selectedContactDeviceDataList.add(cdd);
-	        		selectedAccountList.put(selectedValue.getContactData().getEmail(), selectedValue.getContactData());
-	        		isAdd = true;
-	        	}
-	        	else{
-	        		cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
-	        		selectedContactDeviceDataList.remove(cdd);
-	        		selectedAccountList.remove(selectedValue.getContactData().getEmail());
-	        		if (mapMarkerDetailsList.containsKey(selectedValue.getContactData().getEmail())){
-	        			mapMarkerDetailsList.get(selectedValue.getContactData().getEmail()).getLocationCircle().remove();
-	    				mapMarkerDetailsList.get(selectedValue.getContactData().getEmail()).getMarker().remove();
-	    				mapMarkerDetailsList.remove(selectedValue.getContactData().getEmail());
-	    			}
-	        		isAdd = false;
-	        	}	   
-	        	isShowAllMarkersEnabled = true;
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
+                closeQuickContactInfo();
+                final ContactDeviceData selectedValue = (ContactDeviceData) adapterContacts.getItem(position);
+                boolean isAdd = false;
 
-	        	ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
-				if(trackLocationServiceLauncherThread != null){
-					trackLocationServiceLauncherThread.interrupt();
-				}
-				startTrackLocationServiceLauncher(contactDeviceDataList.get(position), isAdd);
-	        }
-	    });
+                SparseBooleanArray checked = lvContacts.getCheckedItemPositions();
+                ContactDeviceData cdd = contactDeviceDataList.get(position);
+                if (checked.get(position)) {
+                    cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_PENDING);
+                    selectedContactDeviceDataList.add(cdd);
+                    selectedAccountList.put(selectedValue.getContactData().getEmail(), selectedValue.getContactData());
+                    isAdd = true;
+                } else {
+                    cdd.getContactData().setContactStatus(CommonConst.CONTACT_STATUS_CONNECTED);
+                    selectedContactDeviceDataList.remove(cdd);
+                    selectedAccountList.remove(selectedValue.getContactData().getEmail());
+                    if (mapMarkerDetailsList.containsKey(selectedValue.getContactData().getEmail())) {
+                        mapMarkerDetailsList.get(selectedValue.getContactData().getEmail()).getLocationCircle().remove();
+                        mapMarkerDetailsList.get(selectedValue.getContactData().getEmail()).getMarker().remove();
+                        mapMarkerDetailsList.remove(selectedValue.getContactData().getEmail());
+                    }
+                    isAdd = false;
+                }
+                isShowAllMarkersEnabled = true;
+
+                ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
+                if (trackLocationServiceLauncherThread != null) {
+                    trackLocationServiceLauncherThread.interrupt();
+                }
+                startTrackLocationServiceLauncher(contactDeviceDataList.get(position), isAdd);
+            }
+        });
+
+        lvContacts.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                closeQuickContactInfo();
+                int iWidth = contact_quick_info.getLayoutParams().width;
+                if (iWidth == 0){
+                    iWidth = iContactQuickInfoWidth;
+                }
+                else{
+                    iContactQuickInfoWidth = iWidth;
+                }
+
+                contact_quick_info.getLayoutParams().width = 0;
+                int iParentWidth = ((LinearLayout)parent.getParent()).getLeft();
+                ResizeAnimation anim = new ResizeAnimation(contact_quick_info, 0, contact_quick_info.getLayoutParams().height, iWidth , contact_quick_info.getLayoutParams().height);
+                               ((RelativeLayout.LayoutParams) contact_quick_info.getLayoutParams()).setMargins(0, view.getHeight() + view.getTop(), 0, 0);
+
+                quick_info_fav.setChecked(contactDeviceDataList.get(position).isFavorite());
+                quick_info_fav.setTag(position);
+                quick_info_name.setText(contactDeviceDataList.get(position).getContactData().getNick());
+                contact_quick_info.setVisibility(View.VISIBLE);
+                contact_quick_info.startAnimation(anim);
+                return true;
+            }
+        });
 	    
 	    //registerForContextMenu(lvContacts);
 	    
@@ -682,8 +720,60 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			}
 	    }
 	}
-		
-	private void startTrackLocationServiceLauncher(ContactDeviceData inContactDeviceData, boolean isAddAction){
+
+    private void loadContactQuickInfo() {
+        if (contact_quick_info == null){
+            contact_quick_info = (LinearLayout) findViewById(R.id.contact_quick_info);
+            contact_quick_info.setOnTouchListener(new OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    return closeQuickContactInfo();
+                }
+            });
+            quick_info_fav = (CheckBox)contact_quick_info.findViewById(R.id.qi_favbutton);
+            quick_info_fav.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    CheckBox checkFav = (CheckBox) v;
+                    int position = (int) checkFav.getTag();
+                    contactDeviceDataList.get(position).setFavorite(checkFav.isChecked());
+                    ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
+
+                }
+            });
+            quick_info_name = (TextView)contact_quick_info.findViewById(R.id.qi_contact);
+            contact_quick_info.setVisibility(View.GONE);
+        }
+    }
+
+    private boolean closeQuickContactInfo() {
+        if (contact_quick_info.getVisibility() == View.VISIBLE) {
+            int iWidth = contact_quick_info.getLayoutParams().width;
+            ResizeAnimation anim = new ResizeAnimation(contact_quick_info, iWidth, contact_quick_info.getLayoutParams().height, 0, contact_quick_info.getLayoutParams().height);
+
+            anim.setAnimationListener(new AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    contact_quick_info.setVisibility(View.GONE);
+                    contact_quick_info.getLayoutParams().width = iWidth;
+                    contact_quick_info.requestLayout();
+                }
+            });
+
+            contact_quick_info.startAnimation(anim);
+        }
+        return true;
+    }
+
+    private void startTrackLocationServiceLauncher(ContactDeviceData inContactDeviceData, boolean isAddAction){
 		methodName = "startTrackLocationService";
 		
 		LogManager.LogFunctionCall(className, methodName);

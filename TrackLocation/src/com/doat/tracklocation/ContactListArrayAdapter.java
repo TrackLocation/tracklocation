@@ -30,7 +30,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
-
 public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	private final Context context;
 	private final List<String> emailList;
