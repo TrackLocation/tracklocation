@@ -735,10 +735,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
                 @Override
                 public void onClick(View v) {
                     CheckBox checkFav = (CheckBox) v;
-                    int position = (int) checkFav.getTag();
-                    contactDeviceDataList.get(position).setFavorite(checkFav.isChecked());
-                    ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
-
+	                contactDeviceDataList.get((Integer) checkFav.getTag()).setFavorite(checkFav.isChecked());
+	                ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
                 }
             });
             quick_info_name = (TextView)contact_quick_info.findViewById(R.id.qi_contact);
@@ -748,7 +746,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
     private boolean closeQuickContactInfo() {
         if (contact_quick_info.getVisibility() == View.VISIBLE) {
-            int iWidth = contact_quick_info.getLayoutParams().width;
+            final int iWidth = contact_quick_info.getLayoutParams().width;
             ResizeAnimation anim = new ResizeAnimation(contact_quick_info, iWidth, contact_quick_info.getLayoutParams().height, 0, contact_quick_info.getLayoutParams().height);
 
             anim.setAnimationListener(new AnimationListener() {
