@@ -16,6 +16,7 @@ public class DefaultExceptionHandler implements Thread.UncaughtExceptionHandler 
 	
 	private String className;
 	private Activity activity;
+	private static final String SUPPORT_MAIL = "track.and.location@gmail.com";
 	
 	public DefaultExceptionHandler(){
 		className = "DefaultExceptionHandler";
@@ -29,7 +30,7 @@ public class DefaultExceptionHandler implements Thread.UncaughtExceptionHandler 
     	activity = ((TrackLocationApplication) TrackLocationApplication.getContext()).getCurrentActivity();
 
 		String uriText =
-		    "mailto:dagrest@gmail.com" + 
+		    "mailto:" + SUPPORT_MAIL +
 		    "?subject=" + Uri.encode("TrackLocation unhandled exception") + 
 		    "&body=" + Uri.encode(stackTraceToString(exception));
 		Uri uri = Uri.parse(uriText);
