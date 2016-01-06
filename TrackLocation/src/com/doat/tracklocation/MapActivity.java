@@ -751,12 +751,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
                 @Override
                 public void onClick(View v) {
                     CheckBox checkFav = (CheckBox) v;
-//                    Object a = null;
-//            		String title = "Warning";
-//            		String dialogMessage = "Unhandled exception happend. TrackLocation will be closed.";
-//            		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
-//
-//                    a.toString();
 	                contactDeviceDataList.get((Integer) checkFav.getTag()).setFavorite(checkFav.isChecked());
 	                ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
                 }
