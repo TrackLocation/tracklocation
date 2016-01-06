@@ -3,23 +3,23 @@ package com.doat.tracklocation.exception;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.util.Log;
 
-import com.doat.tracklocation.TrackLocationApplication;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 
 public class DefaultExceptionHandler implements Thread.UncaughtExceptionHandler {
 	
 	private String className;
-	private Activity activity;
-	private static final String SUPPORT_MAIL = "track.and.location@gmail.com";
-	
-	public DefaultExceptionHandler(){
+    private final Context context;
+    private final Class<?> activityClass;
+    
+	public DefaultExceptionHandler(Context context, Class<?> activityClass){
 		className = "DefaultExceptionHandler";
+        this.context = context;
+        this.activityClass = activityClass;
 	}
 	
 	@Override
@@ -27,17 +27,14 @@ public class DefaultExceptionHandler implements Thread.UncaughtExceptionHandler 
 		LogManager.LogUncaughtException(exception, "DefaultExceptionHandler", "uncaughtException");
 		Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + exception.getMessage());
 		
-    	activity = ((TrackLocationApplication) TrackLocationApplication.getContext()).getCurrentActivity();
-
-		String uriText =
-		    "mailto:" + SUPPORT_MAIL +
-		    "?subject=" + Uri.encode("TrackLocation unhandled exception") + 
-		    "&body=" + Uri.encode(stackTraceToString(exception));
-		Uri uri = Uri.parse(uriText);
-		Intent sendIntent = new Intent(Intent.ACTION_SENDTO);
-		sendIntent.setData(uri);
-		activity.startActivity(Intent.createChooser(sendIntent, "Please send exception details to support mail")); 
-		
+		// Reopen MapActivity with extra info
+		// CommonConst.UNHANDLED_EXCEPTION_EXTRA = exception's stack trace
+		Intent trackLocationIntent = new Intent(context, activityClass);
+		trackLocationIntent.putExtra(CommonConst.UNHANDLED_EXCEPTION_EXTRA, stackTraceToString(exception));
+		trackLocationIntent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
+		context.startActivity(trackLocationIntent);
+		android.os.Process.killProcess(android.os.Process.myPid());
+        System.exit(0);	
 	}
 	
 	private String stackTraceToString(Throwable exception){

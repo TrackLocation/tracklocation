@@ -8,11 +8,14 @@ public class CommonConst {
 	
 	public static final String 	APP_NAME 						= "TrackLocation";
 	public static final String 	LOG_TAG 						= "TrackLocation";
-	public static final String 	STACK_TRACE						= "FALSE";
+	public static final String 	LOG_TAG_TLS 					= "TrackLocation_TLS";
+	public static final String 	STACK_TRACE						= "TRUE";
 	public static final String 	TRACK_LOCATION_PROJECT_PREFIX 	= "com.doat.tracklocation";
 	public static final String 	GOOGLE_PROJECT_NUMBER 			= "GoogleProjectNumber";
 	public static final String 	APP_INST_DETAILS 				= "AppInstDetails";
-
+	public static final int 	UNHANDLED_EXCEPTION				= 1973;
+	public static final String 	UNHANDLED_EXCEPTION_EXTRA		= "unhandledException";
+	public static final String 	SUPPORT_MAIL 					= "track.and.location@gmail.com";
 
 	public static final String 	PREFERENCES_PHONE_NUMBER 		= "PhoneNumber";
 	public static final String 	PREFERENCES_PHONE_MAC_ADDRESS 	= "PhoneMacAddress";
@@ -36,6 +39,7 @@ public class CommonConst {
 	public static final String 	LOCATION_INFO_NETWORK = "LOCATION_INFO_NETWORK";
 	// public static final String 	IS_LOCATION_PROVIDER_AVAILABLE = "IS_LOCATION_PROVIDER_AVAILABLE";
 	public static final String 	TRACK_LOCATION_WAKE_LOCK = "TRACK_LOCATION_WAKE_LOCK";
+	public static final long    TLS_AUTOSTOP_PERIOD_DEFAULT = 60000 * 2; // 2 minutes;
 	public static final long    REPEAT_PERIOD_DEFAULT = 60000 * 2; // 2 minutes;
 	public static final long    REPEAT_PERIOD_DEFAULT_TRACKING_AUTOSTARTER = 60000; // 1 munite
 	
@@ -97,6 +101,9 @@ public class CommonConst {
  	public static final String	PREFERENCES_SEND_COMMAND_TO_ACCOUNTS = "send_command_to_accounts";
  	public static final String	PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS = "send_is_online_to_accounts";
  	public static final String	PREFERENCES_SEND_LOCATION_TO_ACCOUNTS = "send_location_to_accounts";
+ 	
+ 	public static final String	PREFERENCES_LOCATION_REQUESTERS_ACCOUNTS_LIST = "loc_req_accounts";
+ 	public static final String	PREFERENCES_TRACKING_REQUESTERS_ACCOUNTS_LIST = "trk_req_accounts";
 
  	public static final int 	MAX_RINGTIME_WITH_MAX_VOLUME = 1; // [minutes]
  	public static final String	NOBODY_RESPONDED = "nobody_responded";

@@ -49,7 +49,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
@@ -181,7 +180,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		Opened, Closed
 	}
 	
-	@SuppressWarnings("deprecation")
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
         getActionBar().hide();
@@ -201,7 +199,25 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		context = getApplicationContext();
 		selectedAccountList = new HashMap<String, ContactData>();
 
-		Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler());
+		Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler(MapActivity.this, MapActivity.class));
+		final Intent intent = getIntent();
+		// If activity has been restarted after crash by DefaultExceptionHandler
+		// start SENDTO activity to send exception details to support team
+		if(intent.getExtras() != null && intent.getExtras().containsKey(CommonConst.UNHANDLED_EXCEPTION_EXTRA)){
+			String exceptionDetails = intent.getExtras().getString(CommonConst.UNHANDLED_EXCEPTION_EXTRA);
+			if(exceptionDetails != null && !exceptionDetails.isEmpty()){
+				String uriText =
+				    "mailto:" + CommonConst.SUPPORT_MAIL +
+				    "?subject=" + Uri.encode("TrackLocation unhandled exception") + 
+				    "&body=" + Uri.encode(exceptionDetails);
+				Uri uri = Uri.parse(uriText);
+				Intent sendIntent = new Intent(Intent.ACTION_SENDTO);
+				sendIntent.setData(uri);
+				sendIntent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
+				startActivity(Intent.createChooser(sendIntent, "Please send exception details to support team."));
+			}
+		}
+
 		
 		if(mainActivityController == null){
         	mainActivityController = new MainActivityController(MapActivity.this, context);
@@ -735,6 +751,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
                 @Override
                 public void onClick(View v) {
                     CheckBox checkFav = (CheckBox) v;
+//                    Object a = null;
+//            		String title = "Warning";
+//            		String dialogMessage = "Unhandled exception happend. TrackLocation will be closed.";
+//            		new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
+//
+//                    a.toString();
 	                contactDeviceDataList.get((Integer) checkFav.getTag()).setFavorite(checkFav.isChecked());
 	                ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
                 }
