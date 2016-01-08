@@ -175,9 +175,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 		viewHolder.statusImage.setBitmap(bmp);
 		viewHolder.statusImage.setContactStatus(contactData.getContactStatus());
 		viewHolder.statusImage.setFavorite(contactDeviceData.isFavorite());
-		if (contactData.getContactStatus() == CommonConst.CONTACT_STATUS_START_CONNECT){
-			viewHolder.statusImage.setEnabled(false);
-		}
+		//viewHolder.statusImage.setEnabled(contactData.getContactStatus() != CommonConst.CONTACT_STATUS_START_CONNECT);		
 		
 		if (parent != null && parent instanceof ListView){
 			SparseBooleanArray checked = ((ListView)parent).getCheckedItemPositions();

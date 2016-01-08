@@ -8,7 +8,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
@@ -40,6 +39,11 @@ public class ContactStatusControl extends FrameLayout {
 		else if (contactStatus == CommonConst.CONTACT_STATUS_PENDING){
 			setStartPending();
 		}
+		else{
+			progressBar.setIndeterminate(true);
+		}
+		
+		this.setEnabled(contactStatus == CommonConst.CONTACT_STATUS_START_CONNECT);
 		
 		this.mContactStatus = contactStatus;
 	}
