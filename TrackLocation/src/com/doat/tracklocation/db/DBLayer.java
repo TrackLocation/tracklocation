@@ -627,7 +627,7 @@ public class DBLayer {
 
     // Insert contact/device data
     private  ContactDeviceData addContactDeviceData(String phoneNumber, ContactData  contactData, 
-    		DeviceData deviceData, String imei, String registartionId, String guid, SQLiteDatabase db)
+    		DeviceData deviceData, String imei, String registartionId, String guid, boolean isFavorite, SQLiteDatabase db)
      {
     	ContactDeviceData contactDeviceData = null;
     	boolean bNeedOpenDb  = db == null;
@@ -648,6 +648,7 @@ public class DBLayer {
             } else {
             	contactDeviceData.setGuid(guid);
             }
+            contactDeviceData.setFavorite(isFavorite);
             
             ContentValues cVal = new ContentValues();
             cVal.put(DBConst.CONTACT_DEVICE_PHONE_NUMBER, contactDeviceData.getPhoneNumber());
@@ -673,7 +674,7 @@ public class DBLayer {
     
     // Insert contact/device data
     private  ContactDeviceData updateContactDeviceData(String phoneNumber, ContactData  contactData, 
-    		DeviceData deviceData, String imei, String registartionId, String guid, SQLiteDatabase db)
+    		DeviceData deviceData, String imei, String registartionId, String guid, boolean isFavorite, SQLiteDatabase db)
      {
     	ContactDeviceData contactDeviceData = null;
     	boolean bNeedOpenDb  = db == null;
@@ -694,6 +695,7 @@ public class DBLayer {
             } else {
             	contactDeviceData.setGuid(guid);
             }
+            contactDeviceData.setFavorite(isFavorite);
             
             ContentValues cVal = new ContentValues();
             cVal.put(DBConst.CONTACT_DEVICE_PHONE_NUMBER, contactDeviceData.getPhoneNumber());
@@ -704,11 +706,16 @@ public class DBLayer {
             cVal.put(DBConst.CONTACT_DEVICE_GUID, contactDeviceData.getGuid());
             cVal.put(DBConst.CONTACT_DEVICE_IS_FAVORITE, contactDeviceData.isFavorite() ? 1 : 0);
             
-            db.update(DBConst.TABLE_CONTACT_DEVICE, cVal, 
+            int numRowsAffeceted = db.update(DBConst.TABLE_CONTACT_DEVICE, cVal, 
             	DBConst.CONTACT_DEVICE_EMAIL + " = ? and " + 
             	DBConst.CONTACT_DEVICE_MAC + " = ? ", 
             	new String[] {contactDeviceData.getContactData().getEmail(),
             		contactDeviceData.getDeviceData().getDeviceMac()});
+            if(numRowsAffeceted < 1){
+            	logMessage = "Update failed.";
+            	LogManager.LogErrorMsg(className, methodName, logMessage);
+            	Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+            }
         } catch (Throwable t) {
         	contactDeviceData = null;
             Log.e("Database", "Exception caught: " + t.getMessage(), t);
@@ -935,6 +942,7 @@ public class DBLayer {
 						String registrationId = contactDeviceData.getRegistration_id();
 						String imei = contactDeviceData.getImei();
 						String guid = contactDeviceData.getGuid();
+						boolean isFavorite = contactDeviceData.isFavorite();
 						
 						String email = null;
 						if(contactData != null){
@@ -982,7 +990,7 @@ public class DBLayer {
 								LogManager.LogErrorMsg(className, methodName, logMessage);
 								Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
 							}
-							ContactDeviceData resultContactDeviceData = addContactDeviceData(phoneNumber, contactData, deviceData, imei, registrationId, guid, db);
+							ContactDeviceData resultContactDeviceData = addContactDeviceData(phoneNumber, contactData, deviceData, imei, registrationId, guid, isFavorite, db);
 							if(resultContactDeviceData == null){
 								String errMsg = "Failed to add contactDeviceData to DB by addContactDeviceData()";
 								Log.e(CommonConst.LOG_TAG, errMsg);
@@ -1020,7 +1028,7 @@ public class DBLayer {
 								LogManager.LogErrorMsg(className, methodName, logMessage);
 								Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
 							}
-							ContactDeviceData resultContactDeviceData = updateContactDeviceData(phoneNumber, contactData, deviceData, imei, registrationId, guid, db);
+							ContactDeviceData resultContactDeviceData = updateContactDeviceData(phoneNumber, contactData, deviceData, imei, registrationId, guid, isFavorite, db);
 							if(resultContactDeviceData == null){
 								String errMsg = "Failed to update contactDeviceData to DB by addContactDeviceData()";
 								Log.e(CommonConst.LOG_TAG, errMsg);
