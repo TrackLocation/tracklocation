@@ -234,8 +234,9 @@ public class Controller {
 		
 		regIDToReturnMessageTo = contactDetails.getRegId();
 		if(regIDToReturnMessageTo == null || regIDToReturnMessageTo.isEmpty()){
-			errorMsg = "There is no sender defined";
+			errorMsg = "There is no sender defined for [" + contactDetails.getAccount() + "]";
 			LogManager.LogErrorMsg(CLASS_NAME, "[sendCommand:" + command.toString() + "]", errorMsg);
+			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + CLASS_NAME + "} -> " + errorMsg);
 			return null;
 		}
 		

@@ -72,13 +72,20 @@ public class RegisterToGCMInBackground implements Runnable {
 	    				initClientDetails();
 	                    // Persist the registration ID - no need to register again.
 	                    Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, registrationId);
+	                    logMessage = "Registration ID saved to Preferences";
+	                    LogManager.LogInfoMsg(className, methodName, logMessage);
+	                    Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 	                    // Update the registration ID in DB
 	            		long result = DBLayer.getInstance().updateRegistrationID(clientAccount, clientMacAddress, registrationId);
 	            		if(result == -1){
 	            			logMessage = "Failed to update RegistartionID";
 	            			LogManager.LogErrorMsg(className, methodName, logMessage);
 	            			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-	            		}
+	            		} else {
+	                        logMessage = "Registration ID saved to DB for [" + clientAccount + "]";
+		                    LogManager.LogInfoMsg(className, methodName, logMessage);
+		                    Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		            	}
 	            		
 						logMessage = "Retry " + (i+1) + ". Successfully finished a Google Cloud Message Registration. ThreadID = " + 
 	    					Thread.currentThread().getId();
