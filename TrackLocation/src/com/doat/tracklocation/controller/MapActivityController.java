@@ -12,7 +12,7 @@ import com.doat.tracklocation.utils.MapKeepAliveTimerJob;
 
 public class MapActivityController {
 
-	private final static long SEND_KEEP_ALIVE_INTERAVL = CommonConst.REPEAT_PERIOD_DEFAULT / 2 + 700;
+	private final static long SEND_KEEP_ALIVE_INTERAVL = CommonConst.TLS_AUTOSTOP_PERIOD_DEFAULT / 2 + 700;
 	
 	private String className;    
 	private String methodName;

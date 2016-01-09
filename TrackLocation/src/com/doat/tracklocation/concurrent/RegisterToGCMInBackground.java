@@ -2,6 +2,8 @@ package com.doat.tracklocation.concurrent;
 
 import java.io.IOException;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.util.Log;
 
@@ -15,6 +17,8 @@ import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.db.DBLayer;
+import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
+import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.exception.UnableToSendCommandException;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
@@ -35,24 +39,30 @@ public class RegisterToGCMInBackground implements Runnable {
 	private String clientAccount;
 	private String clientMacAddress;
 	private String clientPhoneNumber;
-	private String clientRegId;
 	private int clientBatteryLevel;
+	private ProgressDialog waitingDialog;
+	private Activity activity;
 
 	
-	public RegisterToGCMInBackground(Context context, GoogleCloudMessaging gcm, 
-			String googleProjectNumber) {
+	public RegisterToGCMInBackground(Context context, Activity activity, GoogleCloudMessaging gcm, 
+			String googleProjectNumber, ProgressDialog waitingDialog) {
 		super();
 		methodName = "RegisterToGCMInBackground";
 		this.gcm = gcm;
 		this.context = context;
 		this.googleProjectNumber = googleProjectNumber;
 		className = this.getClass().getName();
+		this.waitingDialog = waitingDialog;
+		this.activity = activity;
 	}
 
 	@Override
 	public void run() {
-		methodName = "RegisterToGCMInBackground->run";
-        for(int i = 0; i < MAX_REGISTARTION_RETRY_TIMES; i++){
+		methodName = "run";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
+		for(int i = 0; i < MAX_REGISTARTION_RETRY_TIMES; i++){
 	        try {
 	            if (gcm == null) {
 	                gcm = GoogleCloudMessaging.getInstance(context);
@@ -74,6 +84,10 @@ public class RegisterToGCMInBackground implements Runnable {
 	    					Thread.currentThread().getId();
 	    				LogManager.LogInfoMsg(className, methodName, logMessage);
 	    				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+	    				
+	    				if(waitingDialog != null){
+	    					waitingDialog.dismiss();
+	    				}
 	    				
 	    				// ============================================================================
 	    				// Update a new registratioID for all known accounts - START BLOCK
@@ -196,6 +210,38 @@ public class RegisterToGCMInBackground implements Runnable {
 	            LogManager.LogErrorMsg(className, methodName, logMessage);
 	        }
         }
+		logMessage = "\nGoogle Cloud Service is not available right now.\n\n"
+				+ "Application will be closed.\n\nPlease try later.\n";
+		if(registrationId == null || registrationId.isEmpty()){
+			String title = "Error";
+			if(activity != null){
+				new InfoDialog(activity, context, title, logMessage, new ICommonDialogOnClickListener(){
+
+					@Override
+					public void doOnPositiveButton(Object data) {
+						android.os.Process.killProcess(android.os.Process.myPid());
+				        System.exit(0);	
+					}
+
+					@Override
+					public void doOnNegativeButton(Object data) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void doOnChooseItem(int which) {
+						// TODO Auto-generated method stub
+						
+					}
+				});
+			}
+		}
+		LogManager.LogErrorMsg(className, methodName, logMessage);
+		Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 	private void initClientDetails(){

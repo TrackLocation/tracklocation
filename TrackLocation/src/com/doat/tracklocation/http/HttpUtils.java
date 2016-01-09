@@ -131,7 +131,7 @@ public class HttpUtils {
         	
         	// Controller.registerInBackground(map);
         	String googleProjectNumber = Preferences.getPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER);
-        	registerToGCMInBackground = new RegisterToGCMInBackground(context, gcm, googleProjectNumber);
+        	registerToGCMInBackground = new RegisterToGCMInBackground(context, null, gcm, googleProjectNumber, null);
 			try {
 				registerToGCMInBackgroundThread = new Thread(registerToGCMInBackground);
 				registerToGCMInBackgroundThread.start();

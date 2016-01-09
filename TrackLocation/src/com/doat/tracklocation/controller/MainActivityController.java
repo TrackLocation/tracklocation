@@ -27,12 +27,13 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnDismissListener;
 import android.util.Log;
 
 public class MainActivityController {
 	
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private final static int SLEEP_TIME = 500; // 0.5 sec
 	private Activity mainActivity;
 	private MainModel mainModel;
 
@@ -49,7 +50,7 @@ public class MainActivityController {
     private String account;
     private AppInstDetails appInstDetails;
     private String registrationId;
-    private ProgressDialog waitingDialog;
+//    private ProgressDialog waitingDialog;
     // private boolean isChooseAccountDialogOpened = false;
     private AppInfo preinstalledAppInfo;
     
@@ -186,12 +187,20 @@ public class MainActivityController {
 				LogManager.LogErrorMsg(className, methodName, logMessage);
 				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
         	}
-        	registerToGCMInBackground = new RegisterToGCMInBackground(context, gcm, googleProjectNumber);
+        	ProgressDialog waitingDialog = launchWaitingDialog();
+    	    waitingDialog.setOnDismissListener(new OnDismissListener(){
+				@Override
+				public void onDismiss(DialogInterface dialog) {
+					String regID = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+					initWithRegID(regID);
+				}
+			});
+    	    
+        	registerToGCMInBackground = new RegisterToGCMInBackground(context, mainActivity, gcm, googleProjectNumber, waitingDialog);
 			try {
 				registerToGCMInBackgroundThread = new Thread(registerToGCMInBackground);
 				registerToGCMInBackgroundThread.start();
 				// Launch waiting dialog - till registration process will be completed or failed
-				launchWaitingDialog();
 			} catch (IllegalThreadStateException e) {
 				logMessage = "Register to GCM in background thread was started already";
 				LogManager.LogErrorMsg(className, methodName, logMessage);
@@ -250,61 +259,18 @@ public class MainActivityController {
 		}
 	}
 
-	private void launchWaitingDialog() {
-		final int MAX_RETRY_TIMES = 5;
-		
-        waitingDialog = new ProgressDialog(mainActivity);
-        waitingDialog.setTitle("Registration for Google Cloud Messaging");
-        waitingDialog.setMessage("Please wait ...");
-        waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        //progressDialog.setProgress(0);
-        //progressDialog.setMax(contactsQuantity);
-        //waitingDialog.setCancelable(false);
-        waitingDialog.setIndeterminate(true);
-        waitingDialog.show();
-        waitingDialog.setCanceledOnTouchOutside(false);
-        
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-            	String regID = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-            	logMessage = "MainActivity BEFORE while in wainting dialog... regId = [" + Controller.hideRealRegID(regID) + "]";
-				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-				int retryTimes = 0;
-            	while((regID == null || regID.isEmpty()) && retryTimes < MAX_RETRY_TIMES){
-                	try {
-    					Thread.sleep(SLEEP_TIME); 
-    				} catch (InterruptedException e) {
-    					waitingDialog.dismiss();
-    					break;
-    				}
-                	regID = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-                	logMessage = "MainActivity INSIDE while in wainting dialog... regId = [" + Controller.hideRealRegID(regID) + "]";
-    				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-    				if(regID != null && !regID.isEmpty()){
-    					waitingDialog.dismiss();
-    					break;
-    				}
-    				retryTimes++;
-            	}
-
-            	registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-            	if(registrationId != null & !registrationId.isEmpty()){
-            		initWithRegID(regID);
-            	} else {
-            		if(registrationId == null || !registrationId.isEmpty()){
-            			String errorMessage = "\nGoogle Cloud Service is not available right now.\n\n"
-            				+ "Application will be closed.\n\nPlease try later.\n";
-//            			showNotificationDialog(errorMessage, "FINISH");
-                		String title = "Warning";
-                		new InfoDialog(mainActivity, context, title, errorMessage, null);
-            		}
-            	}
-            }
-        }).start();
-   
+	private ProgressDialog launchWaitingDialog() {
+		ProgressDialog waitingDialog = new ProgressDialog(mainActivity);
+	    waitingDialog.setTitle("Registration for Google Cloud Messaging");
+	    waitingDialog.setMessage("Please wait ...");
+	    waitingDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+	    waitingDialog.setIndeterminate(true);
+	    waitingDialog.show();
+	    waitingDialog.setCanceledOnTouchOutside(false);
+	    
+	    return waitingDialog;
 	}
-
+	
 	private void initWithRegID(String registrationId){
 		
 		// Insert into DB: owner information if doesn't exist
