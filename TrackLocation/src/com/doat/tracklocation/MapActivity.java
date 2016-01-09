@@ -94,6 +94,8 @@ import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.ResizeAnimation;
 import com.doat.tracklocation.utils.Utils;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -177,6 +179,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private CheckBox quick_info_fav;
 	private TextView quick_info_name;
     private int iContactQuickInfoWidth = -1;
+	private AdView adView;
 
     private enum DialogStatus{
 		Opened, Closed
@@ -283,9 +286,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		loadBottomActionPanel();
 		
-/*		adView = (AdView)this.findViewById(R.id.adView);
+		adView = (AdView)this.findViewById(R.id.adMap);
 	    AdRequest adRequest = new AdRequest.Builder().build();
-	    adView.loadAd(adRequest);*/
+	    adView.loadAd(adRequest);
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -322,14 +325,14 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
 		}
-//		adView.pause();
+		adView.pause();
 		super.onPause();
 	}
 	
 	@Override
 	protected void onResume() {	
 		super.onResume();
-//		adView.resume();
+		adView.resume();
 	}	
 
     @Override
@@ -386,6 +389,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     @Override
     protected void onDestroy() {
     	isTrackLocationRunning = false;
+    	adView.destroy();
     	super.onDestroy();        
     }
     

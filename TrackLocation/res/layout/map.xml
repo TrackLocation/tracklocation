@@ -14,12 +14,20 @@
 	    android:layout_height="match_parent"
 	    android:id="@+id/main_pane"
 	    tools:context=".MapActivity" >
+	    
+	    <com.google.android.gms.ads.AdView
+	        android:id="@+id/adMap"
+	        android:layout_width="fill_parent"
+	        android:layout_height="wrap_content"
+	        app:adSize="BANNER"
+	        app:adUnitId="ca-app-pub-6783162973293781/7822206551" />
 	
 	    <fragment
 	        android:id="@+id/map"
 	        android:layout_width="match_parent"
 	        android:layout_height="match_parent"
 	        android:layout_above="@+id/layoutAccountMenu"
+	        android:layout_below="@+id/adMap"
 	        class="com.doat.tracklocation.MyMapFragment"
 	        android:scrollbars="vertical" />
 	    	
@@ -138,23 +146,24 @@
 	        android:id="@+id/include_contacts_list"
 	        android:layout_width="80dp"
 	        android:layout_height="fill_parent"
+	        android:layout_above="@+id/layoutAccountMenu"
 	        android:layout_alignParentRight="true"
-	        android:layout_centerVertical="true"
+	        android:layout_below="@+id/adMap"
 	        android:layout_gravity="left|center"
-	        android:layout_marginTop="20dp"
 	        layout="@layout/map_contacts_fragment" />
 	
 	    <ListView
 	        android:id="@+id/favorites_list"
 	        android:layout_width="80dp"
 	        android:layout_height="fill_parent"
+	        android:layout_above="@+id/layoutAccountMenu"
 	        android:layout_alignParentRight="true"
+	        android:layout_below="@+id/menu_view_btn"
 	        android:layout_centerHorizontal="true"
 	        android:layout_gravity="center_horizontal"
+	        android:background="@android:color/transparent"
 	        android:divider="@android:color/transparent"
-        	android:dividerHeight="0dp"
-	        android:layout_marginTop="70dp"
-	        android:background="@android:color/transparent" />
+	        android:dividerHeight="0dp" />
 
 		<ImageButton
 			android:id="@+id/menu_view_btn"
@@ -172,12 +181,15 @@
             android:id="@+id/contact_quick_info"
             android:layout_width="200dp"
             android:layout_height="?android:attr/listPreferredItemHeightSmall"
+            android:layout_alignParentEnd="false"
+            android:layout_alignTop="@+id/favorites_list"
+            android:layout_marginTop="20dp"
+            android:layout_toLeftOf="@+id/include_contacts_list"
+            android:layout_toStartOf="@id/include_contacts_list"
             android:alpha="0.8"
             android:background="@drawable/contact_quick_info_shape"
-            android:orientation="horizontal"
-            android:layout_alignParentEnd="false"
-            android:layout_toStartOf="@id/include_contacts_list"
-            android:layoutMode="opticalBounds">
+            android:layoutMode="opticalBounds"
+            android:orientation="horizontal" >
 
             <CheckBox
                 android:id="@+id/qi_favbutton"
@@ -185,24 +197,24 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginLeft="5sp"
+                android:layout_marginRight="5dp"
                 android:button="@android:drawable/btn_star"
                 android:focusable="false"
-                android:layout_marginRight="5dp"
                 android:gravity="center_vertical|center_horizontal" />
 
             <TextView
                 android:id="@+id/qi_contact"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-light"
+                android:layout_gravity="center"
                 android:ellipsize="marquee"
-                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:fontFamily="sans-serif-light"
+                android:gravity="center_vertical|center_horizontal"
                 android:text="@+id/label"
-                android:layout_gravity ="center"
-                android:textSize="25sp"
-                android:gravity="center_vertical|center_horizontal">
-            </TextView>
-        </LinearLayout>	
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:textSize="25sp" />
+        </LinearLayout>
+	
 	</RelativeLayout>
 	<ListView
         android:id="@+id/left_drawer"
