@@ -6,6 +6,7 @@ import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.concurrent.SendMessageAsync;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
+import com.doat.tracklocation.utils.Preferences;
 import com.google.gson.Gson;
 
 import android.content.Context;
@@ -138,6 +139,15 @@ public class CommandDataBasic {
 		LogManager.LogInfoMsg(className, methodName, notificationMessage);
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + notificationMessage);
 		
+		// update Registartion ID for senderMessageDataContactDetails
+		if(senderMessageDataContactDetails.getRegId() == null ||
+			senderMessageDataContactDetails.getRegId().isEmpty()){
+			notificationMessage = "Set Registartion ID for sender: [" + senderMessageDataContactDetails.getAccount() + "]";
+			LogManager.LogInfoMsg(className, methodName, notificationMessage);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + notificationMessage);
+			senderMessageDataContactDetails.setRegId(Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID));
+		}
+
 		JsonMessageData jsonMessageData = new JsonMessageData(
 				listRegIDs, 				// registration_IDs of the contacts that command will be send to
 	    		//regIDToReturnMessageTo, 	// sender's registartion_ID (contact that response will be returned to)
