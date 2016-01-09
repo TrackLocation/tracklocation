@@ -32,6 +32,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Environment;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.TypedValue;
 
 import com.doat.tracklocation.Controller;
@@ -53,6 +54,7 @@ public class Utils {
 	
 	private final static String COMMA = ",";
 	private final static String className = "Utils";
+	private final static Gson gson = new Gson();
 
 	public static List<String> splitLine(String line, String delimiter){
 		String[] inputArray;
@@ -108,12 +110,13 @@ public class Utils {
 	
 	/**
 	 * Read file as on string 
-	 * It should contain data in JASON and should be converted
+	 * It should contain data in JSON and should be converted
 	 * to java object by GSON
 	 * @param fileName
 	 * @return String
 	 */
 	public static String readInputFile(String fileName){
+		String methodName = "readInputFile";
 		String fileContent = null;
 		try {
 			Scanner sc = new Scanner(new FileReader(fileName));
@@ -125,9 +128,9 @@ public class Utils {
 				}
 			}			
 		} catch (FileNotFoundException e) {
-			LogManager.LogException(e, className, "readInputFile");
-			//LogErrorMsg(className, "readFile", "Unable to read file: " + 
-			//	fileName + ". Error message: " + e.getMessage());
+			String logMessage = "Unable to read file:\n" + fileName;
+			LogManager.LogException(e, className, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
 		}
 		return fileContent;
 		
@@ -149,7 +152,6 @@ public class Utils {
 	
 	// TODO: Should be deleted - only as example
     public static void jsonTest(){
-        Gson gson = new Gson();
     	
         //gson.fromJson(messageJson, QuickPayParkingLocations.class);
         Utils.CustomerDataFromFileJsonTest();
@@ -174,7 +176,6 @@ public class Utils {
     }
     
 	public static ContactDeviceDataList CustomerDataFromFileJsonTest(){
-        Gson gson = new Gson();
     	
         ContactData contactDataDavid = new ContactData();
         contactDataDavid.setEmail("dagrest@gmail.com");
@@ -239,7 +240,6 @@ public class Utils {
 	}
 	
 	public static ContactDeviceDataList fillContactDeviceDataListFromJSON(String jsonDataString){
-		Gson gson = new Gson();
 		try {
 			ContactDeviceDataList contactDeviceDataList = gson.fromJson(jsonDataString, ContactDeviceDataList.class);
 			return contactDeviceDataList;
