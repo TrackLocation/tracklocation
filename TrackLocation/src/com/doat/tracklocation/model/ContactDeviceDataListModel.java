@@ -1,6 +1,7 @@
 package com.doat.tracklocation.model;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import com.doat.tracklocation.ContactListArrayAdapter;
 import com.doat.tracklocation.datatype.ContactDeviceData;
@@ -50,6 +51,10 @@ public class ContactDeviceDataListModel {
 				adapter.notifyDataSetChanged();
 			}
 		} 
+	}
+	
+	public long updateContactDeviceDataList(ContactDeviceData contactDeviceData, Map<String, Object> mapData){
+		return DBLayer.getInstance().updateTableContactDevice(contactDeviceData.getContactData().getEmail(), contactDeviceData.getDeviceData().getDeviceMac(), mapData);
 	}
 
 }

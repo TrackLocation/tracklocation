@@ -145,11 +145,11 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
       			viewHolder.favButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 					
 					@Override
-					public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {						
+					public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+						contactDeviceData.setFavorite(isChecked);
 						Map<String, Object> m = new HashMap<String, Object>();
 						m.put(DBConst.CONTACT_DEVICE_IS_FAVORITE, isChecked ? 1 : 0);
-						DBLayer.getInstance().updateTableContactDevice(contactData.getEmail(), contactDeviceData.getDeviceData().getDeviceMac(), m);
-						contactDeviceData.setFavorite(isChecked);
+						ContactDeviceDataListModel.getInstance().updateContactDeviceDataList(contactDeviceData, m);						
 						ContactDeviceDataListModel.getInstance().notifyDataSetChanged();						
 					}
 				});
