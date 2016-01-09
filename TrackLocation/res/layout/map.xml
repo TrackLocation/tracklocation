@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v4.widget.DrawerLayout 
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:openDrawer="start">
+           
 	<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	    xmlns:tools="http://schemas.android.com/tools"
 	    android:layout_width="match_parent"
@@ -17,6 +20,7 @@
 	        android:id="@+id/map"
 	        android:layout_width="match_parent"
 	        android:layout_height="match_parent"
+	        android:layout_above="@+id/layoutAccountMenu"
 	        class="com.doat.tracklocation.MyMapFragment"
 	        android:scrollbars="vertical" />
 	    	
@@ -171,7 +175,6 @@
             android:layout_height="?android:attr/listPreferredItemHeightSmall"
             android:alpha="0.8"
             android:background="@drawable/contact_quick_info_shape"
-
             android:orientation="horizontal"
             android:layout_alignParentEnd="false"
             android:layout_toStartOf="@id/include_contacts_list"
@@ -200,8 +203,7 @@
                 android:textSize="25sp"
                 android:gravity="center_vertical|center_horizontal">
             </TextView>
-        </LinearLayout>
-	
+        </LinearLayout>	
 	</RelativeLayout>
 	<ListView
         android:id="@+id/left_drawer"
