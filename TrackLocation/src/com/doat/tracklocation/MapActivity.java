@@ -1590,8 +1590,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	
 	public void updateContactsList(MessageDataContactDetails contactSentJoinRequest){
 		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(true);
-		adapterContacts.clear();
-		adapterContacts.addAll(contactDeviceDataList);
+		if(adapterContacts != null){
+			adapterContacts.clear();
+			adapterContacts.addAll(contactDeviceDataList);
+		}
 		Controller.fillContactDeviceData(this, contactDeviceDataList, null, null, null); 
 		ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
 		// Start thread to check which contacts are online
