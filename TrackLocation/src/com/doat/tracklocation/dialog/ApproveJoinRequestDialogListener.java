@@ -71,6 +71,7 @@ public class ApproveJoinRequestDialogListener implements
 			logMessage = "Failed to get received join request data";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			return;
 		}else {
 			logMessage = "ReceivedJoinRequestData = " + receivedJoinRequestData.toString();
 			LogManager.LogInfoMsg(className, methodName, logMessage);
