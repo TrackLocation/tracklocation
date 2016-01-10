@@ -9,7 +9,7 @@
         android:id="@+id/adViewContacts"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        ads:adSize="BANNER"
+        ads:adSize="SMART_BANNER"
         ads:adUnitId="ca-app-pub-6783162973293781/7822206551" />    
         
     <ListView
@@ -18,7 +18,6 @@
         android:layout_height="fill_parent"
         android:layout_below="@+id/adViewContacts"
         android:layout_gravity="top|center" >
-
     </ListView>
     
     <ImageButton
