@@ -26,7 +26,7 @@
 	    <CheckBoxPreference
 	        android:key="pref_map_lock"
 	        android:title="Lock map 'North' on contact move"	        
-	        android:defaultValue="false" 
+	        android:defaultValue="true"
 	        android:selectable="true"/>	   
     </PreferenceCategory>   
     <!-- <PreferenceCategory 

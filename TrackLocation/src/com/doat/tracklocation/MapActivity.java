@@ -277,12 +277,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		btnMyLocation = (ImageButton) findViewById(R.id.btn_my_location);
 		btnMyLocation.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            	closeLayouUserMenu();
-            	goToMyLocation();
-            }
-        });
+			@Override
+			public void onClick(View v) {
+				closeLayouUserMenu();
+				goToMyLocation();
+			}
+		});
 		
 		loadBottomActionPanel();
 		
@@ -749,8 +749,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
                 contact_quick_info.getLayoutParams().width = 0;
                 int iParentWidth = ((LinearLayout)parent.getParent()).getLeft();
+				int iQuickInfoTop = view.getTop() + (view.getHeight() - contact_quick_info.getLayoutParams().height)/2;
                 ResizeAnimation anim = new ResizeAnimation(contact_quick_info, 0, contact_quick_info.getLayoutParams().height, iWidth , contact_quick_info.getLayoutParams().height);
-                               ((RelativeLayout.LayoutParams) contact_quick_info.getLayoutParams()).setMargins(0, view.getHeight() + view.getTop(), 0, 0);
+                               ((RelativeLayout.LayoutParams) contact_quick_info.getLayoutParams()).setMargins(0, iQuickInfoTop, 0, 0);
 
                 quick_info_fav.setChecked(contactDeviceDataList.get(position).isFavorite());
                 quick_info_fav.setTag(position);
