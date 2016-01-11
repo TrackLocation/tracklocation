@@ -661,9 +661,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		        if (favContactsDeviceDataList != null){
 					favContactsDeviceDataList.removeAll(favContactsDeviceDataList);
-					favContactsDeviceDataList = null;
 					adapterFavorites.notifyDataSetChanged();
+					favContactsDeviceDataList = null;
 					lvFavorites.setVisibility(View.INVISIBLE);
+					contactListController.stopCheckWhichContactsOnLineThread();
 				}
 					        	
 				if (lvContacts.getVisibility() == View.GONE  || lvContacts.getVisibility() == View.INVISIBLE){						
@@ -675,6 +676,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				// Start thread to check which contacts are online
 				if(contactListController != null){
 					State state = contactListController.getCheckWhichContactsOnLineThreadState();
+					logMessage = "Thread state: " + state;
+					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 					if(state == null || state.equals(Thread.State.TERMINATED)){
 						contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
 					}
@@ -1095,7 +1098,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 								
 								if (favContactsDeviceDataList.isEmpty()){
 									favContactsDeviceDataList = null;
-									lvFavorites.setVisibility(View.INVISIBLE);									
+									lvFavorites.setVisibility(View.INVISIBLE);
+									contactListController.stopCheckWhichContactsOnLineThread();
 								}														
 							} catch (Exception e) {
 								// TODO Auto-generated catch block
