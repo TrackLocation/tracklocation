@@ -42,6 +42,10 @@ public class ContactListController {
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
+	public Thread getCheckWhichContactsOnLineThread() {
+		return checkWhichContactsOnLineThread;
+	}
+
 	// Start thread to check which contacts are online
 	public void startCheckWhichContactsOnLineThread(ContactDeviceDataList contactDeviceDataList){
 		methodName = "checkWhichContactsOnLine";

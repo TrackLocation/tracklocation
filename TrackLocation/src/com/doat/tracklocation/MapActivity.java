@@ -1466,6 +1466,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     ICommonDialogOnClickListener quitListener = new ICommonDialogOnClickListener(){
 		@Override
 		public void doOnPositiveButton(Object data) {
+			if(contactListController != null){
+				Thread checkWhichContactsOnLineThread = contactListController.getCheckWhichContactsOnLineThread();
+				if(checkWhichContactsOnLineThread != null){
+					checkWhichContactsOnLineThread.interrupt();
+				}
+			}
 	    	finish();
 		}
 
