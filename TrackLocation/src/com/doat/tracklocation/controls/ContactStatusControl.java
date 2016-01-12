@@ -105,13 +105,6 @@ public class ContactStatusControl extends FrameLayout {
 	
 	private void setCompleted(){	
 		if (bStatusDrawVisible){
-			if (this.mSecondaryContactStatus == CommonConst.CONTACT_STATUS_PENDING){
-				mSecondaryContactStatus = CommonConst.CONTACT_STATUS_START_CONNECT;
-				mContactStatus = CommonConst.CONTACT_STATUS_CONNECTED;
-				setStartPending();
-				return;
-			}
-				
 			if (mContactStatus == CommonConst.CONTACT_STATUS_PENDING){
 				imageView.clearAnimation();
 			}
@@ -120,6 +113,10 @@ public class ContactStatusControl extends FrameLayout {
 			}
 			mContactStatus = CommonConst.CONTACT_STATUS_CONNECTED;
 			progressBar.setIndeterminate(false);
+			if (this.mSecondaryContactStatus == CommonConst.CONTACT_STATUS_PENDING){
+				mSecondaryContactStatus = CommonConst.CONTACT_STATUS_START_CONNECT;				
+				setStartPending();				
+			}
 		}
 	}
 	

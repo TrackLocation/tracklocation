@@ -126,7 +126,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private HashMap<String, ContactData> selectedAccountList;
 	private int contactsQuantity;
 	private boolean isShowAllMarkersEnabled;
-	private boolean isMapInMovingState = false;;
+	private boolean isMapInMovingState = false;
 	private Context context;
 	private Thread trackLocationServiceLauncherThread;
 	private TrackLocationServiceLauncher trackLocationServiceLauncher;
@@ -303,7 +303,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		initGcmLocationUpdatedBroadcastReceiver();
 		SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-		bLockMapNothOnly = sharedPref.getBoolean("pref_map_lock", false);
+		bLockMapNothOnly = sharedPref.getBoolean("pref_map_lock", true);
 		
 		if(notificationBroadcastReceiver == null){
 			notificationBroadcastReceiver = new BroadcastReceiverMapActivity(MapActivity.this);
@@ -706,6 +706,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
             @Override
             public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
                 closeQuickContactInfo();
+                closeLayouUserMenu();
                 final ContactDeviceData selectedValue = (ContactDeviceData) adapterContacts.getItem(position);
                 boolean isAdd = false;
 
@@ -1295,9 +1296,15 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			layoutAccountMenu.startAnimation(animUp);
         }
         else{
-        	closeLayouUserMenu();
-        	isShowAllMarkersEnabled = true;
-        	mapAnimateCameraForMarkers(null, "");
+        	if (title_text.getText().equals(marker.getSnippet())){
+	        	closeLayouUserMenu();
+	        	isShowAllMarkersEnabled = true;
+	        	mapAnimateCameraForMarkers(null, "");
+        	}
+        	else{
+        		title_text.setText(marker.getSnippet()); 
+    	        updateSelectedData(selectedMarkerDetails);
+        	}
         }
         		        
         return true;
