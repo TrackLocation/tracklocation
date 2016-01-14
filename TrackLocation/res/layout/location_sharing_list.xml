@@ -16,6 +16,6 @@
         android:id="@+id/location_sharing_list_view"
         android:layout_width="fill_parent"
         android:layout_below="@+id/adLocation"
-        android:layout_height="325dp"/>
+        android:layout_height="fill_parent"/>
 
 </LinearLayout>
