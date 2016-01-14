@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.doat.tracklocation.R;
-import com.doat.tracklocation.datatype.ContactData;
-import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactDeviceDataListModel;
@@ -19,14 +17,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 public class LocationSharingListActivity extends BaseActivity {
 
 	private ListView lv;
 	private ContactListArrayAdapter adapter;
-	private List<Boolean> isSelected;
 	private AdView adView;	
 	
 	@Override
@@ -41,20 +37,14 @@ public class LocationSharingListActivity extends BaseActivity {
 		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
 	
 		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
-		List<String> emailList = new ArrayList<String>();
-		List<String> macAddressList = new ArrayList<String>();
-		Controller.fillContactDeviceData(LocationSharingListActivity.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+//		List<String> emailList = new ArrayList<String>();
+//		List<String> macAddressList = new ArrayList<String>();
+		Controller.fillContactDeviceData(LocationSharingListActivity.this, contactDeviceDataList, checkBoxesShareLocation);
 		
-	    if(contactDeviceDataList != null){
-	    	// TODO: move to init isSelected list:
-	    	isSelected = new ArrayList<Boolean>(contactDeviceDataList.size());
-	    	for (int i = 0; i < contactDeviceDataList.size(); i++) {
-	    		isSelected.add(false);
-	    	}
-	    	
+	    if(contactDeviceDataList != null){	    	
 			lv = (ListView) findViewById(R.id.location_sharing_list_view);
 			
-	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, R.id.contact, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, R.id.contact, contactDeviceDataList, checkBoxesShareLocation);
 	        ContactDeviceDataListModel.getInstance().setAdapter("locationSharingAdapter", adapter);
 	    	lv.setAdapter(adapter);
 	    	

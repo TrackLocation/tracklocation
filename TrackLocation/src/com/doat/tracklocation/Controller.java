@@ -627,7 +627,7 @@ public class Controller {
 	}*/
 	
 	public static void fillContactDeviceData(Context context, ContactDeviceDataList contactDeviceDataCollection,
-			List<Boolean> checkBoxesShareLocation, List<String> emailList, List<String> macAddressList){
+			List<Boolean> checkBoxesShareLocation){
 		if(contactDeviceDataCollection == null){			
 			return ;
 		} 	   	    
@@ -645,12 +645,6 @@ public class Controller {
 	    			if(checkBoxesShareLocation != null){
 	    				checkBoxesShareLocation.add(isLocationSharingEnabled(contactData));
 	    			}
-	    			if(emailList != null){
-	    				emailList.add(contactData.getEmail());
-	    			}
-	    			if(macAddressList != null){
-	    				macAddressList.add(deviceData.getDeviceMac());
-	    			}
 	    		} 
 	    		else{
 	    			String email = contactData.getEmail();
@@ -658,27 +652,14 @@ public class Controller {
 		    			if(checkBoxesShareLocation != null){
 		    				checkBoxesShareLocation.add(isLocationSharingEnabled(contactData));
 		    			}
-		    			if(emailList != null){
-		    				emailList.add(contactData.getEmail());
-		    			}
 	    			} else {		    			
 		    			if(checkBoxesShareLocation != null){
 		    				checkBoxesShareLocation.add(false);
 		    			}
-		    			if(emailList != null){
-		    				emailList.add("unknown@unknown.com");
-		    			}
 		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided username is null - check JSON input file, element :" + (i+1));
 	    			}
 	    			String macAddress = deviceData.getDeviceMac();
-	    			if(macAddress != null && !macAddress.isEmpty()) {	    				
-		    			if(macAddressList != null){
-		    				macAddressList.add(contactData.getEmail());
-		    			}
-	    			} else {		    			
-		    			if(macAddressList != null){
-		    				macAddressList.add(contactData.getEmail());
-		    			}
+	    			if(macAddress == null || macAddress.isEmpty()) {	    				
 		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided macAddress is null - check JSON input file, element :" + (i+1));
 	    			}
 	    		}

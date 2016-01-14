@@ -56,10 +56,10 @@ public class ContactListActivity extends BaseActivity {
 
 		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
 		
-		Controller.fillContactDeviceData(ContactListActivity.this, contactDeviceDataList, null, null, null);
+		Controller.fillContactDeviceData(ContactListActivity.this, contactDeviceDataList, null);
 		lv = (ListView) findViewById(R.id.contact_list_view);
 	    if(contactDeviceDataList != null){					
-	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, contactDeviceDataList, null, null, null);
+	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, contactDeviceDataList, null);
 	        adapter.setDrawFavorite(false);
 	        ContactDeviceDataListModel.getInstance().setAdapter("contactActivityAdapter", adapter);
 	    	lv.setAdapter(adapter);	    		         

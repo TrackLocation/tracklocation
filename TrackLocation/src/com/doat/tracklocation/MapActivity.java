@@ -685,7 +685,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			}
 		});
 		
-		Controller.fillContactDeviceData(MapActivity.this, contactDeviceDataList, null, null, null);
+		Controller.fillContactDeviceData(MapActivity.this, contactDeviceDataList, null);
 	    if(contactDeviceDataList == null){
 	    	logMessage = "Unexpected state - no contacts.";
 	    	LogManager.LogErrorMsg(className, methodName, logMessage);
@@ -693,7 +693,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    	return;
 	    }
 	    			
-    	adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList, null, null, null);    	
+    	adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList, null);    	
         ((ContactListArrayAdapter) adapterContacts).setActiveStatusDraw(true);        
         
         ContactDeviceDataListModel.getInstance().setAdapter("adapterContacts", adapterContacts);
@@ -778,10 +778,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}
 	    
 	    if (!selectedContactDeviceDataList.isEmpty()){
-			Controller.fillContactDeviceData(MapActivity.this, selectedContactDeviceDataList, null, null, null);
+			Controller.fillContactDeviceData(MapActivity.this, selectedContactDeviceDataList, null);
 			favContactsDeviceDataList = (ContactDeviceDataList) selectedContactDeviceDataList.clone();
 		    if(favContactsDeviceDataList != null){
-		    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList, null, null, null);
+		    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList, null);
 		    	ContactDeviceDataListModel.getInstance().setAdapter("adapterFovarites", adapterFavorites);
 		        ((ContactListArrayAdapter) adapterFavorites).setActiveStatusDraw(true);
 		        ((ContactListArrayAdapter) adapterFavorites).setSecondaryContactStatus(CommonConst.CONTACT_STATUS_PENDING);
@@ -1611,7 +1611,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			adapterContacts.clear();
 			adapterContacts.addAll(contactDeviceDataList);
 		}
-		Controller.fillContactDeviceData(this, contactDeviceDataList, null, null, null); 
+		Controller.fillContactDeviceData(this, contactDeviceDataList, null); 
 		ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
 		// Start thread to check which contacts are online
 		if(contactListController != null){

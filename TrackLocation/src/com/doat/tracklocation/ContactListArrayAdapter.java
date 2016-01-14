@@ -7,6 +7,7 @@ import com.doat.tracklocation.R;
 import com.doat.tracklocation.controls.ContactStatusControl;
 import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
+import com.doat.tracklocation.datatype.DeviceData;
 import com.doat.tracklocation.datatype.PermissionsData;
 import com.doat.tracklocation.db.DBConst;
 import com.doat.tracklocation.db.DBLayer;
@@ -32,8 +33,6 @@ import android.widget.ToggleButton;
 
 public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	private final Context context;
-	private final List<String> emailList;
-	private final List<String> macAddressList;
 	private final int res;
 	private String className;
 	private String methodName;
@@ -42,25 +41,13 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	private boolean mDrawFavorite = true;
 	private int mContactStatusPending = CommonConst.CONTACT_STATUS_START_CONNECT;
 	
-	public ContactListArrayAdapter(Context context, int resource, List<ContactDeviceData> values, 
-			List<Boolean> checkBoxValues, List<String> emailList, List<String> macAddressList) {
-		super(context, resource, values);
-		this.context = context;
-		this.res = resource;
-		this.emailList = emailList;
-		this.macAddressList = macAddressList;
-		className = this.getClass().getName();
-	}
- 
 	public ContactListArrayAdapter(Context context, int resource, int textViewResourceId, 
-			List<ContactDeviceData> values, List<Boolean> checkBoxValues, List<String> emailList,
-			List<String> macAddressList) {
+			List<ContactDeviceData> values, List<Boolean> checkBoxValues) {
 		super(context, resource, textViewResourceId, values);
 		
 		this.context = context;
 		this.res = resource;
-		this.emailList = emailList;
-		this.macAddressList = macAddressList;
+		className = this.getClass().getName();
 	}
 	
     private static class ViewHolder {
@@ -74,7 +61,8 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	@Override
 	public View getView(final int position, View convertView, ViewGroup parent) {
 		final ContactDeviceData contactDeviceData = (ContactDeviceData)getItem(position); 
-		final ContactData contactData = contactDeviceData.getContactData();    
+		final ContactData contactData = contactDeviceData.getContactData(); 
+		final DeviceData deviceData = contactDeviceData.getDeviceData();    
 		final ViewHolder viewHolder; // view lookup cache stored in tag
 		if (convertView == null) {
 			viewHolder = new ViewHolder();
@@ -95,11 +83,11 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	    			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 	    				methodName = "onCheckedChanged";
 	    				if(isChecked){
-	    					logMessage = "ToggleButton is checked by " + emailList.get(position);
+	    					logMessage = "ToggleButton is checked by " + contactData.getEmail();
 	    					LogManager.LogInfoMsg(className, methodName, logMessage);
 	    					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 	    				} else {
-	    					logMessage = "ToggleButton is unchecked " + emailList.get(position);
+	    					logMessage = "ToggleButton is unchecked " + contactData.getEmail();
 	    					LogManager.LogInfoMsg(className, methodName, logMessage);
 	    					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 	    				}
@@ -112,12 +100,12 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 					public void onClick(View v) {						
 						if (viewHolder.checkBox != null) {
 							int isChecked = viewHolder.checkBox.isChecked() == true ? 0 : 1;
-							PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
+							PermissionsData p = DBLayer.getInstance().getPermissions(contactData.getEmail());
 							if (p != null) {
 								DBLayer.getInstance().updatePermissions(p.getEmail(), isChecked, p.getCommand(), p.getAdminCommand());
 								Map<String, Object> m = new HashMap<String, Object>();
 								m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
-								DBLayer.getInstance().updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
+								DBLayer.getInstance().updateTableContactDevice(p.getEmail(), deviceData.getDeviceMac(), m);
 								viewHolder.checkBox.setChecked(viewHolder.checkBox.isChecked() == true ? false : true);
 							}
 						}
@@ -129,12 +117,12 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 						CheckBox cb = (CheckBox) v;
 						cb.getText().toString();
 						int isChecked = cb.isChecked() == true ? 1 : 0;
-						PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
+						PermissionsData p = DBLayer.getInstance().getPermissions(contactData.getEmail());
 						if (p != null) {
 							DBLayer.getInstance().updatePermissions(p.getEmail(), isChecked, p.getCommand(), p.getAdminCommand());
 							Map<String, Object> m = new HashMap<String, Object>();
 							m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, (Integer)isChecked);
-							DBLayer.getInstance().updateTableContactDevice(p.getEmail(), macAddressList.get(position), m);
+							DBLayer.getInstance().updateTableContactDevice(p.getEmail(), deviceData.getDeviceMac(), m);
 							ContactDeviceDataListModel.getInstance().notifyDataSetChanged();							
 						}
 					}
@@ -185,14 +173,10 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 		}
 		
 		if (viewHolder.checkBox != null) {								
-			if(emailList != null){
-				PermissionsData p = DBLayer.getInstance().getPermissions(emailList.get(position));
-				if(p != null){
-					boolean isChecked = p.getIsLocationSharePermitted() == 1 ? true : false;
-					viewHolder.checkBox.setChecked(isChecked);
-				} else {
-					viewHolder.checkBox.setChecked(false);
-				}
+			PermissionsData p = DBLayer.getInstance().getPermissions(contactData.getEmail());
+			if(p != null){
+				boolean isChecked = p.getIsLocationSharePermitted() == 1 ? true : false;
+				viewHolder.checkBox.setChecked(isChecked);
 			} else {
 				viewHolder.checkBox.setChecked(false);
 			}

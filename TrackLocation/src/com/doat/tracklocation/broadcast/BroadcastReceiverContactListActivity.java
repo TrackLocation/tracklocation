@@ -92,7 +92,7 @@ public class BroadcastReceiverContactListActivity extends BroadcastReceiverBase 
 
 				// Get all joined contacts from DB				
 				ContactDeviceDataList contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
-				Controller.fillContactDeviceData(activity, contactDeviceDataList, null, null, null);
+				Controller.fillContactDeviceData(activity, contactDeviceDataList, null);
 
 				// Get details of contact that sent join request by SMS from broadcast
 				MessageDataContactDetails contactSentJoinRequest = broadcastData.getContactDetails();

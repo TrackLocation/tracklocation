@@ -39,9 +39,7 @@ public class TrackingListActivity extends BaseActivity {
 		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
 	
 		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
-		List<String> emailList = new ArrayList<String>();
-		List<String> macAddressList = new ArrayList<String>();
-		Controller.fillContactDeviceData(TrackingListActivity.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+		Controller.fillContactDeviceData(TrackingListActivity.this, contactDeviceDataList, checkBoxesShareLocation);
 		
 	    if(contactDeviceDataList != null){
 	    	// TODO: move to init isSelected list:
@@ -53,7 +51,7 @@ public class TrackingListActivity extends BaseActivity {
 			lv = (ListView) findViewById(R.id.tracking_contact_list_view);
 			
 	        adapter = new ContactListArrayAdapter(this, R.layout.tracking_contact_list_item, 
-	        	R.id.contact, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+	        	R.id.contact, contactDeviceDataList, checkBoxesShareLocation);
 	        ContactDeviceDataListModel.getInstance().setAdapter("TrackingAdapter", adapter);
 	    	lv.setAdapter(adapter);
 	    	
