@@ -10,7 +10,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         ads:adSize="SMART_BANNER"
-        ads:adUnitId="ca-app-pub-6783162973293781/7822206551" />
+        ads:adUnitId="ca-app-pub-6113414530604854/9728154522" />
 
     <ListView
         android:id="@+id/location_sharing_list_view"

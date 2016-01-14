@@ -20,7 +20,7 @@
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content"
 	        app:adSize="SMART_BANNER"
-	        app:adUnitId="ca-app-pub-6783162973293781/7822206551" />
+	        app:adUnitId="ca-app-pub-6113414530604854/6495486526" />
 	
 	    <fragment
 	        android:id="@+id/map"
