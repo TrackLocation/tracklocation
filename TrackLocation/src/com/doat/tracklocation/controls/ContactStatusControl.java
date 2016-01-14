@@ -1,7 +1,5 @@
 package com.doat.tracklocation.controls;
 
-import com.doat.tracklocation.R;
-import com.doat.tracklocation.utils.CommonConst;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
@@ -14,6 +12,9 @@ import android.view.animation.Animation;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
+
+import com.doat.tracklocation.R;
+import com.doat.tracklocation.utils.CommonConst;
 
 public class ContactStatusControl extends FrameLayout {
 	private ProgressBar progressBar;
@@ -57,16 +58,15 @@ public class ContactStatusControl extends FrameLayout {
 
     public ContactStatusControl(Context context, AttributeSet attrs) {
         super(context, attrs);
-        if (!isInEditMode()){
+
         	init(context,attrs, 0);
-        }
+
     }
 
     public ContactStatusControl(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        if (!isInEditMode()){
         	init(context,attrs, defStyle);
-        }
+
     }
 
     protected void init(Context context,AttributeSet attrs, int defStyle) {
