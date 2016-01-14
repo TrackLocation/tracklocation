@@ -1,5 +1,13 @@
 package com.doat.tracklocation.broadcast;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+
 import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.TrackLocationApplication;
@@ -13,14 +21,6 @@ import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
-
-import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 
 public class BroadcastReceiverContactListActivity extends BroadcastReceiverBase {
 	private int contactsListId;
@@ -92,7 +92,7 @@ public class BroadcastReceiverContactListActivity extends BroadcastReceiverBase 
 
 				// Get all joined contacts from DB				
 				ContactDeviceDataList contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
-				Controller.fillContactDeviceData(activity, contactDeviceDataList, null, null, null);
+				Controller.fillContactDeviceData(activity, contactDeviceDataList);
 
 				// Get details of contact that sent join request by SMS from broadcast
 				MessageDataContactDetails contactSentJoinRequest = broadcastData.getContactDetails();

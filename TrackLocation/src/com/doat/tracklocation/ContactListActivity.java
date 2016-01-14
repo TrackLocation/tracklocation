@@ -1,6 +1,20 @@
 package com.doat.tracklocation;
 
-import com.doat.tracklocation.R;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.ListView;
+import android.widget.Toast;
+
 import com.doat.tracklocation.controller.ContactListController;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
@@ -10,21 +24,6 @@ import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.os.Bundle;
-import android.util.Log;
-import android.view.ContextMenu;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.ListView;
-import android.widget.Toast;
 
 public class ContactListActivity extends BaseActivity {	
 	private static final int EDIT_OPTION = 0;
@@ -56,10 +55,10 @@ public class ContactListActivity extends BaseActivity {
 
 		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
 		
-		Controller.fillContactDeviceData(ContactListActivity.this, contactDeviceDataList, null, null, null);
+		Controller.fillContactDeviceData(ContactListActivity.this, contactDeviceDataList);
 		lv = (ListView) findViewById(R.id.contact_list_view);
 	    if(contactDeviceDataList != null){					
-	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, contactDeviceDataList, null, null, null);
+	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, contactDeviceDataList);
 	        adapter.setDrawFavorite(false);
 	        ContactDeviceDataListModel.getInstance().setAdapter("contactActivityAdapter", adapter);
 	    	lv.setAdapter(adapter);	    		         

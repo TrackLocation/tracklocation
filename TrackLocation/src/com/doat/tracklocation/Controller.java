@@ -1,18 +1,5 @@
 package com.doat.tracklocation;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
-import java.util.regex.Pattern;
-
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
@@ -71,6 +58,19 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 public class Controller {
 
@@ -626,8 +626,7 @@ public class Controller {
 	    return values;
 	}*/
 	
-	public static void fillContactDeviceData(Context context, ContactDeviceDataList contactDeviceDataCollection,
-			List<Boolean> checkBoxesShareLocation, List<String> emailList, List<String> macAddressList){
+	public static void fillContactDeviceData(Context context, ContactDeviceDataList contactDeviceDataCollection){
 		if(contactDeviceDataCollection == null){			
 			return ;
 		} 	   	    
@@ -635,58 +634,7 @@ public class Controller {
 	    int i = 0;
 	    for (ContactDeviceData contactDeviceData : contactDeviceDataCollection) {
 	    	ContactData contactData = contactDeviceData.getContactData();
-	  
 	    	contactData.setContactPhoto(contactData.getContactPhoto() == null ? Controller.getContactPhotoByEmail(context, contactData.getEmail()) : contactData.getContactPhoto());
-	    	
-	    	DeviceData deviceData = contactDeviceData.getDeviceData();
-	    	if(contactData != null && deviceData != null) {
-	    		String nick = contactData.getNick();
-	    		if(nick != null && !nick.isEmpty()){	    			
-	    			if(checkBoxesShareLocation != null){
-	    				checkBoxesShareLocation.add(isLocationSharingEnabled(contactData));
-	    			}
-	    			if(emailList != null){
-	    				emailList.add(contactData.getEmail());
-	    			}
-	    			if(macAddressList != null){
-	    				macAddressList.add(deviceData.getDeviceMac());
-	    			}
-	    		} 
-	    		else{
-	    			String email = contactData.getEmail();
-	    			if(email != null && !email.isEmpty()) {	    				
-		    			if(checkBoxesShareLocation != null){
-		    				checkBoxesShareLocation.add(isLocationSharingEnabled(contactData));
-		    			}
-		    			if(emailList != null){
-		    				emailList.add(contactData.getEmail());
-		    			}
-	    			} else {		    			
-		    			if(checkBoxesShareLocation != null){
-		    				checkBoxesShareLocation.add(false);
-		    			}
-		    			if(emailList != null){
-		    				emailList.add("unknown@unknown.com");
-		    			}
-		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided username is null - check JSON input file, element :" + (i+1));
-	    			}
-	    			String macAddress = deviceData.getDeviceMac();
-	    			if(macAddress != null && !macAddress.isEmpty()) {	    				
-		    			if(macAddressList != null){
-		    				macAddressList.add(contactData.getEmail());
-		    			}
-	    			} else {		    			
-		    			if(macAddressList != null){
-		    				macAddressList.add(contactData.getEmail());
-		    			}
-		    			LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Some provided macAddress is null - check JSON input file, element :" + (i+1));
-	    			}
-	    		}
-
-	    	} else {
-	    		LogManager.LogErrorMsg("ContactList", "fillListWithContactDeviceData", "Contact Data provided incorrectly - check JSON input file, element :" + (i+1));
-	    		return ;
-	    	}
 	    	i++;
 		}
 	}
@@ -998,7 +946,7 @@ public class Controller {
 		alResult.add(new ActionMenuObj(0, context.getString(R.string.action_join_contact), R.drawable.ic_compare_arrows_black_36dp));
 		alResult.add(new ActionMenuObj(5, context.getString(R.string.action_contacts), android.R.drawable.sym_contact_card));
 		alResult.add(new ActionMenuObj(1, context.getString(R.string.action_location_sharing), -1));
-		alResult.add(new ActionMenuObj(2, context.getString(R.string.action_tracking), R.drawable.ic_track_changes_black_24dp));
+		//alResult.add(new ActionMenuObj(2, context.getString(R.string.action_tracking), R.drawable.ic_track_changes_black_24dp));
 		alResult.add(new ActionMenuObj(3, context.getString(R.string.action_settings), android.R.drawable.ic_menu_manage));
 		alResult.add(new ActionMenuObj(4, context.getString(R.string.action_about), android.R.drawable.btn_star));
 		return alResult;

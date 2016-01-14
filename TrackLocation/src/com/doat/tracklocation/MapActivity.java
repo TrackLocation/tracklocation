@@ -1,17 +1,5 @@
 package com.doat.tracklocation;
 
-import java.io.IOException;
-import java.lang.Thread.State;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -56,6 +44,7 @@ import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationUtils;
 import android.view.animation.TranslateAnimation;
 import android.widget.AdapterView;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
@@ -64,7 +53,6 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import com.doat.tracklocation.broadcast.BroadcastReceiverMapActivity;
 import com.doat.tracklocation.concurrent.TrackLocationServiceLauncher;
@@ -107,6 +95,18 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.IOException;
+import java.lang.Thread.State;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MapActivity extends BaseActivity implements LocationListener, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener, OnTouchListener{
 	private String logMessage;	
@@ -685,7 +685,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			}
 		});
 		
-		Controller.fillContactDeviceData(MapActivity.this, contactDeviceDataList, null, null, null);
+		Controller.fillContactDeviceData(MapActivity.this, contactDeviceDataList);
 	    if(contactDeviceDataList == null){
 	    	logMessage = "Unexpected state - no contacts.";
 	    	LogManager.LogErrorMsg(className, methodName, logMessage);
@@ -693,7 +693,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    	return;
 	    }
 	    			
-    	adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList, null, null, null);    	
+    	adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList);
         ((ContactListArrayAdapter) adapterContacts).setActiveStatusDraw(true);        
         
         ContactDeviceDataListModel.getInstance().setAdapter("adapterContacts", adapterContacts);
@@ -778,10 +778,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}
 	    
 	    if (!selectedContactDeviceDataList.isEmpty()){
-			Controller.fillContactDeviceData(MapActivity.this, selectedContactDeviceDataList, null, null, null);
+			Controller.fillContactDeviceData(MapActivity.this, selectedContactDeviceDataList);
 			favContactsDeviceDataList = (ContactDeviceDataList) selectedContactDeviceDataList.clone();
 		    if(favContactsDeviceDataList != null){
-		    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList, null, null, null);
+		    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList);
 		    	ContactDeviceDataListModel.getInstance().setAdapter("adapterFovarites", adapterFavorites);
 		        ((ContactListArrayAdapter) adapterFavorites).setActiveStatusDraw(true);
 		        ((ContactListArrayAdapter) adapterFavorites).setSecondaryContactStatus(CommonConst.CONTACT_STATUS_PENDING);
@@ -1611,7 +1611,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			adapterContacts.clear();
 			adapterContacts.addAll(contactDeviceDataList);
 		}
-		Controller.fillContactDeviceData(this, contactDeviceDataList, null, null, null); 
+		Controller.fillContactDeviceData(this, contactDeviceDataList);
 		ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
 		// Start thread to check which contacts are online
 		if(contactListController != null){

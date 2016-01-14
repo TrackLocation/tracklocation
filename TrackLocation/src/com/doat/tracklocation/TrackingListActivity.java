@@ -1,10 +1,10 @@
 package com.doat.tracklocation;
 
-import java.util.ArrayList;
-import java.util.List;
+import android.os.Bundle;
+import android.util.Log;
+import android.view.MenuItem;
+import android.widget.ListView;
 
-import com.doat.tracklocation.R;
-import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactDeviceDataListModel;
@@ -12,17 +12,11 @@ import com.doat.tracklocation.utils.CommonConst;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
-import android.os.Bundle;
-import android.util.Log;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
+import java.util.List;
 
 public class TrackingListActivity extends BaseActivity {
 	private ListView lv;
 	private ContactListArrayAdapter adapter;
-	private List<Boolean> isSelected;
 	private List<String> selectedContcatList;
 	private AdView adView;
 	
@@ -37,23 +31,14 @@ public class TrackingListActivity extends BaseActivity {
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 		 
 		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
-	
-		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
-		List<String> emailList = new ArrayList<String>();
-		List<String> macAddressList = new ArrayList<String>();
-		Controller.fillContactDeviceData(TrackingListActivity.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+
+		Controller.fillContactDeviceData(TrackingListActivity.this, contactDeviceDataList);
 		
 	    if(contactDeviceDataList != null){
-	    	// TODO: move to init isSelected list:
-	    	isSelected = new ArrayList<Boolean>(contactDeviceDataList.size());
-	    	for (int i = 0; i < contactDeviceDataList.size(); i++) {
-	    		isSelected.add(false);
-	    	}
-	    	
+
 			lv = (ListView) findViewById(R.id.tracking_contact_list_view);
-			
-	        adapter = new ContactListArrayAdapter(this, R.layout.tracking_contact_list_item, 
-	        	R.id.contact, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+			lv.setChoiceMode(ListView.CHOICE_MODE_NONE);
+	        adapter = new ContactListArrayAdapter(this, R.layout.tracking_contact_list_item, R.id.contact, contactDeviceDataList);
 	        ContactDeviceDataListModel.getInstance().setAdapter("TrackingAdapter", adapter);
 	    	lv.setAdapter(adapter);
 	    	
@@ -66,19 +51,15 @@ public class TrackingListActivity extends BaseActivity {
 	    	return;
 	    }
 		    
-	    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+	    /*lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 	
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, final View view,
 	            int position, long id) {
 	        	final ContactDeviceData selectedValue = (ContactDeviceData) parent.getItemAtPosition(position);
-	        	
-	        	if(selectedContcatList == null){
-	        		selectedContcatList = new ArrayList<String>();
-	        	}
-	        	boolean isSelectedVal = isSelected.get(position);
-	        	isSelected.set(position, !isSelectedVal);
-	        	if(isSelected.get(position) == false){
+				SparseBooleanArray checkedArray = lv.getCheckedItemPositions();
+
+	        	if(!checkedArray.get(position)){
 	        		lv.getChildAt(position).setBackgroundColor(android.R.drawable.btn_default);
 	        		if(selectedContcatList.contains(selectedValue.getContactData().getEmail())){
 	        			selectedContcatList.remove(selectedValue.getContactData().getEmail());
@@ -91,7 +72,7 @@ public class TrackingListActivity extends BaseActivity {
 	        	}
 	        	
 	        }
-	    });
+	    });*/
 	    adView = (AdView)this.findViewById(R.id.adTracking);
 	    AdRequest adRequest = new AdRequest.Builder().build();
 	    adView.loadAd(adRequest);

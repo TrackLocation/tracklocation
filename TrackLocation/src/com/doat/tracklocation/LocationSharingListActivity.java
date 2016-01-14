@@ -1,32 +1,31 @@
 package com.doat.tracklocation;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.doat.tracklocation.R;
-import com.doat.tracklocation.datatype.ContactData;
-import com.doat.tracklocation.datatype.ContactDeviceData;
-import com.doat.tracklocation.datatype.ContactDeviceDataList;
-import com.doat.tracklocation.log.LogManager;
-import com.doat.tracklocation.model.ContactDeviceDataListModel;
-import com.doat.tracklocation.utils.CommonConst;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdView;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import com.doat.tracklocation.datatype.ContactDeviceData;
+import com.doat.tracklocation.datatype.ContactDeviceDataList;
+import com.doat.tracklocation.datatype.PermissionsData;
+import com.doat.tracklocation.db.DBConst;
+import com.doat.tracklocation.db.DBLayer;
+import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.model.ContactDeviceDataListModel;
+import com.doat.tracklocation.utils.CommonConst;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class LocationSharingListActivity extends BaseActivity {
 
 	private ListView lv;
 	private ContactListArrayAdapter adapter;
-	private List<Boolean> isSelected;
 	private AdView adView;	
 	
 	@Override
@@ -39,22 +38,13 @@ public class LocationSharingListActivity extends BaseActivity {
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
 		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
-	
-		List<Boolean> checkBoxesShareLocation = new ArrayList<Boolean>();
-		List<String> emailList = new ArrayList<String>();
-		List<String> macAddressList = new ArrayList<String>();
-		Controller.fillContactDeviceData(LocationSharingListActivity.this, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+
+		Controller.fillContactDeviceData(LocationSharingListActivity.this, contactDeviceDataList);
 		
-	    if(contactDeviceDataList != null){
-	    	// TODO: move to init isSelected list:
-	    	isSelected = new ArrayList<Boolean>(contactDeviceDataList.size());
-	    	for (int i = 0; i < contactDeviceDataList.size(); i++) {
-	    		isSelected.add(false);
-	    	}
-	    	
+	    if(contactDeviceDataList != null){	    	
 			lv = (ListView) findViewById(R.id.location_sharing_list_view);
 			
-	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, R.id.contact, contactDeviceDataList, checkBoxesShareLocation, emailList, macAddressList);
+	        adapter = new ContactListArrayAdapter(this, R.layout.location_sharing_list_item, R.id.contact, contactDeviceDataList);
 	        ContactDeviceDataListModel.getInstance().setAdapter("locationSharingAdapter", adapter);
 	    	lv.setAdapter(adapter);
 	    	
@@ -66,28 +56,24 @@ public class LocationSharingListActivity extends BaseActivity {
 	    			+ "- no joined contacts; or provided incorrectly - check JSON input file.");
 	    	return;
 	    }
-	
-//	    lv.setOnItemLongClickListener(new OnItemLongClickListener() {
-//			@Override
-//			public boolean onItemLongClick(AdapterView<?> parent, View view,
-//					int position, long id) {
-//				String selectedValue = (String) adapter.getItem(position);
-//				// Toast.makeText(ContactList.this, selectedValue + " is LONG_CLICKED", Toast.LENGTH_LONG).show();
-//				// Return true to consume the click event. In this case the
-//				// onListItemClick listener is not called anymore.
-//				return true;
-//			}
-//		});
-	    
+
 	    lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-	
+
 	        @Override
-	        public void onItemClick(AdapterView<?> parent, final View view,
-	            int position, long id) {
-	        	parent.getItemAtPosition(position);
+	        public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
+				final ContactDeviceData contactDeviceData = (ContactDeviceData)adapter.getItem(position);
+				PermissionsData p = DBLayer.getInstance().getPermissions(contactDeviceData.getContactData().getEmail());
+				if (p != null) {
+					int iPerm = p.getIsLocationSharePermitted() == 1 ? 0 : 1; //Switch permit
+					DBLayer.getInstance().updatePermissions(p.getEmail(), iPerm , p.getCommand(), p.getAdminCommand());
+					Map<String, Object> m = new HashMap<String, Object>();
+					m.put(DBConst.CONTACT_DEVICE_LOCATION_SHARING, iPerm);
+					ContactDeviceDataListModel.getInstance().updateContactDeviceDataList(contactDeviceData, m);
+					ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
+				}
 	        }
 	    });
-	    
+
 	    adView = (AdView)this.findViewById(R.id.adLocation);
 	    AdRequest adRequest = new AdRequest.Builder().build();
 	    adView.loadAd(adRequest);
@@ -111,73 +97,8 @@ public class LocationSharingListActivity extends BaseActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
-//	public void onClick(final View view) {
-//	}
 
-//    public void onClick(View v) {
-//    	System.out.println("Test");
-//        SparseBooleanArray checked = lv.getCheckedItemPositions();
-//        ArrayList<String> selectedItems = new ArrayList<String>();
-//        for (int i = 0; i < checked.size(); i++) {
-//            // Item position in adapter
-//            int position = checked.keyAt(i);
-//            // Add sport if it is checked i.e.) == TRUE!
-//            if (checked.valueAt(i))
-//                selectedItems.add(adapter.getItem(position));
-//        }
-// 
-//        String[] outputStrArr = new String[selectedItems.size()];
-// 
-//        for (int i = 0; i < selectedItems.size(); i++) {
-//            outputStrArr[i] = selectedItems.get(i);
-//        }
-//     }
-	
-
-//	 @Override
-//	  public View getView(int position, View convertView, ViewGroup parent) {
-//	  
-//	   ViewHolder holder = null;
-//	   Log.v("ConvertView", String.valueOf(position));
-//	  
-//	   if (convertView == null) {
-//	   LayoutInflater vi = (LayoutInflater)getSystemService(
-//	     Context.LAYOUT_INFLATER_SERVICE);
-//	   convertView = vi.inflate(R.layout.country_info, null);
-//	  
-//	   holder = new ViewHolder();
-//	   holder.code = (TextView) convertView.findViewById(R.id.code);
-//	   holder.name = (CheckBox) convertView.findViewById(R.id.checkBox1);
-//	   convertView.setTag(holder);
-//	  
-//	    holder.name.setOnClickListener( new View.OnClickListener() { 
-//	     public void onClick(View v) { 
-//	      CheckBox cb = (CheckBox) v ; 
-//	      Country country = (Country) cb.getTag(); 
-//	      Toast.makeText(getApplicationContext(),
-//	       "Clicked on Checkbox: " + cb.getText() +
-//	       " is " + cb.isChecked(),
-//	       Toast.LENGTH_LONG).show();
-//	      country.setSelected(cb.isChecked());
-//	     } 
-//	    }); 
-//	   }
-//	   else {
-//	    holder = (ViewHolder) convertView.getTag();
-//	   }
-//	  
-//	   Country country = countryList.get(position);
-//	   holder.code.setText(" (" +  country.getCode() + ")");
-//	   holder.name.setText(country.getName());
-//	   holder.name.setChecked(country.isSelected());
-//	   holder.name.setTag(country);
-//	  
-//	   return convertView;
-//	  
-//	  }
-	 
-	 @Override
+	@Override
     protected void onDestroy() {
     	methodName = "onDestroy";
 		LogManager.LogActivityDestroy(className, methodName);
