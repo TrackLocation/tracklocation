@@ -555,7 +555,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
         mActionMenuList = Controller.getActionMenuList(this);
         mDrawerList.setAdapter(new MenuActionListAdapter(this, mActionMenuList));
-		
+		//TODO In the next versiion
 		/*NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(new OnNavigationItemSelectedListener() {
 			
@@ -643,49 +643,59 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	}	
 	
 	private void loadFavoritsForLocateContacts(){
-		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false); 
+		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(MapActivity.this, false);
 		
     	lvContacts = (ListView) findViewById(R.id.contacts_list);
+
+/*
+		Animation animation = new AlphaAnimation(0.0f, 1.0f);
+		animation.setDuration(200);
+		set.addAnimation(animation);
+
+		LayoutAnimationController controller = new LayoutAnimationController(set, 0.5f);
+
+		lvContacts.setLayoutAnimation(controller);
+*/
+
 	    lvFavorites = (ListView) findViewById(R.id.favorites_list);
 
     	ImageButton btnContacts = (ImageButton) findViewById(R.id.contacts_view_btn);
 	    btnContacts.setOnClickListener(new OnClickListener() {
-			
+
 			@Override
 			public void onClick(View v) {
-                closeQuickContactInfo();
-		    	// Stop thread that checking which contacts are online
-		        if(contactListController != null){
-		        	contactListController.stopCheckWhichContactsOnLineThread();
-		        }
+				closeQuickContactInfo();
+				// Stop thread that checking which contacts are online
+				if (contactListController != null) {
+					contactListController.stopCheckWhichContactsOnLineThread();
+				}
 
-		        if (favContactsDeviceDataList != null){
+				if (favContactsDeviceDataList != null) {
 					favContactsDeviceDataList.removeAll(favContactsDeviceDataList);
 					adapterFavorites.notifyDataSetChanged();
 					favContactsDeviceDataList = null;
 					lvFavorites.setVisibility(View.INVISIBLE);
 					contactListController.stopCheckWhichContactsOnLineThread();
 				}
-					        	
-				if (lvContacts.getVisibility() == View.GONE  || lvContacts.getVisibility() == View.INVISIBLE){						
+
+				if (lvContacts.getVisibility() == View.GONE || lvContacts.getVisibility() == View.INVISIBLE) {
 					lvContacts.setVisibility(View.VISIBLE);
-				}else{					
+				} else {
 					lvContacts.setVisibility(View.GONE);
 				}
-				
+
 				// Start thread to check which contacts are online
-				if(contactListController != null){
+				if (contactListController != null) {
 					State state = contactListController.getCheckWhichContactsOnLineThreadState();
 					logMessage = "Thread state: " + state;
 					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-					if(state == null || state.equals(Thread.State.TERMINATED)){
+					if (state == null || state.equals(Thread.State.TERMINATED)) {
 						contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
 					}
 				}
 			}
 		});
-		
-		Controller.fillContactDeviceData(MapActivity.this, contactDeviceDataList);
+
 	    if(contactDeviceDataList == null){
 	    	logMessage = "Unexpected state - no contacts.";
 	    	LogManager.LogErrorMsg(className, methodName, logMessage);
@@ -778,7 +788,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}
 	    
 	    if (!selectedContactDeviceDataList.isEmpty()){
-			Controller.fillContactDeviceData(MapActivity.this, selectedContactDeviceDataList);
 			favContactsDeviceDataList = (ContactDeviceDataList) selectedContactDeviceDataList.clone();
 		    if(favContactsDeviceDataList != null){
 		    	adapterFavorites = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, favContactsDeviceDataList);
@@ -1522,7 +1531,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		    		    		
 	    		if(contactDeviceDataList != null){
 		    		Intent intentContactList = new Intent(MapActivity.this, LocationSharingListActivity.class);
-		    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, contactDeviceDataList);
 		    		startActivity(intentContactList);
 	    		} else {
 	    	    	Toast.makeText(MapActivity.this, "There is no any contact.\nJoin some contact at first.", 
@@ -1537,7 +1545,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		    		    		
 	    		if(contactDeviceDataList != null){
 		    		Intent intentContactList = new Intent(MapActivity.this, TrackingListActivity.class);
-		    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, contactDeviceDataList);
 		    		startActivity(intentContactList);
 	    		} else {
 	    	    	Toast.makeText(MapActivity.this, "There is no any contact.\nJoin some contact at first.", 
@@ -1559,18 +1566,13 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        	break;
 			case 5 :
 				Intent intentContactList = new Intent(MapActivity.this, ContactListActivity.class);
-	    		intentContactList.putParcelableArrayListExtra(CommonConst.CONTACT_DEVICE_DATA_LIST, contactDeviceDataList);	    		
 	    		startActivity(intentContactList);
 				break;
 			}
             mDrawerLayout.closeDrawer(mDrawerList);
 		}
     }  
-    
-    public ContactListController getContactListController() {
-		return contactListController;
-	}
-    
+
 	public void updateContactStatusInListView(String senderAccount){
 		
 		if(senderAccount != null){
@@ -1606,12 +1608,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	}
 	
 	public void updateContactsList(MessageDataContactDetails contactSentJoinRequest){
-		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(true);
+		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(MapActivity.this, true);
 		if(adapterContacts != null){
 			adapterContacts.clear();
 			adapterContacts.addAll(contactDeviceDataList);
 		}
-		Controller.fillContactDeviceData(this, contactDeviceDataList);
+
 		ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
 		// Start thread to check which contacts are online
 		if(contactListController != null){

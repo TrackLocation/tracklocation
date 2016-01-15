@@ -1,12 +1,16 @@
 package com.doat.tracklocation.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import android.content.Context;
 
 import com.doat.tracklocation.ContactListArrayAdapter;
+import com.doat.tracklocation.Controller;
+import com.doat.tracklocation.datatype.ContactData;
 import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.db.DBLayer;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ContactDeviceDataListModel {
 	private static ContactDeviceDataListModel contactDeviceDataListModel;
@@ -25,9 +29,14 @@ public class ContactDeviceDataListModel {
 		
 	}
 	
-	public ContactDeviceDataList getContactDeviceDataList(boolean bForcereload) {
+	public ContactDeviceDataList getContactDeviceDataList(Context context, boolean bForcereload) {
 		if (contactDeviceDataList == null || bForcereload){
 			contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
+			for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
+				ContactData contactData = contactDeviceData.getContactData();
+				contactData.setContactPhoto(contactData.getContactPhoto() == null ? Controller.getContactPhotoByEmail(context, contactData.getEmail()) : contactData.getContactPhoto());
+			}
+
 		}
 		return contactDeviceDataList;
 	}

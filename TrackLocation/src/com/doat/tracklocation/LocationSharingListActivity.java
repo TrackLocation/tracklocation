@@ -37,9 +37,7 @@ public class LocationSharingListActivity extends BaseActivity {
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 
-		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
-
-		Controller.fillContactDeviceData(LocationSharingListActivity.this, contactDeviceDataList);
+		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(LocationSharingListActivity.this, false);
 		
 	    if(contactDeviceDataList != null){	    	
 			lv = (ListView) findViewById(R.id.location_sharing_list_view);

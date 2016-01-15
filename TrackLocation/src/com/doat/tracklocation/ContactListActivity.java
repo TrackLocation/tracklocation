@@ -53,9 +53,8 @@ public class ContactListActivity extends BaseActivity {
 			contactListController = new ContactListController(this, getApplicationContext());
 		}
 
-		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
-		
-		Controller.fillContactDeviceData(ContactListActivity.this, contactDeviceDataList);
+		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(ContactListActivity.this, false);
+
 		lv = (ListView) findViewById(R.id.contact_list_view);
 	    if(contactDeviceDataList != null){					
 	        adapter = new ContactListArrayAdapter(this, R.layout.contact_list_item, R.id.contact, contactDeviceDataList);

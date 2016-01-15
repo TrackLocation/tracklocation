@@ -30,10 +30,8 @@ public class TrackingListActivity extends BaseActivity {
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
 		 
-		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(false);
+		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(TrackingListActivity.this, false);
 
-		Controller.fillContactDeviceData(TrackingListActivity.this, contactDeviceDataList);
-		
 	    if(contactDeviceDataList != null){
 
 			lv = (ListView) findViewById(R.id.tracking_contact_list_view);

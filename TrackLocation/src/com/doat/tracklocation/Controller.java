@@ -626,19 +626,19 @@ public class Controller {
 	    return values;
 	}*/
 	
+/*
 	public static void fillContactDeviceData(Context context, ContactDeviceDataList contactDeviceDataCollection){
 		if(contactDeviceDataCollection == null){			
 			return ;
 		} 	   	    
-	    
-	    int i = 0;
+
 	    for (ContactDeviceData contactDeviceData : contactDeviceDataCollection) {
 	    	ContactData contactData = contactDeviceData.getContactData();
 	    	contactData.setContactPhoto(contactData.getContactPhoto() == null ? Controller.getContactPhotoByEmail(context, contactData.getEmail()) : contactData.getContactPhoto());
-	    	i++;
 		}
 	}
-	
+*/
+
 	private static boolean isLocationSharingEnabled(ContactData contactData){
     	if(contactData != null) {
 			String email = contactData.getEmail();

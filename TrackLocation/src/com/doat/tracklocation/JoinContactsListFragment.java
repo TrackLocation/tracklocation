@@ -38,13 +38,13 @@ import android.widget.SearchView;
 import android.widget.SectionIndexer;
 import android.widget.TextView;
 
+import com.doat.tracklocation.utils.ImageLoader;
+import com.doat.tracklocation.utils.Utils;
+
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Locale;
-
-import com.doat.tracklocation.utils.ImageLoader;
-import com.doat.tracklocation.utils.Utils;
 
 public class JoinContactsListFragment extends ListFragment implements
         AdapterView.OnItemClickListener, LoaderManager.LoaderCallbacks<Cursor> {
@@ -557,19 +557,13 @@ public class JoinContactsListFragment extends ListFragment implements
             // Inflates the list item layout.
             final View itemLayout = mInflater.inflate(R.layout.join_contact_list_item, viewGroup, false);
 
-            // Creates a new ViewHolder in which to store handles to each view resource. This
-            // allows bindView() to retrieve stored references instead of calling findViewById for
-            // each instance of the layout.
             final ViewHolder holder = new ViewHolder();
             holder.text1 = (TextView) itemLayout.findViewById(android.R.id.text1);
             holder.text2 = (TextView) itemLayout.findViewById(android.R.id.text2);
             holder.icon = (ImageView) itemLayout.findViewById(android.R.id.icon);
 
-            // Stores the resourceHolder instance in itemLayout. This makes resourceHolder
-            // available to bindView and other methods that receive a handle to the item view.
             itemLayout.setTag(holder);
 
-            // Returns the item layout view
             return itemLayout;
         }
 

@@ -41,7 +41,6 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 	
 	public ContactListArrayAdapter(Context context, int resource, int textViewResourceId, List<ContactDeviceData> values) {
 		super(context, resource, textViewResourceId, values);
-		
 		this.context = context;
 		this.res = resource;
 		className = this.getClass().getName();
@@ -70,9 +69,9 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
       		viewHolder.statusImage.setStatusDrawVisible(this.bActiveStatusDraw);
       		viewHolder.statusImage.setDrawFavorite(mDrawFavorite);
       		viewHolder.statusImage.setSecondaryContactStatus(mContactStatusPending);
-      		      		
+
       		viewHolder.checkBox = (CheckBox) convertView.findViewById(R.id.check_share_location);
-      		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);      		
+      		viewHolder.toggleButton = (ToggleButton) convertView.findViewById(R.id.tracking_toggle_button);
       		if (viewHolder.toggleButton != null){
 	      		viewHolder.toggleButton.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 	    			@Override
@@ -120,7 +119,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 					}
 				});
       		}
-			
+
 			convertView.setTag(viewHolder);
 		} 
 		else {
@@ -137,7 +136,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 		else{
 			bmp = Utils.getRoundedCornerImage(bmp, false);
 		}
-				
+
 		viewHolder.statusImage.setBitmap(bmp);
 		viewHolder.statusImage.setContactStatus(contactData.getContactStatus());
 		viewHolder.statusImage.setFavorite(contactDeviceData.isFavorite());
@@ -159,7 +158,7 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 			}
 		}
 		if (viewHolder.favButton != null){
-			viewHolder.favButton.setChecked(((ContactDeviceData)getItem(position)).isFavorite());		
+			viewHolder.favButton.setChecked(((ContactDeviceData)getItem(position)).isFavorite());
 		}
 		return convertView;
 	}
