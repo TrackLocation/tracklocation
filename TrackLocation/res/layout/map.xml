@@ -31,8 +31,6 @@
 	        class="com.doat.tracklocation.MyMapFragment"
 	        android:scrollbars="vertical" />
 	    
-	    <!-- android:layout_above="@+id/layoutAccountMenu" -->
-	    	
 	    <LinearLayout
 	        android:id="@+id/layoutAccountMenu"
 	        android:layout_width="match_parent"
@@ -173,7 +171,7 @@
 			android:layout_width="45dp"
 			android:layout_height="45dp"
 			android:alpha="0.8"
-			android:src="@drawable/ic_list_black_24dp"
+			android:src="@drawable/ic_settings_black_24dp"
             android:layout_alignTop="@+id/include_contacts_list"
             android:layout_alignLeft="@+id/btn_my_location"
             android:layout_alignParentEnd="false"

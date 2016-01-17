@@ -421,7 +421,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        @Override
 	        public void onClick(View v) {
 			    PackageManager pm = getPackageManager();
-			    Intent sendIntent = new Intent(Intent.ACTION_SEND);     
+			    Intent sendIntent = new Intent(Intent.ACTION_SEND);
 			    sendIntent.setType("text/plain");
 		    
 			    List<ResolveInfo> resInfo = pm.queryIntentActivities(sendIntent, 0);
@@ -434,7 +434,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			        Intent intent = new Intent(android.content.Intent.ACTION_SEND);
 			        intent.setComponent(new ComponentName(packageName, ri.activityInfo.name));
 			        intent.setType("text/plain"); // put here your mime type			       
-	   				if (packageName.equals("com.whatsapp")) {			    	            
+	   				if (packageName.equals("com.whatsapp")) {
 	   					intent.setPackage(packageName);
 	   					intentList.add(intent);
 	    	        }
@@ -453,7 +453,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    	        	intent.setPackage(packageName);
 	    	        	intentList.add(intent);
 	    	        }
-	    	        else if (packageName.equals("com.google.android.gm")) {			    	            
+	    	        else if (packageName.equals("com.google.android.gm")) {
+                        Uri uri = Uri.fromParts("mailto", selectedMarkerDetails.getContactDetails().getAccount(), null);
+                        intent.setData(uri);
 	    	        	intent.setPackage(packageName);
 	    	        	intentList.add(intent);
 	    	        }
@@ -496,7 +498,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
                 if (selectedMarkerDetails != null) {
                     double lat = selectedMarkerDetails.getLocationDetails().getLat();
                     double lng = selectedMarkerDetails.getLocationDetails().getLng();
-                    final String uri = String.format(Locale.getDefault(), "geo:%f,%f?q=%f,%f", lat, lng, lat, lng);
+
+                    final String uri = String.format(Locale.getDefault(), "geo:0,0?q=%f,%f", lat, lng);
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
                     startActivity(intent);
                 }

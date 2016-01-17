@@ -12,7 +12,7 @@
         android:layout_height="45dp"
         android:layout_gravity="center_horizontal"
         android:alpha="0.8"        
-        android:src="@drawable/ic_trending_flat_black_24dp" />
+        android:src="@drawable/ic_list_black_24dp" />
   
 	<ListView
 	    android:id="@+id/contacts_list"
