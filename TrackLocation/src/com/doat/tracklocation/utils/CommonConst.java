@@ -105,7 +105,7 @@ public class CommonConst {
  	public static final String	PREFERENCES_LOCATION_REQUESTERS_ACCOUNTS_LIST = "loc_req_accounts";
  	public static final String	PREFERENCES_TRACKING_REQUESTERS_ACCOUNTS_LIST = "trk_req_accounts";
 
- 	public static final int 	MAX_RINGTIME_WITH_MAX_VOLUME = 1; // [minutes]
+ 	public static final int 	MAX_RINGTIME_WITH_MAX_VOLUME = 5; // [minutes]
  	public static final String	NOBODY_RESPONDED = "nobody_responded";
  	
  	public static final Pattern VALID_EMAIL_ADDRESS_REGEX = 

@@ -1216,6 +1216,8 @@ public class GcmIntentService extends IntentService {
 		AudioManager audioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
 		// Get max volume for device
 		int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_RING);
+		// Get device ringer mode
+		int originalRingerMode = audioManager.getRingerMode();
 		// Get current volume for device
 		int originalVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING);
 		if(originalVolume == 0){
@@ -1240,18 +1242,16 @@ public class GcmIntentService extends IntentService {
 				currVoulme = originalVolume;
 				int ringTimeWithMaxVolume = 0;
 				while(currVoulme <= maxVolume && isRinging == true){
-					int secondsCounter = 0;
-					while(secondsCounter <= 5 && isRinging == true){ // 5 seconds - waiting loop
-						Thread.sleep(1000);
-						secondsCounter++;
-					}
+
+					Thread.sleep(1000);
+					
 					// Increase ring volume
 					audioManager.adjustStreamVolume(AudioManager.STREAM_RING, AudioManager.ADJUST_RAISE, 
 						AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
 					currVoulme = audioManager.getStreamVolume(AudioManager.STREAM_RING);
 					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + methodName + 
 						" MaxVolume = " + maxVolume + "; CurrVoulme = " + currVoulme);
-					if(currVoulme >= maxVolume && ringTimeWithMaxVolume >= CommonConst.MAX_RINGTIME_WITH_MAX_VOLUME/* * 3 */){
+					if(currVoulme >= maxVolume && ringTimeWithMaxVolume >= CommonConst.MAX_RINGTIME_WITH_MAX_VOLUME * 60/* 5 minutes */){
 						// send broadcast to finish the ActivityDialogRing
 						Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_FINISH_ACITIVTY_DIALOG_RING.toString(), 
 								"Turn Off the Ring signal" + " by " + messageDataContactDetails.getAccount(), 
@@ -1273,7 +1273,11 @@ public class GcmIntentService extends IntentService {
 					" Ringtone stopped.");			
 			isRinging = false;
 			// Set original volume
-			audioManager.setStreamVolume(AudioManager.STREAM_RING, originalVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
+			audioManager.setStreamVolume(AudioManager.STREAM_RING, originalVolume, AudioManager.FLAG_ALLOW_RINGER_MODES);
+			audioManager.setRingerMode(originalRingerMode);
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + methodName + 
+				"Ringer mode: " + originalRingerMode);			
+
 		}
 	}
 	
