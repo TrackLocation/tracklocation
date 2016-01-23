@@ -234,14 +234,14 @@ public class BackupDataOperations {
 		backUpFile = new File(canonicalPathBackUpFile);
 		boolean isBackUpFileExist = backUpFile.exists();
 		if(isBackUpFileExist == false){
-			logMessage = "TrackLocation backup file doesn't exist: [" + canonicalPathBackUpFile +"]";
+			logMessage = "MapLocationShare backup file doesn't exist: [" + canonicalPathBackUpFile +"]";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 			return false;
 		}
 		boolean isBackUpFileIsFileType = new File(path).isFile();
 		if(isBackUpFileIsFileType == false){
-			logMessage = "TrackLocation backup path is not pointing to a file: [" + canonicalPathBackUpFile +"]";
+			logMessage = "MapLocationShare backup path is not pointing to a file: [" + canonicalPathBackUpFile +"]";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 			return false;

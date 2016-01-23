@@ -121,7 +121,7 @@ public class TrackLocationServiceLauncher implements Runnable {
 				// exit from loop - stop sending Start TrackLoccation Service command
 				break;
 			}
-	        logMessage = "Send COMMAND: START TrackLocation Service in separate thread " +
+	        logMessage = "Send COMMAND: START MapLocationShare Service in separate thread " +
 					"to the following SAVED TO PREFERENCES RECIPIENTS: " + jsonListAccounts;
 	        LogManager.LogInfoMsg(className, methodName, logMessage);
 	        Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
@@ -164,7 +164,7 @@ public class TrackLocationServiceLauncher implements Runnable {
 			try {
 				Thread.sleep(retrySendCommandDelay);
 			} catch (InterruptedException e) {
-				logMessage = "Finish the thread of TrackLocation Service starting. ThreadID = " + 
+				logMessage = "Finish the thread of MapLocationShare Service starting. ThreadID = " + 
 					Thread.currentThread().getId();
 				LogManager.LogInfoMsg(className, methodName, logMessage);
 				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);

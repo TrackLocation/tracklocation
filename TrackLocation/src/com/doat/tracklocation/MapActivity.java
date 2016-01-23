@@ -1475,7 +1475,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	//super.onBackPressed();
     	
     	CommonDialog quitDialog = new CommonDialog(this, quitListener);
-    	quitDialog.setDialogMessage("Do you want to shut down TrackLocation?");
+    	quitDialog.setDialogMessage("Do you want to shut down MapLocationShare?");
     	quitDialog.setDialogTitle("Shut Down");
     	quitDialog.setPositiveButtonText("Shut Down");
     	quitDialog.setNegativeButtonText("No");

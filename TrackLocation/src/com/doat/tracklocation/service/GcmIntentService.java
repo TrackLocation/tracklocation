@@ -366,7 +366,7 @@ public class GcmIntentService extends IntentService {
 		MessageDataContactDetails contactDetailsSentFrom = 
 			gson.fromJson(jsonContactDetailsSentFrom, MessageDataContactDetails.class);
 		if(contactDetailsSentFrom == null){
-			logMessage = "No SentFrom contact details. Cannot start TrackLocation Service.";
+			logMessage = "No SentFrom contact details. Cannot start MapLocationShare Service.";
             Log.e(CommonConst.LOG_TAG, logMessage);
             LogManager.LogErrorMsg(className, "GcmIntentService->onHandleIntent->[COMMAND:start]", logMessage);
             throw new NoSentContactFromException("");
@@ -375,7 +375,7 @@ public class GcmIntentService extends IntentService {
 		String accountCommandSentFrom = null;
 		accountCommandSentFrom = contactDetailsSentFrom.getAccount();
 		if(accountCommandSentFrom == null){
-			logMessage = "No SentFrom contact details - account/email. Cannot start TrackLocation Service.";
+			logMessage = "No SentFrom contact details - account/email. Cannot start MapLocationShare Service.";
             Log.e(CommonConst.LOG_TAG, logMessage);
             LogManager.LogErrorMsg(className, "GcmIntentService->onHandleIntent->[COMMAND:start]", logMessage);
             throw new NoSentContactFromAccountException("");
@@ -443,18 +443,18 @@ public class GcmIntentService extends IntentService {
 		try {
 			senderMessageDataContactDetails = initCommand(extras);
 			senderAccount = senderMessageDataContactDetails.getAccount();
-    		logMessage = "Catched push notification message (GCM): [START TrackLocation Service] " + 
+    		logMessage = "Catched push notification message (GCM): [START MapLocationShare Service] " + 
     			"from [" + senderAccount + "]";
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		} catch (NoSentContactFromException e) {
-			logMessage = "Catched push notification message (GCM): [START TrackLocation Service]. " + 
+			logMessage = "Catched push notification message (GCM): [START MapLocationShare Service]. " + 
 				"Failed to start TrackLocationService - NoSentContactFrom details";
 			LogManager.LogException(e, logMessage, methodName);
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
 			return;
 		} catch (NoSentContactFromAccountException e) {
-			logMessage = "Catched push notification message (GCM): [START TrackLocation Service]. " + 
+			logMessage = "Catched push notification message (GCM): [START MapLocationShare Service]. " + 
 				"Failed to start TrackLocationService - NoSentContactFromAccount details";
 			LogManager.LogException(e, logMessage, methodName);
 			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage, e);
@@ -536,7 +536,7 @@ public class GcmIntentService extends IntentService {
 				BroadcastKeyEnum.restart_tls.toString(),  
 				"value");
 
-	    	logMessage = "TrackLocation service got restart request from [" + senderMessageDataContactDetails.getAccount() + "]";
+	    	logMessage = "MapLocationShare service got restart request from [" + senderMessageDataContactDetails.getAccount() + "]";
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
@@ -869,7 +869,7 @@ public class GcmIntentService extends IntentService {
 			BroadcastKeyEnum.keep_alive.toString(),  
 			value);
 
-    	logMessage = "TrackLocation service got keep alive request from [" + contactDetails.getAccount() + "]";
+    	logMessage = "MapLocationShare service got keep alive request from [" + contactDetails.getAccount() + "]";
 		LogManager.LogInfoMsg(className, methodName, logMessage);
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
@@ -1000,7 +1000,7 @@ public class GcmIntentService extends IntentService {
 						senderAccount, key, value);
 				}
 			} else {
-				logMessage = "\"Start TrackLocation Service thread\" is not stopped!";
+				logMessage = "\"Start MapLocationShare Service thread\" is not stopped!";
 				LogManager.LogWarnMsg(className, methodName, logMessage);
 				Log.w(CommonConst.LOG_TAG, "[WARN] {" + className + "} -> " + logMessage);
 			}

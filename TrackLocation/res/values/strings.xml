@@ -4,7 +4,7 @@
     <!-- Project number from the API Console, as described in "Getting Started." -->
     <string name="google_project_number">943276333483</string>
     
-    <string name="app_name">Track Location</string>
+    <string name="app_name">MapLocationShare</string>
     <string name="send">Send</string>
     <string name="clear">Clear</string>
     <string name="getRegId">Get RegId</string>
@@ -40,7 +40,7 @@
 	<string name="ring_dialog_message">[%s] is trying to contact you.\n\nPlease contact him as soon as possible.</string>
 	
 	
-	<string name="about_dialog_text">\n\"TrackLocation\" application\n\nVersion %s\n\nSupport: track.and.location@gmail.com\n</string>
+	<string name="about_dialog_text">\n\"MapLocationShare\" application\n\nVersion %s\n\nSupport: track.and.location@gmail.com\n</string>
 	<string name="about_dialog_ok_btn">OK</string>
 	
 	<!-- Main Activity -->

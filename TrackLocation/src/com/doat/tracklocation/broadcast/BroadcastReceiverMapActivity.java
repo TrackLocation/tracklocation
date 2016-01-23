@@ -91,7 +91,7 @@ public class BroadcastReceiverMapActivity extends BroadcastReceiverBase {
 					// Notification about command: Start TrackLocation Service 
     				// SUCCESS for some recipients
 					String senderAccount  = broadcastData.getMessage();
-    				logMessage = "TrackLocation Service has been strated on [" + senderAccount + "].";
+    				logMessage = "MapLocationShare Service has been strated on [" + senderAccount + "].";
     				LogManager.LogInfoMsg(className, methodName, logMessage);
     				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
