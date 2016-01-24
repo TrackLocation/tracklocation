@@ -66,4 +66,14 @@ public class ContactDeviceDataListModel {
 		return DBLayer.getInstance().updateTableContactDevice(contactDeviceData.getContactData().getEmail(), contactDeviceData.getDeviceData().getDeviceMac(), mapData);
 	}
 
+	public void removeContact(ContactDeviceData deleteContact) {
+		contactDeviceDataList.remove(deleteContact);
+		for (String key : adapterMap.keySet()) {
+			ContactListArrayAdapter adapter = adapterMap.get(key);
+			if (adapter != null){
+				adapter.remove(deleteContact);
+				adapter.notifyDataSetChanged();
+			}
+		}
+	}
 }

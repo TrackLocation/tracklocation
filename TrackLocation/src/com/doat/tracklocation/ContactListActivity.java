@@ -188,8 +188,9 @@ public class ContactListActivity extends BaseActivity {
 					//ContactDeviceData contactDeviceData = contactDeviceDataList.getContactDeviceDataByContactData(deleteContact.getContactData().getEmail());
 					if (deleteContact != null ){
 						if (DBLayer.getInstance().removeContactDataDeviceDetail(deleteContact) != -1){
-							adapter.remove(deleteContact);	
-							ContactDeviceDataListModel.getInstance().notifyDataSetChanged(); 
+							ContactDeviceDataListModel.getInstance().removeContact(deleteContact);
+							//adapter.remove(deleteContact);
+							//ContactDeviceDataListModel.getInstance().notifyDataSetChanged();
 							Toast.makeText(ContactListActivity.this, "The contact " + deleteContact.getContactData().getNick() + " was removed", Toast.LENGTH_SHORT).show();
 						}
 					}
