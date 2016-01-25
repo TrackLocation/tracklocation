@@ -32,6 +32,9 @@ public class ContactDeviceDataListModel {
 	public ContactDeviceDataList getContactDeviceDataList(Context context, boolean bForcereload) {
 		if (contactDeviceDataList == null || bForcereload){
 			contactDeviceDataList = DBLayer.getInstance().getContactDeviceDataList(null);
+			if(contactDeviceDataList == null){
+				return null;
+			}
 			for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
 				ContactData contactData = contactDeviceData.getContactData();
 				contactData.setContactPhoto(contactData.getContactPhoto() == null ? Controller.getContactPhotoByEmail(context, contactData.getEmail()) : contactData.getContactPhoto());
