@@ -76,7 +76,7 @@ public class CommonConst {
  	public static final String 	CONTACT_LIST_SELECTED_VALUE = "selectedValue";
  	public static final String 	CONTACT_REGISTRATION_ID = "registration_id";
  	
- 	public static final String	TRACK_LOCATION_URL_ON_GOOGLE = "https://goo.gl/CPhWXT";
+ 	public static final String	TRACK_LOCATION_URL_ON_GOOGLE = "https://goo.gl/FgvM4X";
  	public static final String	JOIN_SMS_PREFIX = 
  		APP_NAME + " application (" + Uri.parse(TRACK_LOCATION_URL_ON_GOOGLE) + "):\n";
  	public static final String 	JOIN_CONTACT_BY_SMS = "sms";

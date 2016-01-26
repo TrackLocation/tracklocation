@@ -700,10 +700,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		});
 
 	    if(contactDeviceDataList == null){
-	    	logMessage = "Unexpected state - no contacts.";
-	    	LogManager.LogErrorMsg(className, methodName, logMessage);
-	    	Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
-	    	return;
+	    	contactDeviceDataList = new ContactDeviceDataList();
 	    }
 	    			
     	adapterContacts = new ContactListArrayAdapter(this, R.layout.map_contact_item, R.id.contact, contactDeviceDataList);

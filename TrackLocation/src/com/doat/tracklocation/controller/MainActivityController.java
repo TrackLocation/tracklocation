@@ -9,7 +9,11 @@ import com.doat.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.doat.tracklocation.datatype.AppInfo;
 import com.doat.tracklocation.datatype.AppInstDetails;
 import com.doat.tracklocation.datatype.BackupDataOperations;
+import com.doat.tracklocation.datatype.BroadcastActionEnum;
+import com.doat.tracklocation.datatype.CommandKeyEnum;
+import com.doat.tracklocation.datatype.CommandValueEnum;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
+import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.ChooseAccountDialog;
 import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
@@ -284,6 +288,24 @@ public class MainActivityController {
 				logMessage = "Failed to add owner information to application's DB";
 				LogManager.LogErrorMsg(className, methodName, logMessage);
 				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			} else {
+				MessageDataContactDetails joinRequesterMessageDataContactDetails = 
+						new MessageDataContactDetails(account, 
+							macAddress, 
+							phoneNumber, 
+							registrationId, 
+							0);
+					
+				// Broadcast message to update ContactList
+				Controller.broadcsatMessage(context, 
+					joinRequesterMessageDataContactDetails, 
+					BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+					"Update Contacts List", 
+					CommandKeyEnum.update_contact_list.toString(), 
+					CommandValueEnum.update_contact_list.toString());
+				logMessage = "Owner information inserted to application's DB";
+				LogManager.LogInfoMsg(className, methodName, logMessage);
+				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 			}
 		} else {
 			logMessage = "Owner information already exists in application's DB";
