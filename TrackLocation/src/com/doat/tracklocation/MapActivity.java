@@ -493,18 +493,18 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		ImageButton nav_btn = (ImageButton) findViewById(R.id.nav_btn);			
 		nav_btn.setOnClickListener(new OnClickListener() {
 
-            @Override
-            public void onClick(View v) {
-                if (selectedMarkerDetails != null) {
-                    double lat = selectedMarkerDetails.getLocationDetails().getLat();
-                    double lng = selectedMarkerDetails.getLocationDetails().getLng();
+			@Override
+			public void onClick(View v) {
+				if (selectedMarkerDetails != null) {
+					double lat = selectedMarkerDetails.getLocationDetails().getLat();
+					double lng = selectedMarkerDetails.getLocationDetails().getLng();
 
-                    final String uri = String.format(Locale.getDefault(), "geo:0,0?q=%f,%f", lat, lng);
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-                    startActivity(intent);
-                }
-            }
-        });
+					final String uri = String.format(Locale.getDefault(), "geo:0,0?q=%f,%f", lat, lng);
+					Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+					startActivity(intent);
+				}
+			}
+		});
 	}
 
 	private MyMapFragment getHandleToMapFragment() {
@@ -512,42 +512,42 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         MyMapFragment myMapFragment = (MyMapFragment) getFragmentManager().findFragmentById(R.id.map);
         myMapFragment.setOnDragListener(new MapWrapperLayout.OnDragListener() {
 
-            @Override
-            public void onDrag(MotionEvent motionEvent) {
-                final int action = MotionEventCompat.getActionMasked(motionEvent);
+			@Override
+			public void onDrag(MotionEvent motionEvent) {
+				final int action = MotionEventCompat.getActionMasked(motionEvent);
 
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN: {
-                        final int pointerIndex = MotionEventCompat.getActionIndex(motionEvent);
-                        mLastTouchX = MotionEventCompat.getX(motionEvent, pointerIndex);
-                        mLastTouchY = MotionEventCompat.getY(motionEvent, pointerIndex);
+				switch (action) {
+					case MotionEvent.ACTION_DOWN: {
+						final int pointerIndex = MotionEventCompat.getActionIndex(motionEvent);
+						mLastTouchX = MotionEventCompat.getX(motionEvent, pointerIndex);
+						mLastTouchY = MotionEventCompat.getY(motionEvent, pointerIndex);
 
-                        // Save the ID of this pointer (for dragging)
-                        mActivePointerId = MotionEventCompat.getPointerId(motionEvent, 0);
-                        break;
-                    }
+						// Save the ID of this pointer (for dragging)
+						mActivePointerId = MotionEventCompat.getPointerId(motionEvent, 0);
+						break;
+					}
 
-                    case MotionEvent.ACTION_MOVE: {
-                        // Find the index of the active pointer and fetch its position
-                        final int pointerIndex = MotionEventCompat.findPointerIndex(motionEvent, mActivePointerId);
-                        if (pointerIndex >= 0) {
-                            final float x = MotionEventCompat.getX(motionEvent, pointerIndex);
-                            final float y = MotionEventCompat.getY(motionEvent, pointerIndex);
+					case MotionEvent.ACTION_MOVE: {
+						// Find the index of the active pointer and fetch its position
+						final int pointerIndex = MotionEventCompat.findPointerIndex(motionEvent, mActivePointerId);
+						if (pointerIndex >= 0) {
+							final float x = MotionEventCompat.getX(motionEvent, pointerIndex);
+							final float y = MotionEventCompat.getY(motionEvent, pointerIndex);
 
-                            // Calculate the distance moved
-                            if (Math.abs(x - mLastTouchX) > 5 || Math.abs(y - mLastTouchY) > 5) {
-                                if (mapMarkerDetailsList.size() > 0) {
-                                    isMapInMovingState = true;
-                                    startTimer();
-                                }
-                            }
-                        }
-                        break;
-                    }
-                }
-                Log.d("ON_DRAG", String.format("ME: %s", motionEvent));
-            }
-        });
+							// Calculate the distance moved
+							if (Math.abs(x - mLastTouchX) > 5 || Math.abs(y - mLastTouchY) > 5) {
+								if (mapMarkerDetailsList.size() > 0) {
+									isMapInMovingState = true;
+									startTimer();
+								}
+							}
+						}
+						break;
+					}
+				}
+				Log.d("ON_DRAG", String.format("ME: %s", motionEvent));
+			}
+		});
 		return myMapFragment;
 	}	
 	
@@ -760,17 +760,18 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
                 else{
                     iContactQuickInfoWidth = iWidth;
                 }
+				quick_info_fav.setChecked(contactDeviceDataList.get(position).isFavorite());
+				quick_info_fav.setTag(position);
+				quick_info_name.setText(contactDeviceDataList.get(position).getContactData().getNick());
+
                 contact_quick_info.getLayoutParams().width = 0;
-                int iParentWidth = ((LinearLayout)parent.getParent()).getLeft();
+
                 ResizeAnimation anim = new ResizeAnimation(contact_quick_info, 0, contact_quick_info.getLayoutParams().height, iWidth , contact_quick_info.getLayoutParams().height);
 
-				int iParentTop = ((LinearLayout)parent.getParent()).getTop();
-				int iQuickInfoTop = adView.getHeight() + iParentTop + view.getTop() + (view.getHeight() - contact_quick_info.getLayoutParams().height)/2;
+				int iQuickInfoTop = view.getTop() + (view.getHeight() - contact_quick_info.getLayoutParams().height)/2;
 				((RelativeLayout.LayoutParams) contact_quick_info.getLayoutParams()).setMargins(0, iQuickInfoTop, 0, 0);
+				contact_quick_info.requestLayout();
 
-                quick_info_fav.setChecked(contactDeviceDataList.get(position).isFavorite());
-                quick_info_fav.setTag(position);
-                quick_info_name.setText(contactDeviceDataList.get(position).getContactData().getNick());
                 contact_quick_info.setVisibility(View.VISIBLE);
                 contact_quick_info.startAnimation(anim);
                 return true;
@@ -814,7 +815,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		    }	    
 	    }
 	    else{
-	    	lvFavorites.setVisibility(View.GONE);
+	    	lvFavorites.setVisibility(View.INVISIBLE);
 	    	btnContacts.callOnClick();
 			// Start thread to check which contacts are online
 			if(contactListController != null){
