@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:tools="http://schemas.android.com/tools"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	android:id="@+id/main_pane"
+	tools:context=".MapActivity" >
+
+	<fragment
+		android:id="@+id/map"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		class="com.doat.tracklocation.MyMapFragment"
+		android:scrollbars="vertical" />
+
+	<LinearLayout
+		android:id="@+id/layoutAccountMenu"
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:layout_alignParentTop="false"
+		android:layout_centerHorizontal="true"
+		android:background="@color/White"
+		android:orientation="vertical" >
+
+		<LinearLayout
+			android:id="@+id/map_popup_first"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content" >
+
+			<LinearLayout
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="12dp"
+				android:layout_marginLeft="12dp"
+				android:layout_marginRight="8dp"
+				android:layout_marginTop="12dp"
+				android:layout_weight="80"
+				android:orientation="vertical" >
+
+				<TextView
+					android:id="@+id/title_text"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginBottom="2dp"
+					android:textColor="@color/Black"
+					android:textStyle="bold" />
+
+				<TextView
+					android:id="@+id/info_preview"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_marginBottom="2dp"
+					android:textColor="@color/Black" />
+			</LinearLayout>
+
+			<LinearLayout
+				android:layout_width="0dp"
+				android:layout_height="wrap_content"
+				android:layout_marginBottom="12dp"
+				android:layout_marginLeft="12dp"
+				android:layout_marginRight="8dp"
+				android:layout_marginTop="12dp"
+				android:layout_weight="20"
+				android:orientation="vertical" >
+
+				<ImageButton
+					android:id="@+id/nav_btn"
+					style="@style/flat_round_button"
+					android:layout_gravity="center_vertical|center_horizontal"
+					android:layout_margin="@dimen/activity_horizontal_margin"
+					android:layout_weight="20"
+					android:elevation="6dp"
+					android:src="@drawable/ic_directions_black_24dp" />
+			</LinearLayout>
+		</LinearLayout>
+
+		<LinearLayout
+			android:id="@+id/map_popup_second"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:weightSum="100" >
+
+			<Button
+				android:id="@+id/call_btn"
+				style="@style/general_button"
+				android:layout_width="0dp"
+				android:layout_height="fill_parent"
+				android:layout_weight="20"
+				android:minHeight="48dip"
+				android:text="Call" />
+
+			<Button
+				android:id="@+id/message_btn"
+				style="@style/general_button"
+				android:layout_width="0dp"
+				android:layout_height="fill_parent"
+				android:layout_weight="60"
+				android:minHeight="48dip"
+				android:text="Send message" />
+
+			<Button
+				android:id="@+id/ring_btn"
+				style="@style/general_button"
+				android:layout_width="0dp"
+				android:layout_height="fill_parent"
+				android:layout_weight="20"
+				android:minHeight="48dip"
+				android:text="Ring..." />
+		</LinearLayout>
+	</LinearLayout>
+
+	<ImageButton
+		android:id="@+id/btn_my_location"
+		style="@style/flat_round_button"
+		android:layout_alignParentBottom="false"
+		android:layout_alignParentLeft="true"
+		android:layout_centerHorizontal="false"
+		android:layout_centerInParent="false"
+		android:layout_centerVertical="true"
+		android:layout_gravity="center_vertical|center_horizontal"
+		android:layout_margin="@dimen/activity_horizontal_margin"
+		android:alpha="0.6"
+		android:src="@drawable/ic_my_location_black_24dp"
+		android:visibility="invisible" />
+
+	<include
+		android:id="@+id/include_contacts_list"
+		android:layout_width="80dp"
+		android:layout_height="fill_parent"
+		android:layout_above="@+id/layoutAccountMenu"
+		android:layout_alignParentRight="true"
+		android:layout_gravity="left|center"
+		layout="@layout/map_contacts_fragment"
+		android:layout_marginTop="10dp" />
+
+	<ListView
+		android:id="@+id/favorites_list"
+		android:layout_width="80dp"
+		android:layout_height="fill_parent"
+		android:layout_above="@+id/layoutAccountMenu"
+		android:layout_alignParentRight="true"
+		android:layout_below="@+id/menu_view_btn"
+		android:layout_centerHorizontal="true"
+		android:layout_gravity="center_horizontal"
+		android:background="@android:color/transparent"
+		android:divider="@android:color/transparent"
+		android:dividerHeight="0dp" />
+
+	<ImageButton
+		android:id="@+id/menu_view_btn"
+		style="@style/general_button"
+		android:layout_width="50dp"
+		android:layout_height="50dp"
+		android:alpha="0.8"
+		android:src="@drawable/ic_settings_black_24dp"
+		android:layout_alignTop="@+id/include_contacts_list"
+		android:layout_alignLeft="@+id/btn_my_location"
+		android:layout_alignParentEnd="false"
+		android:layout_alignParentStart="false" />
+
+	<LinearLayout
+		android:id="@+id/contact_quick_info"
+		android:layout_width="200dp"
+		android:layout_height="?android:attr/listPreferredItemHeightSmall"
+		android:layout_alignParentEnd="false"
+		android:layout_alignTop="@+id/favorites_list"
+		android:layout_marginTop="20dp"
+		android:layout_toLeftOf="@+id/include_contacts_list"
+		android:layout_toStartOf="@id/include_contacts_list"
+		android:alpha="0.8"
+		android:background="@drawable/contact_quick_info_shape"
+		android:layoutMode="opticalBounds"
+		android:orientation="horizontal" >
+
+		<CheckBox
+			android:id="@+id/qi_favbutton"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:layout_marginLeft="5sp"
+			android:layout_marginRight="5dp"
+			android:button="@android:drawable/btn_star"
+			android:focusable="false"
+			android:gravity="center_vertical|center_horizontal" />
+
+		<TextView
+			android:id="@+id/qi_contact"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:ellipsize="marquee"
+			android:fontFamily="sans-serif-light"
+			android:gravity="center_vertical|center_horizontal"
+			android:text="@+id/label"
+			android:textAppearance="?android:attr/textAppearanceLarge"
+			android:textSize="25sp" />
+	</LinearLayout>
+
+</RelativeLayout>

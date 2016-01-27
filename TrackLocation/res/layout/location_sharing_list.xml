@@ -1,21 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:ads="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical" >
+    android:layout_height="fill_parent">
     
+    <ListView
+        android:id="@+id/location_sharing_list_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="top|center"
+        android:layout_above="@+id/adLocation"
+        android:layout_alignParentTop="true"/>
+
     <com.google.android.gms.ads.AdView
         android:id="@+id/adLocation"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         ads:adSize="SMART_BANNER"
-        ads:adUnitId="ca-app-pub-6113414530604854/9728154522" />
+        ads:adUnitId="ca-app-pub-6113414530604854/9728154522"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"/>
 
-    <ListView
-        android:id="@+id/location_sharing_list_view"
-        android:layout_width="fill_parent"
-        android:layout_below="@+id/adLocation"
-        android:layout_height="fill_parent"/>
-
-</LinearLayout>
+</RelativeLayout>

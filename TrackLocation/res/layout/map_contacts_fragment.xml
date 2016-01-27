@@ -8,9 +8,9 @@
     <ImageButton
         android:id="@+id/contacts_view_btn"
         style="@style/general_button"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_gravity="center_horizontal"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="top|center"
         android:alpha="0.8"        
         android:src="@drawable/ic_group_black_24dp" />
   
