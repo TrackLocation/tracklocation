@@ -146,8 +146,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private LinearLayout layoutAccountMenu;
 	private ImageButton btnMyLocation;
 	
-    public static volatile boolean isTrackLocationRunning; // Used in SMSReceiver.class
-	
 	float mLastTouchX = 0;
 	float mLastTouchY = 0;
 	private int mActivePointerId = -1;
@@ -170,9 +168,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private ArrayList<ActionMenuObj> mActionMenuList;
 	
 	private MapActivityController mapActivityController;
-	
-	private MainActivityController mainActivityController;
-
 	private ContactListController contactListController;
 
 	private LinearLayout contact_quick_info;
@@ -225,8 +220,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		
 		if(mainActivityController == null){
-        	mainActivityController = new MainActivityController(MapActivity.this, context);
-        }	
+        	mainActivityController = new MainActivityController(MapActivity.this, context, false);
+        }
+		mainActivityController.setMainActivity(MapActivity.this);
+		
 		if(contactListController == null){
 			contactListController = new ContactListController(this, getApplicationContext());
 		}
@@ -370,11 +367,13 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	
     	isPermissionDialogShown = false;
     	
-      	Thread registerToGCMInBackgroundThread = 
-              	mainActivityController.getRegisterToGCMInBackgroundThread();
-     	if(registerToGCMInBackgroundThread != null){
-     		registerToGCMInBackgroundThread.interrupt();
-     	}
+		if(mainActivityController != null){
+	      	Thread registerToGCMInBackgroundThread = 
+	              	mainActivityController.getRegisterToGCMInBackgroundThread();
+	     	if(registerToGCMInBackgroundThread != null){
+	     		registerToGCMInBackgroundThread.interrupt();
+	     	}
+		}
 
      	BackupDataOperations backupData = new BackupDataOperations();
  		boolean isBackUpSuccess = backupData.backUp();

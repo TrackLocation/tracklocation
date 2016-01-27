@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.doat.tracklocation.Controller;
+import com.doat.tracklocation.MapActivity;
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.doat.tracklocation.datatype.AppInfo;
@@ -33,6 +34,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
+import android.content.Intent;
 import android.util.Log;
 
 public class MainActivityController {
@@ -61,7 +63,7 @@ public class MainActivityController {
 	private Thread registerToGCMInBackgroundThread;
 	private Runnable registerToGCMInBackground;
     
-    public MainActivityController(Activity mainActivity, Context context){
+    public MainActivityController(Activity mainActivity, Context context, boolean isInitialization){
     	className = this.getClass().getName();
     	methodName = "MainActivityController";
     	LogManager.LogFunctionCall(className, methodName);
@@ -72,13 +74,24 @@ public class MainActivityController {
     	if(mainModel == null){
     		mainModel = new MainModel();
     	}
-    	startMainActivityController();
+    	
+    	if(isInitialization){
+    		startMainActivityController();
+    	}
     	
     	LogManager.LogFunctionExit(className, methodName);
     	Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
     }
     
-    public void startMainActivityController(){
+    public Activity getMainActivity() {
+		return mainActivity;
+	}
+
+	public void setMainActivity(Activity mainActivity) {
+		this.mainActivity = mainActivity;
+	}
+
+	public void startMainActivityController(){
     	methodName = "startMainActivityController";
     	LogManager.LogFunctionCall(className, methodName);
     	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
@@ -215,7 +228,11 @@ public class MainActivityController {
         	initWithRegID(registrationId);
         }
     
-		// Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
+		Intent intent = new Intent(mainActivity, MapActivity.class);
+		intent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
+		context.startActivity(intent);
+
+        // Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
         SMSUtils.checkJoinRequestBySMSInBackground(context, mainActivity);
  
         LogManager.LogFunctionExit(className, methodName);

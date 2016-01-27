@@ -26,7 +26,7 @@ public class BackupDataOperations {
     private File TrackLocationDirectory;
     private File backUpFile;
     private Gson gson;
-    private boolean enforceRestore = false;
+    private boolean enforceRestore = true;
 	
     public BackupDataOperations(){
 		className = this.getClass().getName();
