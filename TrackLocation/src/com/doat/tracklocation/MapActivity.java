@@ -253,14 +253,18 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         
         zoom = DEFAULT_CAMERA_UPDATE;
         if(lastKnownLocation != null){
-	        map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-	        		lastKnownLocation, zoom));
+        	if(map != null){
+		        map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+		        		lastKnownLocation, zoom));
+        	}
         }
         
-        map.setOnMapClickListener(this);
-        map.setOnMarkerClickListener(this);         
-
-        map.clear();                
+        if(map != null){
+	        map.setOnMapClickListener(this);
+	        map.setOnMarkerClickListener(this);         
+	
+	        map.clear();                
+        }
         
     	title_text = (TextView) findViewById(R.id.title_text);
     	
