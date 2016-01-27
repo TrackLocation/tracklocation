@@ -175,12 +175,16 @@ public class CheckJoinRequestBySMS implements Runnable {
 	    		
 	    		String smsMessageContent = smsMessage.getMessageContent();
 	    		try {
-					if(!smsMessageContent.isEmpty() && smsMessageContent.contains(CommonConst.JOIN_SMS_PREFIX)){
-						smsMessageContent = CryptoUtils.decodeBase64(smsMessageContent.substring(CommonConst.JOIN_SMS_PREFIX.length(), smsMessageContent.length()));
+					if(!smsMessageContent.isEmpty() && (smsMessageContent.contains(CommonConst.JOIN_SMS_PREFIX) || smsMessageContent.contains(CommonConst.OLD_JOIN_SMS_PREFIX))){
+						if(smsMessageContent.contains(CommonConst.JOIN_SMS_PREFIX)){
+							smsMessageContent = CryptoUtils.decodeBase64(smsMessageContent.substring(CommonConst.JOIN_SMS_PREFIX.length(), smsMessageContent.length()));
+						} else if (smsMessageContent.contains(CommonConst.OLD_JOIN_SMS_PREFIX)){
+							smsMessageContent = CryptoUtils.decodeBase64(smsMessageContent.substring(CommonConst.OLD_JOIN_SMS_PREFIX.length(), smsMessageContent.length()));
+						}
 						smsMessage.setMessageContent(smsMessageContent);
 						
 						// Check if there SMS with JOIN REQUEST from TrackLocation application
-						if(smsMessageContent != null && smsMessageContent.contains(CommonConst.JOIN_FLAG_SMS)){
+						if(smsMessageContent != null && (smsMessageContent.contains(CommonConst.JOIN_SMS_PREFIX) || smsMessageContent.contains(CommonConst.OLD_JOIN_SMS_PREFIX))){
 				    	    if(SMSUtils.isHandledSmsDetails(ctx, smsMessage)){
 				    	    	continue;
 				    	    }

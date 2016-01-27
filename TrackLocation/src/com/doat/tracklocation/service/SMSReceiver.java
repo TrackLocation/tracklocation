@@ -54,8 +54,12 @@ public class SMSReceiver extends BroadcastReceiver {
 			}
 			
 			try {
-				if(!smsMessageBody.isEmpty() && smsMessageBody.contains(CommonConst.JOIN_SMS_PREFIX)){
-					smsMessageBody = CryptoUtils.decodeBase64(smsMessageBody.substring(CommonConst.JOIN_SMS_PREFIX.length(), smsMessageBody.length()));
+				if(!smsMessageBody.isEmpty() && (smsMessageBody.contains(CommonConst.JOIN_SMS_PREFIX) || smsMessageBody.contains(CommonConst.OLD_JOIN_SMS_PREFIX))){
+					if(smsMessageBody.contains(CommonConst.JOIN_SMS_PREFIX)){
+						smsMessageBody = CryptoUtils.decodeBase64(smsMessageBody.substring(CommonConst.JOIN_SMS_PREFIX.length(), smsMessageBody.length()));
+					} else if (smsMessageBody.contains(CommonConst.OLD_JOIN_SMS_PREFIX)){
+						smsMessageBody = CryptoUtils.decodeBase64(smsMessageBody.substring(CommonConst.OLD_JOIN_SMS_PREFIX.length(), smsMessageBody.length()));
+					}
 				} else {
 					LogManager.LogFunctionExit(className, methodName);
 					Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);

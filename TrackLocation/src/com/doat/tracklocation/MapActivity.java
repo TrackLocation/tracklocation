@@ -764,8 +764,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
                 int iParentWidth = ((LinearLayout)parent.getParent()).getLeft();
                 ResizeAnimation anim = new ResizeAnimation(contact_quick_info, 0, contact_quick_info.getLayoutParams().height, iWidth , contact_quick_info.getLayoutParams().height);
 
-				int iParentTop = ((LinearLayout)parent.getParent()).getTop();
-				int iQuickInfoTop = adView.getHeight() + iParentTop + view.getTop() + (view.getHeight() - contact_quick_info.getLayoutParams().height)/2;
+				int iQuickInfoTop = view.getTop() + (view.getHeight() - contact_quick_info.getLayoutParams().height)/2;
 				((RelativeLayout.LayoutParams) contact_quick_info.getLayoutParams()).setMargins(0, iQuickInfoTop, 0, 0);
 
                 quick_info_fav.setChecked(contactDeviceDataList.get(position).isFavorite());

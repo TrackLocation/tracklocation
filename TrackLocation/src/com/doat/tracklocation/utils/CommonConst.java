@@ -6,7 +6,8 @@ import android.net.Uri;
 
 public class CommonConst {
 	
-	public static final String 	APP_NAME 						= "TrackLocation";
+	public static final String 	OLD_APP_NAME 					= "TrackLocation";
+	public static final String 	NEW_APP_NAME 					= "MapLocationShare";
 	public static final String 	LOG_TAG 						= "TrackLocation";
 	public static final String 	LOG_TAG_TLS 					= "TrackLocation_TLS";
 	public static final String 	STACK_TRACE						= "TRUE";
@@ -77,9 +78,12 @@ public class CommonConst {
  	public static final String 	CONTACT_REGISTRATION_ID = "registration_id";
  	
  	public static final String	TRACK_LOCATION_URL_ON_GOOGLE = "https://goo.gl/FgvM4X";
+ 	public static final String	OLD_TRACK_LOCATION_URL_ON_GOOGLE = "https://goo.gl/CPhWXT";
  	public static final String	JOIN_SMS_PREFIX = 
- 		APP_NAME + " application (" + Uri.parse(TRACK_LOCATION_URL_ON_GOOGLE) + "):\n";
- 	public static final String 	JOIN_CONTACT_BY_SMS = "sms";
+ 		NEW_APP_NAME + " application (" + Uri.parse(TRACK_LOCATION_URL_ON_GOOGLE) + "):\n";
+ 	public static final String	OLD_JOIN_SMS_PREFIX = 
+ 		OLD_APP_NAME + " application (" + Uri.parse(OLD_TRACK_LOCATION_URL_ON_GOOGLE) + "):\n";
+	public static final String 	JOIN_CONTACT_BY_SMS = "sms";
  	public static final String 	JOIN_CONTACT_BY_EMAIL = "email";
  	public static final String 	JOIN_CONTACT_BY = "join_contact_by";
  	
