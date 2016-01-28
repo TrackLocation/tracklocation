@@ -184,7 +184,7 @@ public class CheckJoinRequestBySMS implements Runnable {
 						smsMessage.setMessageContent(smsMessageContent);
 						
 						// Check if there SMS with JOIN REQUEST from TrackLocation application
-						if(smsMessageContent != null && (smsMessageContent.contains(CommonConst.JOIN_SMS_PREFIX) || smsMessageContent.contains(CommonConst.OLD_JOIN_SMS_PREFIX))){
+						if(smsMessageContent != null && (smsMessageContent.contains(CommonConst.JOIN_FLAG_SMS))){
 				    	    if(SMSUtils.isHandledSmsDetails(ctx, smsMessage)){
 				    	    	continue;
 				    	    }

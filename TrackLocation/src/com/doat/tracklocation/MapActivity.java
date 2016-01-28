@@ -176,6 +176,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     private int iContactQuickInfoWidth = -1;
 	private AdView adView;
 
+    public static volatile boolean isTrackLocationRunning; // Used in SMSReceiver.class
+	
     private enum DialogStatus{
 		Opened, Closed
 	}

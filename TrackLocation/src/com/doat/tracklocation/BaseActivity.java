@@ -23,8 +23,6 @@ public class BaseActivity extends Activity {
     protected String logMessage;
     protected MainActivityController mainActivityController;
 	
-    public static volatile boolean isTrackLocationRunning; // Used in SMSReceiver.class
-	
 	public TrackLocationApplication getMainApp() {
 		return (TrackLocationApplication) getApplication();
 	}

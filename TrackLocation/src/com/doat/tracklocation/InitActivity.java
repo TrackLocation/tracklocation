@@ -17,7 +17,6 @@ public class InitActivity extends BaseActivity {
 		
 		className = this.getClass().getName();
 		methodName = "onCreate";
-    	isTrackLocationRunning = true;
 
 		LogManager.LogActivityCreate(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_CREATE] {" + className + "} -> " + methodName);
@@ -47,7 +46,6 @@ public class InitActivity extends BaseActivity {
 	
 	@Override
 	protected void onStop() {
-    	isTrackLocationRunning = false;
 
     	LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_Stop] {" + className + "} -> " + methodName);
