@@ -46,16 +46,16 @@ public class CheckJoinRequestBySMS implements Runnable {
 		threadId = Thread.currentThread().getId();
 		methodName = "CheckJoinRequestBySMS" + " -> ThreadID: " + threadId;
 		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+		Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+		Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 
 	public void handleSms(Context ctx, SMSMessage smsMessage){
 		threadId = Thread.currentThread().getId();
 		methodName = "handleSms" + " -> ThreadID: " + threadId;
 		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+		Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 		
 	    String smsPhoneNumber = smsMessage.getMessageNumber();
 	    
@@ -81,7 +81,7 @@ public class CheckJoinRequestBySMS implements Runnable {
     			long res = DBLayer.getInstance().addReceivedJoinRequest(phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, accountFromSMS, macAddressFromSMS);
     			if(res == -1 || res == 0){
     	        	logMessage = "Add received join request FAILED for phoneNumber = " + phoneNumberFromSMS;
-    	            Log.e(CommonConst.LOG_TAG, logMessage);
+    	            Log.e(CommonConst.LOG_TAG_SMS, logMessage);
     	            LogManager.LogErrorMsg(className, methodName, logMessage);
     			} else {
     				// Starting Android 4.4 - only default SMS application can delete SMS
@@ -92,7 +92,7 @@ public class CheckJoinRequestBySMS implements Runnable {
     				// if(count != 1){
     				//	  // Log that join SMS request has not been removed
 	    	        //	  logMessage = "Failed to delete join request SMS";
-	    	        //    Log.e(CommonConst.LOG_TAG, logMessage);
+	    	        //    Log.e(CommonConst.LOG_TAG_SMS, logMessage);
 	    	        //    LogManager.LogErrorMsg(className, "checkJoinRequestBySMS", logMessage);
 	    	        //    
 	    	        //    ((MainActivity) activity).getMainActivityController().saveHandledSmsDetails(ctx, smsMessage);
@@ -103,7 +103,7 @@ public class CheckJoinRequestBySMS implements Runnable {
     	    	    // Check that join request approved and send back by
     	    	    // push notification (GCM) owner contact details
     				logMessage = "Show 'ApproveJoinRequestDialog' from thread...";
-    				Log.i(CommonConst.LOG_TAG, logMessage);
+    				Log.i(CommonConst.LOG_TAG_SMS, logMessage);
     				LogManager.LogInfoMsg(className, methodName, logMessage);
 
     				ApproveJoinRequestContext approveJoinRequestContext = 
@@ -127,26 +127,26 @@ public class CheckJoinRequestBySMS implements Runnable {
     	    } else {
 	        	logMessage = "No NULL or empty parameters accepted for mutualId , regId, " + 
 	    	    	"macAddress and phoneNumber.";
-	            Log.e(CommonConst.LOG_TAG, logMessage);
+	            Log.e(CommonConst.LOG_TAG_SMS, logMessage);
 	            LogManager.LogErrorMsg(className, methodName, logMessage);
     	    	if(phoneNumberFromSMS != null && !phoneNumberFromSMS.isEmpty()){
     	        	logMessage = "phoneNumber is null or empty";
-    	            Log.e(CommonConst.LOG_TAG, logMessage);
+    	            Log.e(CommonConst.LOG_TAG_SMS, logMessage);
     	            LogManager.LogErrorMsg(className, methodName, logMessage);
     	    	}
     	    	if(mutualIdFromSMS != null && !mutualIdFromSMS.isEmpty()){
     	        	logMessage = "mutualId is null or empty";
-    	            Log.e(CommonConst.LOG_TAG, logMessage);
+    	            Log.e(CommonConst.LOG_TAG_SMS, logMessage);
     	            LogManager.LogErrorMsg(className, methodName, logMessage);
     	    	}
     	    	if(regIdFromSMS != null && !regIdFromSMS.isEmpty()){
     	        	logMessage = "regId is null or empty";
-    	            Log.e(CommonConst.LOG_TAG, logMessage);
+    	            Log.e(CommonConst.LOG_TAG_SMS, logMessage);
     	            LogManager.LogErrorMsg(className, methodName, logMessage);
     	    	}
     	    	if(macAddressFromSMS != null && !macAddressFromSMS.isEmpty()){
     	        	logMessage = "macAddress is null or empty";
-    	            Log.e(CommonConst.LOG_TAG, logMessage);
+    	            Log.e(CommonConst.LOG_TAG_SMS, logMessage);
     	            LogManager.LogErrorMsg(className, methodName, logMessage);
     	    	}
     	    }
@@ -154,11 +154,11 @@ public class CheckJoinRequestBySMS implements Runnable {
 			logMessage = "JOIN SMS Message has incorrect parameters number" +
 				" - supposed to be: " + CommonConst.JOIN_SMS_PARAMS_NUMBER;
 			LogManager.LogErrorMsg(className, methodName, logMessage);
-			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+			Log.e(CommonConst.LOG_TAG_SMS, "[ERROR] {" + className + "} -> " + logMessage);
 		}
 	    
 		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+		Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 	@Override
@@ -166,7 +166,7 @@ public class CheckJoinRequestBySMS implements Runnable {
 		threadId = Thread.currentThread().getId();
 		methodName = "run" + " -> ThreadID: " + threadId;
 		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+		Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 	    // Read SMS messages from inbox
 		// Fetch all SMS 
 	    SMSMessageList smsList = Controller.fetchInboxSms(activity, 1);
@@ -183,14 +183,18 @@ public class CheckJoinRequestBySMS implements Runnable {
 						}
 						smsMessage.setMessageContent(smsMessageContent);
 						
+						Log.i(CommonConst.LOG_TAG_SMS, "Check if there SMS with JOIN REQUEST from TrackLocation application");
+						
 						// Check if there SMS with JOIN REQUEST from TrackLocation application
 						if(smsMessageContent != null && (smsMessageContent.contains(CommonConst.JOIN_FLAG_SMS))){
 				    	    if(SMSUtils.isHandledSmsDetails(ctx, smsMessage)){
+				    	    	Log.i(CommonConst.LOG_TAG_SMS, "Already handled");
 				    	    	continue;
 				    	    }
 				    	    
 				    	    // save the SMS as handled
 				    		if(smsMessage != null){
+				    			Log.i(CommonConst.LOG_TAG_SMS, "save the SMS as handled");
 				    			SMSUtils.saveHandledSmsDetails(ctx, smsMessage);
 				    		}
 
@@ -201,11 +205,11 @@ public class CheckJoinRequestBySMS implements Runnable {
 					}
 				} catch (UnsupportedEncodingException e) {
 					LogManager.LogException(e, className, methodName);
-					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+					Log.e(CommonConst.LOG_TAG_SMS, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 				}
 			}
 	    }
 		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+		Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 }

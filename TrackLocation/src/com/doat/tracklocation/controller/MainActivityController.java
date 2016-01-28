@@ -232,9 +232,6 @@ public class MainActivityController {
 		intent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
 		context.startActivity(intent);
 
-        // Controller.checkJoinRequestBySMS(new Object[] {context, MainActivity.this}); 
-        SMSUtils.checkJoinRequestBySMSInBackground(context, mainActivity);
- 
         LogManager.LogFunctionExit(className, methodName);
         Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
     }

@@ -10,6 +10,7 @@ public class CommonConst {
 	public static final String 	NEW_APP_NAME 					= "MapLocationShare";
 	public static final String 	LOG_TAG 						= "TrackLocation";
 	public static final String 	LOG_TAG_TLS 					= "TrackLocation_TLS";
+	public static final String 	LOG_TAG_SMS 					= "TrackLocation_SMS";
 	public static final String 	STACK_TRACE						= "TRUE";
 	public static final String 	TRACK_LOCATION_PROJECT_PREFIX 	= "com.doat.tracklocation";
 	public static final String 	GOOGLE_PROJECT_NUMBER 			= "GoogleProjectNumber";

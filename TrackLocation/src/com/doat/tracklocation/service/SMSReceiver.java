@@ -4,6 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import com.doat.tracklocation.Controller;
+import com.doat.tracklocation.InitAppActivity;
 //import com.doat.tracklocation.MainActivity;
 import com.doat.tracklocation.MapActivity;
 import com.doat.tracklocation.crypto.CryptoUtils;
@@ -36,7 +37,7 @@ public class SMSReceiver extends BroadcastReceiver {
 
         methodName = "onReceive";
         LogManager.LogFunctionCall(className, methodName);
-        Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+        Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
         String action = intent.getAction();
 		
@@ -62,15 +63,15 @@ public class SMSReceiver extends BroadcastReceiver {
 					}
 				} else {
 					LogManager.LogFunctionExit(className, methodName);
-					Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+					Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 					return;
 				}
 			} catch (UnsupportedEncodingException e) {
 				LogManager.LogException(e, className, methodName);
-				Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
+				Log.e(CommonConst.LOG_TAG_SMS, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 
 				LogManager.LogFunctionExit(className, methodName);
-				Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+				Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 				return;
 			}
 						
@@ -91,30 +92,32 @@ public class SMSReceiver extends BroadcastReceiver {
 				
 		    	    logMessage = "Handling of join request SMS received from [" + accountFromSMS + "]";
 		    	    LogManager.LogInfoMsg(className, methodName, logMessage);
-		    	    Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		    	    Log.i(CommonConst.LOG_TAG_SMS, "[INFO] {" + className + "} -> " + logMessage);
 
 	    	    	// Save contact details received by join requests to RECEIVED_JOIN_REQUEST table
 	    			long res = DBLayer.getInstance().addReceivedJoinRequest(phoneNumberFromSMS, mutualIdFromSMS, regIdFromSMS, accountFromSMS, macAddressFromSMS);
 	    			if(res == -1 || res == 0){
 	    	        	logMessage = "Add received join request FAILED for phoneNumber = " + phoneNumberFromSMS;
-	    	            Log.e(CommonConst.LOG_TAG, logMessage);
+	    	            Log.e(CommonConst.LOG_TAG_SMS, logMessage);
 	    	            LogManager.LogErrorMsg(className, methodName, logMessage);
 	    			}
 	    		} else { 
 	    			logMessage = "JOIN SMS Message has incorrect parameters number" +
 	    				" - supposed to be: " + CommonConst.JOIN_SMS_PARAMS_NUMBER;
 	    			LogManager.LogErrorMsg(className, methodName, logMessage);
-	    			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
+	    			Log.e(CommonConst.LOG_TAG_SMS, "[ERROR] {" + className + "} -> " + logMessage);
 	    		}
     			
 			    // Send a broadcast intent to update the SMS received in the activity
 				Intent intentMapActivity = getIntent(context, MapActivity.class);
-				Log.i(CommonConst.LOG_TAG, "intentMainActivity = " + intentMapActivity);
+				Log.i(CommonConst.LOG_TAG_SMS, "intentMainActivity = " + intentMapActivity);
 				if(MapActivity.isTrackLocationRunning == false){
+					Log.i(CommonConst.LOG_TAG_SMS, CommonConst.NEW_APP_NAME + " is not running...");
 		        	Intent mainActivity = new Intent(context, MapActivity.class);
 		        	mainActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		    		context.startActivity(mainActivity);
-				} else {					
+				} else {		
+					Log.i(CommonConst.LOG_TAG_SMS, CommonConst.NEW_APP_NAME + " is already running...");
 					Gson gson = new Gson();
 					NotificationBroadcastData notificationBroadcastData = new NotificationBroadcastData();
 					notificationBroadcastData.setMessage("message");
@@ -122,6 +125,7 @@ public class SMSReceiver extends BroadcastReceiver {
 					notificationBroadcastData.setValue(smsMessageBody);
 					String jsonNotificationBroadcastData = gson.toJson(notificationBroadcastData);
 					
+					Log.i(CommonConst.LOG_TAG_SMS, "Send broadcast key: JOIN_SMS");
 					// Broadcast corresponding message
 					Controller.broadcastMessage(context, 
 						BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
@@ -134,7 +138,7 @@ public class SMSReceiver extends BroadcastReceiver {
 		}
 		
 		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+		Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 	private static Intent getIntent(Context context, Class<?> cls) {

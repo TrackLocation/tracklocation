@@ -81,6 +81,7 @@ import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.ResizeAnimation;
+import com.doat.tracklocation.utils.SMSUtils;
 import com.doat.tracklocation.utils.Utils;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -312,6 +313,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			notificationBroadcastReceiver = new BroadcastReceiverMapActivity(MapActivity.this);
 		}
 		initNotificationBroadcastReceiver(notificationBroadcastReceiver);
+		
+		SMSUtils.checkJoinRequestBySMSInBackground(context, this);
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);

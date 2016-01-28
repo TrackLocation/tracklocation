@@ -9,11 +9,12 @@ import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
-public class InitActivity extends Activity {
+public class InitAppActivity extends Activity {
 
 	private String className;
 	private String methodName;
 	private MainActivityController mainActivityController;
+	private Context context;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -28,29 +29,41 @@ public class InitActivity extends Activity {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
-		Context context = getApplicationContext();
-
-		if(mainActivityController == null){
-        	mainActivityController = new MainActivityController(InitActivity.this, context, true);
-        }	
+		// onCreate actions should be here
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 
 	@Override
-	protected void onResume() {
-		super.onResume();
-//		finish();
+	protected void onStart() {
+		methodName = "onStart";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+		
+		super.onStart();
+		context = getApplicationContext();
+		if(mainActivityController == null){
+        	mainActivityController = new MainActivityController(InitAppActivity.this, context, true);
+        }	
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 	@Override
 	protected void onStop() {
+		methodName = "onStop";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
-    	LogManager.LogActivityDestroy(className, methodName);
+		LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_Stop] {" + className + "} -> " + methodName);
 
     	super.onStop();
+
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
 }
