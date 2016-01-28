@@ -4,12 +4,16 @@ import com.doat.tracklocation.controller.MainActivityController;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
-public class InitActivity extends BaseActivity {
+public class InitActivity extends Activity {
 
-//	private HashMap<String, ContactData> selectedAccountList;
+	private String className;
+	private String methodName;
+	private MainActivityController mainActivityController;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -24,15 +28,11 @@ public class InitActivity extends BaseActivity {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
-		context = getApplicationContext();
-//		selectedAccountList = new HashMap<String, ContactData>();
+		Context context = getApplicationContext();
 
 		if(mainActivityController == null){
         	mainActivityController = new MainActivityController(InitActivity.this, context, true);
         }	
-		
-//		Intent intent = new Intent(this, MapActivity.class);
-//		startActivity(intent);
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
