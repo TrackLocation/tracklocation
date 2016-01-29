@@ -303,7 +303,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 	private void loadFirstInfoMessage() {
 		if (contactDeviceDataList != null && contactDeviceDataList.size() <= 1) {
-			LinearLayout llFirstMessage = (LinearLayout) findViewById(R.id.first_time_msg);
+			final LinearLayout llFirstMessage = (LinearLayout) findViewById(R.id.first_time_msg);
 			ViewGroup.LayoutParams params = llFirstMessage.getLayoutParams();
 
 			Display display = getWindowManager().getDefaultDisplay();
