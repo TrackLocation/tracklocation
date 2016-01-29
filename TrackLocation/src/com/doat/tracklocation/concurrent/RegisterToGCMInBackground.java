@@ -93,6 +93,7 @@ public class RegisterToGCMInBackground implements Runnable {
 	    				Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 	    				
 	    				if(waitingDialog != null){
+	    					Log.i(CommonConst.LOG_TAG, "waitingDialog.dismiss");
 	    					waitingDialog.dismiss();
 	    				}
 	    				
@@ -198,6 +199,10 @@ public class RegisterToGCMInBackground implements Runnable {
 	    					Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> Sleep: " + SLEEP_TIME / 1000 + " sec");
 	    					Thread.sleep(SLEEP_TIME);
 	    				} catch (InterruptedException e) {
+	    					if(waitingDialog != null){
+	    						Log.i(CommonConst.LOG_TAG, "waitingDialog.dismiss");
+	    						waitingDialog.dismiss();
+	    					}
 	    					logMessage = "Failed the thread with loop for Google Cloud Message Registration. ThreadID = " + 
 	    						Thread.currentThread().getId();
 	    					LogManager.LogInfoMsg(className, methodName, logMessage);
@@ -212,11 +217,19 @@ public class RegisterToGCMInBackground implements Runnable {
 	            // If there is an error, don't just keep trying to register.
 	            // Require the user to click a button again, or perform
 	            // exponential back-off.
+	    		if(waitingDialog != null){
+	    			Log.i(CommonConst.LOG_TAG, "waitingDialog.dismiss");
+	    			waitingDialog.dismiss();
+	    		}
 	        	logMessage = "Exception caught: " + ex.getMessage();
 	        	Log.e(CommonConst.LOG_TAG, logMessage, ex);
 	            LogManager.LogErrorMsg(className, methodName, logMessage);
 	        }
         }
+		if(waitingDialog != null){
+			Log.i(CommonConst.LOG_TAG, "waitingDialog.dismiss");
+			waitingDialog.dismiss();
+		}
 		logMessage = "\nGoogle Cloud Service is not available right now.\n\n"
 				+ "Application will be closed.\n\nPlease try later.\n";
 		if(registrationId == null || registrationId.isEmpty()){

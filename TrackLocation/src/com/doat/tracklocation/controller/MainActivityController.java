@@ -208,6 +208,7 @@ public class MainActivityController {
     	    waitingDialog.setOnDismissListener(new OnDismissListener(){
 				@Override
 				public void onDismiss(DialogInterface dialog) {
+					Log.i(CommonConst.LOG_TAG, "waitingDialog - onDismiss() called");
 					String regID = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
 					initWithRegID(regID);
 				}
@@ -286,6 +287,7 @@ public class MainActivityController {
 	    waitingDialog.show();
 	    waitingDialog.setCanceledOnTouchOutside(false);
 	    
+	    Log.i(CommonConst.LOG_TAG, "waitingDialog - show()");
 	    return waitingDialog;
 	}
 	
