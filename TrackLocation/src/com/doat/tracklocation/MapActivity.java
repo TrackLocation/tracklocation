@@ -32,12 +32,14 @@ import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.Animation.AnimationListener;
@@ -241,7 +243,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
         loadContactQuickInfo();
 		
 		loadFavoritsForLocateContacts();
-		
+
+		loadFirstInfoMessage();
 
 		isShowAllMarkersEnabled = true;
 
@@ -298,6 +301,41 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 
+	private void loadFirstInfoMessage() {
+		if (contactDeviceDataList != null && contactDeviceDataList.size() <= 1) {
+			LinearLayout llFirstMessage = (LinearLayout) findViewById(R.id.first_time_msg);
+			ViewGroup.LayoutParams params = llFirstMessage.getLayoutParams();
+
+			Display display = getWindowManager().getDefaultDisplay();
+			Point size = new Point();
+			display.getSize(size);
+			params.width = size.x;
+			mDrawerLayout.setDrawerListener(new DrawerLayout.DrawerListener() {
+				@Override
+				public void onDrawerSlide(View view, float v) {
+
+				}
+
+				@Override
+				public void onDrawerOpened(View view) {
+
+				}
+
+				@Override
+				public void onDrawerClosed(View view) {
+					llFirstMessage.setVisibility(View.GONE);
+					llFirstMessage.getLayoutParams().width = 0;
+				}
+
+				@Override
+				public void onDrawerStateChanged(int i) {
+
+				}
+			});
+			mDrawerLayout.openDrawer(llFirstMessage);
+		}
+	}
+
 	@Override
 	protected void onStart() {	
 		super.onStart();
@@ -315,7 +353,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		initNotificationBroadcastReceiver(notificationBroadcastReceiver);
 		
 		SMSUtils.checkJoinRequestBySMSInBackground(context, this);
-		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
@@ -655,7 +692,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	
 	private void loadFavoritsForLocateContacts(){
 		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(MapActivity.this, false);
-		
+
     	lvContacts = (ListView) findViewById(R.id.contacts_list);
 
 /*
