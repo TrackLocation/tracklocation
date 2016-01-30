@@ -1,7 +1,6 @@
 package com.doat.tracklocation;
 
 import com.doat.tracklocation.broadcast.BroadcastReceiverBase;
-import com.doat.tracklocation.controller.MainActivityController;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
@@ -21,7 +20,6 @@ public class BaseActivity extends Activity {
     protected String methodName;
     protected Context context;
     protected String logMessage;
-    protected MainActivityController mainActivityController;
 	
 	public TrackLocationApplication getMainApp() {
 		return (TrackLocationApplication) getApplication();

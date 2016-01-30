@@ -3,7 +3,6 @@ package com.doat.tracklocation;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import com.doat.tracklocation.controller.MainActivityController;
 import com.doat.tracklocation.db.DBHelper;
 import com.doat.tracklocation.db.DBManager;
 import com.doat.tracklocation.model.MainModel;

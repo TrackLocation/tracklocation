@@ -59,7 +59,6 @@ import android.widget.Toast;
 import com.doat.tracklocation.broadcast.BroadcastReceiverMapActivity;
 import com.doat.tracklocation.concurrent.TrackLocationServiceLauncher;
 import com.doat.tracklocation.controller.ContactListController;
-import com.doat.tracklocation.controller.MainActivityController;
 import com.doat.tracklocation.controller.MapActivityController;
 import com.doat.tracklocation.datatype.ActionMenuObj;
 import com.doat.tracklocation.datatype.BackupDataOperations;
@@ -223,12 +222,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			}
 		}
 
-		
-		if(mainActivityController == null){
-        	mainActivityController = new MainActivityController(MapActivity.this, context, false);
-        }
-		mainActivityController.setMainActivity(MapActivity.this);
-		
 		if(contactListController == null){
 			contactListController = new ContactListController(this, getApplicationContext());
 		}
@@ -409,14 +402,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	
     	isPermissionDialogShown = false;
     	
-		if(mainActivityController != null){
-	      	Thread registerToGCMInBackgroundThread = 
-	              	mainActivityController.getRegisterToGCMInBackgroundThread();
-	     	if(registerToGCMInBackgroundThread != null){
-	     		registerToGCMInBackgroundThread.interrupt();
-	     	}
-		}
-
      	BackupDataOperations backupData = new BackupDataOperations();
  		boolean isBackUpSuccess = backupData.backUp();
  		if(isBackUpSuccess != true){

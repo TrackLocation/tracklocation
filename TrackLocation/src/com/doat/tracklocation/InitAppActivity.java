@@ -1,11 +1,12 @@
 package com.doat.tracklocation;
 
-import com.doat.tracklocation.controller.MainActivityController;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
+import com.doat.tracklocation.utils.InitAppUtils;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -13,7 +14,6 @@ public class InitAppActivity extends Activity {
 
 	private String className;
 	private String methodName;
-	private MainActivityController mainActivityController;
 	private Context context;
 	
 	@Override
@@ -43,10 +43,13 @@ public class InitAppActivity extends Activity {
 		
 		super.onStart();
 		context = getApplicationContext();
-		if(mainActivityController == null){
-        	mainActivityController = new MainActivityController(InitAppActivity.this, context, true);
-        }	
+		InitAppUtils.initApp(this, context);
 		
+		Intent intent = new Intent(this, MapActivity.class);
+		intent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
+		context.startActivity(intent);
+		finish();
+
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}

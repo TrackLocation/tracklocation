@@ -1,14 +1,27 @@
-package com.doat.tracklocation.controller;
+package com.doat.tracklocation.utils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
+
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.app.Activity;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnDismissListener;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+import android.util.Patterns;
 
 import com.doat.tracklocation.Controller;
-import com.doat.tracklocation.MapActivity;
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.doat.tracklocation.datatype.AppInfo;
-import com.doat.tracklocation.datatype.AppInstDetails;
 import com.doat.tracklocation.datatype.BackupDataOperations;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
 import com.doat.tracklocation.datatype.CommandKeyEnum;
@@ -21,82 +34,22 @@ import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.exception.CheckPlayServicesException;
 import com.doat.tracklocation.log.LogManager;
-import com.doat.tracklocation.model.MainModel;
-import com.doat.tracklocation.utils.CommonConst;
-import com.doat.tracklocation.utils.Preferences;
-import com.doat.tracklocation.utils.SMSUtils;
-import com.doat.tracklocation.utils.Utils;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
-import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.DialogInterface.OnDismissListener;
-import android.content.Intent;
-import android.util.Log;
+public class InitAppUtils {
 
-public class MainActivityController {
-	
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-	private Activity mainActivity;
-	private MainModel mainModel;
 
-	private String className;
-    private String logMessage;
-    private String methodName;
-	
-    private GoogleCloudMessaging gcm;
-    private Context context;
-    private String googleProjectNumber;
-    private String phoneNumber;
-    private String macAddress;
-    private List<String> accountList;
-    private String account;
-    private AppInstDetails appInstDetails;
-    private String registrationId;
-//    private ProgressDialog waitingDialog;
-    // private boolean isChooseAccountDialogOpened = false;
-    private AppInfo preinstalledAppInfo;
-    
-	private Thread registerToGCMInBackgroundThread;
-	private Runnable registerToGCMInBackground;
-    
-    public MainActivityController(Activity mainActivity, Context context, boolean isInitialization){
-    	className = this.getClass().getName();
-    	methodName = "MainActivityController";
+    public static void initApp(Activity mainActivity, Context context){
+		String className = "InitAppController";
+    	String methodName = "startMainActivityController";
+    	String logMessage;
+    	
     	LogManager.LogFunctionCall(className, methodName);
     	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
-    	this.mainActivity = mainActivity;
-    	this.context = context;
-    	if(mainModel == null){
-    		mainModel = new MainModel();
-    	}
-    	
-    	if(isInitialization){
-    		startMainActivityController();
-    	}
-    	
-    	LogManager.LogFunctionExit(className, methodName);
-    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-    }
-    
-    public Activity getMainActivity() {
-		return mainActivity;
-	}
-
-	public void setMainActivity(Activity mainActivity) {
-		this.mainActivity = mainActivity;
-	}
-
-	public void startMainActivityController(){
-    	methodName = "startMainActivityController";
-    	LogManager.LogFunctionCall(className, methodName);
-    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
-
-		googleProjectNumber = mainActivity.getResources().getString(R.string.google_project_number);
+		String googleProjectNumber = mainActivity.getResources().getString(R.string.google_project_number);
 		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
 
 		BackupDataOperations backupData = new BackupDataOperations();
@@ -108,30 +61,32 @@ public class MainActivityController {
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 		}
 		
-		// Version check
-		preinstalledAppInfo = Controller.getAppInfo(context);
+//		// Version check
+//		AppInfo preinstalledAppInfo = Controller.getAppInfo(context);
 		
 		// INIT START ===================================================
-		account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		if( account == null || account.isEmpty() ){
-			getCurrentAccount();
+			InitAppUtils.getCurrentAccount(mainActivity, context);
 		} else {
-			initCont();
+			InitAppUtils.initCont(mainActivity, context);
 		}
 		
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
     }
     
-    private void initCont(){
-    	methodName = "initCont";
+    private static boolean initCont(final Activity mainActivity, final Context context){
+		String className = "InitAppController";
+    	String methodName = "initCont";
+    	String logMessage;
     	LogManager.LogFunctionCall(className, methodName);
     	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
 		Controller.saveAppInfoToPreferences(context);
 		
 		// PHONE NUMBER
-		phoneNumber = Controller.getPhoneNumber(context);
+		String phoneNumber = InitAppUtils.getPhoneNumber(context);
 		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
 		if(phoneNumber == null || phoneNumber.isEmpty()){
 			phoneNumber = UUID.randomUUID().toString().replace("-", "");
@@ -139,25 +94,27 @@ public class MainActivityController {
 		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);
 		
 		// MAC ADDRESS
-		macAddress = Controller.getMacAddress(mainActivity);
+		String macAddress = InitAppUtils.getMacAddress(mainActivity);
 		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
 		Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS, macAddress);
 		
 		// INIT END ===================================================
 		
 		AppInfo installedAppInfo = Controller.getAppInfo(context);
-				
+		
+		// Version check
+		AppInfo preinstalledAppInfo = Controller.getAppInfo(context);
 		if(preinstalledAppInfo.getVersionNumber() < installedAppInfo.getVersionNumber()){
 			// reset resistrationID
 			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_REG_ID, "");
 			Preferences.setPreferencesString(context, CommonConst.APP_INST_DETAILS, "");
 		}
 		
-		// Create application details during first installation 
-		// if was created already just returns the details:
-		//    - First installation's timestamp 
-		//    - ApInfo: version number and version name
-		appInstDetails = new AppInstDetails(context); 
+//		// Create application details during first installation 
+//		// if was created already just returns the details:
+//		//    - First installation's timestamp 
+//		//    - ApInfo: version number and version name
+//		AppInstDetails appInstDetails = new AppInstDetails(context); 
 		
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
 		try {
@@ -191,30 +148,31 @@ public class MainActivityController {
 			}
 		}
 		
-        gcm = GoogleCloudMessaging.getInstance(mainActivity);
-        registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
+		GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(mainActivity);
+        String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
         if (registrationId == null || registrationId.isEmpty()) {
         	logMessage = "Register to Google Cloud Message.";
         	LogManager.LogInfoMsg(className, methodName, logMessage);
     		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-        	googleProjectNumber = Preferences.getPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER);
+        	String googleProjectNumber = Preferences.getPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER);
         	if(googleProjectNumber == null || googleProjectNumber.isEmpty()){
 				logMessage = "Google Project Number is NULL or EMPTY";
 				LogManager.LogErrorMsg(className, methodName, logMessage);
 				Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
         	}
-        	ProgressDialog waitingDialog = launchWaitingDialog();
+        	ProgressDialog waitingDialog = InitAppUtils.launchWaitingDialog(mainActivity);
     	    waitingDialog.setOnDismissListener(new OnDismissListener(){
 				@Override
 				public void onDismiss(DialogInterface dialog) {
 					Log.i(CommonConst.LOG_TAG, "waitingDialog - onDismiss() called");
 					String regID = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-					initWithRegID(regID);
+					InitAppUtils.initWithRegID(mainActivity, context, regID);
 				}
 			});
     	    
-        	registerToGCMInBackground = new RegisterToGCMInBackground(context, mainActivity, gcm, googleProjectNumber, waitingDialog);
+    		Thread registerToGCMInBackgroundThread;
+    		Runnable registerToGCMInBackground = new RegisterToGCMInBackground(context, mainActivity, gcm, googleProjectNumber, waitingDialog);
 			try {
 				registerToGCMInBackgroundThread = new Thread(registerToGCMInBackground);
 				registerToGCMInBackgroundThread.start();
@@ -226,35 +184,37 @@ public class MainActivityController {
 			}
 						
         } else {
-        	initWithRegID(registrationId);
+        	InitAppUtils.initWithRegID(mainActivity, context, registrationId);
         }
     
-		Intent intent = new Intent(mainActivity, MapActivity.class);
-		intent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
-		context.startActivity(intent);
-
         LogManager.LogFunctionExit(className, methodName);
         Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+        
+//		Intent intent = new Intent(mainActivity, MapActivity.class);
+//		intent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
+//		context.startActivity(intent);
+        return true; // Start MapActivity - the main application activity
     }
     
-	private void getCurrentAccount(){
+	private static void getCurrentAccount(final Activity mainActivity, final Context context){		
 		// CURRENT ACCOUNT
 		if( Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT) == null || 
 			Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT).isEmpty() ) {
 			
-			accountList = Controller.getAccountList(context);
+			List<String> accountList = InitAppUtils.getAccountList(context);
 			if(accountList != null && accountList.size() == 1){
-				account = accountList.get(0);
+				String account = accountList.get(0);
 				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-				initCont();
+				InitAppUtils.initCont(mainActivity, context);
 			} else {
         		ChooseAccountDialog chooseAccountDialog =
         				new ChooseAccountDialog(mainActivity, new ICommonDialogOnClickListener(){
         			@Override
         			public void doOnChooseItem(int which) {
-        				account = accountList.get(which);
+        				List<String> accountList = InitAppUtils.getAccountList(context);
+        				String account = accountList.get(which);
         				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-        				initCont();
+        				InitAppUtils.initCont(mainActivity, context);
         			}
 
 					@Override
@@ -278,7 +238,7 @@ public class MainActivityController {
 		}
 	}
 
-	private ProgressDialog launchWaitingDialog() {
+	private static ProgressDialog launchWaitingDialog(Activity mainActivity) {
 		ProgressDialog waitingDialog = new ProgressDialog(mainActivity);
 	    waitingDialog.setTitle("Registration for Google Cloud Messaging");
 	    waitingDialog.setMessage("Please wait ...");
@@ -291,11 +251,18 @@ public class MainActivityController {
 	    return waitingDialog;
 	}
 	
-	private void initWithRegID(String registrationId){
-		
+	private static void initWithRegID(Activity mainActivity, Context context, String registrationId){
+		String className = "InitAppController";
+    	String methodName = "initWithRegID";
+		String logMessage;
+		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		// Insert into DB: owner information if doesn't exist
 		ContactDeviceDataList contDevDataList = DBLayer.getInstance().getContactDeviceDataList(account);
 		if( contDevDataList == null || contDevDataList.size() == 0){
+			
+			String macAddress = InitAppUtils.getMacAddress(mainActivity);
+			String phoneNumber = InitAppUtils.getPhoneNumber(context);
+			
 			// add information about owner to DB 
 			ContactDeviceDataList contactDeviceDataListOwner = 
 				DBLayer.getInstance().addContactDeviceDataList(new ContactDeviceDataList(account,
@@ -327,6 +294,8 @@ public class MainActivityController {
 			logMessage = "Owner information already exists in application's DB";
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+
+			String macAddress = InitAppUtils.getMacAddress(mainActivity);
 			// FIXME: Update only if registration ID in DB is differs
 			long res = DBLayer.getInstance().updateRegistrationID(account, macAddress, registrationId);
 			if(res <= 0){
@@ -340,6 +309,8 @@ public class MainActivityController {
 			}
 		}
 		
+		String phoneNumber = InitAppUtils.getPhoneNumber(context);
+		String macAddress = InitAppUtils.getMacAddress(mainActivity);
 		LogManager.LogInfoMsg(className, "SAVE OWNER INFO", 
 				account + CommonConst.DELIMITER_COLON + macAddress + CommonConst.DELIMITER_COLON + 
 				phoneNumber + CommonConst.DELIMITER_COLON + Controller.hideRealRegID(registrationId));
@@ -371,11 +342,46 @@ public class MainActivityController {
         }
 	}
 
-	public String getRegistrationId() {
-		return registrationId;
+	/*
+	 * Get account list used on this device - email list
+	 */
+	public static List<String> getAccountList(Context context){
+	    Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
+	    AccountManager accountManager = AccountManager.get(context); 
+	    //Account[] accounts = manager.getAccountsByType("com.google"); 
+	    Account[] accounts = accountManager.getAccounts();
+	    List<String> possibleEmails = new ArrayList<String>();
+
+	    for (Account account : accounts) {
+	        if (emailPattern.matcher(account.name).matches() && !possibleEmails.contains(account.name) &&
+	        		account.type.equals("com.google")) {
+        		possibleEmails.add(account.name);
+	        }
+	    }
+
+	    if(!possibleEmails.isEmpty()){
+	    	return possibleEmails;
+	    }else
+	        return null;
 	}
 
-	public Thread getRegisterToGCMInBackgroundThread() {
-		return registerToGCMInBackgroundThread;
+	public static String getMacAddress(Activity activity){
+		WifiManager wifiManager = (WifiManager) activity.getSystemService(Context.WIFI_SERVICE);
+		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+		String macAddress = wifiInfo.getMacAddress();
+		return macAddress;
 	}
+	
+	public static String getIMEI(Activity activity){
+		TelephonyManager tm = (TelephonyManager) activity.getSystemService(Context.TELEPHONY_SERVICE);
+	    String imei = tm.getDeviceId();
+	    return imei;
+	}
+	
+	public static String getPhoneNumber(Context context) {
+		TelephonyManager tMgr = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+		String phoneNumber = tMgr.getLine1Number();
+		return phoneNumber;
+	}
+
 }

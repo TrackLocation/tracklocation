@@ -391,29 +391,6 @@ public class Controller {
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
-
-	/*
-	 * Get account list used on this device - email list
-	 */
-	public static List<String> getAccountList(Context context){
-	    Pattern emailPattern = Patterns.EMAIL_ADDRESS; // API level 8+
-	    AccountManager accountManager = AccountManager.get(context); 
-	    //Account[] accounts = manager.getAccountsByType("com.google"); 
-	    Account[] accounts = accountManager.getAccounts();
-	    List<String> possibleEmails = new ArrayList<String>();
-
-	    for (Account account : accounts) {
-	        if (emailPattern.matcher(account.name).matches() && !possibleEmails.contains(account.name) &&
-	        		account.type.equals("com.google")) {
-        		possibleEmails.add(account.name);
-	        }
-	    }
-
-	    if(!possibleEmails.isEmpty()){
-	    	return possibleEmails;
-	    }else
-	        return null;
-	}
 	
 	public static SMSMessageList fetchInboxSms(Activity activity, int type) {
         SMSMessageList smsInbox = new SMSMessageList();
@@ -447,25 +424,6 @@ public class Controller {
         }
         return smsInbox;
     }
-
-	public static String getMacAddress(Activity activity){
-		WifiManager wifiManager = (WifiManager) activity.getSystemService(Context.WIFI_SERVICE);
-		WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-		String macAddress = wifiInfo.getMacAddress();
-		return macAddress;
-	}
-	
-	public static String getIMEI(Activity activity){
-		TelephonyManager tm = (TelephonyManager) activity.getSystemService(Context.TELEPHONY_SERVICE);
-	    String imei = tm.getDeviceId();
-	    return imei;
-	}
-	
-	public static String getPhoneNumber(Context context) {
-		TelephonyManager tMgr = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
-		String phoneNumber = tMgr.getLine1Number();
-		return phoneNumber;
-	}
 
 //	public static void saveValueToPreferencesIfNotExist(Context context, String valueName, String value){
 //		String tmpValue = Preferences.getPreferencesString(context, valueName);
