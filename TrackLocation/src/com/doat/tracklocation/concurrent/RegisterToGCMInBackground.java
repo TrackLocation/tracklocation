@@ -200,7 +200,7 @@ public class RegisterToGCMInBackground implements Runnable {
 	    					Thread.sleep(SLEEP_TIME);
 	    				} catch (InterruptedException e) {
 	    					if(waitingDialog != null){
-	    						Log.i(CommonConst.LOG_TAG, "waitingDialog.dismiss");
+	    						Log.i(CommonConst.LOG_TAG, "InterruptedException - waitingDialog.dismiss");
 	    						waitingDialog.dismiss();
 	    					}
 	    					logMessage = "Failed the thread with loop for Google Cloud Message Registration. ThreadID = " + 
@@ -218,7 +218,7 @@ public class RegisterToGCMInBackground implements Runnable {
 	            // Require the user to click a button again, or perform
 	            // exponential back-off.
 	    		if(waitingDialog != null){
-	    			Log.i(CommonConst.LOG_TAG, "waitingDialog.dismiss");
+	    			Log.i(CommonConst.LOG_TAG, "IOException - waitingDialog.dismiss");
 	    			waitingDialog.dismiss();
 	    		}
 	        	logMessage = "Exception caught: " + ex.getMessage();
@@ -227,7 +227,7 @@ public class RegisterToGCMInBackground implements Runnable {
 	        }
         }
 		if(waitingDialog != null){
-			Log.i(CommonConst.LOG_TAG, "waitingDialog.dismiss");
+			Log.i(CommonConst.LOG_TAG, "After all retries - waitingDialog.dismiss");
 			waitingDialog.dismiss();
 		}
 		logMessage = "\nGoogle Cloud Service is not available right now.\n\n"

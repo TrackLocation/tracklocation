@@ -12,6 +12,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
+import android.content.Intent;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.telephony.TelephonyManager;
@@ -19,6 +20,8 @@ import android.util.Log;
 import android.util.Patterns;
 
 import com.doat.tracklocation.Controller;
+import com.doat.tracklocation.InitAppActivity;
+import com.doat.tracklocation.MapActivity;
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.doat.tracklocation.datatype.AppInfo;
@@ -41,16 +44,12 @@ public class InitAppUtils {
 
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
-    public static void initApp(Activity mainActivity, Context context){
+    public static boolean initApp(final Activity mainActivity, final Context context){
 		String className = "InitAppController";
-    	String methodName = "startMainActivityController";
+    	String methodName = "initCont";
     	String logMessage;
-    	
     	LogManager.LogFunctionCall(className, methodName);
     	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
-
-		String googleProjectNumber = mainActivity.getResources().getString(R.string.google_project_number);
-		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
 
 		BackupDataOperations backupData = new BackupDataOperations();
 
@@ -60,28 +59,9 @@ public class InitAppUtils {
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
 		}
-		
-//		// Version check
-//		AppInfo preinstalledAppInfo = Controller.getAppInfo(context);
-		
-		// INIT START ===================================================
-		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-		if( account == null || account.isEmpty() ){
-			InitAppUtils.getCurrentAccount(mainActivity, context);
-		} else {
-			InitAppUtils.initCont(mainActivity, context);
-		}
-		
-		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-    }
-    
-    private static boolean initCont(final Activity mainActivity, final Context context){
-		String className = "InitAppController";
-    	String methodName = "initCont";
-    	String logMessage;
-    	LogManager.LogFunctionCall(className, methodName);
-    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
+		String googleProjectNumber = mainActivity.getResources().getString(R.string.google_project_number);
+		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
 
 		Controller.saveAppInfoToPreferences(context);
 		
@@ -155,7 +135,6 @@ public class InitAppUtils {
         	LogManager.LogInfoMsg(className, methodName, logMessage);
     		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
-        	String googleProjectNumber = Preferences.getPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER);
         	if(googleProjectNumber == null || googleProjectNumber.isEmpty()){
 				logMessage = "Google Project Number is NULL or EMPTY";
 				LogManager.LogErrorMsg(className, methodName, logMessage);
@@ -190,13 +169,14 @@ public class InitAppUtils {
         LogManager.LogFunctionExit(className, methodName);
         Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
         
-//		Intent intent = new Intent(mainActivity, MapActivity.class);
-//		intent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
-//		context.startActivity(intent);
+		Intent intent = new Intent(mainActivity, MapActivity.class);
+		intent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
+		context.startActivity(intent);
+		mainActivity.finish();
         return true; // Start MapActivity - the main application activity
     }
     
-	private static void getCurrentAccount(final Activity mainActivity, final Context context){		
+	public static void getCurrentAccount(final Activity mainActivity, final Context context){		
 		// CURRENT ACCOUNT
 		if( Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT) == null || 
 			Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT).isEmpty() ) {
@@ -205,7 +185,7 @@ public class InitAppUtils {
 			if(accountList != null && accountList.size() == 1){
 				String account = accountList.get(0);
 				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-				InitAppUtils.initCont(mainActivity, context);
+				InitAppUtils.initApp(mainActivity, context);
 			} else {
         		ChooseAccountDialog chooseAccountDialog =
         				new ChooseAccountDialog(mainActivity, new ICommonDialogOnClickListener(){
@@ -214,7 +194,7 @@ public class InitAppUtils {
         				List<String> accountList = InitAppUtils.getAccountList(context);
         				String account = accountList.get(which);
         				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-        				InitAppUtils.initCont(mainActivity, context);
+        				InitAppUtils.initApp(mainActivity, context);
         			}
 
 					@Override

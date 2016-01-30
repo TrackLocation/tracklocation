@@ -5,7 +5,6 @@ import java.util.TimerTask;
 
 import com.doat.tracklocation.db.DBHelper;
 import com.doat.tracklocation.db.DBManager;
-import com.doat.tracklocation.model.MainModel;
 import com.google.gson.Gson;
 
 import android.app.Activity;
