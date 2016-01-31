@@ -12,7 +12,6 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
-import android.content.Intent;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.telephony.TelephonyManager;
@@ -20,8 +19,6 @@ import android.util.Log;
 import android.util.Patterns;
 
 import com.doat.tracklocation.Controller;
-import com.doat.tracklocation.InitAppActivity;
-import com.doat.tracklocation.MapActivity;
 import com.doat.tracklocation.R;
 import com.doat.tracklocation.concurrent.RegisterToGCMInBackground;
 import com.doat.tracklocation.datatype.AppInfo;
@@ -32,8 +29,6 @@ import com.doat.tracklocation.datatype.CommandValueEnum;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.db.DBLayer;
-import com.doat.tracklocation.dialog.ChooseAccountDialog;
-import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.exception.CheckPlayServicesException;
 import com.doat.tracklocation.log.LogManager;
@@ -44,7 +39,7 @@ public class InitAppUtils {
 
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
-    public static boolean initApp(final Activity mainActivity, final Context context){
+    public static void initApp(final Activity mainActivity, final Context context){
 		String className = "InitAppController";
     	String methodName = "initCont";
     	String logMessage;
@@ -169,55 +164,8 @@ public class InitAppUtils {
         LogManager.LogFunctionExit(className, methodName);
         Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
         
-		Intent intent = new Intent(mainActivity, MapActivity.class);
-		intent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
-		context.startActivity(intent);
-		mainActivity.finish();
-        return true; // Start MapActivity - the main application activity
     }
     
-	public static void getCurrentAccount(final Activity mainActivity, final Context context){		
-		// CURRENT ACCOUNT
-		if( Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT) == null || 
-			Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT).isEmpty() ) {
-			
-			List<String> accountList = InitAppUtils.getAccountList(context);
-			if(accountList != null && accountList.size() == 1){
-				String account = accountList.get(0);
-				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-				InitAppUtils.initApp(mainActivity, context);
-			} else {
-        		ChooseAccountDialog chooseAccountDialog =
-        				new ChooseAccountDialog(mainActivity, new ICommonDialogOnClickListener(){
-        			@Override
-        			public void doOnChooseItem(int which) {
-        				List<String> accountList = InitAppUtils.getAccountList(context);
-        				String account = accountList.get(which);
-        				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-        				InitAppUtils.initApp(mainActivity, context);
-        			}
-
-					@Override
-					public void doOnPositiveButton(Object data) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void doOnNegativeButton(Object data) {
-						// TODO Auto-generated method stub
-						
-					}
-        		});
-        		chooseAccountDialog.setDialogTitle("Choose current account:");
-        		chooseAccountDialog.setItemsList(accountList.toArray(new String[0]));
-        		chooseAccountDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-        		chooseAccountDialog.showDialog();
-        		chooseAccountDialog.setCancelable(false);
-     		}
-		}
-	}
-
 	private static ProgressDialog launchWaitingDialog(Activity mainActivity) {
 		ProgressDialog waitingDialog = new ProgressDialog(mainActivity);
 	    waitingDialog.setTitle("Registration for Google Cloud Messaging");

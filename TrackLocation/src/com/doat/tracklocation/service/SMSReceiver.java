@@ -4,8 +4,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 import com.doat.tracklocation.Controller;
-import com.doat.tracklocation.InitAppActivity;
-//import com.doat.tracklocation.MainActivity;
 import com.doat.tracklocation.MapActivity;
 import com.doat.tracklocation.crypto.CryptoUtils;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;

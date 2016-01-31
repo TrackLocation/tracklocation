@@ -72,6 +72,7 @@ import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
 import com.doat.tracklocation.db.DBConst;
+import com.doat.tracklocation.dialog.ChooseAccountDialog;
 import com.doat.tracklocation.dialog.CommonDialog;
 import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
@@ -79,6 +80,7 @@ import com.doat.tracklocation.exception.DefaultExceptionHandler;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
+import com.doat.tracklocation.utils.InitAppUtils;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.ResizeAnimation;
@@ -220,6 +222,14 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				sendIntent.addFlags( Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK );
 				startActivity(Intent.createChooser(sendIntent, "Please send exception details to support team."));
 			}
+		}
+
+		// INIT START ===================================================
+		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+		if( account == null || account.isEmpty() ){
+			getCurrentAccount();
+		} else {
+			InitAppUtils.initApp(this, context);
 		}
 
 		if(contactListController == null){
@@ -1668,4 +1678,47 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	    
 		LogManager.LogFunctionExit(className, methodName);
 	}
+	
+	private void getCurrentAccount(){		
+		// CURRENT ACCOUNT
+		if( Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT) == null || 
+			Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT).isEmpty() ) {
+			
+			List<String> accountList = InitAppUtils.getAccountList(context);
+			if(accountList != null && accountList.size() == 1){
+				String account = accountList.get(0);
+				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+				InitAppUtils.initApp(MapActivity.this, context);
+			} else {
+        		ChooseAccountDialog chooseAccountDialog =
+        				new ChooseAccountDialog(this, new ICommonDialogOnClickListener(){
+        			@Override
+        			public void doOnChooseItem(int which) {
+        				List<String> accountList = InitAppUtils.getAccountList(context);
+        				String account = accountList.get(which);
+        				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+        				InitAppUtils.initApp(MapActivity.this, context);
+        			}
+
+					@Override
+					public void doOnPositiveButton(Object data) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void doOnNegativeButton(Object data) {
+						// TODO Auto-generated method stub
+						
+					}
+        		});
+        		chooseAccountDialog.setDialogTitle("Choose current account:");
+        		chooseAccountDialog.setItemsList(accountList.toArray(new String[0]));
+        		chooseAccountDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+        		chooseAccountDialog.showDialog();
+        		chooseAccountDialog.setCancelable(false);
+     		}
+		}
+	}
+
 }
