@@ -247,8 +247,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		loadFavoritsForLocateContacts();
 
-		loadFirstInfoMessage();
-
 		isShowAllMarkersEnabled = true;
 
 		MyMapFragment myMapFragment = getHandleToMapFragment();
@@ -305,7 +303,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	}
 
 	private void loadFirstInfoMessage() {
-		if (contactDeviceDataList != null && contactDeviceDataList.size() <= 1) {
+		if (contactDeviceDataList != null && contactDeviceDataList.size() == 1) {
 			final LinearLayout llFirstMessage = (LinearLayout) findViewById(R.id.first_time_msg);
 			ViewGroup.LayoutParams params = llFirstMessage.getLayoutParams();
 
@@ -335,7 +333,19 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 				}
 			});
-			mDrawerLayout.openDrawer(llFirstMessage);
+			Timer t = new Timer();
+			Handler handler = new Handler();
+			TimerTask tTask = new TimerTask() {
+				public void run() {
+					handler.post(new Runnable() {
+						public void run() {
+							mDrawerLayout.openDrawer(llFirstMessage);
+							t.cancel();
+						}
+					});
+				}
+			};
+			t.schedule(tTask, 1000);
 		}
 	}
 
@@ -356,6 +366,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		initNotificationBroadcastReceiver(notificationBroadcastReceiver);
 		
 		SMSUtils.checkJoinRequestBySMSInBackground(context, this);
+
+		loadFirstInfoMessage();
+
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
@@ -404,7 +417,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
     	}
     	
     	if(notificationBroadcastReceiver != null){
-    		unregisterReceiver(notificationBroadcastReceiver);
+			unregisterReceiver(notificationBroadcastReceiver);
     	}
     	if(trackLocationServiceLauncherThread != null){
     		trackLocationServiceLauncherThread.interrupt();
@@ -1664,6 +1677,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
 			}
 		}
+		loadFirstInfoMessage();
 	}
 	
 	// Initialize BROADCAST_MESSAGE broadcast receiver
@@ -1672,7 +1686,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		LogManager.LogFunctionCall(className, methodName);
 		
 		IntentFilter intentFilter = new IntentFilter();
-	    intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
+		intentFilter.addAction(BroadcastActionEnum.BROADCAST_MESSAGE.toString());
 	    
 	    registerReceiver(broadcastReceiver, intentFilter);
 	    
