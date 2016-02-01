@@ -179,6 +179,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private TextView quick_info_name;
     private int iContactQuickInfoWidth = -1;
 	private AdView adView;
+	
+	private boolean isloadFirstInfoMessageShown;
 
     public static volatile boolean isTrackLocationRunning; // Used in SMSReceiver.class
 	
@@ -193,6 +195,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		className = this.getClass().getName();
 		methodName = "onCreate";
     	isPermissionDialogShown = false;
+    	isloadFirstInfoMessageShown = false;
 		setContentView(R.layout.map);	
 		
 		LogManager.LogActivityCreate(className, methodName);
@@ -368,7 +371,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		
 		SMSUtils.checkJoinRequestBySMSInBackground(context, this);
 
-		loadFirstInfoMessage();
+		if(isloadFirstInfoMessageShown == false){
+			loadFirstInfoMessage();
+		}
+		isloadFirstInfoMessageShown = true;
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -1682,7 +1688,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
 			}
 		}
-		loadFirstInfoMessage();
+		//loadFirstInfoMessage();
 	}
 	
 	// Initialize BROADCAST_MESSAGE broadcast receiver
