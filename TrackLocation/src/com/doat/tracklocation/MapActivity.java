@@ -311,6 +311,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			Point size = new Point();
 			display.getSize(size);
 			params.width = size.x;
+			llFirstMessage.bringToFront();
 			mDrawerLayout.setDrawerListener(new DrawerLayout.DrawerListener() {
 				@Override
 				public void onDrawerSlide(View view, float v) {
@@ -333,8 +334,8 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 				}
 			});
-			Timer t = new Timer();
-			Handler handler = new Handler();
+			final Timer t = new Timer();
+			final Handler handler = new Handler();
 			TimerTask tTask = new TimerTask() {
 				public void run() {
 					handler.post(new Runnable() {
@@ -345,7 +346,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					});
 				}
 			};
-			t.schedule(tTask, 1000);
+			t.schedule(tTask, 3000);
 		}
 	}
 
@@ -533,12 +534,16 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	        @Override
 	        public void onClick(View v) {	
 	        	if (selectedMarkerDetails != null){
-	        		String title = "Ring to chosen contact.";
-	        		String dialogMessage = "Are you sure?";
-	        		InfoDialog joinRequestDialog = new InfoDialog(MapActivity.this, context, title, dialogMessage, infoDialogOnClickListener);
-	        		if(joinRequestDialog.isSelectionStatus()){
-	        			Controller.RingDevice(context, className, selectedMarkerDetails.getContactDetails());
-	        		}
+	        		
+	            	CommonDialog quitDialog = new CommonDialog(MapActivity.this, infoDialogOnClickListener);
+	            	quitDialog.setDialogMessage("Are you sure?");
+	            	quitDialog.setDialogTitle("Ring to chosen contact.");
+	            	quitDialog.setPositiveButtonText("Yes");
+	            	quitDialog.setNegativeButtonText("No");
+	            	quitDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+	            	quitDialog.setCancelable(true);
+	            	quitDialog.showDialog();
+
 	        	}
 	        }
 	    });

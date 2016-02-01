@@ -23,7 +23,7 @@ public class ApproveJoinRequestDialog extends CommonDialog {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 
-		String dialogMessage = "Approve join request from " +
+		String dialogMessage = "Approve add request from " +
 			account + "\n[" + phoneNumber + "]";
 	  	
 		CommonDialog approveJoinRequestDialog = new CommonDialog(activity, onClickListener);

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- versionName = <major>.<minor>.<point> -->
-<manifest android:versionCode="16" android:versionName="1.0.03"
+<manifest android:versionCode="17" android:versionName="1.0.04"
     package="com.doat.tracklocation" xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-sdk android:maxSdkVersion="23" android:minSdkVersion="16" android:targetSdkVersion="16"/>
 
