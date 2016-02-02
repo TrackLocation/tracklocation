@@ -29,7 +29,7 @@ public class ApproveJoinRequestDialog extends CommonDialog {
 		CommonDialog approveJoinRequestDialog = new CommonDialog(activity, onClickListener);
 	
 		approveJoinRequestDialog.setDialogMessage(dialogMessage);
-		approveJoinRequestDialog.setDialogTitle("Join request approval");
+		approveJoinRequestDialog.setDialogTitle("Add request approval");
 		approveJoinRequestDialog.setPositiveButtonText("OK");
 		approveJoinRequestDialog.setNegativeButtonText("Cancel");
 		approveJoinRequestDialog.setStyle(CommonConst.STYLE_NORMAL, 0);

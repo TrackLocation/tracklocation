@@ -142,14 +142,14 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 		    			SentJoinRequestData joinRequestData = DBLayer.getInstance().getSentJoinRequestByPhone(phoneNumber);
 		    			if( joinRequestData == null ) {
 		    				if (!toSendAddJoinRequest){
-		    					String message = "\nJoin request will be sent to %s ( phone number %s) .\n\nDo you want to send it?\n";
+		    					String message = "\nA request will be sent to %s ( phone number %s) .\n\nDo you want to send it?\n";
 		    					joinRequestDialog = joinRequestDialog(contactName, phoneNumber, message, onClickListener);
 		    				}
 		    			} else { // join request with <phoneNumber> already exists, check the status
 		    				if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.SENT.toString()) ) {
 		    					// Notify by dialog that join request already sent to <phoneNumber>
 		    					// check if the following request should be sent again
-		    					String message = "\nJoin request has been already sent to %s, with phone number %s.\n\nDo you want to send it again?\n";
+		    					String message = "\nA request has been already sent to %s, with phone number %s.\n\nDo you want to send it again?\n";
 		    					joinRequestDialog = joinRequestDialog(contactName, phoneNumber, message, onClickListener);
 		    					toSendAddJoinRequest = joinRequestDialog.isSelectionStatus();
 		    				} else if( toSendAddJoinRequest ) {
@@ -204,7 +204,7 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 			ArrayList<String> parts = smsManager.divideMessage(joinValue);
 			smsManager.sendMultipartTextMessage(phoneNumber, null, parts, null, null);    
 			// Notify by toast that join request sent by SMS
-			String msg = "Join request sent to " + contactName + " [" + phoneNumber + "] by SMS";
+			String msg = "Add request sent to " + contactName + " [" + phoneNumber + "] by SMS";
 			Toast.makeText(JoinContactsListActivity.this, msg, Toast.LENGTH_LONG).show();						
 		}
 		finish();
@@ -234,7 +234,7 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
     	
 		CommonDialog aboutDialog = new CommonDialog(this, onClickListener);
 		aboutDialog.setDialogMessage(dialogMessage);
-		aboutDialog.setDialogTitle("Join contact");
+		aboutDialog.setDialogTitle("Add Contact");
 		aboutDialog.setPositiveButtonText("Yes");
 		aboutDialog.setNegativeButtonText("No");
 		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
