@@ -1,32 +1,23 @@
 package com.doat.tracklocation.utils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Scanner;
-
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.LightingColorFilter;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.graphics.Bitmap.Config;
-import android.graphics.PorterDuff.Mode;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
@@ -50,11 +41,47 @@ import com.doat.tracklocation.log.LogManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
+
 public class Utils {
 	
 	private final static String COMMA = ",";
 	private final static String className = "Utils";
 	private final static Gson gson = new Gson();
+    private static List<Integer> mColors;
+
+    static {
+        mColors = Arrays.asList(
+                0xffe57373,
+                0xfff06292,
+                0xffba68c8,
+                0xff9575cd,
+                0xff7986cb,
+                0xff64b5f6,
+                0xff4fc3f7,
+                0xff4dd0e1,
+                0xff4db6ac,
+                0xff81c784,
+                0xffaed581,
+                0xffff8a65,
+                0xffd4e157,
+                0xffffd54f,
+                0xffffb74d,
+                0xffa1887f,
+                0xff90a4ae
+        );
+    }
 
 	public static List<String> splitLine(String line, String delimiter){
 		String[] inputArray;
@@ -437,5 +464,31 @@ public class Utils {
 		int batteryLevel = Controller.getBatteryLevel(context);
 		return new MessageDataContactDetails(account, macAddress, phoneNumber, regId, batteryLevel); 
 	}
+
+	public static Bitmap textAsBitmap(String text, Bitmap bmp, int iColor) {
+		Paint paint = new Paint();
+        paint.setColor(Color.WHITE);
+        paint.setAntiAlias(true);
+        paint.setFakeBoldText(false);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setStrokeWidth(0);
+
+		int width = bmp.getWidth();
+		int height = bmp.getHeight();
+		Bitmap image = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+		Canvas canvas = new Canvas(image);
+
+        canvas.drawColor(iColor);
+        paint.setTextSize(Math.min( width, height) / 2);
+        canvas.drawText(text, width / 2, height / 2 - ((paint.descent() + paint.ascent()) / 2), paint);
+		return image;
+	}
+
+    public static int getRandomColor() {
+        Random rnd = new Random();
+        return mColors.get(rnd.nextInt(mColors.size()));
+    }
 
 }

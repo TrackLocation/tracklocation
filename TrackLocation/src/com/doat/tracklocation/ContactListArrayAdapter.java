@@ -1,4 +1,5 @@
 package com.doat.tracklocation;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
@@ -130,12 +131,12 @@ public class ContactListArrayAdapter extends ArrayAdapter<ContactDeviceData> {
 		}
 		
 		Bitmap bmp = contactData.getContactPhoto();
-		if (bmp == null){			
+		if (bmp == null){
 			bmp = Utils.getDefaultContactBitmap(convertView.getResources());
+			bmp = Utils.textAsBitmap(contactData.getNick().substring(0,2).toUpperCase(), bmp, Utils.getRandomColor());
+			contactData.setContactPhoto(bmp);
 		}
-		else{
-			bmp = Utils.getRoundedCornerImage(bmp, false);
-		}
+		bmp = Utils.getRoundedCornerImage(bmp, false);
 
 		viewHolder.statusImage.setBitmap(bmp);
 		viewHolder.statusImage.setContactStatus(contactData.getContactStatus());

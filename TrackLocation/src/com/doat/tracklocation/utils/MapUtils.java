@@ -1,13 +1,13 @@
 package com.doat.tracklocation.utils;
 
-import java.util.LinkedHashMap;
-
 import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
+
+import java.util.LinkedHashMap;
 
 public class MapUtils {
 	public static CameraUpdate createCameraUpdateLatLngBounds(LinkedHashMap<String, MapMarkerDetails> markerMap) {
@@ -37,7 +37,7 @@ public class MapUtils {
 	}
 	
 	public static double getDistanceBetweenPoints(LatLng secondLastLatLng, LatLng lastLatLng){
-		double R = 6378137; // Earth’s mean radius in meter
+		double R = 6378137; // Earth's mean radius in meter
 		double dLat = rad(lastLatLng.latitude - secondLastLatLng.latitude);
 		double dLong = rad(lastLatLng.longitude - secondLastLatLng.longitude);
 		double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(rad(secondLastLatLng.latitude)) * Math.cos(rad(lastLatLng.latitude)) *

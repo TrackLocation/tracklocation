@@ -349,7 +349,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					});
 				}
 			};
-			t.schedule(tTask, 3000);
+			t.schedule(tTask, 2000);
 		}
 	}
 
@@ -370,11 +370,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		initNotificationBroadcastReceiver(notificationBroadcastReceiver);
 		
 		SMSUtils.checkJoinRequestBySMSInBackground(context, this);
-
-		if(isloadFirstInfoMessageShown == false){
-			loadFirstInfoMessage();
-		}
-		isloadFirstInfoMessageShown = true;
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -714,16 +709,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
     	lvContacts = (ListView) findViewById(R.id.contacts_list);
 
-/*
-		Animation animation = new AlphaAnimation(0.0f, 1.0f);
-		animation.setDuration(200);
-		set.addAnimation(animation);
-
-		LayoutAnimationController controller = new LayoutAnimationController(set, 0.5f);
-
-		lvContacts.setLayoutAnimation(controller);
-*/
-
 	    lvFavorites = (ListView) findViewById(R.id.favorites_list);
 
     	ImageButton btnContacts = (ImageButton) findViewById(R.id.contacts_view_btn);
@@ -888,6 +873,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
 				}
 			}
+			loadFirstInfoMessage();
 	    }
 	}
 
@@ -1688,7 +1674,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				contactListController.startCheckWhichContactsOnLineThread(contactDeviceDataList);
 			}
 		}
-		//loadFirstInfoMessage();
+		if(!isloadFirstInfoMessageShown){
+			loadFirstInfoMessage();
+			isloadFirstInfoMessageShown = true;
+		}
 	}
 	
 	// Initialize BROADCAST_MESSAGE broadcast receiver
