@@ -12,7 +12,7 @@
     <string name="title_activity_join_contact_list">Add Contacts</string>
     <string name="title_activity_tracking_list">Tracking Contacts</string>
     <string name="title_activity_contact_list">Locate Contacts</string>
-    <string name="title_activity_location_sharing_list">Location Sharing</string>
+    <string name="title_activity_location_sharing_list">Share my location with</string>
 	<string name="title_activity_googlemap">Map</string>
 	<string name="navigate_title">Navigate</string>	
 	<string name="call_title">Call</string>	
