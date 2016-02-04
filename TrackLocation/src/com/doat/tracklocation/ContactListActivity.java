@@ -22,6 +22,7 @@ import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
+import com.doat.tracklocation.utils.Preferences;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
@@ -102,15 +103,6 @@ public class ContactListActivity extends BaseActivity {
 		}
 		return super.onOptionsItemSelected(item);
 	}
-	
-	public void onClick(final View view) {
-        if (view == findViewById(R.id.btnTrackLocation)) {        	
-        	LogManager.LogFunctionCall(className, "onClick->[BUTTON:TrackLocation]");
-	        finish();
-        	
-        	LogManager.LogFunctionExit(className, "onClick->[BUTTON:TrackLocation]");
-        }
-	}
 
 	@Override
     protected void onDestroy() {
@@ -122,10 +114,16 @@ public class ContactListActivity extends BaseActivity {
 
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-	    super.onCreateContextMenu(menu, v, menuInfo);	    
+	    super.onCreateContextMenu(menu, v, menuInfo);
+        AdapterContextMenuInfo info = (AdapterContextMenuInfo) menuInfo;
+        ContactDeviceData editContact = adapter.getItem(info.position);
+        String clientAccount = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
+
 	    menu.setHeaderTitle(getString(R.string.choose_operation));
 	    menu.add(0, EDIT_OPTION, 0, getString(R.string.edit_menu_operation));
-	    menu.add(0, DELETE_OPTION, 0, getString(R.string.delete_menu_operation));
+        if (!clientAccount.equals(editContact.getContactData().getEmail())) {
+            menu.add(0, DELETE_OPTION, 0, getString(R.string.delete_menu_operation));
+        }
 	}
 	
 	@Override

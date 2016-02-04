@@ -77,7 +77,8 @@
         <service android:name="com.doat.tracklocation.service.TrackLocationService"/>
           
         <activity android:label="@string/app_name"
-            android:launchMode="singleTask" android:name=".MapActivity" android:screenOrientation="unspecified"
+            android:launchMode="singleTask" android:name=".MapActivity"
+            android:screenOrientation="unspecified"
             android:configChanges="keyboardHidden|orientation|screenSize">
 			<intent-filter>
 			    <action android:name="android.intent.action.MAIN" />
@@ -109,15 +110,6 @@
         <activity android:label="Notification Receiver" android:name="NotificationReceiver"/>
         <activity android:label="Activity Dialog Ring"
             android:name=".dialog.ActivityDialogRing" android:theme="@android:style/Theme.Dialog"/>
-        <activity
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:name=".JoinContactListActivity"            
-            android:screenOrientation="unspecified" android:windowSoftInputMode="adjustResize">
-            <intent-filter>
-                <action android:name="android.intent.action.SEARCH"/>
-            </intent-filter>
-            <meta-data android:name="android.app.searchable" android:resource="@xml/searchable_contacts"/>
-        </activity>
         <activity
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:name=".JoinContactsListActivity"            
