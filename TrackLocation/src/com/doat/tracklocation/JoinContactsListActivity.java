@@ -1,7 +1,15 @@
 package com.doat.tracklocation;
 
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.Uri;
+import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.telephony.SmsManager;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.doat.tracklocation.crypto.CryptoUtils;
 import com.doat.tracklocation.datatype.BroadcastActionEnum;
@@ -17,17 +25,8 @@ import com.doat.tracklocation.utils.Preferences;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
-import android.app.SearchManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.Uri;
-import android.os.Bundle;
-import android.support.v4.app.FragmentActivity;
-import android.telephony.SmsManager;
-import android.util.Log;
-import android.widget.Toast;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 
 
 public class JoinContactsListActivity extends FragmentActivity implements JoinContactsListFragment.OnContactsInteractionListener {
@@ -44,18 +43,6 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
         super.onCreate(savedInstanceState);
         setContentView(R.layout.join_activity_main);
 
-        if (Intent.ACTION_SEARCH.equals(getIntent().getAction())) {
-            String searchQuery = getIntent().getStringExtra(SearchManager.QUERY);
-            JoinContactsListFragment mContactsListFragment = (JoinContactsListFragment)
-                    getSupportFragmentManager().findFragmentById(R.id.contact_list);
-
-            isSearchResultView = true;
-            mContactsListFragment.setSearchQuery(searchQuery);
-
-            // Set special title for search results
-            String title = getString(R.string.contacts_list_search_results_title, searchQuery);
-            setTitle(title);
-        }
         initBroadcastReceiver();
         adView = (AdView)this.findViewById(R.id.adJoinContacts);
 	    AdRequest adRequest = new AdRequest.Builder().build();
@@ -91,8 +78,6 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 
     @Override
     public boolean onSearchRequested() {
-        // Don't allow another search if this activity instance is already showing
-        // search results. Only used pre-HC.
         return !isSearchResultView && super.onSearchRequested();
     }
 
@@ -131,7 +116,6 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 		    		String namePhoneNumber = bundle.getString(broadcastKeyJoinNumber);
 		    		
 		    		if(namePhoneNumber != null && !namePhoneNumber.isEmpty() && bundle.containsKey(broadcastKeyJoinNumber)){
-//		    			System.out.println("Join number: " + namePhoneNumber);
 		    			
 		    			String[] args = namePhoneNumber.split(CommonConst.DELIMITER_STRING);
 		    			
@@ -152,35 +136,12 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 		    					String message = "\nA request has been already sent to %s, with phone number %s.\n\nDo you want to send it again?\n";
 		    					joinRequestDialog = joinRequestDialog(contactName, phoneNumber, message, onClickListener);
 		    					toSendAddJoinRequest = joinRequestDialog.isSelectionStatus();
-		    				} else if( toSendAddJoinRequest ) {
-//		    					// TODO: notify by dialog that join request already sent to <phoneNumber> and accepted
-//		    					// check if the following request should be sent again
-//		    					// DIALOG FUNC
-//		    					
-//		    					// in case if request should be sent again
-//			    				toSendAddJoinRequest = true;
-		    				} else if( !toSendAddJoinRequest ) {
-//		    					// TODO: notify by dialog that join request already sent to <phoneNumber> but declined
-//		    					// check if the following request should be sent again
-//		    					// DIALOG FUNC
-//		    					
-//		    					// in case if request should be sent again
-//			    				toSendAddJoinRequest = true;
 		    				}
 		    			}
 		    			if(toSendAddJoinRequest == true){
 		    				sendJoinRequest(context, contactName, phoneNumber);
 		    				toSendAddJoinRequest = false;
 		    			}
-		    			
-		    			// TODO: fix the following code - use STATUS instead of Mutual_ID
-//		    			if(joinRequestData.getMutualId().equals(CommonConst.JOIN_COMPLETED)){
-//		    				// TODO: notify that this contact has been joined
-//		    				String msg = contactName + " [" + phoneNumber + "] has been joined already ";
-//		    				Toast.makeText(JoinContactList.this, msg, Toast.LENGTH_SHORT).show();
-//		    				finish();
-//		    			}
-
 		    		} else if(bundle.containsKey(BroadcastKeyEnum.resend_join_request.toString())){
 		    			sendJoinRequest(context, contactName, phoneNumber);
 		    			toSendAddJoinRequest = false;

@@ -97,10 +97,6 @@
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_location_sharing_list"
             android:name=".LocationSharingListActivity" android:screenOrientation="unspecified"/>
-        <!-- <activity
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:label="@string/title_activity_googlemap"
-            android:name=".MapActivity" android:screenOrientation="unspecified"/> -->
         <activity android:label="Contact Data Grid View"
             android:name=".grid.ContactDataGridView" android:screenOrientation="portrait"/>
         <activity android:label="Settings" android:name="SettingsActivity"/>

@@ -149,14 +149,14 @@ public class ContactListActivity extends BaseActivity {
 		Intent contactEditIntent = new Intent(this, ContactEditActivity.class);	
 		contactEditIntent.putExtra(CommonConst.JSON_STRING_CONTACT_DATA, editContact);
 		contactEditIntent.putExtra(CommonConst.CONTACT_LIST_SELECTED_VALUE, position);
-		startActivityForResult(contactEditIntent,2);		
+		startActivityForResult(contactEditIntent,2);
 	}
 	
 	@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 	    // Check which request we're responding to
 	        
-		 if(requestCode==2){
+		 if(requestCode == 2){
 			// Make sure the request was successful
 	        if (resultCode == RESULT_OK) {	        	 			        	
 	    		ContactDeviceData contactData = data.getExtras().getParcelable(CommonConst.JSON_STRING_CONTACT_DATA);  	    		

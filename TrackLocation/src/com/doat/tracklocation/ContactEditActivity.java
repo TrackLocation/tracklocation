@@ -1,19 +1,5 @@
 package com.doat.tracklocation;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import com.doat.tracklocation.R;
-import com.doat.tracklocation.datatype.ContactDeviceData;
-import com.doat.tracklocation.datatype.DeviceTypeEnum;
-import com.doat.tracklocation.db.DBLayer;
-import com.doat.tracklocation.log.LogManager;
-import com.doat.tracklocation.utils.CommonConst;
-import com.doat.tracklocation.utils.Utils;
-
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -24,7 +10,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.MediaStore.MediaColumns;
 import android.util.Log;
@@ -35,6 +20,16 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import com.doat.tracklocation.datatype.ContactDeviceData;
+import com.doat.tracklocation.datatype.DeviceTypeEnum;
+import com.doat.tracklocation.db.DBLayer;
+import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.utils.CommonConst;
+import com.doat.tracklocation.utils.Utils;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 public class ContactEditActivity extends BaseActivity {
 	private int REQUEST_CAMERA = 0;
@@ -135,10 +130,12 @@ public class ContactEditActivity extends BaseActivity {
 		        @Override
 		        public void onClick(DialogInterface dialog, int item) {
 		            if (items[item].equals("Take Photo")) {
-		                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-		                File f = new File(android.os.Environment.getExternalStorageDirectory(), "temp.jpg");
-		                intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
-		                startActivityForResult(intent, REQUEST_CAMERA);
+						Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+						if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+							startActivityForResult(takePictureIntent, REQUEST_CAMERA);
+						}
+
+
 		            } else if (items[item].equals("Choose from Library")) {
 		                Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
 		                intent.setType("image/*");
@@ -158,21 +155,11 @@ public class ContactEditActivity extends BaseActivity {
 		if (resultCode == RESULT_OK) {
 			if (requestCode == REQUEST_CAMERA) {
 				Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-				ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-				thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
-				File destination = new File(Environment.getExternalStorageDirectory(), System.currentTimeMillis() + ".jpg");
-				FileOutputStream fo;
-				try {
-					destination.createNewFile();
-					fo = new FileOutputStream(destination);
-					fo.write(bytes.toByteArray());
-					fo.close();
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				iv_photo.setImageBitmap(thumbnail);
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				thumbnail.compress(Bitmap.CompressFormat.PNG, 100, out);
+				Bitmap decoded = BitmapFactory.decodeStream(new ByteArrayInputStream(out.toByteArray()));
+				decoded = Utils.getResizedBitmap(decoded, iv_photo.getHeight(), iv_photo.getWidth());
+				iv_photo.setImageBitmap(decoded);
 			} 
 			else if (requestCode == SELECT_FILE) {
 				Uri selectedImageUri = data.getData();
@@ -184,7 +171,7 @@ public class ContactEditActivity extends BaseActivity {
 				Bitmap bm;
 				BitmapFactory.Options options = new BitmapFactory.Options();
 				options.inJustDecodeBounds = true;
-				BitmapFactory.decodeFile(selectedImagePath, options);
+				//BitmapFactory.decodeFile(selectedImagePath, options);
 				final int REQUIRED_SIZE = 200;
 				int scale = 1;
 				while (options.outWidth / scale / 2 >= REQUIRED_SIZE && options.outHeight / scale / 2 >= REQUIRED_SIZE)
@@ -192,7 +179,11 @@ public class ContactEditActivity extends BaseActivity {
 				options.inSampleSize = scale;
 				options.inJustDecodeBounds = false;
 				bm = BitmapFactory.decodeFile(selectedImagePath, options);
-				iv_photo.setImageBitmap(bm);
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				bm.compress(Bitmap.CompressFormat.PNG, 100, out);
+				Bitmap decoded = BitmapFactory.decodeStream(new ByteArrayInputStream(out.toByteArray()));
+				decoded = Utils.getResizedBitmap(decoded, iv_photo.getHeight(), iv_photo.getWidth());
+				iv_photo.setImageBitmap(decoded);
 			}
 		}		
 	}

@@ -97,9 +97,6 @@ public class JoinContactsListFragment extends ListFragment implements
         mAdapter = new ContactsAdapter(getActivity());
 
         if (savedInstanceState != null) {
-            // If we're restoring state after this fragment was recreated then
-            // retrieve previous search term and previously selected search
-            // result.
             mSearchTerm = savedInstanceState.getString(SearchManager.QUERY);
             mPreviouslySelectedSearchItem =
                     savedInstanceState.getInt(STATE_PREVIOUSLY_SELECTED_KEY, 0);
@@ -187,11 +184,6 @@ public class JoinContactsListFragment extends ListFragment implements
         mOnContactSelectedListener.onContactSelected(uri);
     }
 
-    /**
-     * Called when ListView selection is cleared, for example
-     * when search mode is finished and the currently selected
-     * contact should no longer be selected.
-     */
     private void onSelectionCleared() {
         // Uses callback to notify activity this contains this fragment
         mOnContactSelectedListener.onSelectionCleared();
@@ -209,15 +201,10 @@ public class JoinContactsListFragment extends ListFragment implements
         // Locate the search item
         MenuItem searchItem = menu.findItem(R.id.menu_search);
 
-        // In versions prior to Android 3.0, hides the search item to prevent additional
-        // searches. In Android 3.0 and later, searching is done via a SearchView in the ActionBar.
-        // Since the search doesn't create a new Activity to do the searching, the menu item
-        // doesn't need to be turned off.
         if (mIsSearchResultView) {
             searchItem.setVisible(false);
         }
 
-        // In version 3.0 and later, sets up and configures the ActionBar SearchView
         if (Utils.hasHoneycomb()) {
 
             // Retrieves the system search manager service
@@ -241,9 +228,6 @@ public class JoinContactsListFragment extends ListFragment implements
 
                 @Override
                 public boolean onQueryTextChange(String newText) {
-                    // Called when the action bar search text has changed.  Updates
-                    // the search filter, and restarts the loader to do a new query
-                    // using the new search string.
                     String newFilter = !TextUtils.isEmpty(newText) ? newText : null;
 
                     // Don't do anything if the filter is empty
@@ -338,30 +322,16 @@ public class JoinContactsListFragment extends ListFragment implements
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 
-        // If this is the loader for finding contacts in the Contacts Provider
-        // (the only one supported)
         if (id == ContactsQuery.QUERY_ID) {
             Uri contentUri;
 
-            // There are two types of searches, one which displays all contacts and
-            // one which filters contacts by a search query. If mSearchTerm is set
-            // then a search query has been entered and the latter should be used.
-
             if (mSearchTerm == null) {
-                // Since there's no search string, use the content URI that searches the entire
-                // Contacts table
                 contentUri = ContactsQuery.CONTENT_URI;
             } else {
-                // Since there's a search string, use the special content Uri that searches the
-                // Contacts table. The URI consists of a base Uri and the search string.
                 contentUri =
                         Uri.withAppendedPath(ContactsQuery.FILTER_URI, Uri.encode(mSearchTerm));
             }
 
-            // Returns a new CursorLoader for querying the Contacts table. No arguments are used
-            // for the selection clause. The search string is either encoded onto the content URI,
-            // or no contacts search string is used. The other search criteria are constants. See
-            // the ContactsQuery interface.
             return new CursorLoader(getActivity(),
                     contentUri,
                     ContactsQuery.PROJECTION,
@@ -391,13 +361,6 @@ public class JoinContactsListFragment extends ListFragment implements
         }
     }
 
-    /**
-     * Gets the preferred height for each item in the ListView, in pixels, after accounting for
-     * screen density. ImageLoader uses this value to resize thumbnail images to match the ListView
-     * item height.
-     *
-     * @return The preferred height in pixels, based on the current theme.
-     */
     private int getListPreferredItemHeight() {
         final TypedValue typedValue = new TypedValue();
 
@@ -415,53 +378,27 @@ public class JoinContactsListFragment extends ListFragment implements
         return (int) typedValue.getDimension(metrics);
     }
 
-    /**
-     * Decodes and scales a contact's image from a file pointed to by a Uri in the contact's data,
-     * and returns the result as a Bitmap. The column that contains the Uri varies according to the
-     * platform version.
-     *
-     * @param photoData For platforms prior to Android 3.0, provide the Contact._ID column value.
-     *                  For Android 3.0 and later, provide the Contact.PHOTO_THUMBNAIL_URI value.
-     * @param imageSize The desired target width and height of the output image in pixels.
-     * @return A Bitmap containing the contact's image, resized to fit the provided image size. If
-     * no thumbnail exists, returns null.
-     */
     private Bitmap loadContactPhotoThumbnail(String photoData, int imageSize) {
 
-        // Ensures the Fragment is still added to an activity. As this method is called in a
-        // background thread, there's the possibility the Fragment is no longer attached and
-        // added to an activity. If so, no need to spend resources loading the contact photo.
         if (!isAdded() || getActivity() == null) {
             return null;
         }
 
-        // Instantiates an AssetFileDescriptor. Given a content Uri pointing to an image file, the
-        // ContentResolver can return an AssetFileDescriptor for the file.
         AssetFileDescriptor afd = null;
 
-        // This "try" block catches an Exception if the file descriptor returned from the Contacts
-        // Provider doesn't point to an existing file.
         try {
             Uri thumbUri;
-            // If Android 3.0 or later, converts the Uri passed as a string to a Uri object.
             if (Utils.hasHoneycomb()) {
                 thumbUri = Uri.parse(photoData);
             } else {
-                // For versions prior to Android 3.0, appends the string argument to the content
-                // Uri for the Contacts table.
                 final Uri contactUri = Uri.withAppendedPath(Contacts.CONTENT_URI, photoData);
 
                 // Appends the content Uri for the Contacts.Photo table to the previously
                 // constructed contact Uri to yield a content URI for the thumbnail image
                 thumbUri = Uri.withAppendedPath(contactUri, Photo.CONTENT_DIRECTORY);
             }
-            // Retrieves a file descriptor from the Contacts Provider. To learn more about this
-            // feature, read the reference documentation for
-            // ContentResolver#openAssetFileDescriptor.
             afd = getActivity().getContentResolver().openAssetFileDescriptor(thumbUri, "r");
 
-            // Gets a FileDescriptor from the AssetFileDescriptor. A BitmapFactory object can
-            // decode the contents of a file pointed to by a FileDescriptor into a Bitmap.
             FileDescriptor fileDescriptor = afd.getFileDescriptor();
 
             if (fileDescriptor != null) {
@@ -471,9 +408,6 @@ public class JoinContactsListFragment extends ListFragment implements
                         fileDescriptor, imageSize, imageSize);
             }
         } catch (FileNotFoundException e) {
-            // If the file pointed to by the thumbnail URI doesn't exist, or the file can't be
-            // opened in "read" mode, ContentResolver.openAssetFileDescriptor throws a
-            // FileNotFoundException.
             if (BuildConfig.DEBUG) {
                 Log.d(TAG, "Contact photo thumbnail not found for contact " + photoData
                         + ": " + e.toString());
@@ -494,12 +428,6 @@ public class JoinContactsListFragment extends ListFragment implements
         return null;
     }
 
-    /**
-     * This is a subclass of CursorAdapter that supports binding Cursor columns to a view layout.
-     * If those items are part of search results, the search string is marked by highlighting the
-     * query text. An {@link AlphabetIndexer} is used to allow quicker navigation up and down the
-     * ListView.
-     */
     private class ContactsAdapter extends CursorAdapter implements SectionIndexer {
         private LayoutInflater mInflater; // Stores the layout inflater
         private AlphabetIndexer mAlphabetIndexer; // Stores the AlphabetIndexer instance
