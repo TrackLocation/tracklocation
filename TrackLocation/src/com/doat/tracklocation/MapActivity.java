@@ -511,7 +511,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			@Override
 			public void onClick(View v) {
 				Intent intent = new Intent(Intent.ACTION_DIAL);
-				//Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:" + "0544504619"));
 				startActivity(intent);
 			}
 		});
@@ -535,6 +534,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 					intent.setComponent(new ComponentName(packageName, ri.activityInfo.name));
 					intent.setType("text/plain"); // put here your mime type
 					if (packageName.equals("com.whatsapp")) {
+						String num = Controller.getContactWhatsAppNumber(context, selectedMarkerDetails.getContactDetails().getAccount());
+						if (!num.isEmpty()) {
+							Uri uri = Uri.parse("smsto:" + num);
+							intent = new Intent(Intent.ACTION_SENDTO, uri);
+							intent.putExtra("chat", true);
+						}
 						intent.setPackage(packageName);
 						intentList.add(intent);
 					} else if (packageName.equals("com.viber.voip")) {

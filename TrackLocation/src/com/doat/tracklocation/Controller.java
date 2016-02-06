@@ -1,7 +1,5 @@
 package com.doat.tracklocation;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -17,14 +15,10 @@ import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.provider.ContactsContract;
-import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.util.Patterns;
 
 import com.doat.tracklocation.datatype.ActionMenuObj;
 import com.doat.tracklocation.datatype.AppInfo;
@@ -70,7 +64,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 public class Controller {
 
@@ -443,6 +436,7 @@ public class Controller {
 		return nickName;
 	}
 	
+/*
 	public static String getNickName(Context context){
 		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		String nickName = getNickNameFromEmail(account);
@@ -467,7 +461,8 @@ public class Controller {
 		}
 		return nickList;
 	}
-	
+*/
+
 	public static List<String> getAccountListFromContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
 		List<String> accountList = null;
 		if(contactDeviceDataList != null){
@@ -494,12 +489,12 @@ public class Controller {
         return dateFormat.format(date);
 	}
 	
-	public static int getContactsNumber(Context context){
+/*	public static int getContactsNumber(Context context){
 		Uri CONTENT_URI = ContactsContract.Contacts.CONTENT_URI;
 		ContentResolver contentResolver = context.getContentResolver();
 		Cursor cursor = contentResolver.query(CONTENT_URI, null,null, null, null); 
 		return cursor.getCount();
-	}
+	}*/
 	
 	public static Bitmap getContactPhoto(ContentResolver contentResolver, Long contactId, Boolean isRounded) {
 	    Uri contactPhotoUri = ContentUris.withAppendedId(ContactsContract.Contacts.CONTENT_URI, contactId);
@@ -668,8 +663,8 @@ public class Controller {
         	Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);
         }
         Gson gson = new Gson();
-        String jsonListAccounts = Preferences.getPreferencesString(context, 
-        		preferencesListAccountsbyCommand);
+        String jsonListAccounts = Preferences.getPreferencesString(context,
+				preferencesListAccountsbyCommand);
         if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
             @SuppressWarnings("unchecked")
     		List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
@@ -795,10 +790,31 @@ public class Controller {
 
         return contactId;
     }
-	
+
 	public static Bitmap getContactPhotoByEmail(Context context, String email) {
 		Long contactId = getContactIdByEmail(context, email);
 		return getContactPhoto(context.getContentResolver(), contactId, false);
+	}
+
+	public static  String getContactWhatsAppNumber(Context context, String email){
+		Long contactId = getContactIdByEmail(context, email);
+		Cursor cursorWhatsApp = context.getContentResolver().query(
+				ContactsContract.Data.CONTENT_URI,
+				new String[]{ContactsContract.Data.DATA3},
+				ContactsContract.Data.MIMETYPE + " = ? AND " + ContactsContract.Data.CONTACT_ID  + " = ? ",
+				new String[]{"vnd.android.cursor.item/vnd.com.whatsapp.profile", contactId.toString()},
+				null);
+		String phoneNumber = "";
+		while (cursorWhatsApp.moveToNext()) {
+			phoneNumber = cursorWhatsApp.getString(0);
+			if (phoneNumber.isEmpty())
+				continue;
+
+			if (phoneNumber.startsWith("Message "))
+				phoneNumber = phoneNumber.replace("Message ", "");
+
+		}
+		return phoneNumber;
 	}
 	
 	public static MessageDataContactDetails getMessageDataContactDetails(Context context){

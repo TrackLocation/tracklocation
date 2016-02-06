@@ -24,8 +24,6 @@ import android.telephony.PhoneNumberUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,53 +32,28 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
 import com.doat.tracklocation.utils.ImageLoader;
 import com.doat.tracklocation.utils.Utils;
 
-/**
- * This fragment displays details of a specific contact from the contacts provider. It shows the
- * contact's display photo, name and all its mailing addresses. You can also modify this fragment
- * to show other information, such as phone numbers, email addresses and so forth.
- *
- * This fragment appears full-screen in an activity on devices with small screen sizes, and as
- * part of a two-pane layout on devices with larger screens, alongside the
- * {@link JoinContactsListFragment}.
- *
- * To create an instance of this fragment, use the factory method
- * {@link JoinContactDetailFragment#newInstance(android.net.Uri)}, passing as an argument the contact
- * Uri for the contact you want to display.
- */
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 public class JoinContactDetailFragment extends Fragment implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
     public static final String EXTRA_CONTACT_URI = 
             "com.doat.tracklocation.EXTRA_CONTACT_URI";
 
-    // Defines a tag for identifying log entries
     private static final String TAG = "ContactDetailFragment";
 
     private Uri mContactUri; // Stores the contact Uri for this fragment instance
     private ImageLoader mImageLoader; // Handles loading the contact image in a background thread
 
-    // Used to store references to key views, layouts and menu items as these need to be updated
-    // in multiple methods throughout this class.
     private ImageView mImageView;
     private LinearLayout mDetailsLayout;
     private TextView mEmptyView;
     private TextView mContactName;
-    //private MenuItem mEditContactMenuItem;
 
-    /**
-     * Factory method to generate a new instance of the fragment given a contact Uri. A factory
-     * method is preferable to simply using the constructor as it handles creating the bundle and
-     * setting the bundle as an argument.
-     *
-     * @param contactUri The contact Uri to load
-     * @return A new instance of {@link JoinContactDetailFragment}
-     */
     public static JoinContactDetailFragment newInstance(Uri contactUri) {
         // Create new instance of this fragment
         final JoinContactDetailFragment fragment = new JoinContactDetailFragment();
@@ -96,35 +69,10 @@ public class JoinContactDetailFragment extends Fragment implements
         return fragment;
     }
 
-    /**
-     * Fragments require an empty constructor.
-     */
     public JoinContactDetailFragment() {}
 
-    /**
-     * Sets the contact that this Fragment displays, or clears the display if the contact argument
-     * is null. This will re-initialize all the views and start the queries to the system contacts
-     * provider to populate the contact information.
-     *
-     * @param contactLookupUri The contact lookup Uri to load and display in this fragment. Passing
-     *                         null is valid and the fragment will display a message that no
-     *                         contact is currently selected instead.
-     */
     public void setContact(Uri contactLookupUri) {
-
-        // In version 3.0 and later, stores the provided contact lookup Uri in a class field. This
-        // Uri is then used at various points in this class to map to the provided contact.
-        if (Utils.hasHoneycomb()) {
-            mContactUri = contactLookupUri;
-        } else {
-            // For versions earlier than Android 3.0, stores a contact Uri that's constructed from
-            // contactLookupUri. Later on, the resulting Uri is combined with
-            // Contacts.Data.CONTENT_DIRECTORY to map to the provided contact. It's done
-            // differently for these earlier versions because Contacts.Data.CONTENT_DIRECTORY works
-            // differently for Android versions before 3.0.
-            mContactUri = Contacts.lookupContact(getActivity().getContentResolver(),
-                    contactLookupUri);
-        }
+        mContactUri = contactLookupUri;
 
         // If the Uri contains data, load the contact's image and load contact details.
         if (contactLookupUri != null) {
@@ -135,39 +83,18 @@ public class JoinContactDetailFragment extends Fragment implements
             mImageView.setVisibility(View.VISIBLE);
             mEmptyView.setVisibility(View.GONE);
 
-            // Shows the edit contact action/menu item
-           /* if (mEditContactMenuItem != null) {
-                mEditContactMenuItem.setVisible(true);
-            }*/
-
-            // Starts two queries to to retrieve contact information from the Contacts Provider.
-            // restartLoader() is used instead of initLoader() as this method may be called
-            // multiple times.
             getLoaderManager().restartLoader(ContactDetailQuery.QUERY_ID, null, this);
             getLoaderManager().restartLoader(ContactPhoneQuery.QUERY_ID, null, this);
         } else {
-            // If contactLookupUri is null, then the method was called when no contact was selected
-            // in the contacts list. This should only happen in a two-pane layout when the user
-            // hasn't yet selected a contact. Don't display an image for the contact, and don't
-            // account for the view's space in the layout. Turn on the TextView that appears when
-            // the layout is empty, and set the contact name to the empty string. Turn off any menu
-            // items that are visible.
             mImageView.setVisibility(View.GONE);
             mEmptyView.setVisibility(View.VISIBLE);
             mDetailsLayout.removeAllViews();
             if (mContactName != null) {
                 mContactName.setText("");
             }
-           /* if (mEditContactMenuItem != null) {
-                mEditContactMenuItem.setVisible(false);
-            }*/
         }
     }
 
-    /**
-     * When the Fragment is first created, this callback is invoked. It initializes some key
-     * class fields.
-     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -175,27 +102,14 @@ public class JoinContactDetailFragment extends Fragment implements
         // Let this fragment contribute menu items
         setHasOptionsMenu(true);
 
-        /*
-         * The ImageLoader takes care of loading and resizing images asynchronously into the
-         * ImageView. More thorough sample code demonstrating background image loading as well as
-         * details on how it works can be found in the following Android Training class:
-         * http://developer.android.com/training/displaying-bitmaps/
-         */
         mImageLoader = new ImageLoader(getActivity(), getLargestScreenDimension(), false) {
             @Override
             protected Bitmap processBitmap(Object data) {
-                // This gets called in a background thread and passed the data from
-                // ImageLoader.loadImage().
                 return loadContactPhoto((Uri) data, getImageSize());
 
             }
         };
 
-        // Set a placeholder loading image for the image loader
-       // mImageLoader.setLoadingImage(R.drawable.ic_person_black_24dp);
-
-        // Tell the image loader to set the image directly when it's finished loading
-        // rather than fading in
         mImageLoader.setImageFadeIn(false);
     }
 
@@ -203,7 +117,6 @@ public class JoinContactDetailFragment extends Fragment implements
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState) {
 
-        // Inflates the main layout to be used by this fragment
         final View detailView = inflater.inflate(R.layout.join_contact_detail_fragment, container, false);
 
         // Gets handles to view objects in the layout
@@ -228,10 +141,6 @@ public class JoinContactDetailFragment extends Fragment implements
         }
     }
 
-    /**
-     * When the Fragment is being saved in order to change activity state, save the
-     * currently-selected contact.
-     */
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -246,17 +155,8 @@ public class JoinContactDetailFragment extends Fragment implements
             case R.id.menu_edit_contact:
                 // Standard system edit contact intent
                 Intent intent = new Intent(Intent.ACTION_EDIT, mContactUri);
-
-                // Because of an issue in Android 4.0 (API level 14), clicking Done or Back in the
-                // People app doesn't return the user to your app; instead, it displays the People
-                // app's contact list. A workaround, introduced in Android 4.0.3 (API level 15) is
-                // to set a special flag in the extended data for the Intent you send to the People
-                // app. The issue is does not appear in versions prior to Android 4.0. You can use
-                // the flag with any version of the People app; if the workaround isn't needed,
-                // the flag is ignored.
                 intent.putExtra("finishActivityOnSaveCompleted", true);
 
-                // Start the edit activity
                 startActivity(intent);
                 return true;
         }
@@ -264,33 +164,14 @@ public class JoinContactDetailFragment extends Fragment implements
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-
-        // Inflates the options menu for this fragment
-        //inflater.inflate(R.menu.contact_detail_menu, menu);
-
-        // Gets a handle to the "find" menu item
-        //mEditContactMenuItem = menu.findItem(R.id.menu_edit_contact);
-
-        // If contactUri is null the edit menu item should be hidden, otherwise
-        // it is visible.
-        //mEditContactMenuItem.setVisible(mContactUri != null);
-    }
-
-    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         switch (id) {
             // Two main queries to load the required information
             case ContactDetailQuery.QUERY_ID:
-                // This query loads main contact details, see
-                // ContactDetailQuery for more information.
                 return new CursorLoader(getActivity(), mContactUri,
                         ContactDetailQuery.PROJECTION,
                         null, null, null);
             case ContactPhoneQuery.QUERY_ID:
-                // This query loads contact address details, see
-                // ContactAddressQuery for more information.
                 final Uri uri = Uri.withAppendedPath(mContactUri, Contacts.Data.CONTENT_DIRECTORY);
                 return new CursorLoader(getActivity(), uri,
                         ContactPhoneQuery.PROJECTION,
@@ -302,10 +183,6 @@ public class JoinContactDetailFragment extends Fragment implements
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-
-        // If this fragment was cleared while the query was running
-        // eg. from from a call like setContact(uri) then don't do
-        // anything.
         if (mContactUri == null) {
             return;
         }
@@ -314,28 +191,15 @@ public class JoinContactDetailFragment extends Fragment implements
             case ContactDetailQuery.QUERY_ID:
                 // Moves to the first row in the Cursor
                 if (data.moveToFirst()) {
-                    // For the contact details query, fetches the contact display name.
-                    // ContactDetailQuery.DISPLAY_NAME maps to the appropriate display
-                    // name field based on OS version.
                     final String contactName = data.getString(ContactDetailQuery.DISPLAY_NAME);
                     getActivity().setTitle(contactName);
                 }
                 break;
             case ContactPhoneQuery.QUERY_ID:
-                // This query loads the contact address details. More than
-                // one contact address is possible, so move each one to a
-                // LinearLayout in a Scrollview so multiple addresses can
-                // be scrolled by the user.
-
-                // Each LinearLayout has the same LayoutParams so this can
-                // be created once and used for each address.
                 final LinearLayout.LayoutParams layoutParams =
                         new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.WRAP_CONTENT);
 
-                // Clears out the details layout first in case the details
-                // layout has addresses from a previous data load still
-                // added as children.
                 mDetailsLayout.removeAllViews();
 
                 // Loops through all the rows in the Cursor
@@ -358,8 +222,6 @@ public class JoinContactDetailFragment extends Fragment implements
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        // Nothing to do here. The Cursor does not need to be released as it was never directly
-        // bound to anything (like an adapter).
     }
 
     private LinearLayout buildPhonesLayout(int phoneType, String phoneTypeLabel,
@@ -401,8 +263,6 @@ public class JoinContactDetailFragment extends Fragment implements
     }
 
     private int getLargestScreenDimension() {
-        // Gets a DisplayMetrics object, which is used to retrieve the display's pixel height and
-        // width
         final DisplayMetrics displayMetrics = new DisplayMetrics();
 
         // Retrieves a displayMetrics object for the device's default display
@@ -414,18 +274,9 @@ public class JoinContactDetailFragment extends Fragment implements
         return height > width ? height : width;
     }
 
-    /**
-     * Decodes and returns the contact's thumbnail image.
-     * @param contactUri The Uri of the contact containing the image.
-     * @param imageSize The desired target width and height of the output image in pixels.
-     * @return If a thumbnail image exists for the contact, a Bitmap image, otherwise null.
-     */
     @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     private Bitmap loadContactPhoto(Uri contactUri, int imageSize) {
 
-        // Ensures the Fragment is still added to an activity. As this method is called in a
-        // background thread, there's the possibility the Fragment is no longer attached and
-        // added to an activity. If so, no need to spend resources loading the contact photo.
         if (!isAdded() || getActivity() == null) {
             return null;
         }

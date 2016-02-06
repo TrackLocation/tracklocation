@@ -276,12 +276,6 @@ public class JoinContactsListFragment extends ListFragment implements
             }
 
             if (mSearchTerm != null) {
-                // If search term is already set here then this fragment is
-                // being restored from a saved state and the search menu item
-                // needs to be expanded and populated again.
-
-                // Stores the search term (as it will be wiped out by
-                // onQueryTextChange() when the menu item is expanded).
                 final String savedSearchTerm = mSearchTerm;
 
                 // Expands the search menu item
@@ -423,8 +417,6 @@ public class JoinContactsListFragment extends ListFragment implements
                 }
             }
         }
-
-        // If the decoding failed, returns null
         return null;
     }
 
@@ -443,32 +435,13 @@ public class JoinContactsListFragment extends ListFragment implements
             // Stores inflater for use later
             mInflater = LayoutInflater.from(context);
 
-            // Loads a string containing the English alphabet. To fully localize the app, provide a
-            // strings.xml file in res/values-<x> directories, where <x> is a locale. In the file,
-            // define a string with android:name="alphabet" and contents set to all of the
-            // alphabetic characters in the language in their proper sort order, in upper case if
-            // applicable.
             final String alphabet = context.getString(R.string.alphabet);
 
-            // Instantiates a new AlphabetIndexer bound to the column used to sort contact names.
-            // The cursor is left null, because it has not yet been retrieved.
             mAlphabetIndexer = new AlphabetIndexer(null, ContactsQuery.SORT_KEY, alphabet);
 
-            // Defines a span for highlighting the part of a display name that matches the search
-            // string
             highlightTextSpan = new TextAppearanceSpan(getActivity(), R.style.searchTextHiglight);
         }
 
-        /**
-         * Identifies the start of the search string in the display name column of a Cursor row.
-         * E.g. If displayName was "Adam" and search query (mSearchTerm) was "da" this would
-         * return 1.
-         *
-         * @param displayName The contact display name.
-         * @return The starting position of the search string in the display name, 0-based. The
-         * method returns -1 if the string is not found in the display name, or if the search
-         * string is empty or null.
-         */
         private int indexOfSearchQuery(String displayName) {
             if (!TextUtils.isEmpty(mSearchTerm)) {
                 return displayName.toLowerCase(Locale.getDefault()).indexOf(
@@ -477,9 +450,6 @@ public class JoinContactsListFragment extends ListFragment implements
             return -1;
         }
 
-        /**
-         * Overrides newView() to inflate the list item views.
-         */
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
             // Inflates the list item layout.
@@ -671,42 +641,18 @@ public class JoinContactsListFragment extends ListFragment implements
                 (Utils.hasHoneycomb() ? Contacts.DISPLAY_NAME_PRIMARY : Contacts.DISPLAY_NAME) +
                 "<>''" + " AND " + Contacts.IN_VISIBLE_GROUP + "=1 AND " + Contacts.HAS_PHONE_NUMBER + "=1" ;
 
-        // The desired sort order for the returned Cursor. In Android 3.0 and later, the primary
-        // sort key allows for localization. In earlier versions. use the display name as the sort
-        // key.
         @SuppressLint("InlinedApi")
         final static String SORT_ORDER =
                 Utils.hasHoneycomb() ? Contacts.SORT_KEY_PRIMARY : Contacts.DISPLAY_NAME;
 
-        // The projection for the CursorLoader query. This is a list of columns that the Contacts
-        // Provider should return in the Cursor.
         @SuppressLint("InlinedApi")
         final static String[] PROJECTION = {
 
                 // The contact's row id
                 Contacts._ID,
-
-                // A pointer to the contact that is guaranteed to be more permanent than _ID. Given
-                // a contact's current _ID value and LOOKUP_KEY, the Contacts Provider can generate
-                // a "permanent" contact URI.
                 Contacts.LOOKUP_KEY,
-
-                // In platform version 3.0 and later, the Contacts table contains
-                // DISPLAY_NAME_PRIMARY, which either contains the contact's displayable name or
-                // some other useful identifier such as an email address. This column isn't
-                // available in earlier versions of Android, so you must use Contacts.DISPLAY_NAME
-                // instead.
-                Utils.hasHoneycomb() ? Contacts.DISPLAY_NAME_PRIMARY : Contacts.DISPLAY_NAME,
-
-                // In Android 3.0 and later, the thumbnail image is pointed to by
-                // PHOTO_THUMBNAIL_URI. In earlier versions, there is no direct pointer; instead,
-                // you generate the pointer from the contact's ID value and constants defined in
-                // android.provider.ContactsContract.Contacts.
-                Utils.hasHoneycomb() ? Contacts.PHOTO_THUMBNAIL_URI : Contacts._ID,
-                		
-                		//Phone.NUMBER,
-
-                // The sort order column for the returned Cursor, used by the AlphabetIndexer
+                Contacts.DISPLAY_NAME_PRIMARY,
+                Contacts.PHOTO_THUMBNAIL_URI,
                 SORT_ORDER,
         };
 
