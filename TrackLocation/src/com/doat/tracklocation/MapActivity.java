@@ -221,7 +221,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		getActionBar().hide();
 
 		className = this.getClass().getName();
 		methodName = "onCreate";
@@ -258,6 +257,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			}
 		}
 
+		MyMapFragment myMapFragment = getHandleToMapFragment();
+
+		myMapFragment.getMapAsync(this);
+
 		// INIT START ===================================================
 		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		if (account == null || account.isEmpty()) {
@@ -273,8 +276,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			mapActivityController = new MapActivityController();
 		}
 
-		//getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-
 		loadActionMenu();
 
 		loadContactQuickInfo();
@@ -282,10 +283,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		loadFavoritsForLocateContacts();
 
 		isShowAllMarkersEnabled = true;
-
-		MyMapFragment myMapFragment = getHandleToMapFragment();
-
-		myMapFragment.getMapAsync(this);
 
 		title_text = (TextView) findViewById(R.id.title_text);
 
@@ -829,6 +826,10 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 						mapMarkerDetailsList.remove(selectedValue.getContactData().getEmail());
 					}
 					isAdd = false;
+					if (mapMarkerDetailsList.size() <= 1){
+						zoom = DEFAULT_CAMERA_UPDATE;
+					}
+					goToMyLocation();
 				}
 				isShowAllMarkersEnabled = true;
 
@@ -1288,6 +1289,13 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 						}
 					}
 				}
+			}
+			else{
+				CameraPosition currentPlace = new CameraPosition.Builder()
+						.target(lastKnownLocation)
+						.zoom(DEFAULT_CAMERA_UPDATE)
+						.build();
+				map.animateCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
 			}
 		}
 	}

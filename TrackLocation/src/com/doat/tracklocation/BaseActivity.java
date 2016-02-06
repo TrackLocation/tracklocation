@@ -1,11 +1,5 @@
 package com.doat.tracklocation;
 
-import com.doat.tracklocation.broadcast.BroadcastReceiverBase;
-import com.doat.tracklocation.datatype.BroadcastActionEnum;
-import com.doat.tracklocation.log.LogManager;
-import com.doat.tracklocation.utils.CommonConst;
-import com.google.gson.Gson;
-
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Context;
@@ -13,6 +7,12 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+
+import com.doat.tracklocation.broadcast.BroadcastReceiverBase;
+import com.doat.tracklocation.datatype.BroadcastActionEnum;
+import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.utils.CommonConst;
+import com.google.gson.Gson;
 
 public class BaseActivity extends Activity {
 	protected final static Gson gson = new Gson();
@@ -33,9 +33,11 @@ public class BaseActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		ActionBar actionBar = getActionBar();
-	    actionBar.setHomeButtonEnabled(false);	    
-	    actionBar.setDisplayShowHomeEnabled(false);
-	    actionBar.setDisplayShowTitleEnabled(true);
+		if (actionBar != null) {
+			actionBar.setHomeButtonEnabled(false);
+			actionBar.setDisplayShowHomeEnabled(false);
+			actionBar.setDisplayShowTitleEnabled(true);
+		}
 		super.onCreate(savedInstanceState);
 		className = this.getClass().getName();	
 		context = getApplicationContext();
