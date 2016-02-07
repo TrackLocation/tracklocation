@@ -39,7 +39,8 @@ public class TrackingTimerJob extends TimerTask {
 		LogManager.LogInfoMsg(className, methodName, logMessage);
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 		
-		Map<String, String> map = Preferences.getPreferencesReturnToContactMap(context);
+		Map<String, String> map = Preferences.getAccountRegIdMap(context, 
+			CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID);
 		logMessage = "Return contacts to: " + map.toString();
 		LogManager.LogInfoMsg(className, methodName, logMessage);
 		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);

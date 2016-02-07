@@ -250,7 +250,7 @@ public class TrackLocationService extends TrackLocationServiceBasic {
 	    unregisterReceiver(notificationBroadcastReceiver);
     	stopSelf();
 
-//   	Preferences.clearPreferencesReturnToContactMap(context);
+		Preferences.clearAccountRegIdMap(context, CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID);
     	
     	logMessage = "Track Location Service has been stopped.";
     	LogManager.LogInfoMsg(className, methodName, logMessage);

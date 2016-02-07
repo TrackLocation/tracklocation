@@ -418,13 +418,6 @@ public class Controller {
         return smsInbox;
     }
 
-//	public static void saveValueToPreferencesIfNotExist(Context context, String valueName, String value){
-//		String tmpValue = Preferences.getPreferencesString(context, valueName);
-//		if(tmpValue == null || tmpValue.isEmpty()){
-//			Preferences.setPreferencesString(context, valueName, value);
-//		}
-//	}
-	
 	public static String getNickNameFromEmail(String account){
 		String nickName = null;
 		if(account != null && !account.isEmpty() && account.contains(CommonConst.DELIMITER_AT)){
@@ -436,33 +429,6 @@ public class Controller {
 		return nickName;
 	}
 	
-/*
-	public static String getNickName(Context context){
-		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-		String nickName = getNickNameFromEmail(account);
-		return nickName;
-	}
-
-	public static List<String> getNickListFromContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
-		List<String> nickList = null;
-		if(contactDeviceDataList != null){
-			nickList = new ArrayList<String>();
-			for (ContactDeviceData contactDeviceData : contactDeviceDataList) {
-				if(contactDeviceData != null){
-					ContactData contactData = contactDeviceData.getContactData();
-					if(contactData != null){
-						String nick = contactData.getNick();
-						if(nick != null && !nick.isEmpty()){
-							nickList.add(nick);
-						}
-					}
-				}
-			}
-		}
-		return nickList;
-	}
-*/
-
 	public static List<String> getAccountListFromContactDeviceDataList(ContactDeviceDataList contactDeviceDataList){
 		List<String> accountList = null;
 		if(contactDeviceDataList != null){
@@ -582,37 +548,6 @@ public class Controller {
 			}
 		}
 		return false;
-	}
-	
-	public static List<String> getPreferencesReturnToRegIDList(Context context){
-		List<String> listRegIDs = null;
-		java.util.Map<String, String> returnToContactMap = Preferences.getPreferencesReturnToContactMap(context);
-		if(returnToContactMap != null){
-			listRegIDs = new ArrayList<String>();
-			for (java.util.Map.Entry<String, String> entry : returnToContactMap.entrySet()) {
-				listRegIDs.add(entry.getValue());
-			}
-		}
-		return listRegIDs;
-	}
-	
-	public static ContactDeviceDataList getPreferencesContactDeviceDataListToSendCommandTo(Context context){
-		ContactDeviceDataList contactDeviceDataToSendNotificationTo = null;
-		java.util.Map<String, String> sendToMap = Preferences.getPreferencesReturnToContactMap(context);
-		if(sendToMap != null && !sendToMap.isEmpty()){
-		    contactDeviceDataToSendNotificationTo = new ContactDeviceDataList();		   
-		    for (java.util.Map.Entry<String,String> entry : sendToMap.entrySet()) {
-		    	entry.getKey();
-		    	entry.getValue();
-		    	ContactData cd = new ContactData();
-		    	cd.setEmail(entry.getKey());
-		    	ContactDeviceData cdd = new ContactDeviceData();
-		    	cdd.setRegistration_id(entry.getValue());
-		    	cdd.setContactData(cd);
-		    	contactDeviceDataToSendNotificationTo.add(cdd);
-			}
-		}
-		return contactDeviceDataToSendNotificationTo;
 	}
 	
 	public static void broadcsatMessage(Context context, String broadcastMessage, String message, String key, String value){

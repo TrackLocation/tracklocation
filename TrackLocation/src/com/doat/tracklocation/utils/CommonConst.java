@@ -50,6 +50,8 @@ public class CommonConst {
 	
 	// Map<account, registrationId> of requesters that want to see location of the contact on Map 
 	public static final String 	PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID = "account_and_regid_map";
+	// Map<account, registrationId> of requesters that want to see is_online status of the contact on Map 
+	public static final String 	PREFERENCES_IS_ONLINE_REQUESTER_MAP__ACCOUNT_AND_REG_ID = "online_account_and_regid_map";
 	// TlsRequesterList - for tracking feature
 	public static final String 	PREFERENCES_TLS_SERVICE_INFO = "";
 	

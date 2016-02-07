@@ -440,8 +440,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		if (mapActivityController != null) {
 			mapActivityController.stopKeepAliveTrackLocationService();
 		}
-		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
-		Preferences.clearPreferencesReturnToContactMap(context, account);
 
 		Log.i(CommonConst.LOG_TAG, "Timer with mapKeepAliveTimerJob - stopped");
 		if (gcmLocationUpdatedWatcher != null) {

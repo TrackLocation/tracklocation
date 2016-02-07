@@ -147,22 +147,17 @@ public class Preferences {
 		}
 	}
 
-	private static void synchronyzed() {
-		// TODO Auto-generated method stub
-		
-	}
-
 	@SuppressWarnings("unchecked")
-	public static Map<String, String> getPreferencesReturnToContactMap(
-			Context context) {
-		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX
-				+ ".Preferences";
-		String methodName = "getPreferencesReturnToContactMap";
+	// mapName = CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID
+	public static Map<String, String> getAccountRegIdMap(Context context, String mapName) {
+		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX + ".Preferences";
+		String methodName = "getAccountRegIdMap";
+		
 		Map<String, String> returnToContactMap = null;
 		Gson gson = new Gson();
 		if (context != null) {
 			String jsonReturnToContactMap = Preferences.getPreferencesString(
-					context, CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID);
+					context, mapName);
 			if (jsonReturnToContactMap != null
 					&& !jsonReturnToContactMap.isEmpty()) {
 				returnToContactMap = gson.fromJson(jsonReturnToContactMap,
@@ -170,7 +165,7 @@ public class Preferences {
 				return returnToContactMap;
 			}
 		} else {
-			String logMessage = "Unable to get PreferencesReturnToContactMap. Context parameter is null.";
+			String logMessage = "Unable to '" + methodName + "'. Context parameter is null.";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> "
 					+ logMessage);
@@ -178,12 +173,11 @@ public class Preferences {
 		return returnToContactMap;
 	}
 
-	public static Map<String, String> setPreferencesReturnToContactMap(
-			Context context, String account, String regId) {
-		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX
-				+ ".Preferences";
-		String methodName = "setPreferencesReturnToContactMap";
-		Map<String, String> returnToContactMap = getPreferencesReturnToContactMap(context);
+	public static Map<String, String> setAccountRegIdMap(
+			Context context, String mapName, String account, String regId) {
+		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX + ".Preferences";
+		String methodName = "setAccountRegIdMap";
+		Map<String, String> returnToContactMap = getAccountRegIdMap(context, mapName);
 		Gson gson = new Gson();
 
 		if (returnToContactMap == null) {
@@ -193,10 +187,10 @@ public class Preferences {
 			returnToContactMap.put(account, regId);
 			String jsonReturnToContactMap = gson.toJson(returnToContactMap);
 			Preferences.setPreferencesString(context,
-					CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID,
+					mapName,
 					jsonReturnToContactMap);
 		} else {
-			String logMessage = "Unable to set PreferencesReturnToContactMap. Context parameter is null.";
+			String logMessage = "Unable to '" + methodName + "'. Context parameter is null.";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> "
 					+ logMessage);
@@ -205,86 +199,50 @@ public class Preferences {
 		return returnToContactMap;
 	}
 
-	public static void clearPreferencesReturnToContactMap(Context context,
-			String account) {
-		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX
-				+ ".Preferences";
-		String methodName = "clearPreferencesReturnToContactMap";
-		Map<String, String> returnToContactMap = getPreferencesReturnToContactMap(context);
+	public static void clearAccountRegIdMap(Context context,
+			String mapName, String account) {
+		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX + ".Preferences";
+		String methodName = "clearAccountRegIdMap";
+		Map<String, String> returnToContactMap = getAccountRegIdMap(context, mapName);
 		Gson gson = new Gson();
 
 		if (context != null) {
-			if (returnToContactMap != null) {
+			if (returnToContactMap != null && !returnToContactMap.isEmpty()) {
 				returnToContactMap.remove(account);
 				String jsonReturnToContactMap = gson.toJson(returnToContactMap);
 				Preferences.setPreferencesString(context,
-						CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID,
+						mapName,
 						jsonReturnToContactMap);
 			}
 		} else {
-			String logMessage = "Unable to clear PreferencesReturnToContactMap. Context parameter is null.";
+			String logMessage = "Unable to '" + methodName + "'. Context parameter is null.";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> "
 					+ logMessage);
 		}
 	}
 
-	public static void clearPreferencesReturnToContactMap(Context context) {
-		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX
-				+ ".Preferences";
-		String methodName = "clearPreferencesReturnToContactMap";
-		Map<String, String> returnToContactMap = getPreferencesReturnToContactMap(context);
+	public static void clearAccountRegIdMap(Context context, String mapName) {
+		String className = CommonConst.TRACK_LOCATION_PROJECT_PREFIX + ".Preferences";
+		String methodName = "clearAccountRegIdMap";
+		Map<String, String> returnToContactMap = getAccountRegIdMap(context, mapName);
 		Gson gson = new Gson();
 
 		if (context != null) {
-			if (returnToContactMap != null) {
+			if (returnToContactMap != null && !returnToContactMap.isEmpty()) {
 				returnToContactMap.clear();
 				String jsonReturnToContactMap = gson.toJson(returnToContactMap);
 				Preferences.setPreferencesString(context,
-						CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID,
+						mapName,
 						jsonReturnToContactMap);
 			}
 		} else {
-			String logMessage = "Unable to clear PreferencesReturnToContactMap. Context parameter is null.";
+			String logMessage = "Unable to '" + methodName + "'. Context parameter is null.";
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> "
 					+ logMessage);
 		}
 	}
-
-//	  //CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST // regIDToReturnMessageTo
-//		public static List<String> getPreferencesReturnToRegIDList(Context context){
-//			String returnToRegIdList = Preferences.getPreferencesString(context, 
-//				CommonConst.PREFERENCES_RETURN_TO_REG_ID_LIST);
-//			if (returnToRegIdList != null && !returnToRegIdList.isEmpty()) {
-//				return Utils.splitLine(returnToRegIdList, CommonConst.DELIMITER_STRING);
-//			} else {
-//				String tempRegId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
-//				if(tempRegId != null){
-//					ArrayList<String> tempRegIdList = new ArrayList<String>();
-//					tempRegIdList.add(tempRegId);
-//					return tempRegIdList;
-//				} else {
-//					return null;
-//				}
-//			}
-//		}
-//		
-//		public static List<String> setPreferencesReturnToRegIDList(Context context, String valueName, String value){
-//			String returnToRegIdList = Preferences.getPreferencesString(context, valueName);
-//			if (returnToRegIdList != null && !returnToRegIdList.isEmpty()) {
-//				
-//				CharSequence cs = value;
-//				if(returnToRegIdList.contains(cs) == false){
-//					returnToRegIdList = returnToRegIdList + CommonConst.DELIMITER_STRING + value;
-//				}
-//				
-//			} else {
-//				returnToRegIdList = value;
-//			}
-//			Preferences.setPreferencesString(context, valueName, returnToRegIdList);
-//			return Utils.splitLine(returnToRegIdList, CommonConst.DELIMITER_STRING);
-//		}
 
 }
 	

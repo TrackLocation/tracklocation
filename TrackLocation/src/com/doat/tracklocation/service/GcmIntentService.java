@@ -358,7 +358,7 @@ public class GcmIntentService extends IntentService {
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
-	private MessageDataContactDetails initCommand(Bundle extras) 
+	private MessageDataContactDetails getSenderMessageDataContactDetails(Bundle extras) 
 			throws NoSentContactFromException, NoSentContactFromAccountException{
 		
 		String jsonContactDetailsSentFrom = extras.getString(CommandTagEnum.contactDetails.toString());
@@ -381,9 +381,10 @@ public class GcmIntentService extends IntentService {
             throw new NoSentContactFromAccountException("");
 		}
 		
-		// update (insert/add) regIds to list of contacts that will be notified
-		Preferences.setPreferencesReturnToContactMap(context, 
-			accountCommandSentFrom, contactDetailsSentFrom.getRegId());
+//		// update (insert/add) regIds to list of contacts that will be notified
+//		Preferences.setAccountRegIdMap(context, 
+//			mapName,	
+//			accountCommandSentFrom, contactDetailsSentFrom.getRegId());
 		
 		return contactDetailsSentFrom;
 	}
@@ -397,8 +398,12 @@ public class GcmIntentService extends IntentService {
 		String senderAccount;
 
 		try {
-			senderMessageDataContactDetails = initCommand(extras);
+			senderMessageDataContactDetails = getSenderMessageDataContactDetails(extras);
 			senderAccount = senderMessageDataContactDetails.getAccount();
+			// update (insert/add) regIds to list of contacts that will be notified
+			Preferences.setAccountRegIdMap(context, 
+				CommonConst.PREFERENCES_IS_ONLINE_REQUESTER_MAP__ACCOUNT_AND_REG_ID,	
+				senderAccount, senderMessageDataContactDetails.getRegId());
     		logMessage = "Catched push notification message (GCM): [IS_ONLINE]" +
     			"from [" + senderAccount + "]";
     		LogManager.LogInfoMsg(className, methodName, logMessage);
@@ -441,7 +446,7 @@ public class GcmIntentService extends IntentService {
 		String senderAccount;
 		
 		try {
-			senderMessageDataContactDetails = initCommand(extras);
+			senderMessageDataContactDetails = getSenderMessageDataContactDetails(extras);
 			senderAccount = senderMessageDataContactDetails.getAccount();
     		logMessage = "Catched push notification message (GCM): [START MapLocationShare Service] " + 
     			"from [" + senderAccount + "]";
@@ -476,7 +481,13 @@ public class GcmIntentService extends IntentService {
 		
 		if(isPermissionToGetLocation(senderMessageDataContactDetails,
 				messageDataContactDetails, methodName) == false){
+			Preferences.clearAccountRegIdMap(context, CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID, senderAccount);
 			return;
+		} else {
+			// update (insert/add) regIds to list of contacts that will be notified
+			Preferences.setAccountRegIdMap(context, 
+				CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID,	
+				senderAccount, senderMessageDataContactDetails.getRegId());
 		}
 		
     	// ============================================

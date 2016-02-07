@@ -4,9 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
 
 import android.content.Context;
+import android.util.Log;
 
 public class CommandDataWithReturnToContactMap extends CommandDataBasic {
 //	private List<String> returnToContactList; // registration_IDs of the contacts that command will be send to
@@ -21,7 +23,9 @@ public class CommandDataWithReturnToContactMap extends CommandDataBasic {
 				command,
 				message, senderMessageDataContactDetails,
 				location, key, value, appInfo);
-		returnToContactMap = Preferences.getPreferencesReturnToContactMap(context);
+		returnToContactMap = Preferences.getAccountRegIdMap(context, 
+			CommonConst.PREFERENCES_LOCATION_REQUESTER_MAP__ACCOUNT_AND_REG_ID);
+		Log.i(CommonConst.LOG_TAG_TLS, "returnToContactMap: " + returnToContactMap.toString());
 		initialValuesCheck();
 		listAccounts = new ArrayList<String>();
 		listRegIDs = new ArrayList<String>();
