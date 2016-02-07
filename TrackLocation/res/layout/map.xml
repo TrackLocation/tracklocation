@@ -9,7 +9,7 @@
 
     <LinearLayout
         android:id="@+id/first_time_msg"
-        android:layout_width="fill_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
         android:background="@drawable/contact_quick_info_shape"
@@ -17,7 +17,8 @@
         android:layoutMode="opticalBounds"
         android:importantForAccessibility="auto"
         android:focusable="false"
-        android:paddingTop="20dp">
+        android:paddingTop="20dp"
+        >
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
