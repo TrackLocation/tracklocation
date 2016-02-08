@@ -79,5 +79,9 @@
 
 	<string name="first_load_message">To add a new contact, please tap Configure and Add Contact.</string>
 
+	<string name="title_location_turned_off"> requires location.</string>
+	<string name="no_location_text">Turn on location to \'High accuracy\' mode in device settings.</string>
+	<string name="positive_btn_location_dialog">Settings</string>
+	<string name="negative_btn_location_dialog">Cancel</string>
 </resources>
 

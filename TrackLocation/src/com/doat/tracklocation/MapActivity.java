@@ -1,8 +1,10 @@
 package com.doat.tracklocation;
 
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -26,6 +28,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.v4.view.MotionEventCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
@@ -268,7 +271,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		} else {
 			InitAppUtils.initApp(this, context);
 		}
-
+		
+		checkLocationSettings();
+		
 		if (contactListController == null) {
 			contactListController = new ContactListController(this, getApplicationContext());
 		}
@@ -319,6 +324,45 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
 	}
 
+	private void checkLocationSettings(){
+		LocationManager lm = (LocationManager)MapActivity.this.getSystemService(Context.LOCATION_SERVICE);
+		boolean gps_enabled = false;
+		boolean network_enabled = false;
+
+		try {
+		    gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+		} catch(Exception ex) {
+			// ignore exception
+		}
+
+		try {
+		    network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+		} catch(Exception ex) {
+			// ignore exception
+		}
+
+		if(!gps_enabled && !network_enabled) {
+		    // notify user location is turned off
+		    AlertDialog.Builder dialog = new AlertDialog.Builder(MapActivity.this);
+		    dialog.setTitle(MapActivity.this.getResources().getString(R.string.app_name) + " " +
+		    	MapActivity.this.getResources().getString(R.string.title_location_turned_off));
+		    dialog.setMessage(MapActivity.this.getResources().getString(R.string.no_location_text));
+		    dialog.setPositiveButton(MapActivity.this.getResources().getString(R.string.positive_btn_location_dialog), new DialogInterface.OnClickListener() {
+		            @Override
+		            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+		                Intent myIntent = new Intent( Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+		                MapActivity.this.startActivity(myIntent);
+		            }
+		        });
+		    dialog.setNegativeButton(MapActivity.this.getString(R.string.negative_btn_location_dialog), new DialogInterface.OnClickListener() {
+		            @Override
+		            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+		            }
+		        });
+		    dialog.show();      
+		}
+	}
+	
 	private void loadFirstInfoMessage() {
 		if (contactDeviceDataList != null && contactDeviceDataList.size() == 1) {
 			final LinearLayout llFirstMessage = (LinearLayout) findViewById(R.id.first_time_msg);
@@ -1294,11 +1338,13 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				}
 			}
 			else{
-				CameraPosition currentPlace = new CameraPosition.Builder()
-						.target(lastKnownLocation)
-						.zoom(DEFAULT_CAMERA_UPDATE)
-						.build();
-				map.animateCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
+				if(lastKnownLocation != null){
+					CameraPosition currentPlace = new CameraPosition.Builder()
+							.target(lastKnownLocation)
+							.zoom(DEFAULT_CAMERA_UPDATE)
+							.build();
+					map.animateCamera(CameraUpdateFactory.newCameraPosition(currentPlace));
+				}
 			}
 		}
 	}
