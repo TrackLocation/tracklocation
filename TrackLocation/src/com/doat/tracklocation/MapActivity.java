@@ -263,7 +263,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		MyMapFragment myMapFragment = getHandleToMapFragment();
 
 		myMapFragment.getMapAsync(this);
-
+		
 		// INIT START ===================================================
 		String account = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		if (account == null || account.isEmpty()) {
@@ -466,6 +466,11 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 	@Override
 	protected void onResume() {
+		if(Utils.isFirstAppStart(context)){
+			Preferences.setPreferencesBoolean(context, CommonConst.PREFERENCES_NOT_FIRST_APP_START, true);
+			logMessage = "Set PREFERENCES_NOT_FIRST_APP_START to TRUE";
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		}
 		super.onResume();
 		adView.resume();
 	}

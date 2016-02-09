@@ -38,6 +38,7 @@ import com.doat.tracklocation.datatype.Message;
 import com.doat.tracklocation.datatype.MessageData;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -477,6 +478,23 @@ public class Utils {
     public static int getRandomColor() {
         Random rnd = new Random();
         return mColors.get(rnd.nextInt(mColors.size()));
+    }
+
+    public static boolean isOnlyOneContact(Context context){
+		ContactDeviceDataList contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(context, false);
+		if(contactDeviceDataList == null || contactDeviceDataList.size() <= 1){
+			return true;
+		}
+		return false;
+    }
+    
+    public static boolean isFirstAppStart(Context context){
+    	boolean isNotFirstStart = Preferences.getPreferencesBoolean(context, CommonConst.PREFERENCES_NOT_FIRST_APP_START);
+    	if(isNotFirstStart == false){
+    		return true;
+    	} else {
+    		return false;
+    	}
     }
 
 }

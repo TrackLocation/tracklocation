@@ -19,6 +19,8 @@ public class CommonConst {
 	public static final String 	UNHANDLED_EXCEPTION_EXTRA		= "unhandledException";
 	public static final String 	SUPPORT_MAIL 					= "track.and.location@gmail.com";
 
+	public static final String 	PREFERENCES_NOT_FIRST_APP_START	= "NotFirstAppStart";
+
 	public static final String 	PREFERENCES_PHONE_NUMBER 		= "PhoneNumber";
 	public static final String 	PREFERENCES_PHONE_MAC_ADDRESS 	= "PhoneMacAddress";
 	public static final String 	PREFERENCES_PHONE_ACCOUNT 		= "PhoneAccount";
