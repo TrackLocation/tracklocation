@@ -453,6 +453,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	protected void onPause() {
 		methodName = "onPause";
 
+		if(Utils.isFirstAppStart(context)){
+			Preferences.setPreferencesBoolean(context, CommonConst.PREFERENCES_NOT_FIRST_APP_START, true);
+			logMessage = "Set PREFERENCES_NOT_FIRST_APP_START to TRUE";
+			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		}
+
 		BackupDataOperations backupData = new BackupDataOperations();
 		boolean isBackUpSuccess = backupData.backUp();
 		if (isBackUpSuccess != true) {
@@ -466,11 +472,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 	@Override
 	protected void onResume() {
-		if(Utils.isFirstAppStart(context)){
-			Preferences.setPreferencesBoolean(context, CommonConst.PREFERENCES_NOT_FIRST_APP_START, true);
-			logMessage = "Set PREFERENCES_NOT_FIRST_APP_START to TRUE";
-			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
-		}
 		super.onResume();
 		adView.resume();
 	}

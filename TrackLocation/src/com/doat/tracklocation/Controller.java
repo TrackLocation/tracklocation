@@ -49,7 +49,7 @@ import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.Utils;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.gson.Gson;
 
@@ -153,26 +153,49 @@ public class Controller {
 	 * the Google Play Store or enable it in the device's system settings.
      * @throws CheckPlayServicesException 
 	 */
-	public static void checkPlayServices(Context context) throws CheckPlayServicesException {
-	    int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
-	    if (resultCode != ConnectionResult.SUCCESS) {
-	        if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
-	        	// The following dialog should be shown in calling Activity
-	            //GooglePlayServicesUtil.getErrorDialog(resultCode, activity,
-	            //	PLAY_SERVICES_RESOLUTION_REQUEST).show();
-	            Log.e(CommonConst.LOG_TAG, "User recoverable error: " + resultCode);
+    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+	public static void checkPlayServices(Context context, Activity mainActivity) throws CheckPlayServicesException {
+	    GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
+	    int result = googleAPI.isGooglePlayServicesAvailable(context);
+	    if(result != ConnectionResult.SUCCESS) {
+	        if(googleAPI.isUserResolvableError(result)) {
+	        	if(mainActivity != null){
+		            googleAPI.getErrorDialog(mainActivity, result,
+		                    PLAY_SERVICES_RESOLUTION_REQUEST).show();
+	        	}
+	            Log.e(CommonConst.LOG_TAG, "User recoverable error: " + result);
 	            LogManager.LogErrorMsg(CLASS_NAME, "checkPlayServices", 
-	            	"User recoverable error: " + resultCode);
-	            throw new CheckPlayServicesException(CommonConst.PLAYSERVICES_ERROR, resultCode);
+	            	"User recoverable error: " + result);
+	            throw new CheckPlayServicesException(CommonConst.PLAYSERVICES_ERROR, result);
 	        } else {
 	            Log.e(CommonConst.LOG_TAG, "Google Play Services not supported with this device.");
 	            LogManager.LogErrorMsg(CLASS_NAME, "checkPlayServices", 
 	            	"Google Play Services not supported with this device.");
-	            // finish();
 	            throw new CheckPlayServicesException(CommonConst.PLAYSERVICES_DEVICE_NOT_SUPPORTED);
 	        }
 	    }
 	}
+    
+//	public static void checkPlayServicesDeprecated(Context context) throws CheckPlayServicesException {
+//	    int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(context);
+//	    if (resultCode != ConnectionResult.SUCCESS) {
+//	        if (GooglePlayServicesUtil.isUserRecoverableError(resultCode)) {
+//	        	// The following dialog should be shown in calling Activity
+//	            //GooglePlayServicesUtil.getErrorDialog(resultCode, activity,
+//	            //	PLAY_SERVICES_RESOLUTION_REQUEST).show();
+//	            Log.e(CommonConst.LOG_TAG, "User recoverable error: " + resultCode);
+//	            LogManager.LogErrorMsg(CLASS_NAME, "checkPlayServices", 
+//	            	"User recoverable error: " + resultCode);
+//	            throw new CheckPlayServicesException(CommonConst.PLAYSERVICES_ERROR, resultCode);
+//	        } else {
+//	            Log.e(CommonConst.LOG_TAG, "Google Play Services not supported with this device.");
+//	            LogManager.LogErrorMsg(CLASS_NAME, "checkPlayServices", 
+//	            	"Google Play Services not supported with this device.");
+//	            // finish();
+//	            throw new CheckPlayServicesException(CommonConst.PLAYSERVICES_DEVICE_NOT_SUPPORTED);
+//	        }
+//	    }
+//	}
 
 	public static String generateUUID(){
 		return UUID.randomUUID().toString().replaceAll("-", "");

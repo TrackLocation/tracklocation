@@ -296,7 +296,7 @@ public class GcmIntentService extends IntentService {
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 		
 		try {
-			Controller.checkPlayServices(context);
+			Controller.checkPlayServices(context, null);
 			LogManager.LogFunctionExit(className, methodName);
 			Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 		} catch (CheckPlayServicesException e) {

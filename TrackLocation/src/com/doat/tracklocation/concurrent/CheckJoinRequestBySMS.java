@@ -1,6 +1,7 @@
 package com.doat.tracklocation.concurrent;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 
 import android.app.Activity;
 import android.content.Context;
@@ -17,6 +18,7 @@ import com.doat.tracklocation.dialog.ApproveJoinRequestDialogListener;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.SMSUtils;
+import com.doat.tracklocation.utils.Utils;
 
 public class CheckJoinRequestBySMS implements Runnable {
 
@@ -171,9 +173,11 @@ public class CheckJoinRequestBySMS implements Runnable {
 		// Fetch all SMS 
 	    SMSMessageList smsList = Controller.fetchInboxSms(activity, 1);
 	    if(smsList != null && smsList.getSmsMessageList() != null){
+	    	boolean isFirstAppStartWithOneContact = Utils.isFirstAppStart(ctx) && Utils.isOnlyOneContact(ctx); 
+	    	SMSMessage newestSmsMessageOnFirstAppStart = new SMSMessage();
 	    	for (SMSMessage smsMessage : smsList.getSmsMessageList()) {
 	    		
-	    		String smsMessageContent = smsMessage.getMessageContent();
+				String smsMessageContent = smsMessage.getMessageContent();
 	    		try {
 					if(!smsMessageContent.isEmpty() && (smsMessageContent.contains(CommonConst.JOIN_SMS_PREFIX) || smsMessageContent.contains(CommonConst.OLD_JOIN_SMS_PREFIX))){
 						if(smsMessageContent.contains(CommonConst.JOIN_SMS_PREFIX)){
@@ -187,18 +191,43 @@ public class CheckJoinRequestBySMS implements Runnable {
 						
 						// Check if there SMS with JOIN REQUEST from TrackLocation application
 						if(smsMessageContent != null && (smsMessageContent.contains(CommonConst.JOIN_FLAG_SMS))){
-				    	    if(SMSUtils.isHandledSmsDetails(ctx, smsMessage)){
-				    	    	Log.i(CommonConst.LOG_TAG_SMS, "Already handled");
-				    	    	continue;
-				    	    }
-				    	    
-				    	    // save the SMS as handled
-				    		if(smsMessage != null){
-				    			Log.i(CommonConst.LOG_TAG_SMS, "save the SMS as handled");
-				    			SMSUtils.saveHandledSmsDetails(ctx, smsMessage);
-				    		}
+							
+							if(isFirstAppStartWithOneContact){
+								// Get the newest Add Contact SMS request and add contact
+								
+								String smsMessageDate = smsMessage.getMessageDate();
+								
+								// Debug info ONLY:
+								// Log all SMS from application on the phone
+								Long nextSMStimestamp = Long.parseLong(smsMessageDate);
+								Date date = new Date(nextSMStimestamp);
+								Log.i(CommonConst.LOG_TAG_SMS, "Next SMS date: " + date.toString() + 
+									" : " + smsMessage.getMessageNumber());
+								
+								if(smsMessageDate == null || smsMessageDate.isEmpty()){
+									continue;
+								}
+								
+								if(newestSmsMessageOnFirstAppStart.getMessageDate() == null){
+									newestSmsMessageOnFirstAppStart = smsMessage;
+								} else if (Long.parseLong(smsMessageDate) > Long.parseLong(newestSmsMessageOnFirstAppStart.getMessageDate())) {
+									newestSmsMessageOnFirstAppStart = smsMessage;
+								}
+								
+							} else {
+					    	    if(SMSUtils.isHandledSmsDetails(ctx, smsMessage)){
+					    	    	Log.i(CommonConst.LOG_TAG_SMS, "Already handled");
+					    	    	continue;
+					    	    }
+					    	    
+					    	    // save the SMS as handled
+					    		if(smsMessage != null){
+					    			Log.i(CommonConst.LOG_TAG_SMS, "save the SMS as handled");
+					    			SMSUtils.saveHandledSmsDetails(ctx, smsMessage);
+					    		}
 
-			    			handleSms(ctx, smsMessage);
+				    			handleSms(ctx, smsMessage);
+							}
 						}
 					} else {
 						continue;
@@ -208,6 +237,21 @@ public class CheckJoinRequestBySMS implements Runnable {
 					Log.e(CommonConst.LOG_TAG_SMS, "[EXCEPTION] {" + className + "} -> " + e.getMessage());
 				}
 			}
+	    	if(isFirstAppStartWithOneContact){
+	    		Log.i(CommonConst.LOG_TAG_SMS, "save the SMS as handled");
+	    		if(newestSmsMessageOnFirstAppStart.getMessageId() != null){
+	    			SMSUtils.saveHandledSmsDetails(ctx, newestSmsMessageOnFirstAppStart);	    		
+	    			handleSms(ctx, newestSmsMessageOnFirstAppStart);
+	    			
+					// Debug info ONLY:
+					// Log a newest SMS from application on the phone
+					Long nextSMStimestamp = Long.parseLong(newestSmsMessageOnFirstAppStart.getMessageDate());
+					Date date = new Date(nextSMStimestamp);
+					Log.i(CommonConst.LOG_TAG_SMS, "!!! Next SMS date: " + date.toString() + 
+						" : " + newestSmsMessageOnFirstAppStart.getMessageNumber());
+
+	    		}
+	    	}
 	    }
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG_SMS, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);

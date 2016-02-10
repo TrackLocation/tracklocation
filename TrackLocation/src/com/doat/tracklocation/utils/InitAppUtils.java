@@ -32,7 +32,7 @@ import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.exception.CheckPlayServicesException;
 import com.doat.tracklocation.log.LogManager;
-import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 
 public class InitAppUtils {
@@ -93,35 +93,34 @@ public class InitAppUtils {
 		
 		// Check device for Play Services APK. If check succeeds, proceed with GCM registration.
 		try {
-			Controller.checkPlayServices(context);
+			Controller.checkPlayServices(context, mainActivity);
 		} catch (CheckPlayServicesException e) {
 			String errorMessage = e.getMessage();
+			GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
 			if(CommonConst.PLAYSERVICES_ERROR.equals(errorMessage)){
-	            GooglePlayServicesUtil.getErrorDialog(e.getResultCode(), mainActivity,
-	            	PLAY_SERVICES_RESOLUTION_REQUEST).show();
+	            googleAPI.getErrorDialog(mainActivity, e.getResultCode(),
+	                   PLAY_SERVICES_RESOLUTION_REQUEST).show();
 			} else if(CommonConst.PLAYSERVICES_DEVICE_NOT_SUPPORTED.equals(errorMessage)){
 				// Show dialog with errorMessage and exit from application 
-//				showNotificationDialog("\nGoogle Play Services not supported with this device.\nProgram will be closed.\n", "FINISH");
         		String title = "Warning";
         		String dialogMessage = "\nGoogle Play Services not supported with this device.\nProgram will be closed.\n";
         		new InfoDialog(mainActivity, context, title, dialogMessage, null);
 			}
             Log.e(CommonConst.LOG_TAG, "No valid Google Play Services APK found.");
     		LogManager.LogInfoMsg(className, methodName, "No valid Google Play Services APK found.");
-			//finish();
 		}
 		
-		// ===============================================================
-		// READ CONTACT AND DEVICE DATA FROM JSON FILE AND INSERT IT TO DB
-		// ===============================================================
-		// Read contact and device data from json file and insert it to DB
-		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
-		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
-			ContactDeviceDataList contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
-			if(contactDeviceDataList != null){
-				DBLayer.getInstance().addContactDeviceDataList(contactDeviceDataList);
-			}
-		}
+//		// ===============================================================
+//		// READ CONTACT AND DEVICE DATA FROM JSON FILE AND INSERT IT TO DB
+//		// ===============================================================
+//		// Read contact and device data from json file and insert it to DB
+//		String jsonStringContactDeviceData = Utils.getContactDeviceDataFromJsonFile();
+//		if(jsonStringContactDeviceData != null && !jsonStringContactDeviceData.isEmpty()) {
+//			ContactDeviceDataList contactDeviceDataList = Utils.fillContactDeviceDataListFromJSON(jsonStringContactDeviceData);
+//			if(contactDeviceDataList != null){
+//				DBLayer.getInstance().addContactDeviceDataList(contactDeviceDataList);
+//			}
+//		}
 		
 		GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(mainActivity);
         String registrationId = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_REG_ID);
