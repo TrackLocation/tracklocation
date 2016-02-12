@@ -79,7 +79,6 @@ import com.doat.tracklocation.dialog.ChooseAccountDialog;
 import com.doat.tracklocation.dialog.CommonDialog;
 import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
-import com.doat.tracklocation.exception.DefaultExceptionHandler;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactDeviceDataListModel;
 import com.doat.tracklocation.utils.CommonConst;
@@ -241,25 +240,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		context = getApplicationContext();
 		selectedAccountList = new HashMap<String, ContactData>();
 
-		Thread.setDefaultUncaughtExceptionHandler(new DefaultExceptionHandler(MapActivity.this, MapActivity.class));
-		final Intent intent = getIntent();
-		// If activity has been restarted after crash by DefaultExceptionHandler
-		// start SENDTO activity to send exception details to support team
-		if (intent.getExtras() != null && intent.getExtras().containsKey(CommonConst.UNHANDLED_EXCEPTION_EXTRA)) {
-			String exceptionDetails = intent.getExtras().getString(CommonConst.UNHANDLED_EXCEPTION_EXTRA);
-			if (exceptionDetails != null && !exceptionDetails.isEmpty()) {
-				String uriText =
-						"mailto:" + CommonConst.SUPPORT_MAIL +
-								"?subject=" + Uri.encode("TrackLocation unhandled exception") +
-								"&body=" + Uri.encode(exceptionDetails);
-				Uri uri = Uri.parse(uriText);
-				Intent sendIntent = new Intent(Intent.ACTION_SENDTO);
-				sendIntent.setData(uri);
-				sendIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-				startActivity(Intent.createChooser(sendIntent, "Please send exception details to support team."));
-			}
-		}
-
 		MyMapFragment myMapFragment = getHandleToMapFragment();
 
 		myMapFragment.getMapAsync(this);
@@ -315,7 +295,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		adView = (AdView) this.findViewById(R.id.adMap);
 		AdRequest adRequest = new AdRequest.Builder().build();
-		adView.loadAd(adRequest);
+	    if(adView != null){
+	    	adView.loadAd(adRequest);
+	    }
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -466,14 +448,18 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + methodName + ": " + logMessage);
 		}
-		adView.pause();
+	    if(adView != null){
+	    	adView.pause();
+	    }
 		super.onPause();
 	}
 
 	@Override
 	protected void onResume() {
 		super.onResume();
-		adView.resume();
+	    if(adView != null){
+	    	adView.resume();
+	    }
 	}
 
 	@Override
@@ -538,7 +524,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	@Override
 	protected void onDestroy() {
 		isTrackLocationRunning = false;
-		adView.destroy();
+	    if(adView != null){
+	    	adView.destroy();
+	    }
 		super.onDestroy();
 	}
 

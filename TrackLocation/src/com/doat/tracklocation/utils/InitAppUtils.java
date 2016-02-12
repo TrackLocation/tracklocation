@@ -58,8 +58,6 @@ public class InitAppUtils {
 		String googleProjectNumber = mainActivity.getResources().getString(R.string.google_project_number);
 		Preferences.setPreferencesString(context, CommonConst.GOOGLE_PROJECT_NUMBER, googleProjectNumber);
 
-		Controller.saveAppInfoToPreferences(context);
-		
 		// PHONE NUMBER
 		String phoneNumber = InitAppUtils.getPhoneNumber(context);
 		//Controller.saveValueToPreferencesIfNotExist(context, CommonConst.PREFERENCES_PHONE_NUMBER, phoneNumber);

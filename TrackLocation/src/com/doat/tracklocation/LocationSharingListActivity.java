@@ -74,7 +74,9 @@ public class LocationSharingListActivity extends BaseActivity {
 
 	    adView = (AdView)this.findViewById(R.id.adLocation);
 	    AdRequest adRequest = new AdRequest.Builder().build();
-	    adView.loadAd(adRequest);
+	    if(adView != null){
+	    	adView.loadAd(adRequest);
+	    }
 	}
 
     @Override
@@ -101,20 +103,26 @@ public class LocationSharingListActivity extends BaseActivity {
     	methodName = "onDestroy";
 		LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
-		adView.destroy();
+	    if(adView != null){
+	    	adView.destroy();
+	    }
     	super.onDestroy();
     }
 	 
 	@Override
 	protected void onPause() {
-		adView.pause();
+	    if(adView != null){
+	    	adView.pause();
+	    }
 		super.onPause();
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		adView.resume();
+	    if(adView != null){
+	    	adView.resume();
+	    }
 	}
 
 	 

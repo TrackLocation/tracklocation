@@ -12,12 +12,9 @@ import com.doat.tracklocation.utils.CommonConst;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 
-import java.util.List;
-
 public class TrackingListActivity extends BaseActivity {
 	private ListView lv;
 	private ContactListArrayAdapter adapter;
-	private List<String> selectedContcatList;
 	private AdView adView;
 	
 	@Override
@@ -73,7 +70,9 @@ public class TrackingListActivity extends BaseActivity {
 	    });*/
 	    adView = (AdView)this.findViewById(R.id.adTracking);
 	    AdRequest adRequest = new AdRequest.Builder().build();
-	    adView.loadAd(adRequest);
+	    if(adView != null){
+	    	adView.loadAd(adRequest);
+	    }
 	
 	}
 
@@ -160,7 +159,9 @@ public class TrackingListActivity extends BaseActivity {
 	 
 	@Override
 	protected void onDestroy() {
-		adView.destroy();
+	    if(adView != null){
+	    	adView.destroy();
+	    }
 		methodName = "onDestroy";
 		LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
@@ -169,14 +170,18 @@ public class TrackingListActivity extends BaseActivity {
 	
 	@Override
 	protected void onPause() {
-		adView.pause();
+	    if(adView != null){
+	    	adView.pause();
+	    }
 		super.onPause();
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		adView.resume();
+	    if(adView != null){
+	    	adView.resume();
+	    }
 	}
 
 }

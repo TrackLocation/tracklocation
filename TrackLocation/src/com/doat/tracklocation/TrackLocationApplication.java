@@ -3,20 +3,28 @@ package com.doat.tracklocation;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.doat.tracklocation.datatype.AppInfo;
 import com.doat.tracklocation.db.DBHelper;
 import com.doat.tracklocation.db.DBManager;
+import com.doat.tracklocation.log.LogManager;
+import com.doat.tracklocation.utils.CommonConst;
+import com.doat.tracklocation.utils.Utils;
 import com.google.gson.Gson;
 
 import android.app.Activity;
 import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 public class TrackLocationApplication extends Application {	    
     
 	private String className;    
 	private String methodName;
+	private String logMessage;
 	private Activity currentActivity;
 	private static Context context;	
 
@@ -49,6 +57,19 @@ public class TrackLocationApplication extends Application {
        	
 		className = this.getClass().getName();
 		context = getApplicationContext();
+		
+		Controller.saveAppInfoToPreferences(context);
+
+		// Setup handler for uncaught exceptions.
+		Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
+		{
+			@Override
+			public void uncaughtException (Thread thread, Throwable e)
+			{
+			  handleUncaughtException (thread, e);
+			}
+		});
+	    
 		DBManager.initDBManagerInstance(new DBHelper(context));		
 		registerActivityLifecycleCallbacks(new MyActivityLifecycleCallbacks());
     }
@@ -162,4 +183,55 @@ public class TrackLocationApplication extends Application {
 		}
 		
     }
+
+	public void handleUncaughtException (Thread thread, Throwable e)
+	{
+		methodName = "handleUncaughtException";
+		LogManager.LogFunctionCall(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+
+		AppInfo appInfo = Controller.getAppInfo(context);
+		String versionName = "";
+		int versionNumber = 0;
+		if(appInfo != null){
+			versionName = appInfo.getVersionName();
+			versionNumber = appInfo.getVersionNumber();
+		}
+
+		String uriText =
+		"mailto:" + CommonConst.SUPPORT_MAIL +
+			"?subject=" + Uri.encode(CommonConst.NEW_APP_NAME + " - unhandled exception report. ") +
+			"&body=" + "VesionNumber: " + versionNumber + 
+			" Version name: " + versionName + "\n" +
+			Uri.encode(Utils.stackTraceToString(e));
+		Uri uri = Uri.parse(uriText);
+		        
+		logMessage = uriText;
+		LogManager.LogException(e, className, methodName);
+		Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+
+		Intent sendIntent = new Intent(Intent.ACTION_SENDTO);
+		sendIntent.setData(uri);
+        Intent emailChooser = Intent.createChooser(sendIntent, CommonConst.NEW_APP_NAME + " - unhandled exception occurred! Please send error report to support team.");
+        emailChooser.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		try{
+			startActivity(emailChooser);
+		} catch (Throwable t){
+			logMessage = "Unable to start SendTo activity to send an exception report.";
+			LogManager.LogException(e, className, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+			System.exit(1); 
+		}
+		logMessage = "Kill " + CommonConst.NEW_APP_NAME + " - unhandled exception has occured.";
+		Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
+		LogManager.LogInfoMsg(className, methodName, logMessage);
+
+		//android.os.Process.killProcess(android.os.Process.myPid());
+
+		System.exit(1); // kill the crashed application
+		
+		LogManager.LogFunctionExit(className, methodName);
+		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
+	}
+	
 }

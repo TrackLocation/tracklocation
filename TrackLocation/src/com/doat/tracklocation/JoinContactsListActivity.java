@@ -46,7 +46,9 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
         initBroadcastReceiver();
         adView = (AdView)this.findViewById(R.id.adJoinContacts);
 	    AdRequest adRequest = new AdRequest.Builder().build();
-	    adView.loadAd(adRequest);
+	    if(adView != null){
+	    	adView.loadAd(adRequest);
+	    }
     }
 
     @Override
@@ -207,20 +209,26 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 	@Override
 	protected void onDestroy() {
 		unregisterReceiver(broadcastReceiver);
-		adView.destroy();
+	    if(adView != null){
+	    	adView.destroy();
+	    }
 		super.onDestroy();
 	}
 	
 	@Override
 	protected void onPause() {
-		adView.pause();
+	    if(adView != null){
+	    	adView.pause();
+	    }
 		super.onPause();
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		adView.resume();
+	    if(adView != null){
+	    	adView.resume();
+	    }
 	}
     
     ICommonDialogOnClickListener onClickListener = new ICommonDialogOnClickListener(){

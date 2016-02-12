@@ -85,7 +85,9 @@ public class ContactListActivity extends BaseActivity {
 	    
 		adView = (AdView)this.findViewById(R.id.adViewContacts);
 	    AdRequest adRequest = new AdRequest.Builder().build();
-	    adView.loadAd(adRequest);
+		if(adView != null){
+			adView.loadAd(adRequest);
+		}
 
 	}
 	
@@ -106,7 +108,9 @@ public class ContactListActivity extends BaseActivity {
 
 	@Override
     protected void onDestroy() {
-		adView.destroy();
+		if(adView != null){
+			adView.destroy();
+		}
     	LogManager.LogActivityDestroy(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[ACTIVITY_DESTROY] {" + className + "} -> " + methodName);
     	super.onDestroy();
@@ -206,14 +210,18 @@ public class ContactListActivity extends BaseActivity {
 	
 	@Override
 	protected void onPause() {
-		adView.pause();
+		if(adView != null){
+			adView.pause();
+		}
 		super.onPause();
 	}
 	
 	@Override
 	protected void onResume() {
 		super.onResume();
-		adView.resume();
+		if(adView != null){
+			adView.resume();
+		}
 	}
 }
 
