@@ -1868,6 +1868,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				);
 			} else {
 				// accountList is null
+				// TODO Exception HERE
 			}
 		}
 	}
@@ -1875,6 +1876,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	android.content.DialogInterface.OnClickListener onChoiseListener = new android.content.DialogInterface.OnClickListener(){
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
+			dialog.dismiss();
 			List<String> accountList = InitAppUtils.getAccountList(context);
 			String account = accountList.get(which);
 			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
