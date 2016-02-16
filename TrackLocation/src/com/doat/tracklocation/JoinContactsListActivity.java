@@ -130,7 +130,8 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 		    			SentJoinRequestData joinRequestData = DBLayer.getInstance().getSentJoinRequestByPhone(phoneNumber);
 		    			if( joinRequestData == null ) {
 		    				if (!toSendAddJoinRequest){
-		    					String message = "\nA request will be sent to %s ( phone number %s) .\n\nDo you want to send it?\n";
+		    					String message = String.format("\nA request will be sent to %s (phone number %s)." +
+		    						"\n\nDo you want to send it?\n", contactName, phoneNumber);
 		    					//joinRequestDialog = joinRequestDialog(contactName, phoneNumber, message, onClickListener);
 		    					Resources res = context.getResources();
 		    					if(res == null){
