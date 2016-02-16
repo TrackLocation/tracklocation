@@ -83,5 +83,10 @@
 	<string name="no_location_text">Turn on location to \'High accuracy\' mode in device settings.</string>
 	<string name="positive_btn_location_dialog">Settings</string>
 	<string name="negative_btn_location_dialog">Cancel</string>
+	
+	<string name="approve_add_contact_dialog_message">Approve add contcat request from %1$s\n[%2$s]</string>
+	<string name="approve_add_contact_dialog_ok">OK</string>
+	<string name="approve_add_contact_dialog_cancel">Cancel</string>
+	<string name="approve_add_contact_dialog_title">Add contact request approval</string>
 </resources>
 

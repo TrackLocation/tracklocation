@@ -1,162 +1,100 @@
 package com.doat.tracklocation.dialog;
 
-import com.doat.tracklocation.log.LogManager;
-import com.doat.tracklocation.utils.CommonConst;
-
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.app.DialogFragment;
-import android.app.FragmentManager;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Bundle;
-import android.util.Log;
+import android.content.DialogInterface.OnClickListener;
 
-public class CommonDialog extends DialogFragment {
+public class CommonDialog {
 	
-	protected AlertDialog.Builder builder;
-	protected String dialogMessage = null;
-	protected String dialogTitle = null;
-	protected String positiveButtonText = null;
-	protected String negativeButtonText = null;
-	protected ICommonDialogOnClickListener onClickListener;
-	protected ICommonDialogOnClickListener onClickListenerDefault;
-	protected FragmentManager fm;
-	protected String[] itemsList;
-	protected String className;    
-    protected String methodName;
-    protected String logMessage;
-    protected Object data;
-    protected boolean selectionStatus; // positive or negative button chosen
-
-	public CommonDialog(Activity activity, ICommonDialogOnClickListener onClickListener) {
+	protected Activity activity;
+	protected String title;
+	protected String message;
+	protected String positiveButtonName;
+	protected String negativeButtonName;
+	protected boolean cancelable;
+	protected OnClickListener positiveButtonListener;
+	protected OnClickListener negativeButtonListener;
+	protected CharSequence[] itemsList;
+	protected int checkedItem;
+	protected OnClickListener choiseListener;
+	
+	public CommonDialog(Activity activity, String title, String message, 
+			String positiveButtonName, String negativeButtonName, boolean cancelable,
+			OnClickListener positiveButtonListener, OnClickListener negativeButtonListener) {
+		super();
 		
-		className = this.getClass().getName();
-		methodName = "CommonDialogNew";
-		selectionStatus = false; // by default negative button chosen
+		this.activity = activity;
+		this.title = title;
+		this.message = message;
+		this.positiveButtonName = positiveButtonName;
+		this.negativeButtonName = negativeButtonName;
+		this.cancelable = cancelable;
+		this.positiveButtonListener = positiveButtonListener;
+		this.negativeButtonListener = negativeButtonListener;
+		showTwoButtons();
+	}
+	
+	public CommonDialog(Activity activity, String title, String message, 
+			String positiveButtonName, boolean cancelable,
+			OnClickListener positiveButtonListener) {
+		super();
 		
-		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
-
-		if(onClickListener != null){
-			this.onClickListener = onClickListener;
+		this.activity = activity;
+		this.title = title;
+		this.message = message;
+		this.positiveButtonName = positiveButtonName;
+		this.cancelable = cancelable;
+		if(positiveButtonListener != null){
+			this.positiveButtonListener = positiveButtonListener;
 		} else {
-			this.onClickListener = getDialogOnClickActionDefault();
+			this.positiveButtonListener = defaultPositiveButtonListener;
 		}
-		fm = activity.getFragmentManager();
+		showOneButton();
+	}
+
+	public CommonDialog(Activity activity, String title, 
+			CharSequence[] itemsList, boolean cancelable,
+			OnClickListener choiseListener) {
+		super();
 		
-		LogManager.LogFunctionExit(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-	}
-
-    public String getDialogMessage() {
-		return dialogMessage;
-	}
-
-	public void setDialogMessage(String dialogMessage) {
-		this.dialogMessage = dialogMessage;
-	}
-
-	public String getDialogTitle() {
-		return dialogTitle;
-	}
-
-	public void setDialogTitle(String dialogTitle) {
-		this.dialogTitle = dialogTitle;
-	}
-
-	public String getPositiveButtonText() {
-		return positiveButtonText;
-	}
-
-	public void setPositiveButtonText(String positiveButtonText) {
-		this.positiveButtonText = positiveButtonText;
-	}
-
-	public String getNegativeButtonText() {
-		return negativeButtonText;
-	}
-
-	public void setNegativeButtonText(String negativeButtonText) {
-		this.negativeButtonText = negativeButtonText;
-	}
-
-	public void showDialog() {
-        this.show(fm, "tag");
-    }
-
-    public void closeDialog() {
-        this.closeDialog();
-    }
-
-    public boolean isSelectionStatus() {
-		return selectionStatus;
-	}
-
-	public String[] getItemsList() {
-		return itemsList;
-	}
-
-	public void setItemsList(String[] itemsList) {
+		this.activity = activity;
+		this.title = title;
 		this.itemsList = itemsList;
+		this.cancelable = cancelable;
+		this.choiseListener = choiseListener;
+		showChoise();
 	}
 
-	@Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
+	protected void showTwoButtons(){
+    	AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setTitle(title).setMessage(message).setCancelable(cancelable)
+        	.setPositiveButton(positiveButtonName, positiveButtonListener)
+        	.setNegativeButton(negativeButtonName, negativeButtonListener);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+	}
 
-		methodName = "onCreateDialog";
-		LogManager.LogFunctionCall(className, methodName);
-		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
+	protected void showOneButton(){
+    	AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setTitle(title).setMessage(message).setCancelable(cancelable)
+        	.setPositiveButton(positiveButtonName, positiveButtonListener);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+	}
 
-		// Use the Builder class for convenient dialog construction
-        builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle(dialogTitle);
-        builder.setMessage(dialogMessage)
-               .setPositiveButton(positiveButtonText, new DialogInterface.OnClickListener() {
-                   public void onClick(DialogInterface dialog, int id) {
-                	   onClickListener.doOnPositiveButton(data);
-                   }
-               });
-        
-    	if( negativeButtonText != null ){
-    		builder.setNegativeButton(negativeButtonText, new DialogInterface.OnClickListener() {
-               public void onClick(DialogInterface dialog, int id) {
-            	   onClickListener.doOnNegativeButton(data);
-               }
-           });
-    	}
-        
-    	if( itemsList != null ){
-	        builder.setItems(itemsList, new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					onClickListener.doOnChooseItem(which);
-				}
-			});
-    	}
-        	
-    	LogManager.LogFunctionExit(className, methodName);
-    	Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
-        // Create the AlertDialog object and return it 
-        return builder.create();
-    }
+	protected void showChoise(){
+    	AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        builder.setTitle(title).setMessage(message).setCancelable(cancelable)
+        	.setSingleChoiceItems(itemsList, checkedItem, choiseListener);
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+	}
 
-    private ICommonDialogOnClickListener getDialogOnClickActionDefault(){
-    	onClickListenerDefault = new ICommonDialogOnClickListener() {
-			@Override
-			public void doOnChooseItem(int which) {
-				// TODO Auto-generated method stub
-			}
-			@Override
-			public void doOnPositiveButton(Object data) {
-				selectionStatus = true;
-			}
-			@Override
-			public void doOnNegativeButton(Object data) {
-				selectionStatus = false;
-			}
-		};
-		return onClickListenerDefault;
-    }
-
+	OnClickListener defaultPositiveButtonListener = new OnClickListener(){
+		@Override
+		public void onClick(DialogInterface dialog, int which) {
+		}
+	};
+	
 }

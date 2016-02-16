@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -23,8 +24,8 @@ import com.doat.tracklocation.utils.CommonConst;
 
 public class BroadcastReceiverContactListActivity extends BroadcastReceiverBase {
 	private int contactsListId;
-	public BroadcastReceiverContactListActivity(Activity activity, int contactsListId) {
-		super(activity);
+	public BroadcastReceiverContactListActivity(Activity activity, int contactsListId, Handler handler) {
+		super(activity, handler);
 		this.contactsListId = contactsListId;
 	}
 

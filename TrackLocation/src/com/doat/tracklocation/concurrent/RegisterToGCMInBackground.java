@@ -5,10 +5,15 @@ import java.io.IOException;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
+import android.os.Handler;
 import android.util.Log;
 
 import com.doat.tracklocation.Controller;
 import com.doat.tracklocation.datatype.AppInstDetails;
+import com.doat.tracklocation.datatype.BroadcastActionEnum;
+import com.doat.tracklocation.datatype.BroadcastKeyEnum;
 import com.doat.tracklocation.datatype.CommandData;
 import com.doat.tracklocation.datatype.CommandDataBasic;
 import com.doat.tracklocation.datatype.CommandEnum;
@@ -17,7 +22,6 @@ import com.doat.tracklocation.datatype.ContactDeviceData;
 import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.db.DBLayer;
-import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.exception.UnableToSendCommandException;
 import com.doat.tracklocation.log.LogManager;
@@ -235,26 +239,35 @@ public class RegisterToGCMInBackground implements Runnable {
 		if(registrationId == null || registrationId.isEmpty()){
 			String title = "Error";
 			if(activity != null){
-				new InfoDialog(activity, context, title, logMessage, new ICommonDialogOnClickListener(){
+				// send broadcast to finish the ActivityDialogRing
+				Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
+						logMessage, 
+						BroadcastKeyEnum.register_to_gcm.toString(), CommonConst.FAILED);
 
-					@Override
-					public void doOnPositiveButton(Object data) {
-						android.os.Process.killProcess(android.os.Process.myPid());
-				        System.exit(0);	
-					}
-
-					@Override
-					public void doOnNegativeButton(Object data) {
-						// TODO Auto-generated method stub
-						
-					}
-
-					@Override
-					public void doOnChooseItem(int which) {
-						// TODO Auto-generated method stub
-						
-					}
-				});
+//				new InfoDialog(activity, context, title, logMessage, new ICommonDialogOnClickListener(){
+//
+//					@Override
+//					public void doOnPositiveButton(Object data) {
+//						android.os.Process.killProcess(android.os.Process.myPid());
+//				        System.exit(0);	
+//					}
+//
+//					@Override
+//					public void doOnNegativeButton(Object data) {
+//						// TODO Auto-generated method stub
+//						
+//					}
+//
+//					@Override
+//					public void doOnChooseItem(int which) {
+//						// TODO Auto-generated method stub
+//						
+//					}
+//				});
+//				RunnableDialog runnableDialogImpl = new RunnableDialog(context, activity, 
+//    					mutualIdFromSMS, accountFromSMS, phoneNumberFromSMS, DialogPositiveOnClickListener d,
+//    					DialogPositiveOnClickListener dd);
+//    			handler.post(runnableDialogImpl);
 			}
 		}
 		LogManager.LogErrorMsg(className, methodName, logMessage);
@@ -264,8 +277,32 @@ public class RegisterToGCMInBackground implements Runnable {
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
 	}
 	
+	class RunnableDialog implements Runnable {
+		private Context context;
+		private Activity activity;
+		private String title;
+		private String message;
+		private OnClickListener onClickListener;
+		
+		public RunnableDialog(Context context, Activity activity, String title,
+				String message, OnClickListener onClickListener) {
+			super();
+			this.context = context;
+			this.activity = activity;
+			this.title = title;
+			this.message = message;
+			this.onClickListener = onClickListener;
+		}
+
+		@Override
+		public void run() {
+			new InfoDialog(activity, context, title, message, onClickListener);
+		}
+	}
+		
 	private void initClientDetails(){
 		clientAccount = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT);
 		clientMacAddress = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_PHONE_MAC_ADDRESS);
 	}
+	
 }

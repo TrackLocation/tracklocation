@@ -17,14 +17,17 @@ import com.doat.tracklocation.utils.Preferences;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnClickListener;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 
 public class BroadcastReceiverMapActivity extends BroadcastReceiverBase {
 
-	public BroadcastReceiverMapActivity(Activity activity) {
-		super(activity);
+	public BroadcastReceiverMapActivity(Activity activity, Handler handler) {
+		super(activity, handler);
 	}
 
 	@Override
@@ -129,6 +132,21 @@ public class BroadcastReceiverMapActivity extends BroadcastReceiverBase {
 				// Get details of contact that sent join request by SMS from broadcast
 				MessageDataContactDetails contactSentJoinRequest = broadcastData.getContactDetails();
 				((MapActivity) this.activity).updateContactsList(contactSentJoinRequest);
+			}
+			
+			if(BroadcastKeyEnum.register_to_gcm.toString().equals(key) && 
+					CommonConst.FAILED.equals(value)){
+				new InfoDialog(activity, context,
+					"GCM Registration Error", 
+					"\nGoogle Cloud Service is not available right now.\n\n"
+						+ "Application will be closed.\n\nPlease try later.\n",
+					new OnClickListener(){
+						@Override
+						public void onClick(DialogInterface dialog,
+								int which) {
+						}
+					}
+				);
 			}
 		}
 

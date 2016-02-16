@@ -4,6 +4,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 import com.doat.tracklocation.concurrent.CheckJoinRequestBySMS;
@@ -17,7 +18,7 @@ public class SMSUtils {
 	
 	public static final String className = "com.doat.tracklocation.utils.SMSUtils";
 	
-	public static void checkJoinRequestBySMSInBackground(Context context, Activity activity){
+	public static void checkJoinRequestBySMSInBackground(Context context, Activity activity, Handler handler){
 		
 		Thread checkJoinRequestBySMSInBackgroundThread;
 		Runnable checkJoinRequestBySMSInBackground;
@@ -26,7 +27,7 @@ public class SMSUtils {
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_ENTRY] {" + className + "} -> " + methodName);
 		
-		checkJoinRequestBySMSInBackground = new CheckJoinRequestBySMS(context, activity);
+		checkJoinRequestBySMSInBackground = new CheckJoinRequestBySMS(context, activity, handler);
 		try {
 			checkJoinRequestBySMSInBackgroundThread = new Thread(checkJoinRequestBySMSInBackground);
 			logMessage = "Started a separate thread to check Join request by SMS";

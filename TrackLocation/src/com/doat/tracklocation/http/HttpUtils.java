@@ -18,6 +18,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 import com.doat.tracklocation.R;

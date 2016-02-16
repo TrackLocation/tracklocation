@@ -124,4 +124,6 @@ public class CommonConst {
  	public static final int 	CONTACT_STATUS_CONNECTED = 1;
  	public static final int 	CONTACT_STATUS_PENDING = 2;
  	
+ 	public static final String  FAILED = "FAILED";
+ 	
 }

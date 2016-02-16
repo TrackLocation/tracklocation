@@ -2,8 +2,11 @@ package com.doat.tracklocation;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -18,7 +21,6 @@ import com.doat.tracklocation.datatype.JoinRequestStatusEnum;
 import com.doat.tracklocation.datatype.SentJoinRequestData;
 import com.doat.tracklocation.db.DBLayer;
 import com.doat.tracklocation.dialog.CommonDialog;
-import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.utils.CommonConst;
 import com.doat.tracklocation.utils.Preferences;
@@ -124,20 +126,43 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 		    			contactName = args[0];
 		    			phoneNumber = args[1];
 		    			
-		    			CommonDialog joinRequestDialog;
+//		    			CommonDialog joinRequestDialog;
 		    			SentJoinRequestData joinRequestData = DBLayer.getInstance().getSentJoinRequestByPhone(phoneNumber);
 		    			if( joinRequestData == null ) {
 		    				if (!toSendAddJoinRequest){
 		    					String message = "\nA request will be sent to %s ( phone number %s) .\n\nDo you want to send it?\n";
-		    					joinRequestDialog = joinRequestDialog(contactName, phoneNumber, message, onClickListener);
+		    					//joinRequestDialog = joinRequestDialog(contactName, phoneNumber, message, onClickListener);
+		    					Resources res = context.getResources();
+		    					if(res == null){
+		    						return;
+		    					}
+		    					new CommonDialog(JoinContactsListActivity.this, 
+		    						"Add Contact", 
+		    						message, 
+		    						"Yes", 
+		    						"No",
+		    						false, // cancelable
+		    						onPositiveClickListener,
+		    						onPositiveClickListener    						
+		    					);
 		    				}
 		    			} else { // join request with <phoneNumber> already exists, check the status
 		    				if( joinRequestData.getStatus().equals(JoinRequestStatusEnum.SENT.toString()) ) {
 		    					// Notify by dialog that join request already sent to <phoneNumber>
 		    					// check if the following request should be sent again
-		    					String message = "\nA request has been already sent to %s, with phone number %s.\n\nDo you want to send it again?\n";
-		    					joinRequestDialog = joinRequestDialog(contactName, phoneNumber, message, onClickListener);
-		    					toSendAddJoinRequest = joinRequestDialog.isSelectionStatus();
+		    					String message = String.format("\nA request has been already sent to %s, with " +
+		    						"phone number %s.\n\nDo you want to send it again?\n", contactName, phoneNumber);
+		    					//joinRequestDialog = joinRequestDialog(contactName, phoneNumber, message, onClickListener);
+		    					new CommonDialog(JoinContactsListActivity.this, 
+			    						"Add Contact", 
+			    						message, 
+			    						"Yes", 
+			    						"No",
+			    						false, // cancelable
+			    						onPositiveClickListener,
+			    						onNegativeClickListener    						
+			    					);
+		    					//toSendAddJoinRequest = joinRequestDialog.isSelectionStatus();
 		    				}
 		    			}
 		    			if(toSendAddJoinRequest == true){
@@ -192,19 +217,19 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 		return "";   	
     }
     
-	private CommonDialog joinRequestDialog(String contactName, String phoneNumber, String message, ICommonDialogOnClickListener onClickListener) {
-    	String dialogMessage = String.format(message, contactName, phoneNumber) ;
-    	
-		CommonDialog aboutDialog = new CommonDialog(this, onClickListener);
-		aboutDialog.setDialogMessage(dialogMessage);
-		aboutDialog.setDialogTitle("Add Contact");
-		aboutDialog.setPositiveButtonText("Yes");
-		aboutDialog.setNegativeButtonText("No");
-		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		aboutDialog.showDialog();
-		aboutDialog.setCancelable(true);
-		return aboutDialog;
-    }
+//	private CommonDialog joinRequestDialog(String contactName, String phoneNumber, String message, ICommonDialogOnClickListener onClickListener) {
+//    	String dialogMessage = String.format(message, contactName, phoneNumber) ;
+//    	
+//		CommonDialog aboutDialog = new CommonDialog(this, onClickListener);
+//		aboutDialog.setDialogMessage(dialogMessage);
+//		aboutDialog.setDialogTitle("Add Contact");
+//		aboutDialog.setPositiveButtonText("Yes");
+//		aboutDialog.setNegativeButtonText("No");
+//		aboutDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+//		aboutDialog.showDialog();
+//		aboutDialog.setCancelable(true);
+//		return aboutDialog;
+//    }
 	
 	@Override
 	protected void onDestroy() {
@@ -231,29 +256,54 @@ public class JoinContactsListActivity extends FragmentActivity implements JoinCo
 	    }
 	}
     
-    ICommonDialogOnClickListener onClickListener = new ICommonDialogOnClickListener(){
-
+//    ICommonDialogOnClickListener onClickListener = new ICommonDialogOnClickListener(){
+//
+//		@Override
+//		public void doOnPositiveButton(Object data) {
+//			toSendAddJoinRequest = true;
+//        	Controller.broadcastMessage(JoinContactsListActivity.this, 
+//    			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
+//    			"fetchContacts",
+//    			null, 
+//				BroadcastKeyEnum.resend_join_request.toString(), 
+//				"Resend");	
+//		}
+//
+//		@Override
+//		public void doOnNegativeButton(Object data) {
+//			toSendAddJoinRequest = false;
+//		}
+//
+//		@Override
+//		public void doOnChooseItem(int which) {
+//			// TODO Auto-generated method stub
+//			
+//		}
+//		
+//	};
+	OnClickListener onPositiveClickListener = new OnClickListener(){
 		@Override
-		public void doOnPositiveButton(Object data) {
+		public void onClick(
+				DialogInterface dialog,
+				int which) {
 			toSendAddJoinRequest = true;
         	Controller.broadcastMessage(JoinContactsListActivity.this, 
     			BroadcastActionEnum.BROADCAST_JOIN.toString(), 
     			"fetchContacts",
     			null, 
 				BroadcastKeyEnum.resend_join_request.toString(), 
-				"Resend");	
-		}
-
-		@Override
-		public void doOnNegativeButton(Object data) {
-			toSendAddJoinRequest = false;
-		}
-
-		@Override
-		public void doOnChooseItem(int which) {
-			// TODO Auto-generated method stub
-			
-		}
-		
+				"Resend"
+			);	
+		}		    						
 	};
+
+	OnClickListener onNegativeClickListener = new OnClickListener(){				
+		@Override
+		public void onClick(
+				DialogInterface dialog,
+				int which) {
+			toSendAddJoinRequest = false;
+		}		    						
+	};
+
 }

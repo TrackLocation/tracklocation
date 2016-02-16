@@ -75,9 +75,7 @@ import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
 import com.doat.tracklocation.db.DBConst;
-import com.doat.tracklocation.dialog.ChooseAccountDialog;
 import com.doat.tracklocation.dialog.CommonDialog;
-import com.doat.tracklocation.dialog.ICommonDialogOnClickListener;
 import com.doat.tracklocation.dialog.InfoDialog;
 import com.doat.tracklocation.log.LogManager;
 import com.doat.tracklocation.model.ContactDeviceDataListModel;
@@ -86,7 +84,6 @@ import com.doat.tracklocation.utils.InitAppUtils;
 import com.doat.tracklocation.utils.MapUtils;
 import com.doat.tracklocation.utils.Preferences;
 import com.doat.tracklocation.utils.ResizeAnimation;
-import com.doat.tracklocation.utils.SMSUtils;
 import com.doat.tracklocation.utils.Utils;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -249,7 +246,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		if (account == null || account.isEmpty()) {
 			getCurrentAccount();
 		} else {
-			InitAppUtils.initApp(this, context);
+			InitAppUtils.initApp(this, context, handler);
 		}
 		
 		checkLocationSettings();
@@ -408,11 +405,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		bLockMapNothOnly = sharedPref.getBoolean("pref_map_lock", true);
 
 		if (notificationBroadcastReceiver == null) {
-			notificationBroadcastReceiver = new BroadcastReceiverMapActivity(MapActivity.this);
+			notificationBroadcastReceiver = new BroadcastReceiverMapActivity(MapActivity.this, handler);
 		}
 		initNotificationBroadcastReceiver(notificationBroadcastReceiver);
-
-		SMSUtils.checkJoinRequestBySMSInBackground(context, this);
 
 		LogManager.LogFunctionExit(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
@@ -617,14 +612,21 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			public void onClick(View v) {
 				if (selectedMarkerDetails != null) {
 
-					CommonDialog quitDialog = new CommonDialog(MapActivity.this, infoDialogOnClickListener);
-					quitDialog.setDialogMessage("Are you sure?");
-					quitDialog.setDialogTitle("Ring to chosen contact.");
-					quitDialog.setPositiveButtonText("Yes");
-					quitDialog.setNegativeButtonText("No");
-					quitDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-					quitDialog.setCancelable(true);
-					quitDialog.showDialog();
+//					CommonDialog quitDialog = new CommonDialog(MapActivity.this, infoDialogOnClickListener);
+//					quitDialog.setDialogMessage("Are you sure?");
+//					quitDialog.setDialogTitle("Ring to chosen contact.");
+//					quitDialog.setPositiveButtonText("Yes");
+//					quitDialog.setNegativeButtonText("No");
+//					quitDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+//					quitDialog.setCancelable(true);
+//					quitDialog.showDialog();
+					
+					String title = "Ring to chosen contact.";
+					String message = "Are you sure?";
+					String positiveButtonName = "Yes";
+					String negativeButtonName = "No";
+					new CommonDialog(MapActivity.this, title, message, positiveButtonName, negativeButtonName, true, 
+						onRingClickPositiveListener, onRingClickNegativeListener);
 
 				}
 			}
@@ -646,6 +648,21 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			}
 		});
 	}
+
+	android.content.DialogInterface.OnClickListener onRingClickPositiveListener = new android.content.DialogInterface.OnClickListener(){
+		@Override
+		public void onClick(DialogInterface dialog, int which) {
+			if (selectedMarkerDetails.getContactDetails() != null) {
+				Controller.RingDevice(context, className, selectedMarkerDetails.getContactDetails());
+			}
+		}	
+	};
+	
+	android.content.DialogInterface.OnClickListener onRingClickNegativeListener = new android.content.DialogInterface.OnClickListener(){
+		@Override
+		public void onClick(DialogInterface dialog, int which) {
+		}	
+	};
 
 	private MyMapFragment getHandleToMapFragment() {
 		// Get a handle to the Map Fragment
@@ -1551,28 +1568,28 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		return bmp;
 	}
 
-	ICommonDialogOnClickListener infoDialogOnClickListener = new ICommonDialogOnClickListener() {
-
-		@Override
-		public void doOnPositiveButton(Object data) {
-			if (selectedMarkerDetails.getContactDetails() != null) {
-				Controller.RingDevice(context, className, selectedMarkerDetails.getContactDetails());
-			}
-		}
-
-		@Override
-		public void doOnNegativeButton(Object data) {
-			// TODO Auto-generated method stub
-
-		}
-
-		@Override
-		public void doOnChooseItem(int which) {
-			// TODO Auto-generated method stub
-
-		}
-
-	};
+//	ICommonDialogOnClickListener infoDialogOnClickListener = new ICommonDialogOnClickListener() {
+//
+//		@Override
+//		public void doOnPositiveButton(Object data) {
+//			if (selectedMarkerDetails.getContactDetails() != null) {
+//				Controller.RingDevice(context, className, selectedMarkerDetails.getContactDetails());
+//			}
+//		}
+//
+//		@Override
+//		public void doOnNegativeButton(Object data) {
+//			// TODO Auto-generated method stub
+//
+//		}
+//
+//		@Override
+//		public void doOnChooseItem(int which) {
+//			// TODO Auto-generated method stub
+//
+//		}
+//
+//	};
 
 	private void startTimer() {
 		stoptimertask();
@@ -1610,21 +1627,50 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	public void onBackPressed() {
 		//super.onBackPressed();
 
-		CommonDialog quitDialog = new CommonDialog(this, quitListener);
-		quitDialog.setDialogMessage("Do you want to shut down MapLocationShare?");
-		quitDialog.setDialogTitle("Shut Down");
-		quitDialog.setPositiveButtonText("Shut Down");
-		quitDialog.setNegativeButtonText("No");
-		quitDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-		quitDialog.setCancelable(false);
-		quitDialog.showDialog();
+//		CommonDialog quitDialog = new CommonDialog(this, quitListener);
+//		quitDialog.setDialogMessage("Do you want to shut down MapLocationShare?");
+//		quitDialog.setDialogTitle("Shut Down");
+//		quitDialog.setPositiveButtonText("Shut Down");
+//		quitDialog.setNegativeButtonText("No");
+//		quitDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+//		quitDialog.setCancelable(false);
+//		quitDialog.showDialog();
 
+		String title = "Shut Down";
+		String message = "Do you want to shut down MapLocationShare?";
+		String positiveButtonName = "Shut Down";
+		String negativeButtonName = "No";
+		new CommonDialog(MapActivity.this, title, message, positiveButtonName, negativeButtonName, true, 
+			onShutDownClickPositiveListener, onShutDownClickNegativeListener);
 		//finish();
 	}
 
-	ICommonDialogOnClickListener quitListener = new ICommonDialogOnClickListener() {
+//	ICommonDialogOnClickListener quitListener = new ICommonDialogOnClickListener() {
+//		@Override
+//		public void doOnPositiveButton(Object data) {
+//			if (contactListController != null) {
+//				Thread checkWhichContactsOnLineThread = contactListController.getCheckWhichContactsOnLineThread();
+//				if (checkWhichContactsOnLineThread != null) {
+//					checkWhichContactsOnLineThread.interrupt();
+//				}
+//			}
+//			finish();
+//		}
+//
+//		@Override
+//		public void doOnNegativeButton(Object data) {
+//			// TODO Auto-generated method stub
+//		}
+//
+//		@Override
+//		public void doOnChooseItem(int which) {
+//			// TODO Auto-generated method stub
+//		}
+//	};
+
+	android.content.DialogInterface.OnClickListener onShutDownClickPositiveListener = new android.content.DialogInterface.OnClickListener(){
 		@Override
-		public void doOnPositiveButton(Object data) {
+		public void onClick(DialogInterface dialog, int which) {
 			if (contactListController != null) {
 				Thread checkWhichContactsOnLineThread = contactListController.getCheckWhichContactsOnLineThread();
 				if (checkWhichContactsOnLineThread != null) {
@@ -1632,17 +1678,13 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 				}
 			}
 			finish();
-		}
-
+		}	
+	};
+	
+	android.content.DialogInterface.OnClickListener onShutDownClickNegativeListener = new android.content.DialogInterface.OnClickListener(){
 		@Override
-		public void doOnNegativeButton(Object data) {
-			// TODO Auto-generated method stub
-		}
-
-		@Override
-		public void doOnChooseItem(int which) {
-			// TODO Auto-generated method stub
-		}
+		public void onClick(DialogInterface dialog, int which) {
+		}	
 	};
 
 	private class DrawerItemClickListener implements ListView.OnItemClickListener {
@@ -1789,37 +1831,54 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			if (accountList != null && accountList.size() == 1) {
 				String account = accountList.get(0);
 				Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-				InitAppUtils.initApp(MapActivity.this, context);
+				InitAppUtils.initApp(MapActivity.this, context, handler);
+			} else if(accountList != null) {
+//				ChooseAccountDialog chooseAccountDialog =
+//						new ChooseAccountDialog(this, new ICommonDialogOnClickListener() {
+//							@Override
+//							public void doOnChooseItem(int which) {
+//								List<String> accountList = InitAppUtils.getAccountList(context);
+//								String account = accountList.get(which);
+//								Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+//								InitAppUtils.initApp(MapActivity.this, context, handler);
+//							}
+//
+//							@Override
+//							public void doOnPositiveButton(Object data) {
+//								// TODO Auto-generated method stub
+//
+//							}
+//
+//							@Override
+//							public void doOnNegativeButton(Object data) {
+//								// TODO Auto-generated method stub
+//
+//							}
+//						});
+//				chooseAccountDialog.setDialogTitle("Choose current account:");
+//				chooseAccountDialog.setItemsList(accountList.toArray(new String[0]));
+//				chooseAccountDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
+//				chooseAccountDialog.showDialog();
+//				chooseAccountDialog.setCancelable(false);
+				new CommonDialog(MapActivity.this, 
+					"Choose current account:", 
+					accountList.toArray(new CharSequence[accountList.size()]), 
+					false, // cancelable
+					onChoiseListener	
+				);
 			} else {
-				ChooseAccountDialog chooseAccountDialog =
-						new ChooseAccountDialog(this, new ICommonDialogOnClickListener() {
-							@Override
-							public void doOnChooseItem(int which) {
-								List<String> accountList = InitAppUtils.getAccountList(context);
-								String account = accountList.get(which);
-								Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
-								InitAppUtils.initApp(MapActivity.this, context);
-							}
-
-							@Override
-							public void doOnPositiveButton(Object data) {
-								// TODO Auto-generated method stub
-
-							}
-
-							@Override
-							public void doOnNegativeButton(Object data) {
-								// TODO Auto-generated method stub
-
-							}
-						});
-				chooseAccountDialog.setDialogTitle("Choose current account:");
-				chooseAccountDialog.setItemsList(accountList.toArray(new String[0]));
-				chooseAccountDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-				chooseAccountDialog.showDialog();
-				chooseAccountDialog.setCancelable(false);
+				// accountList is null
 			}
 		}
 	}
 
+	android.content.DialogInterface.OnClickListener onChoiseListener = new android.content.DialogInterface.OnClickListener(){
+		@Override
+		public void onClick(DialogInterface dialog, int which) {
+			List<String> accountList = InitAppUtils.getAccountList(context);
+			String account = accountList.get(which);
+			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
+			InitAppUtils.initApp(MapActivity.this, context, handler);
+		}
+	};
 }

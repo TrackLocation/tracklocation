@@ -16,7 +16,8 @@ public enum BroadcastKeyEnum {
 	join_sms("join_sms"),
 	turn_off("turn_off"),
 	finish("finish"),
-	restart_tls("restart_tls");
+	restart_tls("restart_tls"),
+	register_to_gcm("register_to_gcm");
 	
 	private final String name;       
 	private static Map<String, BroadcastKeyEnum> valueMap;

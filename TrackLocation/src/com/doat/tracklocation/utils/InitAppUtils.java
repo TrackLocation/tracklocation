@@ -14,6 +14,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Handler;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.util.Patterns;
@@ -39,7 +40,7 @@ public class InitAppUtils {
 
     private final static int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
-    public static void initApp(final Activity mainActivity, final Context context){
+    public static void initApp(final Activity mainActivity, final Context context, Handler handler){
 		String className = "InitAppController";
     	String methodName = "initCont";
     	String logMessage;
@@ -143,7 +144,8 @@ public class InitAppUtils {
 			});
     	    
     		Thread registerToGCMInBackgroundThread;
-    		Runnable registerToGCMInBackground = new RegisterToGCMInBackground(context, mainActivity, gcm, googleProjectNumber, waitingDialog);
+    		Runnable registerToGCMInBackground = new RegisterToGCMInBackground(context, 
+    			mainActivity, gcm, googleProjectNumber, waitingDialog);
 			try {
 				registerToGCMInBackgroundThread = new Thread(registerToGCMInBackground);
 				registerToGCMInBackgroundThread.start();
@@ -158,6 +160,8 @@ public class InitAppUtils {
         	InitAppUtils.initWithRegID(mainActivity, context, registrationId);
         }
     
+		SMSUtils.checkJoinRequestBySMSInBackground(context, mainActivity, handler);
+
         LogManager.LogFunctionExit(className, methodName);
         Log.i(CommonConst.LOG_TAG, "[FUNCTION_EXIT] {" + className + "} -> " + methodName);
         

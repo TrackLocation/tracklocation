@@ -15,6 +15,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 
 public class BroadcastReceiverBase extends BroadcastReceiver {
@@ -24,10 +25,12 @@ public class BroadcastReceiverBase extends BroadcastReceiver {
     protected String methodName;
     protected String logMessage;
     protected Activity activity;
+    protected Handler handler;
 	
-	public BroadcastReceiverBase(Activity activity) {
+	public BroadcastReceiverBase(Activity activity, Handler handler) {
 		this.className = this.getClass().getName();
 		this.activity = activity;
+		this.handler = handler;
 		((BaseActivity)activity).getMainApp().getCurrentActivity();
 	}
 
@@ -66,7 +69,7 @@ public class BroadcastReceiverBase extends BroadcastReceiver {
 			if(BroadcastKeyEnum.join_sms.toString().equals(key)) {
 				Activity currentActivity = ((BaseActivity)activity).getMainApp().getCurrentActivity();
 //				SMSUtils.showApproveJoinRequestDialog(context, currentActivity, broadcastData); // bring to foreground
-				SMSUtils.checkJoinRequestBySMSInBackground(context, currentActivity);
+				SMSUtils.checkJoinRequestBySMSInBackground(context, currentActivity, handler);
 			}
 		}
 
