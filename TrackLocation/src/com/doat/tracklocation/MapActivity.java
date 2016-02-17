@@ -1877,6 +1877,12 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
 			dialog.dismiss();
+			// refresh activity start
+		    Intent intent = getIntent();
+		    finish();
+		    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+		    startActivity(intent);
+		    // refresh activity end
 			List<String> accountList = InitAppUtils.getAccountList(context);
 			String account = accountList.get(which);
 			Preferences.setPreferencesString(context, CommonConst.PREFERENCES_PHONE_ACCOUNT, account);
