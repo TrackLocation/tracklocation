@@ -66,7 +66,7 @@ public class BroadcastReceiverMapActivity extends BroadcastReceiverBase {
 			// Notification about command: Start TrackLocation Service
 			// RECEIVED - some recipient received request
 			if(BroadcastKeyEnum.start_status.toString().equals(key)){
-				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+				String jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS);
 				List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
 				String accountsListMsg = "";
 				switch (CommandValueEnum.getValue(value)) {
@@ -113,7 +113,7 @@ public class BroadcastReceiverMapActivity extends BroadcastReceiverBase {
 				    			
 			if( (CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_defined.toString().equals(value)) ||
 				(CommandKeyEnum.permissions.toString().equals(key) && CommandValueEnum.not_permitted.toString().equals(value)) ){
-				((MapActivity) activity).showPermissionsInfoDialog(broadcastData.getMessage());
+				((MapActivity) activity).showPermissionsInfoDialog(broadcastData);
 			}
 
 			if(CommandKeyEnum.online_status.toString().equals(key)) {

@@ -53,14 +53,24 @@ public class CommandData extends CommandDataBasic {
 			ContactData contactData = contactDeviceData.getContactData();
 			if(contactData != null){
 				String regId = contactDeviceData.getRegistration_id();
+				String email = contactData.getEmail();
+				if(email == null || email.isEmpty()){
+					notificationMessage = "Empty email in the contact";
+					LogManager.LogErrorMsg(className, "[sendCommand:" + command.toString() + "]", notificationMessage);
+					Log.e("[sendCommand:" + command.toString() + "]", notificationMessage);
+					continue;
+				}
 				if(regId != null && !regId.isEmpty()){
-					listRegIDs.add(contactDeviceData.getRegistration_id());
+					if(!listAccounts.contains(email)){
+						listRegIDs.add(contactDeviceData.getRegistration_id());
+						listAccounts.add(contactData.getEmail());
+					}
 				} else {
 					notificationMessage = "Empty registrationID for the following contact: " + contactData.getEmail();
 					LogManager.LogErrorMsg(className, "[sendCommand:" + command.toString() + "]", notificationMessage);
 					Log.e("[sendCommand:" + command.toString() + "]", notificationMessage);
+					continue;
 				}
-				listAccounts.add(contactData.getEmail());
 			} else {
 				LogManager.LogErrorMsg(className, "[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: ContactData is null.");
 				Log.e("[sendCommand:" + command.toString() + "]", "Unable to get registration_ID: contactData is null.");
@@ -73,5 +83,6 @@ public class CommandData extends CommandDataBasic {
 	}
 	public void setContactDeviceDataList(ContactDeviceDataList contactDeviceDataList) {
 		this.contactDeviceDataList = contactDeviceDataList;
+		prepareAccountAndRegIdLists(listAccounts, listRegIDs);
 	}
 }

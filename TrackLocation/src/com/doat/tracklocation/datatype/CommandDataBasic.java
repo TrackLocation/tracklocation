@@ -25,6 +25,8 @@ public class CommandDataBasic {
 	protected List<String> listAccounts;
 	protected String className;
 	protected String notificationMessage;
+	protected String methodName;
+	protected String logMessage;
 	
 	protected CommandDataBasic() {
 		className = this.getClass().getName();
@@ -124,12 +126,20 @@ public class CommandDataBasic {
 	}
 	
 	protected void prepareAccountAndRegIdLists(List<String> listAccounts, List<String> listRegIDs){
+		methodName = "prepareAccountAndRegIdLists";
+		logMessage = "Accounts list or RegistartionIDs list is empty.";
+		if(listAccounts == null || listRegIDs == null){
+			LogManager.LogException(new Exception(logMessage), className, methodName);
+			Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
+		}
+		listAccounts.clear();
+		listRegIDs.clear();
 	}
 	
 	
 	public void sendCommand(){
 		
-		String methodName = "sendCommand";
+		methodName = "sendCommand";
 		LogManager.LogFunctionCall(className, methodName);
 		Log.i(CommonConst.LOG_TAG, "[FUNCTION_CALL] {" + className + "} -> " + methodName);
 
@@ -171,7 +181,7 @@ public class CommandDataBasic {
 				return;
 			}
 			
-			String logMessage = "Sending command [" + command.toString() + "] as asynchonous task... ";
+			logMessage = "Sending command [" + command.toString() + "] as asynchonous task... ";
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 			
@@ -183,7 +193,7 @@ public class CommandDataBasic {
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 			
 		} else {
-			String logMessage = "Unable to send command: [" + command.toString() + "] - there is no any recipient.";
+			logMessage = "Unable to send command: [" + command.toString() + "] - there is no any recipient.";
 			LogManager.LogErrorMsg(className, "[sendCommand:" + command.toString() + "]", 
 				logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> " + logMessage);

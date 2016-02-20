@@ -997,14 +997,14 @@ public class GcmIntentService extends IntentService {
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 
 			String jsonListAccounts = Preferences.getPreferencesString(context, 
-	        	CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+	        	CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS);
 			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
 				Controller.removeAccountFromList(context, 
-					CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
+					CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
 	
 				// TODO: For test only:
 				jsonListAccounts = Preferences.getPreferencesString(context, 
-		        	CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+		        	CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS);
 				// TODO: Broadcast - the following recipients are not available
 				if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
 					Controller.broadcsatMessage(context, contactDetails, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), 
@@ -1022,7 +1022,7 @@ public class GcmIntentService extends IntentService {
 		} else if (CommandKeyEnum.permissions.toString().equals(key) && 
 				CommandValueEnum.not_defined.toString().equals(value)){
 			String jsonListAccounts = Preferences.getPreferencesString(context, 
-	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+	        		CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS);
 			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - PERMISSIONS: NOT_DEFINED." +
 				"Recipients accounts list: [" + jsonListAccounts + "]";
 			LogManager.LogInfoMsg(className, methodName, logMessage);
@@ -1030,8 +1030,8 @@ public class GcmIntentService extends IntentService {
 
 			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
 				Controller.removeAccountFromList(context, 
-					CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
-				Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
+					CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
+				Controller.broadcsatMessage(context, contactDetails, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg, key, value);
 			} else {
 				logMessage = "\"Check Permissions Not Defined thread\" is not stopped!";
 				LogManager.LogWarnMsg(className, methodName, logMessage);
@@ -1040,7 +1040,7 @@ public class GcmIntentService extends IntentService {
 		} else if (CommandKeyEnum.permissions.toString().equals(key) && 
 				CommandValueEnum.not_permitted.toString().equals(value)){
 			String jsonListAccounts = Preferences.getPreferencesString(context, 
-	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+	        		CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS);
 			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - PERMISSIONS: NOT_PERMITTED." +
 				"Recipients accounts list: " + jsonListAccounts;
 			LogManager.LogInfoMsg(className, methodName, logMessage);
@@ -1048,8 +1048,8 @@ public class GcmIntentService extends IntentService {
 
 			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
 				Controller.removeAccountFromList(context, 
-					CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
-				Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
+					CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS, jsonListAccounts, senderAccount);
+				Controller.broadcsatMessage(context, contactDetails, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg, key, value);
 			} else {
 				logMessage = "\"Check Permissions Not Permitted thread\" is not stopped!";
 				LogManager.LogWarnMsg(className, methodName, logMessage);
@@ -1059,13 +1059,13 @@ public class GcmIntentService extends IntentService {
 				CommandValueEnum.start_track_location_service_received.toString().equals(value)){
 
 			String jsonListAccounts = Preferences.getPreferencesString(context, 
-	        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+	        		CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS);
 			logMessage = "Catched push notification message (GCM): [NOTIFICATION] - START_STATUS: START_TRACK_LOCATION_SERVICE_RECEIVED " +
 				"Recipients accounts list: " + jsonListAccounts;
 			LogManager.LogInfoMsg(className, methodName, logMessage);
 			Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);
 				
-			Controller.broadcsatMessage(context, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
+			Controller.broadcsatMessage(context, contactDetails, BroadcastActionEnum.BROADCAST_MESSAGE.toString(), msg + " by " + senderAccount, key, value);
 		}
 
 		LogManager.LogFunctionExit(className, methodName);

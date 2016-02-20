@@ -1,6 +1,8 @@
 package com.doat.tracklocation.utils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.doat.tracklocation.log.LogManager;
@@ -13,8 +15,8 @@ import android.util.Log;
 //http://developer.android.com/guide/topics/data/data-storage.html#pref
 public class Preferences {
       
-//	private SharedPreferences sharedPreferences;
-      
+	protected final static Gson gson = new Gson();
+	
 	/**
 	 * @return Application's {@code SharedPreferences}.
 	 */
@@ -241,6 +243,43 @@ public class Preferences {
 			LogManager.LogErrorMsg(className, methodName, logMessage);
 			Log.e(CommonConst.LOG_TAG, "[ERROR] {" + className + "} -> "
 					+ logMessage);
+		}
+	}
+
+	public static void addAccountToStringList(Context context, String accountsListName, String account){
+		String jsonAccountsList = getPreferencesString(context, accountsListName);
+		List<String> accountsList;
+        if(jsonAccountsList != null && !jsonAccountsList.isEmpty()){
+        	accountsList = gson.fromJson(jsonAccountsList, List.class);
+        	if(accountsList != null && !accountsList.isEmpty()){
+        		if(!accountsList.contains(account)){
+        			addAccountToList(context, accountsListName, accountsList, account);
+        		}
+        	}
+        } else {
+			accountsList = new ArrayList<String>();
+			addAccountToList(context, accountsListName, accountsList, account);
+		}
+	}
+	
+	private static void addAccountToList(Context context, String accountsListName, List<String> accountsList, String account){
+		accountsList.add(account);
+		String jsonAccountsList = gson.toJson(accountsList);
+		setPreferencesString(context, accountsListName, jsonAccountsList);
+	}
+
+	public static void removeAccountFromStringList(Context context, String accountsListName, String account){
+		String jsonAccountsList = getPreferencesString(context, accountsListName);
+		List<String> accountsList;
+        if(jsonAccountsList != null && !jsonAccountsList.isEmpty()){
+        	accountsList = gson.fromJson(jsonAccountsList, List.class);
+        	if(accountsList != null && !accountsList.isEmpty()){
+        		if(accountsList.contains(account)){
+        			accountsList.remove(account);
+        			jsonAccountsList = gson.toJson(accountsList);
+        			setPreferencesString(context, accountsListName, jsonAccountsList);
+        		}
+        	}
 		}
 	}
 

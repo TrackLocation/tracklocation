@@ -111,12 +111,12 @@ public class TrackLocationServiceLauncher implements Runnable {
         String jsonListAccounts = gson.toJson(commandData.getListAccounts());
         // Save list of recipients' accounts list 
         Preferences.setPreferencesString(context, 
-        		CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, jsonListAccounts);
+        		CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS, jsonListAccounts);
 
         List<String> listAccounts = null;
 		while (true) {
 			ContactDeviceDataList updatedSelectedContactDeviceDataList = new ContactDeviceDataList();
-			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS);
 	        if((jsonListAccounts == null || jsonListAccounts.isEmpty())){
 				// exit from loop - stop sending Start TrackLoccation Service command
 				break;
@@ -137,7 +137,8 @@ public class TrackLocationServiceLauncher implements Runnable {
 				if(contactDeviceData != null){
 					ContactData contactData = contactDeviceData.getContactData();
 					if(contactData != null){
-						if(listAccounts.contains(contactData.getEmail())){
+						if(listAccounts.contains(contactData.getEmail()) && 
+								!updatedSelectedContactDeviceDataList.contains(contactDeviceData)){
 							updatedSelectedContactDeviceDataList.add(contactDeviceData);
 						}
 					}
@@ -171,7 +172,7 @@ public class TrackLocationServiceLauncher implements Runnable {
 				return;
 			}
 			
-			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS);
+			jsonListAccounts = Preferences.getPreferencesString(context, CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS);
 			if(jsonListAccounts != null && !jsonListAccounts.isEmpty()){
 				tempListAccounts = gson.fromJson(jsonListAccounts, List.class);
 				if(!tempListAccounts.isEmpty()){
@@ -185,7 +186,9 @@ public class TrackLocationServiceLauncher implements Runnable {
 			}
 		}
 		// Reset list of recipients' accounts list to be empty
-        Preferences.setPreferencesString(context, CommonConst.PREFERENCES_SEND_COMMAND_TO_ACCOUNTS, "");
+        Preferences.setPreferencesString(context, CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS, "");
+        Preferences.setPreferencesString(context, CommonConst.PREFERENCES_ACCOUNTS_NO_PERMIT_SHARE_LOCATION, "");
+        
         logMessage = "Reset recipients list after loop to be empty.";
         LogManager.LogInfoMsg(className, methodName, logMessage);
         Log.i(CommonConst.LOG_TAG, "[INFO] {" + className + "} -> " + logMessage);

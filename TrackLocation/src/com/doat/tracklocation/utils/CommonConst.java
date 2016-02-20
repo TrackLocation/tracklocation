@@ -107,7 +107,10 @@ public class CommonConst {
  	
  	// SEND COMMAND
  	public static final String	START_CMD_SENDER_MESSAGE_DATA_CONTACT_DETAILS = "SenderMessageDataContactDetails";
- 	public static final String	PREFERENCES_SEND_COMMAND_TO_ACCOUNTS = "send_command_to_accounts";
+ 	// List of accounts that START TRACK LOCATION SERVICE command will be send to
+ 	public static final String	PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS = "start";
+ 	// List of accounts that not permit to share their location
+ 	public static final String	PREFERENCES_ACCOUNTS_NO_PERMIT_SHARE_LOCATION = "noshare";
  	public static final String	PREFERENCES_SEND_IS_ONLINE_TO_ACCOUNTS = "send_is_online_to_accounts";
  	public static final String	PREFERENCES_SEND_LOCATION_TO_ACCOUNTS = "send_location_to_accounts";
  	

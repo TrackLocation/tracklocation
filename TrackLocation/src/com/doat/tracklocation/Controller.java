@@ -662,7 +662,9 @@ public class Controller {
             @SuppressWarnings("unchecked")
     		List<String> listAccounts = gson.fromJson(jsonListAccounts, List.class);
             if(listAccounts != null && listAccounts.contains(senderAccount)){
-            	listAccounts.remove(senderAccount);
+            	while(listAccounts.contains(senderAccount)){
+                	listAccounts.remove(senderAccount);
+            	}
             	jsonListAccounts = gson.toJson(listAccounts);
             	if(jsonListAccounts == null){
             		jsonListAccounts = "";

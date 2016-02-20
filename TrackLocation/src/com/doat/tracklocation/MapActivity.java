@@ -74,6 +74,7 @@ import com.doat.tracklocation.datatype.ContactDeviceDataList;
 import com.doat.tracklocation.datatype.MapMarkerDetails;
 import com.doat.tracklocation.datatype.MessageDataContactDetails;
 import com.doat.tracklocation.datatype.MessageDataLocation;
+import com.doat.tracklocation.datatype.NotificationBroadcastData;
 import com.doat.tracklocation.db.DBConst;
 import com.doat.tracklocation.dialog.CommonDialog;
 import com.doat.tracklocation.dialog.InfoDialog;
@@ -137,7 +138,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	private Context context;
 	private Thread trackLocationServiceLauncherThread;
 	private TrackLocationServiceLauncher trackLocationServiceLauncher;
-	private boolean isPermissionDialogShown;
 
 	private LinkedHashMap<String, MapMarkerDetails> mapMarkerDetailsList = new LinkedHashMap<String, MapMarkerDetails>();
 	private MapMarkerDetails selectedMarkerDetails = null;
@@ -223,7 +223,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 		className = this.getClass().getName();
 		methodName = "onCreate";
-		isPermissionDialogShown = false;
 		isloadFirstInfoMessageShown = false;
 		setContentView(R.layout.map);
 
@@ -484,8 +483,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			trackLocationServiceLauncherThread.interrupt();
 		}
 
-		isPermissionDialogShown = false;
-
 		BackupDataOperations backupData = new BackupDataOperations();
 		boolean isBackUpSuccess = backupData.backUp();
 		if (isBackUpSuccess != true) {
@@ -612,15 +609,6 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 			public void onClick(View v) {
 				if (selectedMarkerDetails != null) {
 
-//					CommonDialog quitDialog = new CommonDialog(MapActivity.this, infoDialogOnClickListener);
-//					quitDialog.setDialogMessage("Are you sure?");
-//					quitDialog.setDialogTitle("Ring to chosen contact.");
-//					quitDialog.setPositiveButtonText("Yes");
-//					quitDialog.setNegativeButtonText("No");
-//					quitDialog.setStyle(CommonConst.STYLE_NORMAL, 0);
-//					quitDialog.setCancelable(true);
-//					quitDialog.showDialog();
-					
 					String title = "Ring to chosen contact.";
 					String message = "Are you sure?";
 					String positiveButtonName = "Yes";
@@ -1183,6 +1171,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 
 	private void initGcmLocationUpdatedBroadcastReceiver() {
 
+		methodName = "initGcmLocationUpdatedBroadcastReceiver";
 		LogManager.LogFunctionCall("ContactConfiguration", "initGcmIntentServiceWatcher");
 		IntentFilter intentFilter = new IntentFilter();
 		intentFilter.addAction(BroadcastActionEnum.BROADCAST_LOCATION_UPDATED.toString());
@@ -1262,8 +1251,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 									contactListController.stopCheckWhichContactsOnLineThread();
 								}
 							} catch (Exception e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+								logMessage = e.getMessage();
+								LogManager.LogException(e, className, methodName);
+								Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
 							}
 						}
 					}
@@ -1406,6 +1396,7 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 	}
 
 	private void updateSelectedData(MapMarkerDetails mapMarkerDetails) {
+		methodName = "updateSelectedData";
 		if (mapMarkerDetails != null && selectedMarkerDetails != null && mapMarkerDetails.getContactDetails().getAccount().equals(selectedMarkerDetails.getContactDetails().getAccount()) && viewStatus == DialogStatus.Opened) {
 			String accurancy = mapMarkerDetails.getLocationDetails().getLocationProviderType().equals("gps") ? "High" : "Low";
 			String snippetString = "Battery: " + String.valueOf(Math.round(mapMarkerDetails.getContactDetails().getBatteryPercentage())) + "%" +
@@ -1430,8 +1421,9 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 						snippetString = snippetString + "\nCity : " + city + "\nAddress: " + address;
 					}
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					logMessage = e.getMessage();
+					LogManager.LogException(e, className, methodName);
+					Log.e(CommonConst.LOG_TAG, "[EXCEPTION] {" + className + "} -> " + logMessage);
 				}
 			}
 			info_preview.setText(snippetString);
@@ -1780,14 +1772,49 @@ public class MapActivity extends BaseActivity implements LocationListener, Googl
 		}
 	}
 
-	public void showPermissionsInfoDialog(String dialogMessage) {
-		if (isPermissionDialogShown == false) {
-			String title = "Warning";
+	public void showPermissionsInfoDialog(NotificationBroadcastData broadcastData) {
+		MessageDataContactDetails messageDataContactDetails = broadcastData.getContactDetails();
+		String senderAccount = "";
+		String dialogMessage = "";
+		if(messageDataContactDetails != null){
+			senderAccount = messageDataContactDetails.getAccount();
+			dialogMessage = broadcastData.getMessage();
+		}
+		String title = "Warning";
+		if(!senderAccount.isEmpty()){
+			Preferences.removeAccountFromStringList(context, 
+				CommonConst.PREFERENCES_SEND_START_COMMAND_TO_ACCOUNTS, senderAccount);
+			dialogMessage = dialogMessage + " by " + senderAccount;
+			
+			// check if warning message should be shown 
+			// or may be it was shown already for this sender
+			if(!isWarningShownAlready(senderAccount)){
+				new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
+				Preferences.addAccountToStringList(context, 
+					CommonConst.PREFERENCES_ACCOUNTS_NO_PERMIT_SHARE_LOCATION, senderAccount);
+			}
+		} else {
 			new InfoDialog(MapActivity.this, context, title, dialogMessage, null);
-			isPermissionDialogShown = true;
 		}
 	}
 
+	private boolean isWarningShownAlready(String senderAccount){
+		String jsonNoSharePermissionAccountsList = 
+				Preferences.getPreferencesString(context, 
+					CommonConst.PREFERENCES_ACCOUNTS_NO_PERMIT_SHARE_LOCATION);
+		List<String> noSharePermissionAccountsList;
+        if(jsonNoSharePermissionAccountsList != null && !jsonNoSharePermissionAccountsList.isEmpty()){
+        	noSharePermissionAccountsList = 
+        		gson.fromJson(jsonNoSharePermissionAccountsList, List.class);
+        	if(noSharePermissionAccountsList != null && !noSharePermissionAccountsList.isEmpty()){
+        		if(noSharePermissionAccountsList.contains(senderAccount)){
+        			return true;
+        		}
+        	}
+		}
+        return false;
+	}
+	
 	public void updateContactsList(MessageDataContactDetails contactSentJoinRequest) {
 		contactDeviceDataList = ContactDeviceDataListModel.getInstance().getContactDeviceDataList(MapActivity.this, true);
 		if (adapterContacts != null) {
